@@ -13,7 +13,7 @@
 const supertest = require('supertest');
 const api = supertest(require('../../index').app);
 
-process.send({msg: 'ready'});
+process.send({ msg: 'ready' });
 process.on('message', (msg) => {
   api[msg.method](msg.path)
   .set('Authorization', msg.token)

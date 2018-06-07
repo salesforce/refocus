@@ -292,7 +292,8 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .catch(done);
       });
 
-      describe('make sure updating a nonexistent collector doesnt modify ' +
+      //TODO: need to add DB validation that Generator.currentCollector exists
+      describe.skip('make sure updating a nonexistent collector doesnt modify ' +
       'the collectorMap >', () => {
         const collector4 = u.getCollectorToCreate();
         collector4.name += '4';
@@ -302,9 +303,9 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           done();
         });
 
-        it('post with collector that doesnt exist', (done) => {
+        it('create with collector that doesnt exist', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector4], 404))
+          .then(() => u.createGenerator(generator1, userId, collector4, 404))
           .then(() => u.startCollector(collector4, collectorTokens, userToken))
           .then(() => u.sendHeartbeat(collector4, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 },
@@ -312,10 +313,10 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then(done).catch(done);
         });
 
-        it('patch with collector that doesnt exist', (done) => {
+        it('update with collector that doesnt exist', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, []))
-          .then(() => u.patchGenerator(generator1, userToken, [collector4], 404))
+          .then(() => u.createGenerator(generator1, userId, null))
+          .then(() => u.updateGenerator(generator1, userToken, collector4, 404))
           .then(() => u.startCollector(collector4, collectorTokens, userToken))
           .then(() => u.sendHeartbeat(collector4, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 },
@@ -323,22 +324,12 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then(done).catch(done);
         });
 
-        it('put with collector that doesnt exist', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, []))
-          .then(() => u.putGenerator(generator1, userToken, [collector4], 404))
-          .then(() => u.startCollector(collector4, collectorTokens, userToken))
-          .then(() => u.sendHeartbeat(collector4, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 },
-            res))
-          .then(done).catch(done);
-        });
       });
 
-      describe('basic updates >', () => {
-        it('post', (done) => {
+      describe('basic changes >', () => {
+        it('create', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => {
             u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res);
@@ -348,44 +339,22 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then(done).catch(done);
         });
 
-        it('patch', (done) => {
+        it('update', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.patchGenerator(generator1, userToken))
+          .then(() => u.updateGenerator(generator1, userToken))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 },
             res))
           .then(done).catch(done);
         });
 
-        it('patch add', (done) => {
+        it('update move', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.patchGenerator(generator1, userToken, [collector2]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
-          .then(done).catch(done);
-        });
-
-        it('put', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.putGenerator(generator1, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(done).catch(done);
-        });
-
-        it('put move', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.putGenerator(generator1, userToken, [collector2]))
+          .then(() => u.updateGenerator(generator1, userToken, collector2))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 }, res))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
@@ -393,103 +362,127 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then(done).catch(done);
         });
 
-        it('no updates', (done) => {
+        it('no changes', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
 
-        it('post with no collectors', (done) => {
+        it('create with no collectors', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken))
+          .then(() => u.createGenerator(generator1, userId))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
-          .then(() => u.patchGenerator(generator1, userToken))
+          .then(() => u.updateGenerator(generator1, userToken))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
-          .then(() => u.patchGenerator(generator1, userToken, [collector1]))
+          .then(() => u.updateGenerator(generator1, userToken, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
 
-        it('patch with duplicate names', (done) => {
+      });
+
+      describe('isActive', () => {
+        it('false - no change', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
+          .then(() => u.createGenerator(generator1, userId, collector1, false))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.patchGenerator(generator1, userToken, [collector1]))
+          .then((res) => {
+            u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res);
+          })
+          .then(done).catch(done);
+        });
+
+        it('true - added', (done) => {
+          Promise.resolve()
+          .then(() => u.createGenerator(generator1, userId, collector1, true))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.patchGenerator(generator1, userToken, [collector1, collector2]))
+          .then((res) => {
+            u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res);
+          })
+          .then(done).catch(done);
+        });
+
+        it('false -> false: no change', (done) => {
+          Promise.resolve()
+          .then(() => u.createGenerator(generator1, userId, collector1, false))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
+          .then(() => u.updateGenerator(generator1, userToken, null, false))
+          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 },
+            res))
+          .then(done).catch(done);
+        });
+
+        it('false -> true: added', (done) => {
+          Promise.resolve()
+          .then(() => u.createGenerator(generator1, userId, collector1, false))
+          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.updateGenerator(generator1, userToken, null, true))
+          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 },
+            res))
+          .then(done).catch(done);
+        });
+
+        it('true -> false: deleted', (done) => {
+          Promise.resolve()
+          .then(() => u.createGenerator(generator1, userId, collector1, true))
+          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.updateGenerator(generator1, userToken, null, false))
+          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 },
+            res))
+          .then(done).catch(done);
+        });
+
+        it('true -> true: updated', (done) => {
+          Promise.resolve()
+          .then(() => u.createGenerator(generator1, userId, collector1, true))
+          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.updateGenerator(generator1, userToken, null, true))
+          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 },
+            res))
           .then(done).catch(done);
         });
       });
 
-      describe('basic updates to multiple generators >', () => {
-        it('post', (done) => {
+      describe('basic changes to multiple generators >', () => {
+        it('create', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.postGenerator(generator2, userToken, [collector1]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.createGenerator(generator2, userId, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 2, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
 
-        it('patch', (done) => {
+        it('update', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.postGenerator(generator2, userToken, [collector1]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.createGenerator(generator2, userId, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.patchGenerator(generator1, userToken))
-          .then(() => u.patchGenerator(generator2, userToken))
+          .then(() => u.updateGenerator(generator1, userToken))
+          .then(() => u.updateGenerator(generator2, userToken))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 2 }, res))
           .then(done).catch(done);
         });
 
-        it('patch add', (done) => {
+        it('update move', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.postGenerator(generator2, userToken, [collector1]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.createGenerator(generator2, userId, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 2, deleted: 0, updated: 0 }, res))
-          .then(() => u.patchGenerator(generator1, userToken, [collector2]))
-          .then(() => u.patchGenerator(generator2, userToken, [collector2]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 2 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then((res) => u.expectLengths({ added: 2, deleted: 0, updated: 0 }, res))
-          .then(done).catch(done);
-        });
-
-        it('put', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.postGenerator(generator2, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 2, deleted: 0, updated: 0 }, res))
-          .then(() => u.putGenerator(generator1, userToken, [collector1]))
-          .then(() => u.putGenerator(generator2, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 2 }, res))
-          .then(done).catch(done);
-        });
-
-        it('put move', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.postGenerator(generator2, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 2, deleted: 0, updated: 0 }, res))
-          .then(() => u.putGenerator(generator1, userToken, [collector2]))
-          .then(() => u.putGenerator(generator2, userToken, [collector2]))
+          .then(() => u.updateGenerator(generator1, userToken, collector2))
+          .then(() => u.updateGenerator(generator2, userToken, collector2))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 2, updated: 0 }, res))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
@@ -498,117 +491,20 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         });
       });
 
-      describe('basic updates with multiple collectors >', () => {
-        it('post', (done) => {
+      describe('multiple changes to the same generator >', () => {
+        it('create + update', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1, collector2]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
-          .then(done).catch(done);
-        });
-
-        it('patch', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1, collector2]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then(() => u.patchGenerator(generator1, userToken))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(done).catch(done);
-        });
-
-        it('put', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1, collector2]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then(() => u.putGenerator(generator1, userToken, [collector1, collector2]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(done).catch(done);
-        });
-      });
-
-      describe('multiple updates to the same generator >', () => {
-        it('post + patch', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.patchGenerator(generator1, userToken))
+          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.updateGenerator(generator1, userToken))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
 
-        it('post + patch add', (done) => {
+        it('create + update move', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.patchGenerator(generator1, userToken, [collector2]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
-          .then(done).catch(done);
-        });
-
-        it('patch + patch', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.patchGenerator(generator1, userToken))
-          .then(() => u.patchGenerator(generator1, userToken))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(done).catch(done);
-        });
-
-        it('patch + patch add', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.patchGenerator(generator1, userToken))
-          .then(() => u.patchGenerator(generator1, userToken, [collector2]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
-          .then(done).catch(done);
-        });
-
-        it('patch add + patch add', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.patchGenerator(generator1, userToken, [collector2]))
-          .then(() => u.patchGenerator(generator1, userToken, [collector3]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
-          .then(done).catch(done);
-        });
-
-        it('post + put', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.putGenerator(generator1, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
-          .then(done).catch(done);
-        });
-
-        it('post + put move', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.putGenerator(generator1, userToken, [collector2]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.updateGenerator(generator1, userToken, collector2))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
@@ -616,23 +512,23 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then(done).catch(done);
         });
 
-        it('put + put', (done) => {
+        it('update + update', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.putGenerator(generator1, userToken, [collector1]))
-          .then(() => u.putGenerator(generator1, userToken, [collector1]))
+          .then(() => u.updateGenerator(generator1, userToken))
+          .then(() => u.updateGenerator(generator1, userToken))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
           .then(done).catch(done);
         });
 
-        it('put + put move', (done) => {
+        it('update + update move', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.putGenerator(generator1, userToken, [collector1]))
-          .then(() => u.putGenerator(generator1, userToken, [collector2]))
+          .then(() => u.updateGenerator(generator1, userToken))
+          .then(() => u.updateGenerator(generator1, userToken, collector2))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 }, res))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
@@ -640,12 +536,12 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then(done).catch(done);
         });
 
-        it('put move + put move', (done) => {
+        it('update move + update move', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.putGenerator(generator1, userToken, [collector2]))
-          .then(() => u.putGenerator(generator1, userToken, [collector3]))
+          .then(() => u.updateGenerator(generator1, userToken, collector2))
+          .then(() => u.updateGenerator(generator1, userToken, collector3))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 }, res))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
@@ -655,53 +551,20 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then(done).catch(done);
         });
 
-        it('put move + put move back', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.putGenerator(generator1, userToken, [collector2]))
-          .then(() => u.putGenerator(generator1, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
-          .then(done).catch(done);
-        });
-
-        it('put + patch', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.putGenerator(generator1, userToken, [collector1]))
-          .then(() => u.patchGenerator(generator1, userToken))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(done).catch(done);
-        });
-
-        it('post + put + patch', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.patchGenerator(generator1, userToken))
-          .then(() => u.putGenerator(generator1, userToken, [collector1]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
-          .then(done).catch(done);
-        });
       });
 
-      describe('updates to multiple generators >', () => {
+      describe('changes to multiple generators >', () => {
         it('update', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.postGenerator(generator2, userToken, [collector2]))
-          .then(() => u.postGenerator(generator3, userToken, [collector3]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.createGenerator(generator2, userId, collector2))
+          .then(() => u.createGenerator(generator3, userId, collector3))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
           .then(() => u.sendHeartbeat(collector3, collectorTokens))
-          .then(() => u.patchGenerator(generator1, userToken))
-          .then(() => u.patchGenerator(generator2, userToken))
-          .then(() => u.patchGenerator(generator3, userToken))
+          .then(() => u.updateGenerator(generator1, userToken))
+          .then(() => u.updateGenerator(generator2, userToken))
+          .then(() => u.updateGenerator(generator3, userToken))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
@@ -713,15 +576,15 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
 
         it('update and move', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.postGenerator(generator2, userToken, [collector1]))
-          .then(() => u.postGenerator(generator3, userToken, [collector3]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.createGenerator(generator2, userId, collector1))
+          .then(() => u.createGenerator(generator3, userId, collector3))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
           .then(() => u.sendHeartbeat(collector3, collectorTokens))
-          .then(() => u.putGenerator(generator1, userToken, [collector1]))
-          .then(() => u.putGenerator(generator2, userToken, [collector2]))
-          .then(() => u.putGenerator(generator3, userToken, [collector1]))
+          .then(() => u.updateGenerator(generator1, userToken, collector1))
+          .then(() => u.updateGenerator(generator2, userToken, collector2))
+          .then(() => u.updateGenerator(generator3, userToken, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 1, deleted: 1, updated: 1 }, res))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
@@ -732,18 +595,18 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         });
       });
 
-      describe('multiple updates to multiple generators >', () => {
-        it('post then move all twice', (done) => {
+      describe('multiple changes to multiple generators >', () => {
+        it('create then move all twice', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.postGenerator(generator2, userToken, [collector2]))
-          .then(() => u.postGenerator(generator3, userToken, [collector3]))
-          .then(() => u.putGenerator(generator1, userToken, [collector1]))
-          .then(() => u.putGenerator(generator2, userToken, [collector1]))
-          .then(() => u.putGenerator(generator3, userToken, [collector1]))
-          .then(() => u.putGenerator(generator1, userToken, [collector2]))
-          .then(() => u.putGenerator(generator2, userToken, [collector2]))
-          .then(() => u.putGenerator(generator3, userToken, [collector2]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.createGenerator(generator2, userId, collector2))
+          .then(() => u.createGenerator(generator3, userId, collector3))
+          .then(() => u.updateGenerator(generator1, userToken, collector1))
+          .then(() => u.updateGenerator(generator2, userToken, collector1))
+          .then(() => u.updateGenerator(generator3, userToken, collector1))
+          .then(() => u.updateGenerator(generator1, userToken, collector2))
+          .then(() => u.updateGenerator(generator2, userToken, collector2))
+          .then(() => u.updateGenerator(generator3, userToken, collector2))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
@@ -755,18 +618,18 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
 
         it('move all twice', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.postGenerator(generator2, userToken, [collector2]))
-          .then(() => u.postGenerator(generator3, userToken, [collector3]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.createGenerator(generator2, userId, collector2))
+          .then(() => u.createGenerator(generator3, userId, collector3))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
           .then(() => u.sendHeartbeat(collector3, collectorTokens))
-          .then(() => u.putGenerator(generator1, userToken, [collector1]))
-          .then(() => u.putGenerator(generator2, userToken, [collector1]))
-          .then(() => u.putGenerator(generator3, userToken, [collector1]))
-          .then(() => u.putGenerator(generator1, userToken, [collector2]))
-          .then(() => u.putGenerator(generator2, userToken, [collector2]))
-          .then(() => u.putGenerator(generator3, userToken, [collector2]))
+          .then(() => u.updateGenerator(generator1, userToken, collector1))
+          .then(() => u.updateGenerator(generator2, userToken, collector1))
+          .then(() => u.updateGenerator(generator3, userToken, collector1))
+          .then(() => u.updateGenerator(generator1, userToken, collector2))
+          .then(() => u.updateGenerator(generator2, userToken, collector2))
+          .then(() => u.updateGenerator(generator3, userToken, collector2))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 }, res))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
@@ -778,21 +641,21 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
 
         it('move all - cycle collectors', (done) => {
           Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1]))
-          .then(() => u.postGenerator(generator2, userToken, [collector2]))
-          .then(() => u.postGenerator(generator3, userToken, [collector3]))
+          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.createGenerator(generator2, userId, collector2))
+          .then(() => u.createGenerator(generator3, userId, collector3))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
           .then(() => u.sendHeartbeat(collector3, collectorTokens))
-          .then(() => u.putGenerator(generator1, userToken, [collector2]))
-          .then(() => u.putGenerator(generator2, userToken, [collector3]))
-          .then(() => u.putGenerator(generator3, userToken, [collector1]))
-          .then(() => u.putGenerator(generator1, userToken, [collector3]))
-          .then(() => u.putGenerator(generator2, userToken, [collector1]))
-          .then(() => u.putGenerator(generator3, userToken, [collector2]))
-          .then(() => u.putGenerator(generator1, userToken, [collector1]))
-          .then(() => u.putGenerator(generator2, userToken, [collector2]))
-          .then(() => u.putGenerator(generator3, userToken, [collector3]))
+          .then(() => u.updateGenerator(generator1, userToken, collector2))
+          .then(() => u.updateGenerator(generator2, userToken, collector3))
+          .then(() => u.updateGenerator(generator3, userToken, collector1))
+          .then(() => u.updateGenerator(generator1, userToken, collector3))
+          .then(() => u.updateGenerator(generator2, userToken, collector1))
+          .then(() => u.updateGenerator(generator3, userToken, collector2))
+          .then(() => u.updateGenerator(generator1, userToken, collector1))
+          .then(() => u.updateGenerator(generator2, userToken, collector2))
+          .then(() => u.updateGenerator(generator3, userToken, collector3))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
@@ -803,36 +666,6 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         });
       });
 
-      describe('multiple generators multiple collectors >', () => {
-        it('update', (done) => {
-          Promise.resolve()
-          .then(() => u.postGenerator(generator1, userToken, [collector1, collector2]))
-          .then(() => u.postGenerator(generator2, userToken, [collector2, collector3]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then((res) => u.expectLengths({ added: 2, deleted: 0, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
-          .then(() => u.patchGenerator(generator1, userToken))
-          .then(() => u.patchGenerator(generator2, userToken))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 2 }, res))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.putGenerator(generator1, userToken, [collector2]))
-          .then(() => u.putGenerator(generator2, userToken, [collector1, collector2]))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 1, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 2 }, res))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 }, res))
-          .then(done).catch(done);
-        });
-      });
     });
 
     describe('config changes >', () => {
@@ -1033,7 +866,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         const timestamp = Date.now();
         const secretKeyColl = authToken + timestamp;
 
-        u.postGenerator(generator1, userToken, [collector1])
+        u.createGenerator(generator1, userId, collector1)
         .then(() => u.sendHeartbeat(collector1, collectorTokens, { timestamp }))
         .then((res) => {
           const reencryptedSG = res.body.generatorsAdded[0];
@@ -1097,7 +930,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           }
 
           expect(res.body.createdBy).to.equal(userId);
-          return u.postGenerator(generator2, userToken, [collector1])
+          return u.createGenerator(generator2, userId, collector1)
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => {
             expect(res.body.generatorsAdded[0])

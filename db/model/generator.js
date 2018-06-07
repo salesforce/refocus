@@ -15,6 +15,7 @@ const sgUtils = require('../helpers/generatorUtil');
 const cryptUtils = require('../../utils/cryptUtils');
 const constants = require('../constants');
 const dbErrors = require('../dbErrors');
+const hbUtils = require('../../api/v1/helpers/verbs/heartbeatUtils');
 const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
 const assoc = {};
@@ -191,16 +192,36 @@ module.exports = function generator(seq, dataTypes) {
       }, // beforeDestroy
 
       afterCreate(inst /* , opts*/) {
-        if (inst.createdBy) {
-          return new seq.Promise((resolve, reject) =>
-            inst.addWriter(inst.createdBy)
-            .then(() => resolve(inst))
-            .catch((err) => reject(err))
-          );
-        }
+        return Promise.all([
+          Promise.resolve().then(() => {
+            if (inst.currentCollector && inst.isActive) {
+              const newCollector = inst.currentCollector;
+              return hbUtils.trackGeneratorChanges(inst, null, newCollector);
+            }
+          }),
+          Promise.resolve().then(() => {
+            if (inst.createdBy) {
+              return inst.addWriter(inst.createdBy);
+            }
+          }),
+        ]);
 
         return inst;
       }, // afterCreate
+
+      afterUpdate(inst) {
+        let oldCollector = inst.previous('currentCollector');
+        let newCollector = inst.get('currentCollector');
+        if (!inst.previous('isActive') && inst.get('isActive')) {
+          oldCollector = null;
+        } else if (inst.previous('isActive') && !inst.get('isActive')) {
+          newCollector = null;
+        } else if (!inst.previous('isActive') && !inst.get('isActive')) {
+          oldCollector = newCollector = null;
+        }
+
+        return hbUtils.trackGeneratorChanges(inst, oldCollector, newCollector);
+      }, //afterUpdate
     },
     validate: {
       eitherSubjectsORsubjectQuery() {
