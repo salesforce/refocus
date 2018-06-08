@@ -292,6 +292,7 @@ module.exports = function generator(seq, dataTypes) {
             'name',
             'registered',
             'status',
+            'lastHeartbeat',
             'isDeleted',
             'createdAt',
             'updatedAt',
@@ -321,6 +322,7 @@ module.exports = function generator(seq, dataTypes) {
             'name',
             'registered',
             'status',
+            'lastHeartbeat',
             'isDeleted',
             'createdAt',
             'updatedAt',
@@ -335,12 +337,10 @@ module.exports = function generator(seq, dataTypes) {
    * If fail, return a rejected Promise
    *
    * @param {Array} collectorNames Array of strings
-   * @param {Function} whereClauseForNameInArr Returns an object query
    * @returns {Promise} with collectors if pass, error if fail
    */
-  Generator.validateCollectors = function (collectorNames, whereClauseForNameInArr) {
-    return sgUtils.validateCollectors(seq, collectorNames,
-      whereClauseForNameInArr);
+  Generator.validateCollectors = function (collectorNames) {
+    return sgUtils.validateCollectors(seq, collectorNames);
   };
 
   /**
@@ -350,15 +350,13 @@ module.exports = function generator(seq, dataTypes) {
    * 3. add the saved collectors (if any)
    *
    * @param {Object} requestBody From API
-   * @param {Function} whereClauseForNameInArr Returns an object query
    * @returns {Promise} created generator with collectors (if any)
    */
-  Generator.createWithCollectors = function (requestBody, whereClauseForNameInArr) {
+  Generator.createWithCollectors = function (requestBody) {
     let createdGenerator;
     let collectors; // will be populated with actual collectors
     return new seq.Promise((resolve, reject) =>
-      sgUtils.validateCollectors(seq, requestBody.collectors,
-        whereClauseForNameInArr)
+      sgUtils.validateCollectors(seq, requestBody.collectors)
       .then((_collectors) => {
         collectors = _collectors;
         return Generator.create(requestBody);
@@ -389,14 +387,12 @@ module.exports = function generator(seq, dataTypes) {
    * 3. add the saved collectors (if any)
    *
    * @param {Object} requestBody From API
-   * @param {Function} whereClauseForNameInArr Returns an object query
    * @returns {Promise} created generator with collectors (if any)
    */
-  Generator.prototype.updateWithCollectors = function (requestBody, whereClauseForNameInArr) {
+  Generator.prototype.updateWithCollectors = function (requestBody) {
     let collectors; // will be populated with actual collectors
     return new seq.Promise((resolve, reject) =>
-      sgUtils.validateCollectors(seq, requestBody.collectors,
-        whereClauseForNameInArr)
+      sgUtils.validateCollectors(seq, requestBody.collectors)
       .then((_collectors) => { // collectors list in request body
         collectors = _collectors;
         return this.update(requestBody);
@@ -441,6 +437,31 @@ module.exports = function generator(seq, dataTypes) {
     })
     .then(() => g);
   }; // updateForHeartbeat
+
+  /**
+   * Assigns the generator to an available collector.
+   * If the generator specifies a "collectors" attribute, only collectors on that
+   * list may be assigned. Otherwise, any collector may be used.
+   *
+   * @returns {Promise<Generator>}
+   */
+  Generator.prototype.assignGenerator = function () {
+    return Promise.resolve()
+    .then(() => {
+      if (this.collectors && this.collectors.length) {
+        return this.collectors.find((c) => c.isRunning() && c.isAlive());
+      } else {
+        return seq.models.Collector.findAliveCollector();
+      }
+    })
+    .then((newColl) => {
+      if (newColl) {
+        return this.update({ currentCollector: newColl.name });
+      } else {
+        return this;
+      }
+    });
+  };
 
   return Generator;
 };

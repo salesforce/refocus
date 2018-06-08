@@ -114,6 +114,7 @@ describe(`tests/api/v1/subjects/get.js, GET ${path} >`, () => {
   'absolutePath by default', (done) => {
     api.get(`${path}`)
     .set('Authorization', token)
+    .expect(res => console.log(res.body))
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
