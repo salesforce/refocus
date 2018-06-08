@@ -445,7 +445,7 @@ module.exports = function generator(seq, dataTypes) {
    *
    * @returns {Promise<Generator>}
    */
-  Generator.prototype.assignGenerator = function () {
+  Generator.prototype.assignToCollector = function () {
     return Promise.resolve()
     .then(() => {
       if (this.collectors && this.collectors.length) {

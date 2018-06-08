@@ -253,7 +253,7 @@ module.exports = function collector(seq, dataTypes) {
   Collector.prototype.reassignGenerators = function () {
     /* TODO: change to use currentGenerators once that includes current gens only */
     return seq.models.Generator.findAll({ where: { currentCollector: this.name } })
-    .then((gens) => Promise.all(gens.map((g) => g.assignGenerator())));
+    .then((gens) => Promise.all(gens.map((g) => g.assignToCollector())));
   };
 
   Collector.prototype.isWritableBy = function (who) {

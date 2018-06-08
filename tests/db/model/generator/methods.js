@@ -72,14 +72,14 @@ describe('tests/db/model/generator/methods.js >', () => {
   afterEach(u.forceDelete);
   afterEach(gtUtil.forceDelete);
 
-  describe('assignGenerator', () => {
+  describe('assignToCollector', () => {
     it('collectors specified, first choice available', () =>
       Promise.resolve()
       .then(() => Generator.findById(gen1.id))
       .then((g) => g.updateWithCollectors({ collectors: [coll2.name, coll3.name] }))
 
       .then(() => Generator.findById(gen1.id))
-      .then((g) => g.assignGenerator())
+      .then((g) => g.assignToCollector())
 
       .then(() => Generator.findById(gen1.id))
       .then((gen1) => expect(gen1.currentCollector).to.equal(coll2.name))
@@ -96,7 +96,7 @@ describe('tests/db/model/generator/methods.js >', () => {
       ))
 
       .then(() => Generator.findById(gen1.id))
-      .then((gen1) => gen1.assignGenerator())
+      .then((gen1) => gen1.assignToCollector())
 
       .then(() => Generator.findById(gen1.id))
       .then((gen1) => expect(gen1.currentCollector).to.equal(coll3.name))
@@ -113,7 +113,7 @@ describe('tests/db/model/generator/methods.js >', () => {
       ))
 
       .then(() => Generator.findById(gen1.id))
-      .then((gen1) => gen1.assignGenerator())
+      .then((gen1) => gen1.assignToCollector())
 
       .then(() => Generator.findById(gen1.id))
       .then((gen1) => expect(gen1.currentCollector).to.equal(null))
@@ -122,7 +122,7 @@ describe('tests/db/model/generator/methods.js >', () => {
     it('collectors not specified, first collector available', () =>
       Promise.resolve()
       .then(() => Generator.findById(gen1.id))
-      .then((g) => g.assignGenerator())
+      .then((g) => g.assignToCollector())
       .then(() => Generator.findById(gen1.id))
       .then((gen1) => expect(gen1.currentCollector).to.equal(coll1.name))
     );
@@ -133,7 +133,7 @@ describe('tests/db/model/generator/methods.js >', () => {
       .then((c) => c.update({ status: collectorStatuses.Stopped }))
 
       .then(() => Generator.findById(gen1.id))
-      .then((g) => g.assignGenerator())
+      .then((g) => g.assignToCollector())
 
       .then(() => Generator.findById(gen1.id))
       .then((gen1) => expect(gen1.currentCollector).to.equal(coll2.name))
@@ -154,7 +154,7 @@ describe('tests/db/model/generator/methods.js >', () => {
       ]))
 
       .then(() => Generator.findById(gen1.id))
-      .then((g) => g.assignGenerator())
+      .then((g) => g.assignToCollector())
 
       .then(() => Generator.findById(gen1.id))
       .then((gen1) => expect(gen1.currentCollector).to.equal(coll3.name))
