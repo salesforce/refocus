@@ -156,7 +156,7 @@ module.exports = {
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       u.patchArrayFields(o, requestBody, helper);
-      return o.updateWithCollectors(requestBody, u.whereClauseForNameInArr);
+      return o.updateWithCollectors(requestBody);
     })
     .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -180,7 +180,7 @@ module.exports = {
     toPost.createdBy = req.user.id;
     validateGeneratorAspectsPermissions(toPost.aspects, req)
     .then(() =>
-      helper.model.createWithCollectors(toPost, u.whereClauseForNameInArr))
+      helper.model.createWithCollectors(toPost))
     .then((o) => o.reload())
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -220,8 +220,7 @@ module.exports = {
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       instance = o;
-      return helper.model.validateCollectors(
-        toPut.collectors, u.whereClauseForNameInArr);
+      return helper.model.validateCollectors(toPut.collectors);
     })
     .then((_collectors) => {
       collectors = _collectors;
