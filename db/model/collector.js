@@ -154,22 +154,39 @@ module.exports = function collector(seq, dataTypes) {
    * Returns a list of running collectors where the time since the last
    * heartbeat is greater than the latency tolerance.
    *
-   * @param {Integer} latencyTolerance - For testing, pass in heartbeat
-   *  latency tolerance millis. If false-y, uses
-   *  collectorConfig.heartbeatLatencyToleranceMillis.
-   * @param {Date} now - For testing, pass in a Date object to represent
-   *  the current time. If false-y, uses current time.
+   * @returns {Array<Collector>}
    */
-  Collector.missedHeartbeat = function (latencyTolerance, now) {
-    const tolerance = latencyTolerance ||
-      collectorConfig.heartbeatLatencyToleranceMillis;
-    const curr = (now || new Date()).getTime();
-    return Collector.scope('running').findAll()
-    .then((colls) => colls.filter((c) => {
-      const elapsed = curr - new Date(c.lastHeartbeat).getTime();
-      return elapsed >= tolerance;
-    }));
+  Collector.missedHeartbeat = function () {
+    return Collector.scope('defaultScope', 'running').findAll()
+    .then((colls) => colls.filter((c) => !c.isAlive()));
   }; // missedHeartbeat
+
+  /**
+   * Returns a single running collector where the time since the last
+   * heartbeat is within the latency tolerance.
+   *
+   * @returns {Collector}
+   */
+  Collector.findAliveCollector = function () {
+    return Collector.scope('defaultScope', 'running').findAll()
+    .then((colls) => colls.find((c) => c.isAlive()));
+  }; // findAliveCollector
+
+  /**
+   * Checks for collectors that have missed their heartbeat. Updates their status
+   * and reassigns all affected generators.
+   *
+   * @returns {Promise<Array<Array<Generator>>>}
+   */
+  Collector.checkMissedHeartbeat = function () {
+    return Collector.missedHeartbeat()
+    .then((deadCollectors) =>
+      Promise.all(deadCollectors.map((coll) =>
+        coll.update({ status: constants.collectorStatuses.MissedHeartbeat })
+        .then(() => coll.reassignGenerators())
+      ))
+    );
+  }; // checkMissedHeartbeat
 
   Collector.postImport = function (models) {
     assoc.currentGenerators = Collector.belongsToMany(models.Generator, {
@@ -202,6 +219,42 @@ module.exports = function collector(seq, dataTypes) {
   /**
    * Instance Methods:
    */
+
+  /**
+   * Returns true if this collector is running
+   *
+   * @returns {Boolean}
+   */
+  Collector.prototype.isRunning = function () {
+    return this.status === constants.collectorStatuses.Running;
+  }; // isRunning
+
+  /**
+   * Determines whether the time since the last heartbeat is within
+   * the latency tolerance.
+   *
+   * @returns {Boolean}
+   */
+  Collector.prototype.isAlive = function () {
+    if (!this.lastHeartbeat) return false;
+    const tolerance = collectorConfig.heartbeatLatencyToleranceMillis;
+    const now = Date.now();
+    const lastHeartbeat = this.lastHeartbeat.getTime();
+    const elapsed = now - lastHeartbeat;
+    return elapsed < tolerance;
+  }; // isAlive
+
+  /**
+   * Reassigns all generators that are currently running on the collector.
+   *
+   * @param {Collector} coll - The collector to reassign generators
+   * @returns {Promise<Array<Generator>>}
+   */
+  Collector.prototype.reassignGenerators = function () {
+    /* TODO: change to use currentGenerators once that includes current gens only */
+    return seq.models.Generator.findAll({ where: { currentCollector: this.name } })
+    .then((gens) => Promise.all(gens.map((g) => g.assignGenerator())));
+  };
 
   Collector.prototype.isWritableBy = function (who) {
     return new seq.Promise((resolve /* , reject */) =>
