@@ -449,14 +449,12 @@ module.exports = function generator(seq, dataTypes) {
     return Promise.resolve()
     .then(() => {
       if (this.collectors && this.collectors.length) {
-        console.log(this.collectors.map(c=>c.name))
         return this.collectors.find((c) => c.isRunning() && c.isAlive());
       } else {
         return seq.models.Collector.findAliveCollector();
       }
     })
     .then((newColl) => {
-      console.log(newColl)
       if (newColl) {
         return this.update({ currentCollector: newColl.name });
       } else {

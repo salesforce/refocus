@@ -226,7 +226,6 @@ module.exports = function collector(seq, dataTypes) {
    * @returns {Boolean}
    */
   Collector.prototype.isRunning = function () {
-    console.log('isRunning', this.name, this.status)
     return this.status === constants.collectorStatuses.Running;
   }; // isRunning
 
@@ -237,7 +236,6 @@ module.exports = function collector(seq, dataTypes) {
    * @returns {Boolean}
    */
   Collector.prototype.isAlive = function () {
-    console.log('isAlive', this.name, this.lastHeartbeat, new Date())
     if (!this.lastHeartbeat) return false;
     const tolerance = collectorConfig.heartbeatLatencyToleranceMillis;
     const now = Date.now();
