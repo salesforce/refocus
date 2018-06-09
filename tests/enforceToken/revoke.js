@@ -59,7 +59,8 @@ describe('tests/enforceToken/revoke.js, enforceToken: revoke >', () => {
         .expect(constants.httpStatus.FORBIDDEN)
         .end((err3, res3) => {
           if (err3) return done(err3);
-          expect(res3.body.errors[0].description).to.eql('Forbidden');
+          expect(res3.body.errors[0].description)
+            .to.eql('Authentication Failed');
           return done();
         });
       });

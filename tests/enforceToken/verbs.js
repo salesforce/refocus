@@ -87,14 +87,8 @@ describe('tests/enforceToken/verbs.js, API verb token enforced tests', () => {
 
           call
           .expect(FORBIDDEN)
-          .expect(/No authorization token was found/)
-          .end((err /* res */) => {
-            if (err) {
-              done(err);
-            }
-
-            done();
-          });
+          .expect(/Authentication Failed/)
+          .end(done);
         });
 
         it(`${VERB} ${path} wrong token provided returns FORBIDDEN`,
@@ -107,6 +101,7 @@ describe('tests/enforceToken/verbs.js, API verb token enforced tests', () => {
           call
           .set('Authorization', `${defaultToken}xyz`)
           .expect(FORBIDDEN)
+          .expect(/Authentication Failed/)
           .end(done);
         });
 

@@ -80,7 +80,7 @@ describe('tests/api/v1/collectors/patch.js >', () => {
     .end((err, res) => {
       if (err) return done(err);
       expect(res.body.errors[0])
-        .to.contain.property('description', 'Forbidden');
+        .to.contain.property('description', 'Authentication Failed');
       done();
     });
   });

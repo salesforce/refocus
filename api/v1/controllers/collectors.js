@@ -176,7 +176,9 @@ function patchCollector(req, res, next) {
 
   // If patching restricted fields, make sure this is collector token.
   if (verifyCtrToken && !req.headers.IsCollector) {
-    const err = new apiErrors.ForbiddenError({ explanation: 'Forbidden' });
+    const err = new apiErrors.ForbiddenError({
+      explanation: 'Authentication Failed',
+    });
     return u.handleError(next, err, helper.modelName);
   };
 
@@ -240,8 +242,7 @@ function heartbeat(req, res, next) {
   const resultObj = { reqStartTime: req.timestamp };
   if (!req.headers.IsCollector) {
     throw new apiErrors.ForbiddenError({
-      explanation: `The token: ${req.headers.TokenName} does not belong to ' +
-        'a collector`,
+      explanation: 'Authentication Failed',
     });
   }
 
@@ -267,7 +268,7 @@ function heartbeat(req, res, next) {
      */
     if (collectorNameFromToken !== o.name) {
       throw new apiErrors.ForbiddenError({
-        explanation: 'Token does not match the specified collector',
+        explanation: 'Authentication Failed',
       });
     } else if (o.status !== 'Running' && o.status !== 'Paused') {
       throw new apiErrors.ForbiddenError({

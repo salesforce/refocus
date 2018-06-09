@@ -151,7 +151,9 @@ function verifyCollectorToken(payload, req, cb) {
   .then(() => Collector.findOne({ where: { name: payload.tokenname } }))
   .then((coll) => {
     if (!coll) {
-      throw new apiErrors.ForbiddenError({ explanation: 'Forbidden' });
+      throw new apiErrors.ForbiddenError({
+        explanation: 'Authentication Failed',
+      });
     }
 
     assignHeaderValues(req, payload);
@@ -159,7 +161,7 @@ function verifyCollectorToken(payload, req, cb) {
   })
   .catch((err) => {
     throw new apiErrors.ForbiddenError({
-      explanation: 'Invalid/No Token provided.',
+      explanation: 'Authentication Failed',
     });
   });
 } // verifyCollectorToken
@@ -181,7 +183,9 @@ function verifyGeneratorToken(payload, req, cb) {
   .then(() => Generator.findOne({ where: { name: payload.tokenname } }))
   .then((gen) => {
     if (!gen) {
-      throw new apiErrors.ForbiddenError({ explanation: 'Forbidden' });
+      throw new apiErrors.ForbiddenError({
+        explanation: 'Authentication Failed',
+      });
     }
 
     assignHeaderValues(req, payload);
@@ -189,7 +193,7 @@ function verifyGeneratorToken(payload, req, cb) {
   })
   .catch(() => {
     throw new apiErrors.ForbiddenError({
-      explanation: 'Invalid/No Token provided.',
+      explanation: 'Authentication Failed',
     });
   });
 } // verifyGeneratorToken
@@ -209,7 +213,7 @@ function setUser(payload, req) {
   .then((user) => {
     if (!user) {
       throw new apiErrors.ForbiddenError({
-        explanation: 'Invalid Token.',
+        explanation: 'Authentication Failed',
       });
     }
 
@@ -262,11 +266,10 @@ function verifyUserToken(payload, req, cb) {
 } // verifyUserToken
 
 /**
- * Verify jwt token. The token is verified against an user record first; if
- * the verification fails, verify the token against a collector record.
- *
- * TODO: look at the req object and call either verifyUser or verifyCollector
- * based on the api path.
+ * Verify jwt token. Perform any additional verification based on the type of
+ * user. For a collector or generator, make sure the name matches a collector
+ * or generator name. For a person, make sure the named token exists for this
+ * user.
  *
  * @param  {object}   req - request object
  * @param  {Function} cb - callback function
@@ -276,18 +279,27 @@ function verifyToken(req, cb) {
   if (token) {
     return jwtVerifyAsync(token, secret, {})
     .then((payload) => {
-      if (payload.IsCollector) return verifyCollectorToken(payload, req, cb);
-      if (payload.IsGenerator) return verifyGeneratorToken(payload, req, cb);
-      return verifyUserToken(payload, req, cb);
+      let extraVerification;
+      if (payload.IsCollector) {
+        extraVerification = verifyCollectorToken;
+      } else if (payload.IsGenerator) {
+        extraVerification = verifyGeneratorToken;
+      } else {
+        extraVerification = verifyUserToken;
+      }
+
+      return extraVerification(payload, req, cb);
     })
     .catch((err) => {
-      const e = new apiErrors.ForbiddenError({ explanation: 'Forbidden' });
+      const e = new apiErrors.ForbiddenError({
+        explanation: 'Authentication Failed',
+      });
       return handleError(cb, e, 'ApiToken');
     });
   }
 
   const err = new apiErrors.ForbiddenError({
-    explanation: 'No authorization token was found.',
+    explanation: 'Authentication Failed',
   });
   return handleError(cb, err, 'ApiToken');
 } // verifyToken

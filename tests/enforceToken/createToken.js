@@ -38,7 +38,7 @@ describe('tests/enforceToken/createToken.js, api: createToken >', () => {
     api.post(tokenPath)
     .send({ name: 'newToken' })
     .expect(constants.httpStatus.FORBIDDEN)
-    .expect(/No authorization token was found/)
+    .expect(/Authentication Failed/)
     .end(done);
   });
 
@@ -47,6 +47,7 @@ describe('tests/enforceToken/createToken.js, api: createToken >', () => {
     .set('Authorization', `${defaultToken}xyz`)
     .send({ name: 'newToken' })
     .expect(constants.httpStatus.FORBIDDEN)
+    .expect(/Authentication Failed/)
     .end(done);
   });
 
