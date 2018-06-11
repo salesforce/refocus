@@ -86,66 +86,6 @@ module.exports = function lens(seq, dataTypes) {
       type: dataTypes.STRING,
     },
   }, {
-    classMethods: {
-      getLensAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'lensAccess';
-      },
-
-      postImport(models) {
-        assoc.user = Lens.belongsTo(models.User, {
-          foreignKey: 'installedBy',
-          as: 'user',
-        });
-        assoc.writers = Lens.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'LensWriters',
-          foreignKey: 'lensId',
-        });
-
-        Lens.addScope('lensLibrary', {
-          attributes: { include: ['name', 'library'] },
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email'],
-            },
-          ],
-        }, {
-          override: true,
-        });
-
-        Lens.addScope('baseScope', {
-          attributes: { exclude: ['library'] },
-          order: ['Lens.name'],
-        });
-
-        Lens.addScope('defaultScope', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email'],
-            },
-          ],
-          attributes: { exclude: ['library'] },
-          order: ['Lens.name'],
-        }, {
-          override: true,
-        });
-
-        Lens.addScope('user', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email'],
-            },
-          ],
-        });
-      },
-    },
 
     hooks: {
       /**
@@ -270,23 +210,90 @@ module.exports = function lens(seq, dataTypes) {
         ],
       },
     ],
-    instanceMethods: {
-      isWritableBy(who) {
-        return new seq.Promise((resolve /* , reject */) =>
-          this.getWriters()
-          .then((writers) => {
-            if (!writers.length) {
-              resolve(true);
-            }
-
-            const found = writers.filter((w) =>
-              w.name === who || w.id === who);
-            resolve(found.length === 1);
-          }));
-      }, // isWritableBy
-    },
     paranoid: true,
     tableName: 'Lenses',
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Lens.getLensAssociations = function () {
+    return assoc;
+  };
+
+  Lens.getProfileAccessField = function () {
+    return 'lensAccess';
+  };
+
+  Lens.postImport = function (models) {
+    assoc.user = Lens.belongsTo(models.User, {
+      foreignKey: 'installedBy',
+      as: 'user',
+    });
+    assoc.writers = Lens.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'LensWriters',
+      foreignKey: 'lensId',
+    });
+
+    Lens.addScope('lensLibrary', {
+      attributes: { include: ['name', 'library'] },
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email'],
+        },
+      ],
+    }, {
+      override: true,
+    });
+
+    Lens.addScope('baseScope', {
+      attributes: { exclude: ['library'] },
+      order: ['name'],
+    });
+
+    Lens.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email'],
+        },
+      ],
+      attributes: { exclude: ['library'] },
+      order: ['name'],
+    }, {
+      override: true,
+    });
+
+    Lens.addScope('user', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email'],
+        },
+      ],
+    });
+  };
+
+  /**
+   * Instance Methods:
+   */
+
+  Lens.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getWriters()
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
   return Lens;
 };

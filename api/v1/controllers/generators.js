@@ -23,6 +23,7 @@ const constants = require('../constants');
 const Aspect = require('../helpers/nouns/aspects').model;
 const apiErrors = require('../apiErrors');
 const apiUtils = require('./utils');
+const Op = require('sequelize').Op;
 
 /**
  * Validate that user has write permissions on given aspects.
@@ -45,7 +46,7 @@ function validateGeneratorAspectsPermissions(aspects, req) {
   const getAspectPromises = [];
   aspects.forEach((aspNameFromGen) => {
     getAspectPromises.push(
-      Aspect.findOne({ where: { name: { $iLike: aspNameFromGen } } })
+      Aspect.findOne({ where: { name: { [Op.iLike]: aspNameFromGen } } })
       .then((asp) => {
         if (!asp) { // error if aspect not found
           return {
@@ -150,20 +151,14 @@ module.exports = {
     apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     const resultObj = { reqStartTime: req.timestamp };
     const requestBody = req.swagger.params.queryBody.value;
-    let oldCollectors;
     validateGeneratorAspectsPermissions(requestBody.aspects, req)
     .then(() => u.findByKey(helper, req.swagger.params))
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       u.patchArrayFields(o, requestBody, helper);
-      oldCollectors = o.collectors.map(collector => collector.name);
       return o.updateWithCollectors(requestBody, u.whereClauseForNameInArr);
     })
-    .then((retVal) => {
-      const newCollectors = retVal.collectors.map(collector => collector.name);
-      heartbeatUtils.trackGeneratorChanges(retVal, oldCollectors, newCollectors);
-      return u.handleUpdatePromise(resultObj, req, retVal, helper, res);
-    })
+    .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
@@ -189,9 +184,6 @@ module.exports = {
     .then((o) => o.reload())
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      const oldCollectors = [];
-      const newCollectors = o.collectors.map(collector => collector.name);
-      heartbeatUtils.trackGeneratorChanges(o, oldCollectors, newCollectors);
       u.sortArrayObjectsByField(helper, o); // order collectors by name
       u.logAPI(req, resultObj, o);
       res.status(constants.httpStatus.CREATED)
@@ -237,9 +229,6 @@ module.exports = {
     })
     .then((_updatedInstance) => {
       instance = _updatedInstance;
-      const oldCollectors = instance.collectors.map(c => c.name);
-      const newCollectors = collectors.map(c => c.name);
-      heartbeatUtils.trackGeneratorChanges(instance, oldCollectors, newCollectors);
       return instance.setCollectors(collectors);
     }) // need reload instance to attach associations
     .then(() => instance.reload())

@@ -21,9 +21,10 @@ const fork = require('child_process').fork;
 const Promise = require('bluebird');
 const rateLimit = Promise.promisify(require('../../rateLimit'));
 const conf = require('../../config');
+const logger = require('../../utils/activityLog').logger;
 conf.expressLimiterPath = ['*'];
 conf.expressLimiterMethod = ['all'];
-conf.expressLimiterLookup = ['headers.UserName','headers.content-type'];
+conf.expressLimiterLookup = ['headers.UserName', 'headers.content-type'];
 conf.expressLimiterTotal = '3';
 conf.expressLimiterExpire = '2000';
 conf.expressLimiterTotal2 = '1';
@@ -74,28 +75,28 @@ describe('tests/limiter/limiter.js >', () => {
     expect(headers['x-ratelimit-remaining']).to.not.exist;
   }
 
+  function makeRequest(path, method, token = token1, data) {
+    if (!data && path === '/v1/aspects' && method === 'post') {
+      data = { name: `${tu.namePrefix}Limiter${i}`, timeout: '1m' };
+      i++;
+    }
+
+    return new Promise((resolve, reject) => {
+      api[method](path)
+      .set('Authorization', token)
+      .send(data)
+      .end((err, res) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(res);
+        }
+      });
+    });
+  }
+
   describe('limit functionality >', () => {
     afterEach((done) => setTimeout(done, 100));
-
-    function makeRequest(path, method, token = token1, data) {
-      if (!data && path === '/v1/aspects' && method === 'post') {
-        data = {name: `${tu.namePrefix}Limiter${i}`, timeout: '1m'};
-        i++;
-      }
-
-      return new Promise((resolve, reject) => {
-        api[method](path)
-        .set('Authorization', token)
-        .send(data)
-        .end((err, res) => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve(res);
-          }
-        });
-      });
-    }
 
     it('Admin user req#1, no ratelimit headers, ok', (done) => {
       makeRequest('/v1/aspects', 'post', predefinedAdminUserToken)
@@ -302,6 +303,67 @@ describe('tests/limiter/limiter.js >', () => {
     });
   });
 
+  describe('logging on 429 response >', () => {
+    // used to make done available in testLogMessage
+    let doneCopy;
+    before(() => {
+      tu.toggleOverride('enableLimiterActivityLogs', true);
+      logger.on('logging', testLogMessage);
+    });
+
+    after(() => {
+      logger.removeListener('logging', testLogMessage);
+      tu.toggleOverride('enableLimiterActivityLogs', false);
+    });
+
+    afterEach((done) => setTimeout(done, 200));
+
+    function testLogMessage(transport, level, msg, meta) {
+      const logObj = {};
+      logObj.activity = msg.split(' ')[0].split('=')[1]; //gets activity param from log
+      try {
+        expect(logObj.activity).to.equal('limiter');
+        doneCopy();
+      } catch (err) {
+        doneCopy(err);
+      }
+    }
+
+    it('2 quick requests', (done) => {
+      doneCopy = done;
+      makeRequest('/v1/aspects', 'post', token1)
+      .then(() => makeRequest('/v1/aspects', 'post', token1)
+      .then((res) => {
+        expect(res.status).to.equal(constants.httpStatus.TOO_MANY_REQUESTS);
+        expect(res.header['x-ratelimit-limit']).to.equal('1');
+        expect(res.header['x-ratelimit-remaining']).to.equal('0');
+      }))
+      .catch(done);
+    });
+
+    it('setup', (done) => {
+      makeRequest('/v1/aspects', 'post', token1)
+      .then((res) => {
+        expect(res.status).to.equal(constants.httpStatus.CREATED);
+        expect(res.header['x-ratelimit-limit']).to.equal('3');
+        expect(res.header['x-ratelimit-remaining']).to.equal('0');
+        done();
+      })
+      .catch(done);
+    });
+
+    it('limit over longer period', (done) => {
+      doneCopy = done;
+      makeRequest('/v1/aspects', 'post', token1)
+      .then((res) => {
+        expect(res.status).to.equal(constants.httpStatus.TOO_MANY_REQUESTS);
+        expect(res.header['x-ratelimit-limit']).to.equal('3');
+        expect(res.header['x-ratelimit-remaining']).to.equal('0');
+      })
+      .catch(done);
+    });
+  });
+
   describe('environment variable parsing >', () => {
     afterEach(() => subprocess && subprocess.kill());
 
@@ -394,10 +456,10 @@ describe('tests/limiter/limiter.js >', () => {
       conf.expressLimiterExpire = '3000';
       conf.expressLimiterTotal2 = undefined;
       conf.expressLimiterExpire2 = undefined;
-      req = {headers: {}};
+      req = { headers: {} };
       req.headers.UserName = tu.userName;
-      res = {headers: {}};
-      res.set = function (name, value) { this.headers[name.toLowerCase()] = value };
+      res = { headers: {} };
+      res.set = function (name, value) { this.headers[name.toLowerCase()] = value; };
     });
 
     it('ok', (done) => {
@@ -489,17 +551,17 @@ describe('tests/limiter/limiter.js >', () => {
     });
   });
 
-  describe.skip('path/method - fork subprocess >', function() {
+  describe.skip('path/method - fork subprocess >', function () {
     this.timeout(10000);
     afterEach(() => subprocess && subprocess.kill());
 
     function doSend(path, method, token = token1, data) {
       if (!data && path === '/v1/aspects' && method === 'post') {
-        data = {name: `${tu.namePrefix}Limiter${i}`, timeout: '1m'};
+        data = { name: `${tu.namePrefix}Limiter${i}`, timeout: '1m' };
         i++;
       }
 
-      subprocess.send({path, method, token, data});
+      subprocess.send({ path, method, token, data });
       return new Promise((resolve) => subprocess.on('message', resolve));
     }
 

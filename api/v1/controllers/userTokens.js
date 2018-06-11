@@ -16,6 +16,7 @@ const apiErrors = require('../apiErrors');
 const cnstnts = require('../constants');
 const u = require('../helpers/verbs/utils');
 const httpStatus = cnstnts.httpStatus;
+const Op = require('sequelize').Op;
 
 /**
  * where clause to get user tokens
@@ -33,7 +34,7 @@ function whereClauseForUser(userNameOrId) {
     whr.where['$user.id$'] = userNameOrId;
   } else {
     whr.where = { '$user.name$': {} };
-    whr.where['$user.name$'][cnstnts.SEQ_LIKE] = userNameOrId;
+    whr.where['$user.name$'][Op.iLike] = userNameOrId;
   }
 
   return whr;
@@ -48,7 +49,7 @@ function whereClauseForUser(userNameOrId) {
 function whereClauseForUserAndTokenName(user, tokenName) {
   const whr = whereClauseForUser(user);
   whr.where.name = {};
-  whr.where.name[cnstnts.SEQ_LIKE] = tokenName;
+  whr.where.name[Op.iLike] = tokenName;
   return whr;
 } // whereClauseForUserAndTokenName
 
