@@ -15,6 +15,7 @@ const gulp = require('gulp');
 const source = require('vinyl-source-stream');
 const browserify = require('browserify');
 const babelify = require('babelify');
+const watchify = require('watchify');
 const fs = require('fs');
 const chmod = require('gulp-chmod');
 
@@ -91,6 +92,9 @@ gulp.task('browserifyViews', () => {
       entries: [pathToApp],
       debug: true,
       transform: [babelify],
+      cache : {},
+      packageCache : {},
+      plugin: [watchify]
     };
     const bundler = browserify(props);
     const outputPath = pathToApp.split('/').splice(2).join('/');
