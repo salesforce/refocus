@@ -56,17 +56,16 @@ module.exports = (job, done) => {
           return Promise.resolve();
         } else {
           successCount++;
+          if (featureToggles.isFeatureEnabled('publishSampleInPromiseChain')) {
+            // Wait for publish to complete before resolving the promise.
+            return publisher.publishSample(result, subHelper.model);
+          }
+
           /*
-           * The following *should* just be this:
-           *
-           *   return publisher.publishSample(result, subHelper.model);
-           *
-           * ... but right now it slows things down too much so temporarily
-           * going to revert to returning immediately rather than waiting for
-           * publish to complete before resolving the promise. (This
-           * unfortunately lets all the "publish" work stack up which causes
-           * the memory issues in the workers, which we are working around
-           * temporarily while we work on fixing this.)
+           * Resolve the promise right away, *before* we actually publish
+           * the sample. Under heavy load, publish a sample can get backed up
+           * because we are looking up the subject info and including that in
+           * the payload of the real-time event.
            */
           publisher.publishSample(result, subHelper.model);
           return Promise.resolve();
