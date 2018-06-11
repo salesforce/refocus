@@ -1,0 +1,94 @@
+/**
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or
+ * https://opensource.org/licenses/BSD-3-Clause
+ */
+
+/**
+ * /worker/jobs/bulkDeleteSubjects.js
+ */
+const logger = require('winston');
+const subHelper = require('../../api/v1/helpers/nouns/subjects');
+const featureToggles = require('feature-toggles');
+const activityLogUtil = require('../../utils/activityLog');
+const cacheSampleModel = require('../../cache/models/samples');
+const publisher = require('../../realtime/redisPublisher');
+const jobLog = require('../jobLog');
+
+module.exports = (job, done) => {
+  const jobStartTime = Date.now();
+  const samples = job.data.length ? job.data : job.data.upsertData;
+  const user = job.data.user;
+  const reqStartTime = job.data.reqStartTime;
+  const readOnlyFields = job.data.readOnlyFields;
+  const errors = [];
+
+  if (featureToggles.isFeatureEnabled('instrumentKue')) {
+    const msg =
+      `[KJI] Entered bulkUpsertSamplesJob.js: job.id=${job.id} ` +
+      `sampleCount=${samples.length}`;
+    console.log(msg); // eslint-disable-line no-console
+  }
+
+  const dbStartTime = Date.now();
+  cacheSampleModel.bulkUpsertByName(samples, user, readOnlyFields)
+    .then((results) => {
+      const dbEndTime = Date.now();
+      let errorCount = 0;
+
+      /*
+       * count failed promises and send the good samples to the client by
+       * publishing it to the redis channel
+       */
+      for (let i = 0; i < results.length; i++) {
+        if (results[i].isFailed) {
+          errorCount++;
+
+          // we just need "explanation" to be added to the errors
+          errors.push(results[i].explanation);
+        } else {
+          publisher.publishSample(results[i], subHelper.model);
+        }
+      }
+
+      const objToReturn = {};
+
+      // attach the errors from "bulkUpsertByName"
+      objToReturn.errors = errors;
+      if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
+        const jobEndTime = Date.now();
+
+        // number of successful upserts
+        objToReturn.recordCount = results.length - errorCount;
+
+        // number of failed upserts
+        objToReturn.errorCount = errorCount;
+
+        const tempObj = {
+          jobStartTime,
+          jobEndTime,
+          reqStartTime,
+          dbStartTime,
+          dbEndTime,
+        };
+
+        // update time parameters in object to return.
+        activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
+      }
+
+      /*
+       * passing an object as the second argument of done maps it to the
+       * "results" key and attaches it to a hash identified by q:job:{jobId},
+       * to be stored in redis
+       */
+      jobLog(jobStartTime, job);
+      return done(null, objToReturn);
+    })
+    .catch((err) => {
+      logger.error('Caught error from /worker/jobs/bulkUpsertSamplesJob:', err);
+      jobLog(jobStartTime, job, err.message || '');
+      return done(err);
+    });
+};

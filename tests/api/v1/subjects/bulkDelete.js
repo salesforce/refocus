@@ -38,7 +38,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
     it('Must be able delete when proper request', (done) => {
       api.post(DELETE_PATH)
         .set(AUTHORIZATION, token)
-        .send([''])
+        .send(['a', 'b', 'c'])
         .expect(constants.httpStatus.OK)
         .end(done);
     });
@@ -52,7 +52,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
     });
   });
 
-  describe('Checking status api', () => {
+  describe('GET Checking status api', () => {
     it('Must be able to retrieve the status with valid request', (done) => {
       api.get('/v1/subjects/bulk/1/status')
         .set(AUTHORIZATION, token)

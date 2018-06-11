@@ -291,8 +291,8 @@ module.exports = {
         }
 
         let newErr;
-        if (parsedErr) { // errString contains a serialized error object.
-
+        if (parsedErr) {
+          // errString contains a serialized error object.
           // create a new error object of the correct type
           if (apiErrors[parsedErr.name]) {
             newErr = new apiErrors[parsedErr.name]();
@@ -573,10 +573,36 @@ module.exports = {
    * the status of the bulk subject delete request.
    */
   deleteSubjects(req, res, next) {
-    return res.status(httpStatus.OK).json({
-      status: 'OK',
-      jobId: 0,
-    });
+    const resultObj = { reqStartTime: req.timestamp };
+    const reqStartTime = Date.now();
+    const inputs = req.swagger.params.queryBody.value;
+    const body = { status: 'OK' };
+    const readOnlyFields = helper.readOnlyFields.filter((field) =>
+      field !== 'name');
+
+    /**
+     * Performs bulk delete through worker, cache or db model.
+     *
+     * @returns {Promise} the response object with status and body.
+     */
+    function createJob() {
+      const wrappedSubjectsData = {};
+      wrappedSubjectsData.data = inputs;
+      wrappedSubjectsData.reqStartTime = reqStartTime;
+      wrappedSubjectsData.readOnlyFields = readOnlyFields;
+      return jobWrapper
+        .createPromisifiedJob(jobType.BULK_DELETE_SUBJECTS,
+          wrappedSubjectsData, req)
+        .then((job) => {
+          body.jobId = job.id;
+          u.logAPI(req, resultObj, body, inputs.length);
+          return res.status(httpStatus.OK).json(body);
+        })
+        .catch((err) => u.handleError(next, err, helper.modelName));
+    }
+
+    return createJob()
+      .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**

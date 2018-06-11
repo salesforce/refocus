@@ -37,8 +37,8 @@ describe('tests/api/v1/subjects/delete.js >', () => {
     after(tu.forceDeleteUser);
 
     describe('Childless Subjects >', () => {
-      const n = { name: `${tu.namePrefix}NorthAmerica` };
-      let i = 0;
+      const subject = { name: `${tu.namePrefix}NorthAmerica` };
+      let isubjectId = 0;
 
       function bodyCheckIfDeleted(res) {
         const errors = [];
@@ -53,7 +53,7 @@ describe('tests/api/v1/subjects/delete.js >', () => {
 
       function notFound() {
         const errors = [];
-        Subject.findById(i)
+        Subject.findById(isubjectId)
         .then((subj) => {
           if (subj) {
             errors.push(new Error('should not have found a record with this id'));
@@ -65,9 +65,9 @@ describe('tests/api/v1/subjects/delete.js >', () => {
       }
 
       beforeEach((done) => {
-        Subject.create(n)
+        Subject.create(subject)
         .then((subj) => {
-          i = subj.id;
+          isubjectId = subj.id;
           done();
         })
         .catch(done);
@@ -78,7 +78,7 @@ describe('tests/api/v1/subjects/delete.js >', () => {
       afterEach(u.forceDelete);
 
       it('delete childless subject by id', (done) => {
-        api.delete(`${path}/${i}`)
+        api.delete(`${path}/${isubjectId}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
         .expect(bodyCheckIfDeleted)
@@ -88,7 +88,7 @@ describe('tests/api/v1/subjects/delete.js >', () => {
 
       it('delete childless subject by absolutePath, different case',
       (done) => {
-        api.delete(`${path}/${n.name.toLowerCase()}`)
+        api.delete(`${path}/${subject.name.toLowerCase()}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
         .expect(bodyCheckIfDeleted)
@@ -98,13 +98,13 @@ describe('tests/api/v1/subjects/delete.js >', () => {
             return done(err);
           }
 
-          expect(res.body.absolutePath).to.equal(n.name);
+          expect(res.body.absolutePath).to.equal(subject.name);
           done();
         });
       });
 
       it('delete childless subject by absolutePath', (done) => {
-        api.delete(`${path}/${n.name}`)
+        api.delete(`${path}/${subject.name}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
         .expect(bodyCheckIfDeleted)

@@ -112,7 +112,6 @@ function attachSamples(res) {
       const sample = saArray[i];
       const asp = saArray[i + ONE];
       if (sample && asp) {
-
         // parse the array fields to JSON before adding them to the sample list
         sampleStore.arrayObjsStringsToJson(sample,
                                     constants.fieldsToStringify.sample);
@@ -243,7 +242,6 @@ function prepareFields(subject, opts, req) {
 
 module.exports = {
   completeSubjectHierarchy,
-
   subjectInSampleStore,
 
   /**

@@ -55,6 +55,7 @@ module.exports = {
     JOB_CLEANUP: 'JOB_CLEANUP',
     PERSIST_SAMPLE_STORE: 'PERSIST_SAMPLE_STORE',
     SAMPLE_TIMEOUT: 'SAMPLE_TIMEOUT',
+    BULK_DELETE_SUBJECTS: 'bulkDeleteSubjects',
   },
   ttlForJobsAsync: conf.JOB_QUEUE_TTL_SECONDS_ASYNC,
   ttlForJobsSync: conf.JOB_QUEUE_TTL_SECONDS_SYNC,
