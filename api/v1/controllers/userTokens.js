@@ -83,7 +83,7 @@ module.exports = {
 
       if (token.name === token.user.name) { // Default token cannot be deleted!
         throw new apiErrors.ForbiddenError({
-          explanation: 'Forbidden.',
+          explanation: 'Insufficient Privileges',
         });
       }
 
@@ -97,7 +97,7 @@ module.exports = {
 
       // else forbidden
       throw new apiErrors.ForbiddenError({
-        explanation: 'Forbidden.',
+        explanation: 'Insufficient Privileges',
       });
     })
     .then((o) => {
