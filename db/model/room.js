@@ -14,11 +14,13 @@
  */
 
 const constants = require('../constants');
+const commonUtils = require('../../utils/common');
 const realTime = require('../../realtime/redisPublisher');
 const rtConstants = require('../../realtime/constants');
 const assoc = {};
 const roomEventNames = rtConstants.events.room;
 const pubOpts = rtConstants.pubOpts.room;
+const Op = require('sequelize').Op;
 
 module.exports = function room(seq, dataTypes) {
   const Room = seq.define('Room', {
@@ -61,6 +63,31 @@ module.exports = function room(seq, dataTypes) {
     },
   }, {
     hooks: {
+
+      /**
+       * If the botId is a bot name we search by that name and replace the
+       * botId with the actual ID.
+       *
+       * @param {Aspect} inst - The instance being validated
+       * @returns {undefined} - OK
+       */
+      beforeValidate(inst /* , opts */) {
+        const typeId = inst.getDataValue('type');
+        if (commonUtils.looksLikeId(typeId)) {
+          return seq.Promise.resolve(inst);
+        }
+
+        return seq.models.RoomType.findOne({
+          where: {
+            name: { [Op.iLike]: typeId },
+          },
+        })
+        .then((roomType) => {
+          if (roomType && roomType.id) {
+            inst.type = roomType.id;
+          }
+        });
+      },
 
       /**
        * Ensures room gets default values from roomType
