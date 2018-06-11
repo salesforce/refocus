@@ -143,6 +143,9 @@ const shortTermToggles = {
   attachSubAspFromDB: environmentVariableTrue(pe,
     'ATTACH_SUB_ASP_FROM_DB'),
 
+  attachSubAspFromSubjectCache: environmentVariableTrue(pe,
+    'ATTACH_SUB_ASP_FROM_SUBJECT_CACHE'),
+
   // when attaching from db, use scopes?
   attachSubAspFromDBuseScopes: environmentVariableTrue(pe,
     'ATTACH_SUB_ASP_FROM_DB_USE_SCOPES'),

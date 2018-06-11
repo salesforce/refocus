@@ -14,6 +14,7 @@ const ip = require('ip');
 const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
+const subjectCache = require('../cache/redisCache').client.subjectCache;
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
 const Op = require('sequelize').Op;
@@ -418,14 +419,22 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     }
 
     promiseArr = [getAspectPromise, getSubjectPromise];
+  } else if (featureToggles.isFeatureEnabled('attachSubAspFromSubjectCache')) {
+    const subKey = redisStore.toKey('subject', subAbsPath);
+    const aspKey = redisStore.toKey('aspect', aspName);
+    const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
+      redisClient.hgetallAsync(aspKey);
+    const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
+      subjectCache.hgetallAsync(subKey);
+    promiseArr = [getAspectPromise, getSubjectPromise];        
   } else {
     const subKey = redisStore.toKey('subject', subAbsPath);
     const aspKey = redisStore.toKey('aspect', aspName);
     const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-    redisClient.hgetallAsync(aspKey);
+      redisClient.hgetallAsync(aspKey);
     const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-    redisClient.hgetallAsync(subKey);
-    promiseArr = [getAspectPromise, getSubjectPromise];
+      redisClient.hgetallAsync(subKey);
+    promiseArr = [getAspectPromise, getSubjectPromise];    
   }
 
   return Promise.all(promiseArr)
