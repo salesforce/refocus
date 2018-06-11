@@ -118,7 +118,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
       .send(defaultCollector)
       .expect(constants.httpStatus.FORBIDDEN)
       .expect((res) => {
-        expect(res.body.errors[0].description).to.equal('Invalid Token.');
+        expect(res.body.errors[0].description)
+          .to.equal('Authentication Failed');
       })
       .end(done);
     });
@@ -130,7 +131,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
     .send({})
     .expect(constants.httpStatus.FORBIDDEN)
     .expect((res) => {
-      expect(res.body.errors[0].description).to.equal('Invalid Token.');
+      expect(res.body.errors[0].description)
+        .to.equal('Authentication Failed');
     })
     .end(done);
   });
