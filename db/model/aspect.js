@@ -22,6 +22,7 @@ const redisOps = require('../../cache/redisOps');
 const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
 const Promise = require('bluebird');
+const Op = require('sequelize').Op;
 
 module.exports = function aspect(seq, dataTypes) {
   const Aspect = seq.define('Aspect', {
@@ -124,69 +125,6 @@ module.exports = function aspect(seq, dataTypes) {
       defaultValue: constants.defaultArrayValue,
     },
   }, {
-    classMethods: {
-      getAspectAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'aspectAccess';
-      },
-
-      postImport(models) {
-        assoc.user = Aspect.belongsTo(models.User, {
-          foreignKey: 'createdBy',
-          as: 'user',
-        });
-        assoc.samples = Aspect.hasMany(models.Sample, {
-          as: 'samples',
-          foreignKey: 'aspectId',
-          hooks: true,
-        });
-        assoc.writers = Aspect.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'AspectWriters',
-          foreignKey: 'aspectId',
-        });
-
-        Aspect.addScope('baseScope', {
-          order: ['Aspect.name'],
-        });
-
-        Aspect.addScope('defaultScope', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email', 'fullName'],
-            },
-          ],
-          order: ['Aspect.name'],
-        }, {
-          override: true,
-        });
-
-        Aspect.addScope('user', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email', 'fullName'],
-            },
-          ],
-        });
-
-        Aspect.addScope('forRealTime', (value) => ({
-          where: {
-            name: { $iLike: value },
-          },
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email', 'fullName'],
-            },
-          ],
-        }));
-      },
-    },
     hooks: {
 
       /**
@@ -359,47 +297,116 @@ module.exports = function aspect(seq, dataTypes) {
         ],
       },
     ],
-    instanceMethods: {
-      isWritableBy(who) {
-        return new seq.Promise((resolve /* , reject */) =>
-          this.getWriters()
-          .then((writers) => {
-            if (!writers.length) {
-              resolve(true);
-            }
-
-            const found = writers.filter((w) =>
-              w.name === who || w.id === who);
-            resolve(found.length === 1);
-          }));
-      }, // isWritableBy
-
-      checkGeneratorReferences(action) {
-        const aspectName = this.previous('name');
-
-        // the aspect names are stored in lowercase on the generator
-        const where = { aspects: { $contains: [aspectName.toLowerCase()] } };
-        return seq.models.Generator.findAll({ where })
-        .then((gens) => {
-          if (gens.length) {
-            const genNames = gens.map(g => g.name);
-            let usedBy;
-            if (gens.length === 1) {
-              usedBy = 'a Sample Generator';
-            } else {
-              usedBy = `${gens.length} Sample Generators`;
-            }
-
-            throw new dbErrors.ReferencedByGenerator({
-              message: `Cannot ${action} Aspect ${aspectName}. It is ` +
-              `currently in use by ${usedBy}: ${genNames}`,
-            });
-          }
-        });
-      },
-    },
     paranoid: true,
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Aspect.getAspectAssociations = function () {
+    return assoc;
+  };
+
+  Aspect.getProfileAccessField = function () {
+    return 'aspectAccess';
+  };
+
+  Aspect.postImport = function (models) {
+    assoc.user = Aspect.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'user',
+    });
+    assoc.samples = Aspect.hasMany(models.Sample, {
+      as: 'samples',
+      foreignKey: 'aspectId',
+      hooks: true,
+    });
+    assoc.writers = Aspect.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'AspectWriters',
+      foreignKey: 'aspectId',
+    });
+
+    Aspect.addScope('baseScope', {
+      order: ['name'],
+    });
+
+    Aspect.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+      order: ['name'],
+    }, {
+      override: true,
+    });
+
+    Aspect.addScope('user', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    });
+
+    Aspect.addScope('forRealTime', (value) => ({
+      where: {
+        name: { [Op.iLike]: value },
+      },
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    }));
+  };
+
+  /**
+   * Instance Methods:
+   */
+
+  Aspect.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getWriters()
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
+  Aspect.prototype.checkGeneratorReferences = function (action) {
+    const aspectName = this.previous('name');
+
+    // the aspect names are stored in lowercase on the generator
+    const where = { aspects: { [Op.contains]: [aspectName.toLowerCase()] } };
+    return seq.models.Generator.findAll({ where })
+    .then((gens) => {
+      if (gens.length) {
+        const genNames = gens.map(g => g.name);
+        let usedBy;
+        if (gens.length === 1) {
+          usedBy = 'a Sample Generator';
+        } else {
+          usedBy = `${gens.length} Sample Generators`;
+        }
+
+        throw new dbErrors.ReferencedByGenerator({
+          message: `Cannot ${action} Aspect ${aspectName}. It is ` +
+          `currently in use by ${usedBy}: ${genNames}`,
+        });
+      }
+    });
+  };
 
   return Aspect;
 };

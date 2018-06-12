@@ -14,24 +14,23 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
+const Op = require('sequelize').Op;
 
 describe('tests/db/model/aspect/find.js >', () => {
   before((done) => {
     u.createMedium()
-    .then(() => {
-      Aspect.create({
-        name: 'luke',
-        timeout: '1s',
-        isPublished: true,
-        tags: ['jedi', 'boring'],
-      });
-      Aspect.create({
-        name: 'leia',
-        timeout: '1m',
-        isPublished: true,
-        tags: ['princess', 'jedi'],
-      });
-    })
+    .then(() => Aspect.create({
+      name: 'luke',
+      timeout: '1s',
+      isPublished: true,
+      tags: ['jedi', 'boring'],
+    }))
+    .then(() => Aspect.create({
+      name: 'leia',
+      timeout: '1m',
+      isPublished: true,
+      tags: ['princess', 'jedi'],
+    }))
     .then(() => done())
     .catch(done);
   });
@@ -41,56 +40,33 @@ describe('tests/db/model/aspect/find.js >', () => {
   describe('find by name >', () => {
     it('find by name, found', (done) => {
       Aspect.findOne({ where: { name: u.name } })
-      .then((o) => {
-        if (o === null) {
-          done(new Error('expecting record to be found'));
-        } else {
-          done();
-        }
-      })
+      .then((o) => expect(o).to.have.property('name', u.name))
+      .then(() => done())
       .catch(done);
     });
 
     it('find by name, not found', (done) => {
       Aspect.findOne({ where: { name: 'x' } })
-      .then((o) => {
-        if (o === null) {
-          done();
-        } else {
-          done(new Error('expecting record to not be found'));
-        }
-      })
+      .then((o) => expect(o).to.be.null)
+      .then(() => done())
       .catch(done);
     });
   });
 
   it('find by tag, found', (done) => {
     Aspect.findAll({
-      where: { tags: { $contains: ['jedi'] } },
+      where: { tags: { [Op.contains]: ['jedi'] } },
     })
-    .then((o) => {
-      if (o.length !== 2) {
-        done(new Error('expecting two aspects'));
-      }
-    })
+    .then((o) => expect(o).to.have.lengthOf(2))
     .then(() => Aspect.findAll({
-      where: { tags: { $contains: ['boring'] } },
+      where: { tags: { [Op.contains]: ['boring'] } },
     }))
-    .then((o) => {
-      if (o.length !== 1) {
-        done(new Error('expecting one aspect'));
-      }
-    })
+    .then((o) => expect(o).to.have.lengthOf(1))
     .then(() => Aspect.findAll({
-      where: { tags: { $contains: ['father'] } },
+      where: { tags: { [Op.contains]: ['father'] } },
     }))
-    .then((o) => {
-      if (tu.gotArrayWithExpectedLength(o, 0)) {
-        done();
-      } else {
-        done(new Error('expecting zero aspects'));
-      }
-    })
+    .then((o) => expect(o).to.be.empty)
+    .then(() => done())
     .catch(done);
   });
 

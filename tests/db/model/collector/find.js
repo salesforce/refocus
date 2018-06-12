@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -24,6 +24,7 @@ describe('tests/db/model/collector/find.js >', () => {
   let userId;
   let collectorInst1;
   let collectorInst2;
+  let collectorInst3;
   let generator1;
   let generator2;
 
@@ -56,11 +57,21 @@ describe('tests/db/model/collector/find.js >', () => {
     .then(() => {
       const c = u.getCollectorObj();
       c.name += 'secondCollector';
+      c.status = 'Running';
+      c.lastHeartbeat = new Date('2018-05-22T14:51:00');
       return Collector.create(c);
     })
     .then((c) => {
       collectorInst2 = c;
-      done();
+      const c3 = u.getCollectorObj();
+      c3.name += 'thirdCollector';
+      c3.status = 'Running';
+      c3.lastHeartbeat = new Date('2018-05-22T14:51:05');
+      return Collector.create(c3);
+    })
+    .then((c) => {
+      collectorInst3 = c;
+      return done();
     })
     .catch(done);
   });
@@ -136,7 +147,7 @@ describe('tests/db/model/collector/find.js >', () => {
   it('Find all', (done) => {
     Collector.findAll()
     .then((collectors) => {
-      expect(collectors.length).to.be.equal(2);
+      expect(collectors.length).to.be.equal(3);
       const obj = collectors.filter((c) => c.name === '___Collector')[0]
         .dataValues;
       expect(obj.name).to.be.equal('___Collector');
@@ -169,5 +180,64 @@ describe('tests/db/model/collector/find.js >', () => {
       done();
     })
     .catch(done);
+  });
+
+  it('scope = running', (done) => {
+    Collector.scope('running').findAll()
+    .then((collectors) => {
+      expect(collectors).to.have.lengthOf(2);
+      expect(collectors[0])
+        .to.have.property('name', `${tu.namePrefix}CollectorsecondCollector`);
+      expect(collectors[0]).to.have.property('status', 'Running');
+      expect(collectors[1])
+        .to.have.property('name', `${tu.namePrefix}CollectorthirdCollector`);
+      expect(collectors[1]).to.have.property('status', 'Running');
+      return done();
+    })
+    .catch(done);
+  });
+
+  describe('missedHeartbeat >', () => {
+    it('some over threshold', (done) => {
+      const threshold = 3000;
+      const fakeNow = new Date('2018-05-22T14:51:07');
+      const fakeMillis = fakeNow.getTime();
+      Collector.missedHeartbeat(threshold, fakeNow)
+      .then((colls) => {
+        expect(colls).to.have.lengthOf(1);
+        colls.forEach((c) => {
+          expect(fakeMillis - new Date(c.lastHeartbeat).getTime())
+            .to.be.greaterThan(threshold);
+        });
+      })
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('all over threshold', (done) => {
+      const threshold = 1000;
+      const fakeNow = new Date('2018-05-22T14:51:07');
+      const fakeMillis = fakeNow.getTime();
+      Collector.missedHeartbeat(threshold, fakeNow)
+      .then((colls) => {
+        expect(colls).to.have.lengthOf(2);
+        colls.forEach((c) => {
+          expect(fakeMillis - new Date(c.lastHeartbeat).getTime())
+            .to.be.greaterThan(threshold);
+        });
+      })
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('none over threshold', (done) => {
+      const threshold = 10000;
+      const fakeNow = new Date('2018-05-22T14:51:07');
+      const fakeMillis = fakeNow.getTime();
+      Collector.missedHeartbeat(threshold, fakeNow)
+      .then((colls) => expect(colls).to.have.lengthOf(0))
+      .then(() => done())
+      .catch(done);
+    });
   });
 });

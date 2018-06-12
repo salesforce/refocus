@@ -21,6 +21,7 @@ const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
 const publishObject = require('../../realtime/redisPublisher').publishObject;
 const eventName = require('../../realtime/constants').events.subject;
+const Op = require('sequelize').Op;
 
 const assoc = {};
 
@@ -117,90 +118,6 @@ module.exports = function subject(seq, dataTypes) {
       },
     },
   }, {
-    classMethods: {
-      getSubjectAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'subjectAccess';
-      },
-
-      postImport(models) {
-        assoc.user = Subject.belongsTo(models.User, {
-          foreignKey: 'createdBy',
-          as: 'user',
-        });
-        assoc.samples = Subject.hasMany(models.Sample, {
-          foreignKey: 'subjectId',
-          as: 'samples',
-          onDelete: 'CASCADE',
-          hooks: true,
-        });
-        assoc.writers = Subject.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'SubjectWriters',
-          foreignKey: 'subjectId',
-        });
-
-        Subject.addScope('baseScope', {
-          order: ['absolutePath'],
-        });
-
-        Subject.addScope('defaultScope', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email', 'fullName'],
-            },
-          ],
-          order: ['absolutePath'],
-        }, {
-          override: true,
-        });
-
-        Subject.addScope('user', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email', 'fullName'],
-            },
-          ],
-        });
-        Subject.addScope('id', (value) => ({
-          where: {
-            id: value,
-          },
-        }));
-        Subject.addScope('absolutePath', (value) => ({
-          where: {
-            absolutePath: { $iLike: value },
-          },
-        }));
-        Subject.addScope('hierarchy', {
-          where: {
-            isPublished: true,
-          },
-          include: [
-            {
-              model: models.Subject,
-              as: 'descendents',
-              hierarchy: true,
-              required: false,
-              where: {
-                isPublished: true,
-              },
-            },
-          ],
-        });
-        Subject.addScope('forRealTime', (value) => ({
-          where: {
-            absolutePath: { $iLike: value },
-          },
-          attributes: ['id', 'name', 'tags', 'absolutePath'],
-        }));
-      },
-    },
     hooks: {
 
       /**
@@ -608,80 +525,169 @@ module.exports = function subject(seq, dataTypes) {
         ],
       },
     ],
-    instanceMethods: {
-
-      /**
-       * This deletes everything under it. Recursive delete. Use with caution.
-       *
-       * @returns {Promise} which resolves to undefined or rejects with error
-       */
-      deleteHierarchy() {
-        const _this = this;
-        return new seq.Promise((resolve, reject) =>
-          _this.getChildren()
-          .each((kid) => kid.deleteHierarchy())
-          .then(() => _this.destroy())
-          .then(() => resolve())
-          .catch((err) => reject(err))
-        );
-      }, // instanceMethods.deleteHierarchy
-
-      isWritableBy(who) {
-        return new seq.Promise((resolve /* , reject */) =>
-          this.getWriters()
-          .then((writers) => {
-            if (!writers.length) {
-              resolve(true);
-            }
-
-            const found = writers.filter((w) =>
-              w.name === who || w.id === who);
-            resolve(found.length === 1);
-          }));
-      }, // isWritableBy
-
-      setupParentFields() {
-        if (this.parentAbsolutePath || this.parentId) {
-          let key = null;
-          let value = null;
-          if (this.parentId) {
-            key = 'id';
-            value = this.getDataValue('parentId');
-          } else {
-            key = 'absolutePath';
-            value = this.getDataValue('parentAbsolutePath');
-          }
-
-          return Subject.scope({ method: [key, value] }).find()
-          .then((parent) => {
-            if (parent) {
-              if (parent.getDataValue('isPublished') === false &&
-                this.getDataValue('isPublished') === true) {
-                throw new dbErrors.ValidationError({
-                  message: 'You cannot insert a subject with ' +
-                  'isPublished = true unless all its ancestors are also ' +
-                  'published.',
-                });
-              }
-
-              this.setDataValue('absolutePath',
-                parent.absolutePath + '.' + this.name);
-              this.setDataValue('parentId', parent.id);
-              this.setDataValue('parentAbsolutePath', parent.absolutePath);
-            } else {
-              throw new dbErrors.ParentSubjectNotFound({
-                message: 'parent' + key + ' not found.',
-              });
-            }
-          });
-        } else {
-          this.setDataValue('absolutePath', this.name);
-          return Promise.resolve();
-        }
-      },
-    }, // instanceMethods
     paranoid: true,
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Subject.getSubjectAssociations = function () {
+    return assoc;
+  };
+
+  Subject.getProfileAccessField = function () {
+    return 'subjectAccess';
+  };
+
+  Subject.postImport = function (models) {
+    assoc.user = Subject.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'user',
+    });
+    assoc.samples = Subject.hasMany(models.Sample, {
+      foreignKey: 'subjectId',
+      as: 'samples',
+      onDelete: 'CASCADE',
+      hooks: true,
+    });
+    assoc.writers = Subject.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'SubjectWriters',
+      foreignKey: 'subjectId',
+    });
+
+    Subject.addScope('baseScope', {
+      order: ['absolutePath'],
+    });
+
+    Subject.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+      order: ['absolutePath'],
+    }, {
+      override: true,
+    });
+
+    Subject.addScope('user', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    });
+    Subject.addScope('id', (value) => ({
+      where: {
+        id: value,
+      },
+    }));
+    Subject.addScope('absolutePath', (value) => ({
+      where: {
+        absolutePath: { [Op.iLike]: value },
+      },
+    }));
+    Subject.addScope('hierarchy', {
+      where: {
+        isPublished: true,
+      },
+      include: [
+        {
+          model: models.Subject,
+          as: 'descendents',
+          hierarchy: true,
+          required: false,
+          where: {
+            isPublished: true,
+          },
+        },
+      ],
+    });
+    Subject.addScope('forRealTime', (value) => ({
+      where: {
+        absolutePath: { [Op.iLike]: value },
+      },
+      attributes: ['id', 'name', 'tags', 'absolutePath'],
+    }));
+  };
+
+  /**
+   * Instance Methods:
+   */
+
+  /**
+   * This deletes everything under it. Recursive delete. Use with caution.
+   *
+   * @returns {Promise} which resolves to undefined or rejects with error
+   */
+  Subject.prototype.deleteHierarchy = function () {
+    const _this = this;
+    return new seq.Promise((resolve, reject) =>
+      _this.getChildren()
+      .each((kid) => kid.deleteHierarchy())
+      .then(() => _this.destroy())
+      .then(() => resolve())
+      .catch((err) => reject(err))
+    );
+  }; // deleteHierarchy
+
+  Subject.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getWriters()
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
+  Subject.prototype.setupParentFields = function () {
+    if (this.parentAbsolutePath || this.parentId) {
+      let key = null;
+      let value = null;
+      if (this.parentId) {
+        key = 'id';
+        value = this.getDataValue('parentId');
+      } else {
+        key = 'absolutePath';
+        value = this.getDataValue('parentAbsolutePath');
+      }
+
+      return Subject.scope({ method: [key, value] }).find()
+      .then((parent) => {
+        if (parent) {
+          if (parent.getDataValue('isPublished') === false &&
+            this.getDataValue('isPublished') === true) {
+            throw new dbErrors.ValidationError({
+              message: 'You cannot insert a subject with ' +
+              'isPublished = true unless all its ancestors are also ' +
+              'published.',
+            });
+          }
+
+          this.setDataValue('absolutePath',
+            parent.absolutePath + '.' + this.name);
+          this.setDataValue('parentId', parent.id);
+          this.setDataValue('parentAbsolutePath', parent.absolutePath);
+        } else {
+          throw new dbErrors.ParentSubjectNotFound({
+            message: 'parent' + key + ' not found.',
+          });
+        }
+      });
+    } else {
+      this.setDataValue('absolutePath', this.name);
+      return Promise.resolve();
+    }
+  };
 
   // Use the seq-hierarchy module to generate subject hierarchy.
   Subject.isHierarchy();

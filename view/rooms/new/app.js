@@ -16,10 +16,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import FormController from './FormController';
+
 const request = require('superagent');
 const url = require('url');
 const ADDRESS = window.location.href;
 const NAME_PATH = 3;
+const DEFAULT_ROOM_NAME = 'AUTO_GENERATED';
 const uPage = require('./../utils/page');
 const formContainer = document.getElementById('formContainer');
 
@@ -30,9 +32,17 @@ function getPathVariables(addr){
   const q = url.parse(addr, true);
   const qdata = q.query ? q.query : {};
 
-  let paramName = qdata.name || '';
+  let roomName = qdata.name || '';
   if ((pathName.length > NAME_PATH) && (pathName[NAME_PATH] !== '')) {
-    paramName = pathName[NAME_PATH];
+    roomName = pathName[NAME_PATH];
+  }
+
+  if (qdata.autoNaming === 'true') {
+    if (roomName === '') {
+      roomName = DEFAULT_ROOM_NAME;
+    }
+
+    roomName += ('_' + Date.now());
   }
 
   const paramType = qdata.roomType || '';
@@ -44,10 +54,11 @@ function getPathVariables(addr){
   } catch (e) {
     paramSettings = {};
   }
+
   const paramBots = qdata.bots ? qdata.bots.split(',') : [];
 
   return {
-    name: paramName,
+    name: roomName,
     roomType: paramType,
     active: paramActive,
     externalId: paramExternalId,
@@ -56,7 +67,7 @@ function getPathVariables(addr){
   };
 }
 
-function createRoom(paramaters){
+function createRoom(paramaters) {
   const q = url.parse(ADDRESS, true);
   const qdata = q.query ? q.query : {};
   const req = request.post('/v1/rooms');
@@ -110,6 +121,6 @@ window.onload = () => {
 // For testing
 module.exports = () => {
   return {
-    getPathVariables
+    getPathVariables,
   };
 };

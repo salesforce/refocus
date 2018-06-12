@@ -93,21 +93,13 @@ describe(`tests/api/v1/tokens/associations.js, GET ${path} >`, () => {
     .end(done);
   });
 
-  /*
-   * This test fails because of a bug in sequelize.
-   * It doesn't properly handle multiple associations when a limit is applied:
-   * It selects the attributes before doing the join for the association, which
-   * causes an error when the foreign key is not included in the fields.
-   * I think it was fixed in https://github.com/sequelize/sequelize/pull/9188
-   * Skipping until we upgrade Sequelize...
-   */
-  it.skip(`get by key: an association can be specified as a field param (user)`, (done) => {
+  it(`get by key: an association can be specified as a field param (user)`, (done) => {
     api.get(`${path}/${token1.name}?fields=name,user`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body).to.be.an('object');
-      expect(res.body).to.have.keys('id', 'name', 'user', 'apiLinks');
+      expect(res.body).to.have.keys('id', 'name', 'user', 'isRevoked', 'apiLinks');
       expect(Joi.validate(res.body.user, joiSchema.user).error).to.be.null;
     })
     .end(done);

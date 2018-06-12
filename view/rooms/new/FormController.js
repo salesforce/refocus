@@ -305,6 +305,7 @@ FormController.propTypes = {
   externalId: PropTypes.string,
   settings: PropTypes.object,
   bots: PropTypes.array,
+  autoNaming: PropTypes.bool,
 };
 
 FormController.defaultProps = {
@@ -314,6 +315,7 @@ FormController.defaultProps = {
   externalId: '',
   settings: {},
   bots: [],
+  autoNaming: false,
 };
 
 export default FormController;

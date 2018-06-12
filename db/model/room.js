@@ -14,20 +14,13 @@
  */
 
 const constants = require('../constants');
+const commonUtils = require('../../utils/common');
 const realTime = require('../../realtime/redisPublisher');
 const rtConstants = require('../../realtime/constants');
 const assoc = {};
-const roomEventNames = {
-  add: 'refocus.internal.realtime.bot.namespace.initialize',
-  upd: 'refocus.internal.realtime.room.settingsChanged',
-  del: 'refocus.internal.realtime.room.remove',
-};
-const pubOpts = {
-  client: rtConstants.bot.client,
-  channel: rtConstants.bot.channel,
-  filterIndex: rtConstants.bot.roomFilterIndex,
-  filterField: 'name',
-};
+const roomEventNames = rtConstants.events.room;
+const pubOpts = rtConstants.pubOpts.room;
+const Op = require('sequelize').Op;
 
 module.exports = function room(seq, dataTypes) {
   const Room = seq.define('Room', {
@@ -69,31 +62,32 @@ module.exports = function room(seq, dataTypes) {
       comment: 'Bot names to be used in rooms',
     },
   }, {
-    classMethods: {
-      getRoomAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'roomAccess';
-      },
-
-      postImport(models) {
-        assoc.type = Room.belongsTo(models.RoomType, {
-          foreignKey: {
-            name: 'type',
-            allowNull: false,
-          },
-          onDelete: 'CASCADE',
-        });
-        assoc.writers = Room.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'RoomWriters',
-          foreignKey: 'roomId',
-        });
-      },
-    },
     hooks: {
+
+      /**
+       * If the botId is a bot name we search by that name and replace the
+       * botId with the actual ID.
+       *
+       * @param {Aspect} inst - The instance being validated
+       * @returns {undefined} - OK
+       */
+      beforeValidate(inst /* , opts */) {
+        const typeId = inst.getDataValue('type');
+        if (commonUtils.looksLikeId(typeId)) {
+          return seq.Promise.resolve(inst);
+        }
+
+        return seq.models.RoomType.findOne({
+          where: {
+            name: { [Op.iLike]: typeId },
+          },
+        })
+        .then((roomType) => {
+          if (roomType && roomType.id) {
+            inst.type = roomType.id;
+          }
+        });
+      },
 
       /**
        * Ensures room gets default values from roomType
@@ -149,6 +143,34 @@ module.exports = function room(seq, dataTypes) {
       }, // hooks.afterDelete
     },
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Room.getRoomAssociations = function () {
+    return assoc;
+  };
+
+  Room.getProfileAccessField = function () {
+    return 'roomAccess';
+  };
+
+  Room.postImport = function (models) {
+    assoc.type = Room.belongsTo(models.RoomType, {
+      foreignKey: {
+        name: 'type',
+        allowNull: false,
+      },
+      onDelete: 'CASCADE',
+    });
+    assoc.writers = Room.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'RoomWriters',
+      foreignKey: 'roomId',
+    });
+  };
+
   return Room;
 };
 

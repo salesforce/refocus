@@ -20,6 +20,7 @@ const logAPI = require('../../../../utils/apiLog').logAPI;
 const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
 const redisCache = require('../../../../cache/redisCache').client.cache;
+const Op = require('sequelize').Op;
 
 /**
  * @param {Object} o Sequelize instance
@@ -273,7 +274,7 @@ function isWritable(req, modelInst) {
     if (req.user) {
       modelInst.isWritableBy(req.user.name)
       .then((ok) => ok ? resolve(modelInst) : reject(new apiErrors
-        .ForbiddenError('Resource not writable for provided token')))
+        .ForbiddenError('Insufficient Privileges')))
       .catch(reject);
     } else {
       /*
@@ -283,7 +284,7 @@ function isWritable(req, modelInst) {
        */
       modelInst.isWritableBy()
       .then((ok) => ok ? resolve(modelInst) :
-        reject(new apiErrors.ForbiddenError('Resource is write protected'))
+        reject(new apiErrors.ForbiddenError('Insufficient Privileges'))
       )
       .catch(reject);
     }
@@ -343,7 +344,7 @@ function whereClauseForNameOrId(nameOrId) {
 function whereClauseForNameInArr(arr) {
   const whr = {};
   whr.name = {};
-  whr.name[constants.SEQ_IN] = arr;
+  whr.name[Op.in] = arr;
   return whr;
 } // whereClauseForNameInArr
 
@@ -637,20 +638,16 @@ function findByKey(props, params, extraAttributes) {
   const key = params.key.value;
   const opts = buildFieldList(params);
   const keyClause = {};
-  keyClause[constants.SEQ_LIKE] = key;
+  keyClause[Op.iLike] = key;
   opts.where = {};
   opts.where[props.nameFinder || 'name'] = keyClause;
 
-  const attrArr = [];
-  if (opts.attributes && Array.isArray(opts.attributes)) {
-    for (let i = 0; i < opts.attributes.length; i++) {
-      attrArr.push(opts.attributes[i]);
-    }
-  }
-
-  if (extraAttributes && Array.isArray(extraAttributes)) {
-    for (let i = 0; i < extraAttributes.length; i++) {
-      attrArr.push(extraAttributes[i]);
+  let attrArr = opts.attributes;
+  if (extraAttributes && Array.isArray(extraAttributes) && extraAttributes.length) {
+    if (attrArr) {
+      attrArr.push(...extraAttributes);
+    } else {
+      attrArr = extraAttributes;
     }
   }
 
@@ -727,8 +724,7 @@ function handleError(next, err, modelName) {
 }
 
 /**
- * Attaches the resource type to the error and passes it on to the next
- * handler.
+ * Handles forbidden errors.
  *
  * @param {Function} next - The next middleware function in the stack
  * @param {String} modelName - The DB model name, used to disambiguate field
@@ -736,7 +732,7 @@ function handleError(next, err, modelName) {
  */
 function forbidden(next, modelName) {
   const err = new apiErrors.ForbiddenError({
-    explanation: 'Forbidden.',
+    explanation: 'Insufficient Privileges',
   });
   handleError(next, err, modelName);
 } // forbidden

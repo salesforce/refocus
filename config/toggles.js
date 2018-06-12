@@ -85,6 +85,8 @@ const longTermToggles = {
   enableJobActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'job'),
   enableKueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'kueStats'),
+  enableLimiterActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'limiter'),
   enablePubStatsLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'pubStats'),
   enableQueueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'queueStats'),
@@ -141,6 +143,10 @@ const shortTermToggles = {
   attachSubAspFromDB: environmentVariableTrue(pe,
     'ATTACH_SUB_ASP_FROM_DB'),
 
+  // when attaching from db, use scopes?
+  attachSubAspFromDBuseScopes: environmentVariableTrue(pe,
+    'ATTACH_SUB_ASP_FROM_DB_USE_SCOPES'),
+
   // turn on logging to log invalid hmset values
   logInvalidHmsetValues: environmentVariableTrue(pe,
     'LOG_INVALID_HMSET_VALUES'),
@@ -158,6 +164,10 @@ const shortTermToggles = {
 
   // Add some job queue instrumentation logging
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
+
+  // Look up the subject inside the promise chain when publishing sample
+  publishSampleInPromiseChain: environmentVariableTrue(pe,
+    'PUBLISH_SAMPLE_IN_PROMISE_CHAIN'),
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 

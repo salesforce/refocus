@@ -324,7 +324,7 @@ module.exports = {
       }
 
       const upsertSamplePromise =
-          redisModelSample.upsertSample(sampleQueryBody, user);
+        redisModelSample.upsertSample(sampleQueryBody, user);
       return upsertSamplePromise
       .then((samp) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
