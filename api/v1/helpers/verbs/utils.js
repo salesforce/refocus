@@ -274,7 +274,7 @@ function isWritable(req, modelInst) {
     if (req.user) {
       modelInst.isWritableBy(req.user.name)
       .then((ok) => ok ? resolve(modelInst) : reject(new apiErrors
-        .ForbiddenError('Resource not writable for provided token')))
+        .ForbiddenError('Insufficient Privileges')))
       .catch(reject);
     } else {
       /*
@@ -284,7 +284,7 @@ function isWritable(req, modelInst) {
        */
       modelInst.isWritableBy()
       .then((ok) => ok ? resolve(modelInst) :
-        reject(new apiErrors.ForbiddenError('Resource is write protected'))
+        reject(new apiErrors.ForbiddenError('Insufficient Privileges'))
       )
       .catch(reject);
     }
@@ -724,8 +724,7 @@ function handleError(next, err, modelName) {
 }
 
 /**
- * Attaches the resource type to the error and passes it on to the next
- * handler.
+ * Handles forbidden errors.
  *
  * @param {Function} next - The next middleware function in the stack
  * @param {String} modelName - The DB model name, used to disambiguate field
@@ -733,7 +732,7 @@ function handleError(next, err, modelName) {
  */
 function forbidden(next, modelName) {
   const err = new apiErrors.ForbiddenError({
-    explanation: 'Forbidden.',
+    explanation: 'Insufficient Privileges',
   });
   handleError(next, err, modelName);
 } // forbidden

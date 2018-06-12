@@ -265,9 +265,8 @@ describe('tests/api/v1/generators/post.js >', () => {
       .then(() => validateGeneratorAspectsPermissions(aspects, req))
       .then(() => done(new Error('Expecting a Forbidden error')))
       .catch((err) => {
-        expect(err.name).to.be.equal('ValidationError');
-        expect(err.message).to.be.equal('User does not have permission to ' +
-          'upsert samples for the following aspects:___ASPECT2');
+        expect(err.name).to.be.equal('ForbiddenError');
+        expect(err.explanation).to.be.equal('Insufficient Privileges');
         done();
       })
       .catch((e) => done(e));
@@ -306,9 +305,8 @@ describe('tests/api/v1/generators/post.js >', () => {
       .then(() => validateGeneratorAspectsPermissions(aspects, req))
       .then(() => done(new Error('Expecting a Forbidden error')))
       .catch((err) => {
-        expect(err.name).to.be.equal('ValidationError');
-        expect(err.message).to.be.equal('User does not have permission to ' +
-          'upsert samples for the following aspects:___ASPECT1,___ASPECT2');
+        expect(err.name).to.be.equal('ForbiddenError');
+        expect(err.explanation).to.be.equal('Insufficient Privileges');
         done();
       })
       .catch((e) => done(e));
@@ -387,14 +385,13 @@ describe('tests/api/v1/generators/post.js >', () => {
         return asp1.addWriter(user); // asign user as writer to aspect1
       })
       .then(() => validateGeneratorAspectsPermissions(aspects, req))
-      .then(() => done()) // Validation successful
+      .then(() => done(new Error('expecting ForbiddenError')))
       .catch((err) => {
+        console.log('HOW DID I GET HERE???', err);
         expect(err.name).to.be.equal('ForbiddenError');
-        expect(err.message).to.be.equal('Resource is write protected');
-        expect(err.info).to.be.equal('___ASPECT1');
+        expect(err.explanation).to.be.equal('Insufficient Privileges');
         done();
-      })
-      .catch((e) => done(e));
+      });
     });
 
     it('aspects argument null', (done) => {

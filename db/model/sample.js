@@ -291,8 +291,7 @@ module.exports = function sample(seq, dataTypes) {
     .then((ok) => {
       if (!ok) {
         throw new dbErrors.ForbiddenError({
-          explanation: `The user: ${user}, does not have write permission` +
-          'on the sample',
+          explanation: 'Insufficient Privileges',
         });
       }
 
