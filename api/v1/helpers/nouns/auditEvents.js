@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const AuditEvent = require('../../../../db/index').AuditEvent;
+const Op = require('sequelize').Op;
 const m = 'auditevent';
 const timeUnits = new Set(['d', 'h', 'm', 's']);
 const SIXTY_SECONDS = 60;
@@ -58,20 +59,20 @@ function getDateTimeFromOffSet(offset) {
 function modifyWhereClause(params, options) {
   if (options.where.startAt) {
     options.where.loggedAt = options.where.loggedAt || {};
-    options.where.loggedAt.$gte = new Date(params.startAt.value);
+    options.where.loggedAt[Op.gte] = new Date(params.startAt.value);
     delete options.where.startAt;
   }
 
   if (options.where.endAt) {
     options.where.loggedAt = options.where.loggedAt || {};
-    options.where.loggedAt.$lte = new Date(params.endAt.value);
+    options.where.loggedAt[Op.lte] = new Date(params.endAt.value);
     delete options.where.endAt;
   }
 
   if (options.where.relativeDateTime) {
     options.where.loggedAt = options.where.loggedAt || {};
     const relativeDateTime = params.relativeDateTime.value;
-    options.where.loggedAt.$gte = getDateTimeFromOffSet(relativeDateTime);
+    options.where.loggedAt[Op.gte] = getDateTimeFromOffSet(relativeDateTime);
     delete options.where.relativeDateTime;
   }
 

@@ -85,7 +85,7 @@ describe('tests/db/model/collector/create.js >', () => {
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
       expect(err.message).to.contain(
-        'Validation isUrl failed'
+        'Validation isUrl on helpUrl failed'
       );
       done();
     });
@@ -98,7 +98,7 @@ describe('tests/db/model/collector/create.js >', () => {
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
       expect(err.message).to.contain(
-        'Validation isEmail failed'
+        'Validation isEmail on helpEmail failed'
       );
       done();
     });
@@ -111,7 +111,7 @@ describe('tests/db/model/collector/create.js >', () => {
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
       expect(err.message).to.contain(
-        'Validation is failed'
+        'Validation is on name failed'
       );
       done();
     });

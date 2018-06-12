@@ -214,16 +214,18 @@ describe('tests/api/v1/generators/post.js >', () => {
       })
       .then((asp1) => { // created aspect1
         aspects.push(asp1.name);
-        asp1.addWriter(user); // asign user as writer to aspect1
-        return Aspect.create(
-          { name: `${tu.namePrefix}ASPECT2`, isPublished: true, timeout: '110s',
-        });
+        return asp1.addWriter(user); // asign user as writer to aspect1
       })
+      .then(() => Aspect.create({
+        name: `${tu.namePrefix}ASPECT2`,
+        isPublished: true,
+        timeout: '110s',
+      }))
       .then((asp2) => { // created aspect2
         aspects.push(asp2.name);
-        asp2.addWriter(user); // asign user as writer to aspect2
-        return validateGeneratorAspectsPermissions(aspects, req);
+        return asp2.addWriter(user); // asign user as writer to aspect2
       })
+      .then(() => validateGeneratorAspectsPermissions(aspects, req))
       .then(() => done()) // Validation successful
       .catch((err) => done(err));
     });
@@ -249,21 +251,22 @@ describe('tests/api/v1/generators/post.js >', () => {
       })
       .then((asp1) => { // created aspect1
         aspects.push(asp1.name);
-        asp1.addWriter(user1); // assign user1 as writer to aspect1
-        return Aspect.create(
-          { name: `${tu.namePrefix}ASPECT2`, isPublished: true, timeout: '110s',
-        });
+        return asp1.addWriter(user1); // assign user1 as writer to aspect1
       })
+      .then(() => Aspect.create({
+        name: `${tu.namePrefix}ASPECT2`,
+        isPublished: true,
+        timeout: '110s',
+      }))
       .then((asp2) => { // created aspect2
         aspects.push(asp2.name);
-        asp2.addWriter(user2); // assign user2 as writer to aspect2
-        return validateGeneratorAspectsPermissions(aspects, req);
+        return asp2.addWriter(user2); // assign user2 as writer to aspect2
       })
+      .then(() => validateGeneratorAspectsPermissions(aspects, req))
       .then(() => done(new Error('Expecting a Forbidden error')))
       .catch((err) => {
-        expect(err.name).to.be.equal('ValidationError');
-        expect(err.message).to.be.equal('User does not have permission to ' +
-          'upsert samples for the following aspects:___ASPECT2');
+        expect(err.name).to.be.equal('ForbiddenError');
+        expect(err.explanation).to.be.equal('Insufficient Privileges');
         done();
       })
       .catch((e) => done(e));
@@ -302,9 +305,8 @@ describe('tests/api/v1/generators/post.js >', () => {
       .then(() => validateGeneratorAspectsPermissions(aspects, req))
       .then(() => done(new Error('Expecting a Forbidden error')))
       .catch((err) => {
-        expect(err.name).to.be.equal('ValidationError');
-        expect(err.message).to.be.equal('User does not have permission to ' +
-          'upsert samples for the following aspects:___ASPECT1,___ASPECT2');
+        expect(err.name).to.be.equal('ForbiddenError');
+        expect(err.explanation).to.be.equal('Insufficient Privileges');
         done();
       })
       .catch((e) => done(e));
@@ -383,14 +385,13 @@ describe('tests/api/v1/generators/post.js >', () => {
         return asp1.addWriter(user); // asign user as writer to aspect1
       })
       .then(() => validateGeneratorAspectsPermissions(aspects, req))
-      .then(() => done()) // Validation successful
+      .then(() => done(new Error('expecting ForbiddenError')))
       .catch((err) => {
+        console.log('HOW DID I GET HERE???', err);
         expect(err.name).to.be.equal('ForbiddenError');
-        expect(err.message).to.be.equal('Resource is write protected');
-        expect(err.info).to.be.equal('___ASPECT1');
+        expect(err.explanation).to.be.equal('Insufficient Privileges');
         done();
-      })
-      .catch((e) => done(e));
+      });
     });
 
     it('aspects argument null', (done) => {

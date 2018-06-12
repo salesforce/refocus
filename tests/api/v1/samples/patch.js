@@ -21,6 +21,7 @@ const Subject = tu.db.Subject;
 const path = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
+const Op = require('sequelize').Op;
 
 describe('tests/api/v1/samples/patch.js >', () => {
   let token;
@@ -343,7 +344,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .then((samp) => Sample.create(samp))
       .then((samp) => {
         const subjectName = samp.name.split('|')[0].toLowerCase();
-        return Subject.findOne({ where: { name: { $iLike: subjectName } } });
+        return Subject.findOne({ where: { name: { [Op.iLike]: subjectName } } });
       })
       .then((sub) => {
         sub.update({ isPublished: false });
@@ -384,7 +385,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .then((samp) => {
         sampleName = samp.name;
         const aspectName = sampleName.split('|')[1].toLowerCase();
-        return Aspect.findOne({ where: { name: { $iLike: aspectName } } });
+        return Aspect.findOne({ where: { name: { [Op.iLike]: aspectName } } });
       })
       .then((asp) => {
         asp.update({ isPublished: false });

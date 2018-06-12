@@ -16,6 +16,7 @@ const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
+const Op = require('sequelize').Op;
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
   upd: 'refocus.internal.realtime.subject.update',
@@ -388,10 +389,34 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   const aspName = nameParts[1];
   let promiseArr = [];
   if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-      aspectModel.scope({ method: ['forRealTime', aspName] }).find();
-    const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subjectModel.scope({ method: ['forRealTime', subAbsPath] }).find();
+    const subOpts = {
+      where: {
+        absolutePath: { [Op.iLike]: subAbsPath },
+      },
+    };
+    const aspOpts = {
+      where: {
+        name: { [Op.iLike]: aspName },
+      },
+    };
+    let getAspectPromise;
+    if (featureToggles.isFeatureEnabled('attachSubAspFromDBuseScopes')) {
+      getAspectPromise =
+        aspectModel.scope({ method: ['forRealTime', aspName] }).findOne();
+    } else {
+      getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
+        aspectModel.findOne(aspOpts);
+    }
+
+    let getSubjectPromise;
+    if (featureToggles.isFeatureEnabled('attachSubAspFromDBuseScopes')) {
+      getSubjectPromise =
+        subjectModel.scope({ method: ['forRealTime', subAbsPath] }).findOne();
+    } else {
+      getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
+        subjectModel.findOne(subOpts);
+    }
+
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
     const subKey = redisStore.toKey('subject', subAbsPath);
@@ -407,8 +432,14 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    asp = asp.dataValues ? asp.dataValues : asp;
-    sub = sub.dataValues ? sub.dataValues : sub;
+    if (featureToggles.isFeatureEnabled('attachSubAspFromDBuseScopes')) {
+      asp = asp.dataValues ? asp.dataValues : asp;
+      sub = sub.dataValues ? sub.dataValues : sub;
+    } else {
+      asp = asp.get ? asp.get() : asp;
+      sub = sub.get ? sub.get() : sub;
+    }
+
     delete asp.writers;
     delete sub.writers;
 

@@ -62,8 +62,26 @@ describe('tests/api/v1/rooms/post.js >', () => {
     });
   });
 
+  it('Pass, post room using roomType name', (done) => {
+    const room = u.getStandard();
+    room.type = testRoomType.name;
+
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(room)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(u.name);
+      done();
+    });
+  });
+
   it('Fail, duplicate room', (done) => {
-    let room = u.getStandard();
+    const room = u.getStandard();
     room.type = testRoomType.id;
     tu.db.Room.create(room)
     .then(() => {
@@ -85,7 +103,7 @@ describe('tests/api/v1/rooms/post.js >', () => {
   });
 
   it('Fail, room validation incorrect', (done) => {
-    let room = u.getStandard();
+    const room = u.getStandard();
     room.type = testRoomType.id;
     room.active = 'INVALID_VALUE';
     api.post(`${path}`)
