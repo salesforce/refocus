@@ -196,12 +196,11 @@ module.exports = {
     const timestamp = req.body.currentTimestamp;
     let botName;
 
-
     u.findByKey(helper, req.swagger.params)
     .then((o) => {
       o.set('lastHeartbeat', timestamp);
       return o.save();
-    })
+    });
   }, // heartbeat
 
 }; // exports
