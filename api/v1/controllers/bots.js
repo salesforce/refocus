@@ -192,9 +192,7 @@ module.exports = {
   },
 
   heartbeat(req, res, next) {
-    const authToken = req.headers.authorization;
     const timestamp = req.body.currentTimestamp;
-    let botName;
 
     u.findByKey(helper, req.swagger.params)
     .then((o) => {
