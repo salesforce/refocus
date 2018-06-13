@@ -23,6 +23,12 @@ const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
 const Promise = require('bluebird');
 const Op = require('sequelize').Op;
+const publishSample = require('../../realtime/redisPublisher').publishSample;
+const sampleEventNames = {
+  add: 'refocus.internal.realtime.sample.add',
+  upd: 'refocus.internal.realtime.sample.update',
+  del: 'refocus.internal.realtime.sample.remove',
+};
 
 module.exports = function aspect(seq, dataTypes) {
   const Aspect = seq.define('Aspect', {
@@ -173,15 +179,32 @@ module.exports = function aspect(seq, dataTypes) {
           const action = unpublished ? 'unpublish' : 'rename';
           return inst.checkGeneratorReferences(action);
         }
+
+        /*
+         * If aspect is published and tags change, send a "del" realtime
+         * event for all the samples for this aspect. (The afterUpdate hook
+         * will send an "add" event.) This way, perspectives
+         * which filter by aspect tags will get the right samples.
+         */
+        if (inst.isPublished && inst.changed('tags')) {
+          return new seq.Promise((resolve, reject) => {
+            redisOps.getSamplesFromAspectName(inst.name)
+            .each((samp) =>
+              publishSample(
+                samp, seq.models.Subject, sampleEventNames.del,
+                seq.models.Aspect
+              ))
+            .then(() => resolve(inst))
+            .catch(reject);
+          });
+        } // tags changed
+
+        return seq.Promise.resolve(true);
       }, // hooks.beforeUpdate
 
       /**
        * If isPublished is being updated from true to false or the name of the
        * aspect is changed, delete any samples associated with the aspect.
-       * If aspect tags changed, send an "add" realtime event for all the
-       * samples for this aspect. (The beforeUpdate hook will already have
-       * sent a "delete" event.) This way, perspectives which filter by aspect
-       * tags will get the right samples.
        *
        * @param {Aspect} inst - The updated instance
        * @returns {Promise}
@@ -241,6 +264,25 @@ module.exports = function aspect(seq, dataTypes) {
           });
           promiseArr.push(redisOps.hmSet(aspectType, inst.name, instChanged));
         }
+
+        /*
+         * If aspect is published and tags change, send an "add" realtime
+         * event for all the samples for this aspect. (The beforeUpdate hook
+         * will already have sent a "delete" event.) This way, perspectives
+         * which filter by aspect tags will get the right samples.
+         */
+        if (inst.isPublished && inst.changed('tags')) {
+          return new seq.Promise((resolve, reject) => {
+            redisOps.getSamplesFromAspectName(inst.name)
+            .each((samp) =>
+              publishSample(
+                samp, seq.models.Subject, sampleEventNames.add,
+                seq.models.Aspect
+              ))
+            .then(() => resolve(inst))
+            .catch(reject);
+          });
+        } // tags changed
 
         return seq.Promise.all(promiseArr);
       }, // hooks.afterUpdate
