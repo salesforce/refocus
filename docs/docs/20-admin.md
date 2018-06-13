@@ -25,7 +25,9 @@ The following headers will then be added to the response:
 
 - `x-ratelimit-limit` - the total number of requests allowed by this user in each time interval
 - `x-ratelimit-remaining` - the total number of requests this user can make before the time interval is reset
-- `x-ratelimit-reset` - the Unix timestamp of the next time interval reset
+
+When the caller exceeds the limit, the following header is also added to the response:
+- `retry-after` - the number of seconds to wait before retrying
 
 For more details on ratelimiter configuration, see the [ratelimiter](https://www.npmjs.com/package/ratelimiter) module.
 
