@@ -44,7 +44,7 @@ const constants = {
     subject: PFX + SEP + 'subjects',
   },
   objectType: { aspect: 'aspect', sample: 'sample', subject: 'subject',
-    subAspMap: 'subaspmap', },
+    subAspMap: 'subaspmap', aspSubMap: 'aspsubmap', },
   prefix: PFX,
   separator: SEP,
   previousStatusKey: PFX + SEP + 'previousSampleStoreStatus',
