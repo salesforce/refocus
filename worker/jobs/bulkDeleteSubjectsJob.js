@@ -7,75 +7,80 @@
  */
 
 /**
- * /worker/jobs/bulkDeleteSubjects.js
+ * /worker/jobs/bulkDeleteSubjectsJob.js
  */
 const logger = require('winston');
-const subHelper = require('../../api/v1/helpers/nouns/subjects');
+const subjectHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
-const cacheSampleModel = require('../../cache/models/samples');
+const subjectCacheModel = require('../../cache/models/subject');
 const publisher = require('../../realtime/redisPublisher');
 const jobLog = require('../jobLog');
 
+/**
+ * Update activity log using activityLogUtil
+ * @param objToReturn
+ * @param jobStartTime
+ * @param reqStartTime
+ * @param dbStartTime
+ * @param dbEndTime
+ */
+// eslint-disable-next-line max-params
+function updateActivityLogs(objToReturn, jobStartTime, reqStartTime,
+                            dbStartTime, dbEndTime) {
+  const jobEndTime = Date.now();
+  activityLogUtil.updateActivityLogParams(objToReturn, {
+    jobStartTime,
+    jobEndTime,
+    reqStartTime,
+    dbStartTime,
+    dbEndTime,
+  });
+}
+
 module.exports = (job, done) => {
   const jobStartTime = Date.now();
-  const samples = job.data.length ? job.data : job.data.upsertData;
-  const user = job.data.user;
+
+  // const user = job.data.user; // TODO not sure if needed.
   const reqStartTime = job.data.reqStartTime;
-  const readOnlyFields = job.data.readOnlyFields;
+  const subjects = job.data.subjects;
+  const user = job.data.user;
+  const readOnlyFields = job.data.readOnlyFields; // TODO not sure if needed.
   const errors = [];
 
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
-    const msg =
-      `[KJI] Entered bulkUpsertSamplesJob.js: job.id=${job.id} ` +
-      `sampleCount=${samples.length}`;
+    const msg = `[KJI] Entered bulkDeleteSubjectsJob.js: job.id=${job.id} ` +
+      `SubjectsToDelete=${subjects.length}`;
     console.log(msg); // eslint-disable-line no-console
   }
 
   const dbStartTime = Date.now();
-  cacheSampleModel.bulkUpsertByName(samples, user, readOnlyFields)
+  subjectCacheModel.bulkDelete(subjects, readOnlyFields, user)
     .then((results) => {
       const dbEndTime = Date.now();
       let errorCount = 0;
 
       /*
-       * count failed promises and send the good samples to the client by
-       * publishing it to the redis channel
+       * Counts failed and successful promises.
+       * Send to the client via redis channel successful promises.
        */
       for (let i = 0; i < results.length; i++) {
         if (results[i].isFailed) {
           errorCount++;
-
-          // we just need "explanation" to be added to the errors
           errors.push(results[i].explanation);
         } else {
-          publisher.publishSample(results[i], subHelper.model);
+          publisher.publishSample(results[i], subjectHelper.model);
         }
       }
 
       const objToReturn = {};
-
-      // attach the errors from "bulkUpsertByName"
       objToReturn.errors = errors;
+      objToReturn.errorCount = errorCount;
+      const successCount = results.length - errorCount;
+      objToReturn.recordCount = successCount;
       if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
-        const jobEndTime = Date.now();
-
-        // number of successful upserts
-        objToReturn.recordCount = results.length - errorCount;
-
-        // number of failed upserts
-        objToReturn.errorCount = errorCount;
-
-        const tempObj = {
-          jobStartTime,
-          jobEndTime,
-          reqStartTime,
-          dbStartTime,
-          dbEndTime,
-        };
-
-        // update time parameters in object to return.
-        activityLogUtil.updateActivityLogParams(objToReturn, tempObj);
+        updateActivityLogs(objToReturn, successCount, errorCount, jobStartTime,
+          reqStartTime, dbStartTime, dbEndTime);
       }
 
       /*
@@ -87,7 +92,8 @@ module.exports = (job, done) => {
       return done(null, objToReturn);
     })
     .catch((err) => {
-      logger.error('Caught error from /worker/jobs/bulkUpsertSamplesJob:', err);
+      const errorMsg = 'Caught error from /worker/jobs/bulkDeleteSubjectsJob:';
+      logger.error(errorMsg, err);
       jobLog(jobStartTime, job, err.message || '');
       return done(err);
     });

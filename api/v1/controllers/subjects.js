@@ -272,7 +272,7 @@ module.exports = {
 
     const resultObj = {
       reqStartTime: Date.now(),
-      params: params,
+      params,
     };
 
     if (featureToggles.isFeatureEnabled('enableWorkerProcess')
@@ -576,7 +576,6 @@ module.exports = {
   deleteSubjects(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const reqStartTime = Date.now();
-    const inputs = req.swagger.params.queryBody.value;
     const body = { status: 'OK' };
     const readOnlyFields = helper.readOnlyFields.filter((field) =>
       field !== 'name');
@@ -584,26 +583,38 @@ module.exports = {
     /**
      * Performs bulk delete through worker, cache or db model.
      *
+     * @param user
      * @returns {Promise} the response object with status and body.
      */
-    function createJob() {
-      const wrappedSubjectsData = {};
-      wrappedSubjectsData.data = inputs;
-      wrappedSubjectsData.reqStartTime = reqStartTime;
-      wrappedSubjectsData.readOnlyFields = readOnlyFields;
-      return jobWrapper
-        .createPromisifiedJob(jobType.BULK_DELETE_SUBJECTS,
-          wrappedSubjectsData, req)
+    function createJob(user) {
+      const subjectDataWrapper = {};
+      subjectDataWrapper.subjects = req.swagger.params.queryBody.value;
+      subjectDataWrapper.user = user;
+      subjectDataWrapper.reqStartTime = reqStartTime;
+      subjectDataWrapper.readOnlyFields = readOnlyFields;
+      const jobPromise = jobWrapper.createPromisifiedJob(
+        jobType.BULKDELETESUBJECTS,
+        subjectDataWrapper,
+        req);
+      return jobPromise
         .then((job) => {
+          // Gives the ID to the response
           body.jobId = job.id;
-          u.logAPI(req, resultObj, body, inputs.length);
+          u.logAPI(req, resultObj, body, req.swagger.params.queryBody
+            .value.length);
           return res.status(httpStatus.OK).json(body);
         })
-        .catch((err) => u.handleError(next, err, helper.modelName));
+        .catch((err) => {
+          console.log(err);
+          u.handleError(next, err, helper.modelName);
+        });
     }
 
-    return createJob()
-      .catch((err) => u.handleError(next, err, helper.modelName));
+    return createJob(req.user)
+      .catch((err) => {
+        console.log(err);
+        u.handleError(next, err, helper.modelName);
+      });
   },
 
   /**

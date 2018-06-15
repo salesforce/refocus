@@ -11,7 +11,8 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const helper = require('../../api/v1/helpers/nouns/subjects');
+const subjectHelper = require('../../api/v1/helpers/nouns/subjects');
+const subjectUtils = require('../../db/helpers/subjectUtils');
 const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const utils = require('../../api/v1/helpers/verbs/utils');
 const sampleStore = require('../sampleStore');
@@ -20,6 +21,7 @@ const redisClient = require('../redisCache').client.sampleStore;
 const u = require('../../utils/filters');
 const modelUtils = require('./utils');
 const redisErrors = require('../redisErrors');
+const commonUtils = require('../../utils/common');
 const ONE = 1;
 const TWO = 2;
 
@@ -237,7 +239,22 @@ function prepareFields(subject, opts, req) {
   }
 
   // add api links
-  subject.apiLinks = utils.getApiLinks(subject.name, helper, req.method);
+  subject.apiLinks = utils.getApiLinks(subject.name, subjectHelper, req.method);
+}
+
+/**
+ * TODO
+ * @param subject id / abs path
+ * @param user
+ * @returns {[Promise]} subject utils remove from redis
+ */
+function doDelete(subject, user) {
+  // find by key is waiting param request "param.key.value"
+  const delPromise = utils.findByKey(subjectHelper, subject)
+    .then((_subject) => utils.isWritable({ req: user }, _subject))
+    .then((_subject) => _subject.destroy())
+    .then((_subject) => subjectUtils.removeFromRedis(_subject));
+  return delPromise;
 }
 
 module.exports = {
@@ -252,7 +269,7 @@ module.exports = {
    * @returns {Promise} - Resolves to a subject objects
    */
   getSubject(req, res, logObject) {
-    const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
+    const opts = modelUtils.getOptionsFromReq(req.swagger.params, subjectHelper);
     const key = sampleStore.toKey(constants.objectType.subject, opts.filter.key);
     return redisClient.hgetallAsync(key)
     .then((subject) => {
@@ -287,7 +304,7 @@ module.exports = {
    * @returns {Promise} - Resolves to a list of all subjects objects
    */
   findSubjects(req, res, logObject) {
-    const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
+    const opts = modelUtils.getOptionsFromReq(req.swagger.params, subjectHelper);
     const response = [];
 
     res.links({
@@ -317,5 +334,24 @@ module.exports = {
 
       return response;
     });
+  },
+
+  bulkDelete(subjects, readOnlyFields, user) {
+    if (!subjects || !Array.isArray(subjects)) {
+      const err = 'Error, subject to delete are not valid (empty or not array)';
+      return Promise.resolve({ isFailed: true, explanation: err });
+    }
+
+    const subjectDeletePromise = subjects.map((subject) => {
+      try {
+        // TODO dont have request here, this method works with req
+        // commonUtils.noReadOnlyFieldsInReq(subject, readOnlyFields);
+
+        return doDelete(subject, user);
+      } catch (err) {
+        return Promise.resolve({ isFailed: true, explanation: err });
+      }
+    });
+    return Promise.all(subjectDeletePromise);
   },
 }; // exports
