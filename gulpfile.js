@@ -15,7 +15,6 @@ const gulp = require('gulp');
 const source = require('vinyl-source-stream');
 const browserify = require('browserify');
 const babelify = require('babelify');
-const watchify = require('watchify');
 const fs = require('fs');
 const chmod = require('gulp-chmod');
 const es = require('event-stream');
@@ -55,7 +54,7 @@ const conf = {
 };
 
 function browserifyTask() {
-   /*
+  /*
    * List all app files in a directory, recursively and synchronously.
    * @param {string} dir Path to start searching from.
    * @return {array} results String path to each app file.
@@ -84,44 +83,38 @@ function browserifyTask() {
    * @return {Object} bundle Bundled dependencies.
    */
   function rebundle(pathToApp) {
-    var tasks = pathToApp.map(function(entry) {
+    var tasks = pathToApp.map((entry) => {
       const outputPath = entry.split('/').splice(2).join('/');
       const props = {
         entries: [entry],
         debug: true,
         transform: [babelify],
-        cache: {},
-        packageCache: {},
-        plugin: [watchify],
       };
-      
-      return browserify(props).transform('uglifyify').bundle()
-          .pipe(source(outputPath))
-          // rename them to have "bundle as postfix"
-          .pipe(gulp.dest(conf.view.dest))
-          .once('end', () => {
-            console.log('finished building', outputPath);
-          })
-      });
 
-    return es.merge.apply(null, tasks);    
+      return browserify(props).transform('uglifyify').bundle()
+        .pipe(source(outputPath))
+
+        // rename them to have "bundle as postfix"
+        .pipe(gulp.dest(conf.view.dest))
+        .once('end', () => {
+          console.log('finished building', outputPath);
+        });
+    });
+
+    return es.merge.apply(null, tasks);
   }
 
   const appFiles = getAppFiles(conf.view.dir);
-  return rebundle(appFiles)
-  .on('end', () => {
-    process.exit();
-  });
+  return rebundle(appFiles);
 }
-
 
 /*
  * Browserifies the views, generating output under the designated destination
  * directory.
  */
-gulp.task('browserifyViews', () => {
-  browserifyTask();
-});
+gulp.task('browserifyViews', () =>
+  browserifyTask()
+);
 
 /*
  * Runs the default tasks.
@@ -133,10 +126,10 @@ gulp.task('default', conf.tasks.default, () => {
 /*
  * Copies css files over to public.
  */
-gulp.task('movecss', () => {
-  return gulp.src(conf.view.dir + conf.view.cssFiles)
-    .pipe(gulp.dest(conf.view.dest));
-});
+gulp.task('movecss', () =>
+  gulp.src(conf.view.dir + conf.view.cssFiles)
+    .pipe(gulp.dest(conf.view.dest))
+);
 
 /*
  * Copy git pre-commit script to git hooks.
