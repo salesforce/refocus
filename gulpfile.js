@@ -18,6 +18,7 @@ const babelify = require('babelify');
 const watchify = require('watchify');
 const fs = require('fs');
 const chmod = require('gulp-chmod');
+const es = require('event-stream');
 
 const conf = {
   tasks: {
@@ -53,13 +54,8 @@ const conf = {
   },
 };
 
-/*
- * Browserifies the views, generating output under the designated destination
- * directory.
- */
-gulp.task('browserifyViews', () => {
-
-  /*
+function browserifyTask() {
+   /*
    * List all app files in a directory, recursively and synchronously.
    * @param {string} dir Path to start searching from.
    * @return {array} results String path to each app file.
@@ -76,6 +72,7 @@ gulp.task('browserifyViews', () => {
         results.push(file);
       }
     });
+
     return results;
   }
 
@@ -87,38 +84,43 @@ gulp.task('browserifyViews', () => {
    * @return {Object} bundle Bundled dependencies.
    */
   function rebundle(pathToApp) {
-
-    const props = {
-      entries: [pathToApp],
-      debug: true,
-      transform: [babelify],
-      cache : {},
-      packageCache : {},
-      plugin: [watchify]
-    };
-    const bundler = browserify(props);
-    const outputPath = pathToApp.split('/').splice(2).join('/');
-
-    var stream = bundler.transform('uglifyify').bundle();
-    return stream
-      .on('error', (err) => {
-        console.error(err);
-        process.exit(1);
-      })
-      .pipe(source(outputPath))
-      .pipe(gulp.dest(conf.view.dest))
-      .once('end', function () {
-        console.log('finished building', outputPath);
-        if (appFiles.length) {
-          rebundle(appFiles.pop());
-        } else {
-          process.exit(0);
-        }
+    var tasks = pathToApp.map(function(entry) {
+      const outputPath = entry.split('/').splice(2).join('/');
+      const props = {
+        entries: [entry],
+        debug: true,
+        transform: [babelify],
+        cache: {},
+        packageCache: {},
+        plugin: [watchify],
+      };
+      
+      return browserify(props).transform('uglifyify').bundle()
+          .pipe(source(outputPath))
+          // rename them to have "bundle as postfix"
+          .pipe(gulp.dest(conf.view.dest))
+          .once('end', () => {
+            console.log('finished building', outputPath);
+          })
       });
+
+    return es.merge.apply(null, tasks);    
   }
 
   const appFiles = getAppFiles(conf.view.dir);
-  rebundle(appFiles.pop());
+  return rebundle(appFiles)
+  .on('end', () => {
+    process.exit();
+  });
+}
+
+
+/*
+ * Browserifies the views, generating output under the designated destination
+ * directory.
+ */
+gulp.task('browserifyViews', () => {
+  browserifyTask();
 });
 
 /*
@@ -131,13 +133,10 @@ gulp.task('default', conf.tasks.default, () => {
 /*
  * Copies css files over to public.
  */
-gulp.task('movecss', () =>
-  gulp.src(conf.view.dir + conf.view.cssFiles)
-    .pipe(gulp.dest(conf.view.dest))
-    .on('end', () => {
-      process.exit();
-    })
-);
+gulp.task('movecss', () => {
+  return gulp.src(conf.view.dir + conf.view.cssFiles)
+    .pipe(gulp.dest(conf.view.dest));
+});
 
 /*
  * Copy git pre-commit script to git hooks.
