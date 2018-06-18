@@ -156,6 +156,29 @@ module.exports = function room(seq, dataTypes) {
     return 'roomAccess';
   };
 
+  /**
+   * Returns a list of Active rooms where the time since the last
+   * event is greater than 3 hours.
+   *
+   * @param {Integer} latencyTolerance - For testing, pass in heartbeat
+   *  latency tolerance millis. If false-y, uses
+   *  collectorConfig.heartbeatLatencyToleranceMillis.
+   * @param {Date} now - For testing, pass in a Date object to represent
+   *  the current time. If false-y, uses current time.
+   */
+  Room.shouldBeDeactivated = function (latencyTolerance, now) {
+    const tolerance = latencyTolerance || 3000;
+    const curr = (now || new Date()).getTime();
+
+    return new seq.Promise((resolve, reject) => {
+      Room.findAll({ where: { active: true } })
+      .then((rooms) => rooms.filter((r) => {
+        //console.log(rooms);
+        return resolve(rooms);
+      }));
+    });
+  }; // missedHeartbeat
+
   Room.postImport = function (models) {
     assoc.type = Room.belongsTo(models.RoomType, {
       foreignKey: {
