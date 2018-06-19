@@ -188,11 +188,12 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       beforeUpdate(inst /* , opts */) {
+        const promiseArr = [];
         const unpublished = inst.previous('isPublished') && !inst.isPublished;
         const renamed = inst.previous('name') !== inst.name;
         if (unpublished || renamed) {
           const action = unpublished ? 'unpublish' : 'rename';
-          inst.checkGeneratorReferences(action);
+          promiseArr.push(inst.checkGeneratorReferences(action));
         }
 
         /*
@@ -204,19 +205,17 @@ module.exports = function aspect(seq, dataTypes) {
          */
         if (inst.isPublished && inst.changed('tags') ||
           (inst.changed('isPublished') && inst.previous('isPublished'))) {
-          return new seq.Promise((resolve, reject) => {
-            redisOps.getSamplesFromAspectName(inst.name)
+          promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
             .each((samp) =>
               publishSample(
                 samp, seq.models.Subject, sampleEventNames.del,
                 seq.models.Aspect
-              ))
-            .then(() => resolve(inst))
-            .catch(reject);
-          });
+              )
+            )
+          );
         } // tags changed
 
-        return seq.Promise.resolve(true);
+        return seq.Promise.all(promiseArr);
       }, // hooks.beforeUpdate
 
       /**
