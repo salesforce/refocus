@@ -17,83 +17,61 @@ const subjectCacheModel = require('../../cache/models/subject');
 const publisher = require('../../realtime/redisPublisher');
 const jobLog = require('../jobLog');
 
-/**
- * Update activity log using activityLogUtil
- * @param objToReturn
- * @param jobStartTime
- * @param reqStartTime
- * @param dbStartTime
- * @param dbEndTime
- */
-// eslint-disable-next-line max-params
-function updateActivityLogs(objToReturn, jobStartTime, reqStartTime,
-                            dbStartTime, dbEndTime) {
-  const jobEndTime = Date.now();
-  activityLogUtil.updateActivityLogParams(objToReturn, {
-    jobStartTime,
-    jobEndTime,
-    reqStartTime,
-    dbStartTime,
-    dbEndTime,
-  });
-}
-
 module.exports = (job, done) => {
   const jobStartTime = Date.now();
-
-  // const user = job.data.user; // TODO not sure if needed.
   const reqStartTime = job.data.reqStartTime;
-  const subjects = job.data.subjects;
+  const subjectKeys = job.data.subjects;
   const user = job.data.user;
-  const readOnlyFields = job.data.readOnlyFields; // TODO not sure if needed.
+  const readOnlyFields = job.data.readOnlyFields;
   const errors = [];
 
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg = `[KJI] Entered bulkDeleteSubjectsJob.js: job.id=${job.id} ` +
-      `SubjectsToDelete=${subjects.length}`;
+      `SubjectsToDelete=${subjectKeys.length}`;
     console.log(msg); // eslint-disable-line no-console
   }
 
   const dbStartTime = Date.now();
-  subjectCacheModel.bulkDelete(subjects, readOnlyFields, user)
+  let dbEndTime;
+  let successCount = 0;
+
+  subjectCacheModel.bulkDelete(subjectKeys, readOnlyFields, user)
     .then((results) => {
-      const dbEndTime = Date.now();
-      let errorCount = 0;
-
-      /*
-       * Counts failed and successful promises.
-       * Send to the client via redis channel successful promises.
-       */
-      for (let i = 0; i < results.length; i++) {
-        if (results[i].isFailed) {
-          errorCount++;
-          errors.push(results[i].explanation);
-        } else {
-          publisher.publishSample(results[i], subjectHelper.model);
+      // Split success and failures
+      dbEndTime = Date.now();
+      return Promise.all(results.map((result) => {
+        if (result.isFailed) {
+          errors.push(result.explanation);
+          return Promise.resolve();
         }
-      }
 
-      const objToReturn = {};
-      objToReturn.errors = errors;
-      objToReturn.errorCount = errorCount;
-      const successCount = results.length - errorCount;
-      objToReturn.recordCount = successCount;
+        successCount++;
+        publisher.publishObject(result, subjectHelper.model);
+        return Promise.resolve();
+      }));
+    })
+    .then(() => {
+      const jobResultData = {};
+      jobResultData.jobId = job.id;
+      jobResultData.errors = errors;
       if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
-        updateActivityLogs(objToReturn, successCount, errorCount, jobStartTime,
-          reqStartTime, dbStartTime, dbEndTime);
+        const jobEndTime = Date.now();
+        jobResultData.recordCount = successCount;
+        jobResultData.errorCount = errors.length;
+        activityLogUtil.updateActivityLogParams(jobResultData, {
+          jobStartTime,
+          jobEndTime,
+          reqStartTime,
+          dbStartTime,
+          dbEndTime,
+        });
       }
 
-      /*
-       * passing an object as the second argument of done maps it to the
-       * "results" key and attaches it to a hash identified by q:job:{jobId},
-       * to be stored in redis
-       */
       jobLog(jobStartTime, job);
-      return done(null, objToReturn);
+      return done(null, jobResultData);
     })
     .catch((err) => {
-      const errorMsg = 'Caught error from /worker/jobs/bulkDeleteSubjectsJob:';
-      logger.error(errorMsg, err);
+      logger.error('Error /worker/jobs/bulkDeleteSubjectsJob:', err);
       jobLog(jobStartTime, job, err.message || '');
       return done(err);
     });

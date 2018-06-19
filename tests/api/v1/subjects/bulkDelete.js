@@ -1,3 +1,8 @@
+// jscs:disable requirePaddingNewLinesBeforeLineComments
+// jscs:disable maximumLineLength
+// jscs:disable disallowTrailingWhitespace
+/* eslint-disable */
+
 /**
  * Copyright (c) 2016, salesforce.com, inc.
  * All rights reserved.
@@ -29,11 +34,15 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
   let token;
   const AUTHORIZATION = 'Authorization';
   const DELETE_PATH = '/v1/subjects/delete/bulk';
-  let subjectId1 = 0;
-  let subjectId2 = 0;
+  let northAmericaId = 0;
+  let southAmericaId = 0;
+  let europeId = 0;
+  let northAmericaName = '';
 
   before((done) => {
+    // Start JobQueue
     jobQueue.process(jobType.BULKDELETESUBJECTS, bulkDeleteSubjectsJob);
+
     testUtils.createToken()
       .then((returnedToken) => {
         token = returnedToken;
@@ -41,102 +50,94 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
       })
       .catch(done);
   });
-  before(utils.populateRedis);
 
-  // Populate PG_DB
-  beforeEach((done) => {
-    const parentName = `${testUtils.namePrefix}NorthAmerica`;
-    const subjectNorthAmerica = { name: parentName, isPublished: true,
-      absolutePath: parentName,
-    };
-    const subjectSouthAmerica = {
-      name: `${testUtils.namePrefix}SouthAmerica`, isPublished: false,
-    };
-    const aspectTemperature = {
-      name: 'temperature', timeout: '30s', isPublished: true, tags: ['temp'],
-    };
-    const aspectHumid = {
-      name: 'humidity',
-      timeout: '30s',
-      isPublished: true,
-    };
-    const sample1 = { value: '10' };
-    const sample2 = { value: '10' };
+  describe('Create 3 subjects and delete one', () => {
+    before((done) => {
+      northAmericaName = `${testUtils.namePrefix}NorthAmerica`;
+      const subjectNorthAmerica = { name: northAmericaName, isPublished: true, absolutePath: northAmericaName, };
+      const subjectSouthAmerica = { name: `${testUtils.namePrefix}SouthAmerica`, isPublished: false, };
+      const subjectEurope = { name: `${testUtils.namePrefix}Europe`, isPublished: false, };
+      const aspectTemperature = { name: 'temperature', timeout: '30s', isPublished: true, tags: ['temp'], };
+      const aspectHumid = { name: 'humidity', timeout: '30s', isPublished: true, };
+      const sample1 = { value: '10' };
+      const sample2 = { value: '10' };
 
-    Subject.create(subjectNorthAmerica)
-      .then((createdSubjectNorthAmerica) => {
-        sample1.subjectId = createdSubjectNorthAmerica.id;
-        sample2.subjectId = createdSubjectNorthAmerica.id;
-        subjectId1 = createdSubjectNorthAmerica.id;
+      Subject.create(subjectNorthAmerica)
+        .then((createdSubjectNorthAmerica) => {
+          sample1.subjectId = createdSubjectNorthAmerica.id;
+          sample2.subjectId = createdSubjectNorthAmerica.id;
+          northAmericaId = createdSubjectNorthAmerica.id;
+          return Subject.create(subjectSouthAmerica);
+        })
+        .then((createdSubjectSouthAmerica) => {
+          southAmericaId = createdSubjectSouthAmerica.id;
+          return Subject.create(subjectEurope);
+        })
+        .then((createdEurope) => {
+          europeId = createdEurope.id;
+          return Aspect.create(aspectHumid);
+        })
+        .then((createdAspectHumid) => {
+          sample1.aspectId = createdAspectHumid.id;
+          return Aspect.create(aspectTemperature);
+        })
+        .then((createdAspectTemperature) => {
+          sample2.aspectId = createdAspectTemperature.id;
+          return Sample.create(sample1);
+        })
+        .then(() => Sample.create(sample2))
+        .then(() => done())
+        .catch(done);
+    });
+    before(utils.populateRedis);
 
-        return Subject.create(subjectSouthAmerica);
-      })
-      .then((createdSubjectSouthAmerica) => {
-        subjectId2 = createdSubjectSouthAmerica.id;
-        return Aspect.create(aspectHumid);
-      })
-      .then((createdAspectHumid) => {
-        sample1.aspectId = createdAspectHumid.id;
-        return Aspect.create(aspectTemperature);
-      })
-      .then((createdAspectTemperature) => {
-        sample2.aspectId = createdAspectTemperature.id;
-        return Sample.create(sample1);
-      })
-      .then(() => Sample.create(sample2))
-      .then(() => done())
-      .catch(done);
-  });
+    after(utils.forceDelete);
+    after(testUtils.forceDeleteUser);
 
-  after(utils.forceDelete);
-  after(testUtils.forceDeleteUser);
-
-  describe(`POST ${DELETE_PATH} >`, () => {
-    it('Must be able delete when proper request', (done) => {
+    it('Must throw bad request when send invalid keys', (done) => {
       api.post(DELETE_PATH)
         .set(AUTHORIZATION, token)
-        .send([subjectId1, subjectId2])
-        .expect(constants.httpStatus.OK)
-        .end(done);
+        .send('blah')
+        .expect(constants.httpStatus.BAD_REQUEST)
+        .then(() => done());
     });
 
-    // it('Must fail with invalid request body', (done) => {
-    //   api.post(DELETE_PATH)
-    //     .set(AUTHORIZATION, token)
-    //     .send('INVALID object')
-    //     .expect(constants.httpStatus.BAD_REQUEST)
-    //     .end(done);
-    // });
+    it('Must be able to delete subject N.America by path and EU by ID retrieving current JobId', (done) => {
+      api.post(DELETE_PATH)
+        .set(AUTHORIZATION, token)
+        .send([northAmericaName, europeId])
+        .expect(constants.httpStatus.OK)
+        .then((res) => expect(res.body.jobId).to.not.be.empty)
+        .then(() => {
+          // postgres must have '___SouthAmerica'
+          setTimeout(() => {
+            Subject.findAll()
+              .then((res) => {
+                expect(res).to.have.length(1);
+                expect(res[0].absolutePath).to.equal('___SouthAmerica');
+                return done();
+              });
+          }, 100);
+        }).then(() => {
+          // Checking via API...
+          setTimeout(() => {
+            // Must not find north america
+            api.get(`/v1/subjects/${northAmericaId}`)
+              .set('Authorization', token)
+              .expect(constants.httpStatus.NOT_FOUND)
+              .then((res) => {
+                expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
+              });
+            // Must find south america
+            api.get(`/v1/subjects/${southAmericaId}`)
+              .set('Authorization', token)
+              .expect(constants.httpStatus.OK)
+              .then((res) => {
+                expect(res.body.id).to.equal(southAmericaId);
+                return done();
+              });
+          }, 50);
+        });
+    });
   });
-
-  // describe('GET Checking status api', () => {
-  //   it('Must be able to retrieve the status with valid request', (done) => {
-  //     api.get('/v1/subjects/bulk/1/status')
-  //       .set(AUTHORIZATION, token)
-  //       .expect(constants.httpStatus.OK)
-  //       .end((err, res) => {
-  //         if (err) {
-  //           return done(err);
-  //         }
-  //
-  //         expect(res.status).to.equal(constants.httpStatus.OK);
-  //         expect(res.body.status).to.equal('OK');
-  //         return done();
-  //       });
-  //   });
-  //
-  //   it('Must fail when invalid job id', (done) => {
-  //     api.get('/v1/subjects/bulk/blah/status')
-  //       .set(AUTHORIZATION, token)
-  //       .expect(constants.httpStatus.BAD_REQUEST)
-  //       .end((err, res) => {
-  //         if (err) {
-  //           return done(err);
-  //         }
-  //
-  //         expect(res.body.errors).is.not.empty;
-  //         return done();
-  //       });
-  //   });
-  // });
 });

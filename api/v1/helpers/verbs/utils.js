@@ -643,7 +643,8 @@ function findByKey(props, params, extraAttributes) {
   opts.where[props.nameFinder || 'name'] = keyClause;
 
   let attrArr = opts.attributes;
-  if (extraAttributes && Array.isArray(extraAttributes) && extraAttributes.length) {
+  if (extraAttributes && Array.isArray(extraAttributes) &&
+    extraAttributes.length) {
     if (attrArr) {
       attrArr.push(...extraAttributes);
     } else {

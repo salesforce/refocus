@@ -243,18 +243,29 @@ function prepareFields(subject, opts, req) {
 }
 
 /**
- * TODO
- * @param subject id / abs path
+ * Delete subject by key, meaning that key is either subject.id or
+ * subject.absolutePath.
+ *
+ * Removes first from Postgres and then Redis if logged user has
+ * permission.
+ *
+ * @param key (String subject id or abs path)
  * @param user
- * @returns {[Promise]} subject utils remove from redis
+ * @returns {Promise} indicating success or failure
  */
-function doDelete(subject, user) {
-  // find by key is waiting param request "param.key.value"
-  const delPromise = utils.findByKey(subjectHelper, subject)
-    .then((_subject) => utils.isWritable({ req: user }, _subject))
-    .then((_subject) => _subject.destroy())
-    .then((_subject) => subjectUtils.removeFromRedis(_subject));
-  return delPromise;
+function deleteByKey(key, user) {
+  const params = {};
+  let deletedSubject;
+  params.key = { value: key };
+  return utils.findByKey(subjectHelper, params)
+    .then((subject) => utils.isWritable({ user }, subject))
+    .then((subject) => {
+      deletedSubject = subject;
+      return subject.destroy();
+    })
+    .then(() => subjectUtils.removeFromRedis(deletedSubject))
+    .then(() => Promise.resolve({ isFailed: false }))
+    .catch((err) => Promise.resolve({ isFailed: true, explanation: err }));
 }
 
 module.exports = {
@@ -336,20 +347,20 @@ module.exports = {
     });
   },
 
-  bulkDelete(subjects, readOnlyFields, user) {
-    if (!subjects || !Array.isArray(subjects)) {
-      const err = 'Error, subject to delete are not valid (empty or not array)';
-      return Promise.resolve({ isFailed: true, explanation: err });
+  bulkDelete(subjectsKeys, readOnlyFields, user) {
+    if (!subjectsKeys || !Array.isArray(subjectsKeys) ||
+      subjectsKeys.length < 1) {
+      const err = 'Error, subject keys to delete are not valid.';
+      return Promise.all(
+        [Promise.resolve({ isFailed: true, explanation: err, })]
+      );
     }
 
-    const subjectDeletePromise = subjects.map((subject) => {
+    const subjectDeletePromise = subjectsKeys.map((key) => {
       try {
-        // TODO dont have request here, this method works with req
-        // commonUtils.noReadOnlyFieldsInReq(subject, readOnlyFields);
-
-        return doDelete(subject, user);
+        return deleteByKey(key, user);
       } catch (err) {
-        return Promise.resolve({ isFailed: true, explanation: err });
+        return Promise.reject({ isFailed: true, explanation: err });
       }
     });
     return Promise.all(subjectDeletePromise);
