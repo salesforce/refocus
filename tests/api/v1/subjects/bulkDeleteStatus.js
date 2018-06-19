@@ -106,7 +106,7 @@ describe('tests/api/v1/subjects/bulkDeleteStatus.js', () => {
                 expect(res.body.errors[0].name).to.equal('SubjectDeleteConstraintError');
                 return done();
               });
-          }, 50);
+          }, 1000);
         });
     });
 
@@ -129,7 +129,7 @@ describe('tests/api/v1/subjects/bulkDeleteStatus.js', () => {
                 expect(res.body.status).to.equal('complete');
                 return done();
               });
-          }, 100);
+          }, 1000);
         });
     });
   });

@@ -136,7 +136,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
                 expect(res.body.id).to.equal(southAmericaId);
                 return done();
               });
-          }, 50);
+          }, 1000);
         });
     });
   });
