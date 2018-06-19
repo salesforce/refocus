@@ -112,16 +112,12 @@ function browserifyTask() {
  * Browserifies the views, generating output under the designated destination
  * directory.
  */
-gulp.task('browserifyViews', () =>
-  browserifyTask()
-);
+gulp.task('browserifyViews', browserifyTask);
 
 /*
  * Runs the default tasks.
  */
-gulp.task('default', conf.tasks.default, () => {
-  process.exit();
-});
+gulp.task('default', conf.tasks.default);
 
 /*
  * Copies css files over to public.
@@ -138,7 +134,4 @@ gulp.task('copygitprecommit', () =>
   gulp.src('./scripts/git/pre-commit')
     .pipe(chmod(755))
     .pipe(gulp.dest('./.git/hooks'))
-    .on('end', () => {
-      process.exit();
-    })
 );
