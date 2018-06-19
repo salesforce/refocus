@@ -28,6 +28,7 @@ const featureToggles = require('feature-toggles');
 const config = require('../../../config');
 const fu = require('../helpers/verbs/findUtils');
 const redisCache = require('../../../cache/redisCache').client.cache;
+const perspectivesHash = u.getHash('/v1/perspectives');
 
 function clearCacheKey(key) {
   if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
@@ -48,7 +49,7 @@ module.exports = {
    */
   deletePerspective(req, res, next) {
     doDelete(req, res, next, helper);
-    clearCacheKey('/v1/perspectives');
+    clearCacheKey(perspectivesHash);
   },
 
   /**
@@ -89,16 +90,10 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findPerspectives(req, res, next) {
-    console.log(Object.keys(req.query)) // returns query keys in an array of strings
-    // Caching perspective
-    // FIXME: we are only caching when there are no query params????
-    // if we also cache filters, don't just use raw string. hash the string then use
-    // hashed value as key
-    if (featureToggles.isFeatureEnabled('enableCachePerspective') &&
-      Object.keys(req.query).length === 0) {
+    // Caching perspective, use hash of url as key
+    if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
       helper.cacheEnabled = true;
-      console.log(req.originalUrl)
-      helper.cacheKey = req.originalUrl;
+      helper.cacheKey = u.getHash(req.originalUrl);
       helper.cacheExpiry = config.CACHE_EXPIRY_IN_SECS;
     }
 
@@ -175,7 +170,7 @@ module.exports = {
    */
   patchPerspective(req, res, next) {
     doPatch(req, res, next, helper);
-    clearCacheKey('/v1/perspectives');
+    clearCacheKey(perspectivesHash);
   },
 
   /**
@@ -190,7 +185,7 @@ module.exports = {
   postPerspective(req, res, next) {
     helper.validateFilterAndThrowError(req.body);
     doPost(req, res, next, helper);
-    clearCacheKey('/v1/perspectives');
+    clearCacheKey(perspectivesHash);
   },
 
   /**
@@ -207,6 +202,6 @@ module.exports = {
   putPerspective(req, res, next) {
     helper.validateFilterAndThrowError(req.body);
     doPut(req, res, next, helper);
-    clearCacheKey('/v1/perspectives');
+    clearCacheKey(perspectivesHash);
   },
 }; // exports

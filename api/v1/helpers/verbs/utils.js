@@ -21,6 +21,7 @@ const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
 const redisCache = require('../../../../cache/redisCache').client.cache;
 const Op = require('sequelize').Op;
+const md5 = require('md5');
 
 /**
  * @param {Object} o Sequelize instance
@@ -791,9 +792,15 @@ function responsify(rec, props, method) {
   return o;
 } // responsify
 
+function getHash(string) {
+  return md5(string);
+}
+
 // ----------------------------------------------------------------------------
 
 module.exports = {
+
+  getHash,
 
   sortArrayObjectsByField,
 

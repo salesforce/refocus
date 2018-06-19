@@ -24,6 +24,7 @@ const ONE = 1;
 const featureToggles = require('feature-toggles');
 const enableApiActivityLogs =
   featureToggles.isFeatureEnabled('enableApiActivityLogs');
+const md5 = require('md5');
 
 describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
   let lensId;
@@ -69,7 +70,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
       if (err) {
         return done(err);
       }
-      console.log(res.body)
+
       expect(res.body).to.have.length(ONE);
       expect(res.body[ZERO].name).to.be.equal('___testPersp');
       expect(res.body).to.have.deep.property('[0].lensId', lensId);
@@ -86,7 +87,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
         return done(err);
       }
 
-      redisCache.get('/v1/perspectives', (cacheErr, reply) => {
+      redisCache.get(md5('/v1/perspectives'), (cacheErr, reply) => {
         if (reply) {
           const jsonReply = JSON.parse(reply);
           expect(jsonReply).to.have.length(ONE);
@@ -100,7 +101,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     });
   });
 
-  it.only('get with field, response should not be present in cache', (done) => {
+  it('get with fields=rootSubject', (done) => {
     api.get(path + '?fields=rootSubject')
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -109,19 +110,14 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
         return done(err);
       }
 
-      console.log(res.body)
       expect(res.body).to.have.length(ONE);
       expect(res.body[ZERO].name).to.not.exist;
       expect(res.body[ZERO].rootSubject).to.be.equal('myMainSubject');
-
-      redisCache.get('/v1/perspectives?fields=rootSubject', (cacheErr, reply) => {
-        expect(reply).to.not.exist;
-        return done();
-      });
+      return done();
     });
   });
 
-  it.only('get with fields=rootSubject,name', (done) => {
+  it('get with fields=rootSubject,name', (done) => {
     api.get(path + '?fields=rootSubject,name')
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -130,20 +126,15 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
         return done(err);
       }
 
-      console.log(res.body)
       expect(res.body).to.have.length(ONE);
       expect(res.body[ZERO].lensId).to.not.exist;
       expect(res.body[ZERO].name).to.be.equal('___testPersp');
       expect(res.body[ZERO].rootSubject).to.be.equal('myMainSubject');
-
-      redisCache.get('/v1/perspectives?fields=rootSubject,name', (cacheErr, reply) => {
-        expect(reply).to.not.exist;
-        return done();
-      });
+      return done();
     });
   });
 
-  it.only('get with with fields, should be in cache', (done) => {
+  it('get with with fields=rootSubject,name, should be in cache', (done) => {
     api.get(path + '?fields=rootSubject,name')
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -152,7 +143,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
         return done(err);
       }
 
-      redisCache.get('/v1/perspectives?fields=rootSubject,name', (cacheErr, reply) => {
+      redisCache.get(md5('/v1/perspectives?fields=rootSubject,name'), (cacheErr, reply) => {
         if (reply) {
           const jsonReply = JSON.parse(reply);
           expect(jsonReply).to.have.length(ONE);
@@ -186,7 +177,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
           return done(err);
         }
 
-        redisCache.get('/v1/perspectives', (cacheErr, reply) => {
+        redisCache.get(md5('/v1/perspectives'), (cacheErr, reply) => {
           expect(reply).to.not.exist;
           return done();
         });
@@ -225,7 +216,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
           return done(err);
         }
 
-        redisCache.get('/v1/perspectives', (cacheErr, reply) => {
+        redisCache.get(md5('/v1/perspectives'), (cacheErr, reply) => {
           expect(reply).to.not.exist;
           return done();
         });
@@ -244,7 +235,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
         return done(err);
       }
 
-      redisCache.get('/v1/perspectives', (cacheErr, reply) => {
+      redisCache.get(md5('/v1/perspectives'), (cacheErr, reply) => {
         if (reply) {
           const jsonReply = JSON.parse(reply);
           expect(jsonReply).to.have.length(ONE);
@@ -284,7 +275,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
         return done(err);
       }
 
-      redisCache.get('{"order":["name"],"limit":10,"where":{}}',
+      redisCache.get(md5('{"order":["name"],"limit":10,"where":{}}'),
       (cacheErr, reply) => {
         expect(reply).to.not.exist;
         return done();
