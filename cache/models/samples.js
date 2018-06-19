@@ -332,19 +332,25 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       });
     }
 
-    const subaspMapKey = sampleStore.toKey(constants.objectType.subAspMap,
-      absolutePath);
+    const cmds = []; // redis commands for batch processing
 
-    /*
-     * Add aspect name to subject set. Add sample key to sample set.
-     * Create/update hash of sample.
-     */
-    logInvalidHmsetValues(sampleKey, sampleQueryBodyObj);
-    return redisClient.batch([
-      ['sadd', subaspMapKey, aspectName],
-      ['sadd', constants.indexKey.sample, sampleKey],
-      ['hmset', sampleKey, sampleQueryBodyObj],
-    ]).execAsync();
+    // add the aspect name to the subject-to-aspect resource mapping
+    cmds.push(redisOps.addAspectInSubjSetCmd(absolutePath, aspectName));
+
+    // add sample to the master list of sample index
+    cmds.push(redisOps.addKeyToIndexCmd(sampleType, sampleName));
+
+    // create/update hash of sample. Check and log invalid Hmset values
+    cmds.push(
+      redisOps.setHashMultiCmd(sampleType, sampleName, sampleQueryBodyObj)
+    );
+
+    // add subject absolute path to aspect-to-subject resource mapping
+    cmds.push(redisOps.addSubjectAbsPathInAspectSetCmd(
+      aspectObj.name, subject.absolutePath)
+    );
+
+    return redisOps.executeBatchCmds(cmds);
   }))
   .then(() => redisClient.hgetallAsync(sampleKey))
   .then((updatedSamp) => {
@@ -674,6 +680,11 @@ module.exports = {
       // add the aspect to the subjectSet
       cmds.push(redisOps.addAspectInSubjSetCmd(
         subject.absolutePath, aspectObj.name)
+      );
+
+      // add subject absolute path to aspect-to-subject resource mapping
+      cmds.push(redisOps.addSubjectAbsPathInAspectSetCmd(
+        aspectObj.name, subject.absolutePath)
       );
 
       // add sample to the master list of sample index
