@@ -89,15 +89,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findPerspectives(req, res, next) {
-    console.log(Object.keys(req.query)) // returns query keys in an array of strings
     // Caching perspective
-    // FIXME: we are only caching when there are no query params????
-    // if we also cache filters, don't just use raw string. hash the string then use
-    // hashed value as key
     if (featureToggles.isFeatureEnabled('enableCachePerspective') &&
       Object.keys(req.query).length === 0) {
       helper.cacheEnabled = true;
-      helper.cacheKey = req.originalUrl;
+      helper.cacheKey = req.url;
       helper.cacheExpiry = config.CACHE_EXPIRY_IN_SECS;
     }
 
