@@ -72,7 +72,7 @@ describe('tests/db/model/generator/methods.js >', () => {
   afterEach(u.forceDelete);
   afterEach(gtUtil.forceDelete);
 
-  describe('assignToCollector', () => {
+  describe('assignToCollector >', () => {
     it('collectors specified, first choice available', () =>
       Promise.resolve()
       .then(() => Generator.findById(gen1.id))

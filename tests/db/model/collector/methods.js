@@ -64,7 +64,7 @@ describe('tests/db/model/collector/methods.js >', () => {
   afterEach(() => clock.restore());
   afterEach(u.forceDelete);
 
-  describe('class methods', () => {
+  describe('class methods >', () => {
     describe('missedHeartbeat >', () => {
       it('some over threshold', () => {
         const threshold = 3000;
@@ -97,7 +97,7 @@ describe('tests/db/model/collector/methods.js >', () => {
       });
     });
 
-    describe('findAliveCollector', () => {
+    describe('findAliveCollector >', () => {
       it('some over threshold', () => {
         const threshold = 3000;
         const fakeNow = new Date('2018-05-22T14:51:07');
@@ -129,7 +129,7 @@ describe('tests/db/model/collector/methods.js >', () => {
       });
     });
 
-    describe('checkMissedHeartbeat', () => {
+    describe('checkMissedHeartbeat >', () => {
 
       beforeEach(() => Promise.join(
         GeneratorTemplate.upsert(generatorTemplate),
@@ -163,8 +163,8 @@ describe('tests/db/model/collector/methods.js >', () => {
     });
   });
 
-  describe('instanceMethods', () => {
-    describe('isRunning', () => {
+  describe('instanceMethods >', () => {
+    describe('isRunning >', () => {
 
       it('running', () => {
         Collector.build({ status: collectorStatuses.Running })
@@ -183,7 +183,7 @@ describe('tests/db/model/collector/methods.js >', () => {
 
     });
 
-    describe('isAlive', () => {
+    describe('isAlive >', () => {
       it('alive', () => {
         const threshold = 3000;
         const lastHeartbeat = new Date('2018-05-22T14:51:05');
@@ -219,7 +219,7 @@ describe('tests/db/model/collector/methods.js >', () => {
 
     });
 
-    describe('reassignGenerators', () => {
+    describe('reassignGenerators >', () => {
       before(() => Promise.join(
         GeneratorTemplate.upsert(generatorTemplate),
         Generator.upsert(generator1),
