@@ -100,7 +100,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     });
   });
 
-  it.only('get with field, response should not be present in cache', (done) => {
+  it('get with field, response should not be present in cache', (done) => {
     api.get(path + '?fields=rootSubject')
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -121,7 +121,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     });
   });
 
-  it.only('get with fields=rootSubject,name', (done) => {
+  it('get with fields=rootSubject,name', (done) => {
     api.get(path + '?fields=rootSubject,name')
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -143,7 +143,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
     });
   });
 
-  it.only('get with with fields, should be in cache', (done) => {
+  it('get with with fields, should be in cache', (done) => {
     api.get(path + '?fields=rootSubject,name')
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)

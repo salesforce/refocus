@@ -105,6 +105,17 @@ describe('tests/view/perspectives/utils.js, Config perspective functions >',
       const config = getConfig(values, key, value);
       expect(config.options).to.not.contain(WORD);
     });
+
+    it('options contain only values not in field', () => {
+      const key = 'statusFilter'; // any string
+      const values = {};
+      values[key] = [1, 2, 3, 4, 5];
+      const value = [1, 2, 3];
+      const config = getConfig(values, key, value);
+      expect(config.options).to.not.contain(1);
+      expect(config.options).to.not.contain(2);
+      expect(config.options).to.not.contain(3);
+    });
   });
 
   describe('getArray >', () => {

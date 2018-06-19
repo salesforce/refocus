@@ -140,16 +140,9 @@ function getTagsFromResources(array) {
  * @returns {Array} Contains items from options
  */
 function getOptions(options, value) {
-  let leftovers = []; // populate from options
-  if (Array.isArray(value)) {
-    for (let i = options.length - 1; i >= 0; i--) {
-      if (value.indexOf(options[i]) < 0) {
-        leftovers.push(options[i]);
-      }
-    }
-  }
-
-  return leftovers;
+  // use set for O(n) lookup into 'value' array
+  const excludeSet = new Set(value);
+  return options.filter((item) => !excludeSet.has(item));
 }
 
 function findNamePrefixFromAbsolutePath(options, searchText, callback) {
@@ -172,11 +165,10 @@ function findNamePrefixFromAbsolutePath(options, searchText, callback) {
  */
 function getConfig(values, key, value) {
   const ZERO = 0;
-  const options = getOptions(values[key] || [], value);
   const convertedText = convertCamelCase(key);
   let config = {
     title: key,
-    options,
+    options: [],
   };
 
   if (key === 'subjects') {
@@ -202,6 +194,7 @@ function getConfig(values, key, value) {
     if (key === 'statusFilter') {
       config.allOptionsLabel = 'All ' +
         convertedText.replace(' Filter', '') + 'es';
+      config.options = getOptions(values[key] || [], value);
     } else if (key === 'aspectFilter') {
       config.allOptionsLabel = 'All ' +
         convertedText.replace(' Filter', '') + 's';
@@ -210,6 +203,8 @@ function getConfig(values, key, value) {
     }
 
     delete config.placeholderText;
+  } else {
+    config.options = getOptions(values[key] || [], value);
   }
 
   return config;

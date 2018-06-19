@@ -97,7 +97,6 @@ module.exports = {
     if (featureToggles.isFeatureEnabled('enableCachePerspective') &&
       Object.keys(req.query).length === 0) {
       helper.cacheEnabled = true;
-      console.log(req.originalUrl)
       helper.cacheKey = req.originalUrl;
       helper.cacheExpiry = config.CACHE_EXPIRY_IN_SECS;
     }
