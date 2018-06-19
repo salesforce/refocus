@@ -158,13 +158,28 @@ module.exports = function aspect(seq, dataTypes) {
 
       /**
        * Check Generator references and set the isDeleted timestamp.
+       * If aspect is deleted then send realtime "del" event to delete all
+       * samples associated with that aspect for perspectives.
        *
        * @param {Aspect} inst - The instance being destroyed
        * @returns {Promise}
        */
       beforeDestroy(inst /* , opts */) {
-        return inst.checkGeneratorReferences('delete')
-        .then(() => common.setIsDeleted(seq.Promise, inst));
+        const promiseArr = [];
+
+        promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
+          .each((samp) =>
+            publishSample(
+              samp, seq.models.Subject, sampleEventNames.del,
+              seq.models.Aspect
+            )
+          )
+        );
+
+        promiseArr.push(inst.checkGeneratorReferences('delete')
+        .then(() => common.setIsDeleted(seq.Promise, inst)));
+
+        return seq.Promise.all(promiseArr);
       }, // hooks.beforeDestroy
 
       /**
@@ -177,16 +192,18 @@ module.exports = function aspect(seq, dataTypes) {
         const renamed = inst.previous('name') !== inst.name;
         if (unpublished || renamed) {
           const action = unpublished ? 'unpublish' : 'rename';
-          return inst.checkGeneratorReferences(action);
+          inst.checkGeneratorReferences(action);
         }
 
         /*
-         * If aspect is published and tags change, send a "del" realtime
-         * event for all the samples for this aspect. (The afterUpdate hook
+         * If aspect is published and tags change or unpublished,
+         * send a "del" realtime event for all the
+         * samples for this aspect. (The afterUpdate hook
          * will send an "add" event.) This way, perspectives
          * which filter by aspect tags will get the right samples.
          */
-        if (inst.isPublished && inst.changed('tags')) {
+        if (inst.isPublished && inst.changed('tags') ||
+          (inst.changed('isPublished') && inst.previous('isPublished'))) {
           return new seq.Promise((resolve, reject) => {
             redisOps.getSamplesFromAspectName(inst.name)
             .each((samp) =>
