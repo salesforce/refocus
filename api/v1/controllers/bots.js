@@ -191,4 +191,14 @@ module.exports = {
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
+  heartbeat(req, res, next) {
+    const timestamp = req.body.currentTimestamp;
+
+    u.findByKey(helper, req.swagger.params)
+    .then((o) => {
+      o.set('lastHeartbeat', timestamp);
+      return o.save();
+    });
+  }, // heartbeat
+
 }; // exports
