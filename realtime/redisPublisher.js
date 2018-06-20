@@ -142,6 +142,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
 function publishSampleNoChange(sample) {
   const s = {
     name: sample.name,
+    absolutePath: sample.absolutePath, // used for persp filtering
     updatedAt: sample.updatedAt,
   };
   return Promise.resolve(publishObject(s, sampleEvent.nc, ['updatedAt']));
