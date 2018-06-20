@@ -79,7 +79,7 @@ function browserifyTask() {
    * Transforms each app file into an app, including translating JSX to JS.
    * Puts the output js in outputPath.
    *
-   * @param {string} pathToApp Path to source app file.
+   * @param {Array} pathToApp Array of Path to source app files.
    * @return {Object} bundle Bundled dependencies.
    */
   function rebundle(pathToApp) {
