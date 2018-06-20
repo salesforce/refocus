@@ -17,6 +17,7 @@ const redisClient = require('./redisCache').client.sampleStore;
 const rsConstant = redisStore.constants;
 const subjectType = redisStore.constants.objectType.subject;
 const subAspMapType = redisStore.constants.objectType.subAspMap;
+const aspSubMapType = redisStore.constants.objectType.aspSubMap;
 const aspectType = redisStore.constants.objectType.aspect;
 const sampleType = redisStore.constants.objectType.sample;
 
@@ -140,21 +141,39 @@ function deleteKey(type, name) {
  * Deletes the samples associated with the passed in association type.
  * @param  {String} associationType - Association type, using which the lookup
  * needs to be done.
- * @param  {String} name  - Name of the object whoes related samples are to be
+ * @param  {String} name  - Name of the object whose related samples are to be
  * deleted.
  * @returns {Array} of deleted sample
  */
 function deleteSampleKeys(associationType, name) {
   let cmds = [];
+
+  // Sample master list key. e.g.: samsto:samples
   const indexName = redisStore.constants.indexKey[sampleType];
+
+  /* Association key. e.g: samsto:subaspmap:northamerica.unitedstates
+  where associationType=subaspmap */
   const assocName = redisStore.toKey(associationType, name);
-  const nameKeySubjectNamePart = redisStore.toKey(sampleType, name);
+
+  // e.g samsto:sample:
+  const sampleKeyPrefix = redisStore.constants.prefix +
+   redisStore.constants.separator + sampleType + redisStore.constants.separator;
   const keyArr = [];
   let deletedSamples = [];
   return redisClient.smembersAsync(assocName)
   .then((members) => {
     members.forEach((member) => {
-      const sampleKey = nameKeySubjectNamePart + '|' + member;
+      let sampleKey = sampleKeyPrefix;
+
+      if (associationType === subAspMapType) {
+        // name is subject absolute path and member is an aspect name
+        sampleKey = sampleKey + name.toLowerCase() + '|' + member;
+      } else if (associationType === aspSubMapType) {
+        // name is aspect name and member is subject absolute path
+        sampleKey = sampleKey + member + '|' + name.toLowerCase();
+      }
+
+      // sampleKey e.g: samsto:sample:northamerica.unitedstates|toohot
       keyArr.push(sampleKey);
       cmds.push(['hgetall', sampleKey]);
     });
@@ -259,6 +278,43 @@ function renameKey(type, oldName, newName) {
         .catch((err) => Promise.reject(err));
 } // renameKey
 
+/**
+ * Command to delete subject from aspect resource mapping
+ * @param  {String} aspName - Aspect name
+ * @param  {String} subjAbsPath - Subject absolute path
+ * @returns {Array} - Command array
+ */
+function delSubFromAspSetCmd(aspName, subjAbsPath) {
+  return [
+    'srem',
+    redisStore.toKey(aspSubMapType, aspName),
+    subjAbsPath.toLowerCase(),
+  ];
+}
+
+/**
+ * Execute command asynchronously
+ * @param  {Array} cmds - array of commands
+ * @returns {Promise} - Resolves to commands responses
+ */
+function executeBatchCmds(cmds) {
+  return redisClient.batch(cmds).execAsync();
+}
+
+/**
+ * Command to delete aspect from subject set
+ * @param  {String} subjAbsPath - Subject absolute path
+ * @param  {String} aspName - Aspect name
+ * @returns {Array} - Command array
+ */
+function delAspFromSubjSetCmd(subjAbsPath, aspName) {
+  return [
+    'srem',
+    redisStore.toKey(subAspMapType, subjAbsPath),
+    aspName.toLowerCase(),
+  ];
+}
+
 module.exports = {
 
   /**
@@ -298,20 +354,6 @@ module.exports = {
   },
 
   /**
-   * Command to delete aspect from subject set
-   * @param  {String} subjAbsPath - Subject absolute path
-   * @param  {String} aspName - Aspect name
-   * @returns {Array} - Command array
-   */
-  delAspFromSubjSetCmd(subjAbsPath, aspName) {
-    return [
-      'srem',
-      redisStore.toKey(subAspMapType, subjAbsPath),
-      aspName.toLowerCase(),
-    ];
-  },
-
-  /**
    * Command to check if aspect exists in subject set
    * @param  {String} subjAbsPath - Subject absolute path
    * @param  {String} aspName - Aspect name
@@ -322,6 +364,21 @@ module.exports = {
       'sismember',
       redisStore.toKey(subAspMapType, subjAbsPath),
       aspName.toLowerCase(),
+    ];
+  },
+
+  /**
+   * Command to check if subject absolute path exists in aspect-to-subject
+   * respurce map
+   * @param  {String} aspName - Aspect name
+   * @param  {String} subjAbsPath - Subject absolute path
+   * @returns {Array} - Command array
+   */
+  subjAbsPathExistsInAspSetCmd(aspName, subjAbsPath) {
+    return [
+      'sismember',
+      redisStore.toKey(aspSubMapType, aspName),
+      subjAbsPath.toLowerCase(),
     ];
   },
 
@@ -415,15 +472,6 @@ module.exports = {
   },
 
   /**
-   * Execute command asynchronously
-   * @param  {Array} cmds - array of commands
-   * @returns {Promise} - Resolves to commands responses
-   */
-  executeBatchCmds(cmds) {
-    return redisClient.batch(cmds).execAsync();
-  },
-
-  /**
    * Get samples for a given aspect
    * @param  {String} aspName - Aspect Name
    * @returns {Promise} - Resolves to array of samples
@@ -444,6 +492,136 @@ module.exports = {
 
       return Promise.all(promiseArr);
     });
+  },
+
+  /**
+   * Delete subject from aspect-to-subject respurce maps
+   * @param  {Array} aspNamesArr - Array of aspect names
+   * @param {String} subjectAbsPath - Subject absolute path
+   * @returns {Promise} Resolves to executed commands
+   */
+  deleteSubjectFromAspectResourceMaps(aspNamesArr, subjectAbsPath) {
+    const cmds = [];
+    aspNamesArr.forEach((aspName) => {
+      cmds.push(delSubFromAspSetCmd(aspName, subjectAbsPath));
+    });
+
+    return executeBatchCmds(cmds);
+  },
+
+  /**
+   * Delete aspect from subject-to-aspect respurce maps
+   * @param  {Array} subjectAbsPathArr - Array of subject absolute paths
+   * @param {String} aspName - Aspect name
+   * @param {Boolean} returnRedisCmd - Decides what needs to be returned.
+   *  If true, redis commands are returned, else promise is returned.
+   * @returns {Array of Arrays|Promise} Array of commands if returnRedisCmd is
+   *  true, else resolves to executed commands
+   */
+  deleteAspectFromSubjectResourceMaps(subjectAbsPathArr, aspName,
+   returnRedisCmd=true) {
+    const cmds = [];
+    subjectAbsPathArr.forEach((subjAbsPath) => {
+      cmds.push(delAspFromSubjSetCmd(subjAbsPath, aspName));
+    });
+
+    if (returnRedisCmd) {
+      return cmds;
+    }
+
+    return executeBatchCmds(cmds);
+  },
+
+  /**
+   * Get aspect-to-subject resource map members
+   * @param  {String}  aspName - Aspect name
+   * @param  {Boolean} returnRedisCmd - Decides what needs to be returned.
+   *  If true, redis command is returned, else promise is returned.
+   * @returns {Array|Promise} Redis command if returnRedisCmd is true, else
+   *  resolves to executed command
+   */
+  getAspSubjMapMembers(aspName, returnRedisCmd=true) {
+    const key = redisStore.toKey(aspSubMapType, aspName.toLowerCase());
+    if (returnRedisCmd) {
+      return ['smembers', key];
+    }
+
+    return redisClient.smembersAsync(key);
+  },
+
+  /**
+   * Get subject-to-aspect resource map members
+   * @param  {String}  subjAbsPath - Subject absolute path
+   * @param  {Boolean} returnRedisCmd - Decides what needs to be returned.
+   *  If true, redis command is returned, else promise is returned.
+   * @returns {Array|Promise} Redis command if returnRedisCmd is true, else
+   *  resolves to executed command
+   */
+  getSubjAspMapMembers(subjAbsPath, returnRedisCmd=true) {
+    const key = redisStore.toKey(subAspMapType, subjAbsPath.toLowerCase());
+    if (returnRedisCmd) {
+      return ['smembers', key];
+    }
+
+    return redisClient.smembersAsync(key);
+  },
+
+  /**
+   * Add subject absolute path to aspect-to-subject resource map.
+   * @param {String}  aspName - Aspect name
+   * @param {string}  subjAbsPath - Subject absolute path
+   * @param {Boolean} returnRedisCmd Decides what needs to be returned.
+   *  If true, redis command is returned, else promise is returned.
+   * @returns {Array|Promise} Redis command if returnRedisCmd is true, else
+   *  resolves to executed command
+   */
+  addSubjectAbsPathInAspectSet(aspName, subjAbsPath, returnRedisCmd=true) {
+    const aspectSetKey = redisStore.toKey(aspSubMapType, aspName);
+    if (returnRedisCmd) {
+      return ['sadd', aspectSetKey, subjAbsPath.toLowerCase()];
+    }
+
+    return redisClient.saddAsync(aspectSetKey, subjAbsPath.toLowerCase());
+  },
+
+  /**
+   * Add aspect name to subject-to-aspect resource map.
+   * @param {String}  subjAbsPath - Subject absolute path
+   * @param {string}  aspName - Aspect name
+   * @param {Boolean} returnRedisCmd Decides what needs to be returned.
+   *  If true, redis command is returned, else promise is returned.
+   * @returns {Array|Promise} Redis command if returnRedisCmd is true, else
+   *  resolves to executed command
+   */
+  addAspectNameInSubjectSet(subjAbsPath, aspName, returnRedisCmd=true) {
+    const subjectSetKey = redisStore.toKey(subAspMapType, subjAbsPath);
+    if (returnRedisCmd) {
+      return ['sadd', subjectSetKey, aspName.toLowerCase()];
+    }
+
+    return redisClient.saddAsync(subjectSetKey, aspName.toLowerCase());
+  },
+
+  /**
+   * Duplicate a set
+   * @param  {String}  setType - Set type in sample store,
+   *  e.g. subaspmap|aspsubmap etc
+   * @param  {String}  nameTo - New set name
+   * @param  {string}  nameFrom - Old set name
+   * @param {Boolean} returnRedisCmd Decides what needs to be returned.
+   *  If true, redis command is returned, else promise is returned.
+   * @returns {Array|Promise} Redis command if returnRedisCmd is true, else
+   *  resolves to executed command
+   */
+  duplicateSet(setType, nameTo, nameFrom, returnRedisCmd=true) {
+    const fromSet = redisStore.toKey(setType, nameFrom.toLowerCase());
+    const toSet = redisStore.toKey(setType, nameTo.toLowerCase());
+
+    if (returnRedisCmd) {
+      return ['sunionstore', toSet, fromSet];
+    }
+
+    return redisClient.sunionstoreAsync(toSet, fromSet);
   },
 
   renameKey,
@@ -468,7 +646,15 @@ module.exports = {
 
   subAspMapType,
 
+  aspSubMapType,
+
   getValue,
 
   getHashPromise,
+
+  executeBatchCmds,
+
+  delSubFromAspSetCmd,
+
+  delAspFromSubjSetCmd,
 }; // export

@@ -252,16 +252,44 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
 
       // all the samples related to the subject should be deleted
       expect(samplesWithOldName.length).to.equal(0);
-      const subAspMapKey = redisStore.toKey('subaspmap', oldAbsPath);
-      return rcli.keysAsync(subAspMapKey);
+      const cmds = [];
+      /*
+       * 1. the subject to aspect mapping for the subject with the old
+       * absolutepath should also be deleted
+       *
+       * 2. the subject to aspect mapping for the subject with the new
+       * absolutepath should also be created
+       *
+       * 3. aspect-to-subject mapping should be updated
+       */
+      const subAspMapKeyOldAbsPath = redisStore.toKey('subaspmap', oldAbsPath);
+      cmds.push(['keys', subAspMapKeyOldAbsPath]);
+
+      const subAspMapKeyNewAbsPath = redisStore.toKey('subaspmap', newAbsPath);
+      cmds.push(['smembers', subAspMapKeyNewAbsPath]);
+
+      cmds.push(
+        redisOps.subjAbsPathExistsInAspSetCmd(aspectTemp.name, oldAbsPath)
+      );
+      cmds.push(
+        redisOps.subjAbsPathExistsInAspSetCmd(aspectHumid.name, oldAbsPath)
+      );
+      cmds.push(
+        redisOps.subjAbsPathExistsInAspSetCmd(aspectTemp.name, newAbsPath)
+      );
+      cmds.push(
+        redisOps.subjAbsPathExistsInAspSetCmd(aspectHumid.name, newAbsPath)
+      );
+      return redisOps.executeBatchCmds(cmds);
     })
     .then((values) => {
-      /*
-       * the subject to aspect mapping for the subject with the old
-       * absolutepath should also be deleted
-       */
-      expect(values.length).to.equal(0);
-      done();
+      expect(values[0]).to.be.empty;
+      expect(values[1]).to.be.deep.equal(['humidity', 'temperature']);
+      expect(values[2]).to.be.equal(0);
+      expect(values[3]).to.be.equal(0);
+      expect(values[4]).to.be.equal(1);
+      expect(values[5]).to.be.equal(1);
+      return done();
     })
     .catch(done);
   });
@@ -297,6 +325,16 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     })
     .then((members) => {
       expect(members.length).to.equal(0);
+      const aspSubMapKeyTemp = redisStore.toKey('aspsubmap', aspectTemp.name);
+      const aspSubMapKeyHumid = redisStore.toKey('aspsubmap', aspectHumid.name);
+      const cmds = [];
+      cmds.push(['smembers', aspSubMapKeyTemp]);
+      cmds.push(['smembers', aspSubMapKeyHumid]);
+      return redisOps.executeBatchCmds(cmds);
+    })
+    .then((res) => {
+      expect(res[0].length).to.equal(0);
+      expect(res[1].length).to.equal(0);
       return done();
     })
     .catch(done);
@@ -311,11 +349,25 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       expect(members.length).to.equal(0);
+
+      //subaspmap key is deleted
       const subAspMapKey = redisStore.toKey('subaspmap', par.name);
       return rcli.smembersAsync(subAspMapKey);
     })
     .then((members) => {
       expect(members.length).to.equal(0);
+
+      // aspsubmaps do not have this subject
+      const aspSubMapKeyTemp = redisStore.toKey('aspsubmap', aspectTemp.name);
+      const aspSubMapKeyHumid = redisStore.toKey('aspsubmap', aspectHumid.name);
+      const cmds = [];
+      cmds.push(['smembers', aspSubMapKeyTemp]);
+      cmds.push(['smembers', aspSubMapKeyHumid]);
+      return redisOps.executeBatchCmds(cmds);
+    })
+    .then((res) => {
+      expect(res[0].length).to.equal(0);
+      expect(res[1].length).to.equal(0);
       return done();
     })
     .catch(done);
@@ -344,6 +396,16 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     })
     .then((members) => {
       expect(members.length).to.equal(0);
+      const aspSubMapKeyTemp = redisStore.toKey('aspsubmap', aspectTemp.name);
+      const aspSubMapKeyHumid = redisStore.toKey('aspsubmap', aspectHumid.name);
+      const cmds = [];
+      cmds.push(['smembers', aspSubMapKeyTemp]);
+      cmds.push(['smembers', aspSubMapKeyHumid]);
+      return redisOps.executeBatchCmds(cmds);
+    })
+    .then((res) => {
+      expect(res[0].length).to.equal(0);
+      expect(res[1].length).to.equal(0);
       return done();
     })
     .catch(done);

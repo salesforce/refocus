@@ -15,6 +15,8 @@
 
 const InvalidRangeValuesError = require('../dbErrors').InvalidRangeValuesError;
 const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
+const redisOps = require('../../cache/redisOps');
+const aspSubMapType = redisOps.aspSubMapType;
 
 /**
  * Confirms that the array is non-null and has two elements.
@@ -87,6 +89,32 @@ function validateStatusRange(arr) {
   arrayValuesAscend(arr);
 } // validateStatusRange
 
+/**
+ * Deletes all the sample entries related to an aspect. The following are
+ * deleted:
+ * 1. aspect from subject to aspect mappings
+ * 2. aspect-to-subject mapping -> samsto:aspsubmap:aspectname
+ * 3. sample entry in samsto:samples (samsto:samples:*|oldaspectname)
+ * 4. sample hash samsto:samples:*|oldaspectname
+ * @param {Object} aspectName - The aspect name
+ * @returns {Promise} which resolves to the deleted samples.
+ */
+function removeAspectRelatedSamples(aspectName) {
+  let samples = [];
+  return redisOps.deleteSampleKeys(aspSubMapType, aspectName)
+  .then((_samples) => {
+    samples = _samples;
+
+    // get subjects from aspect-to-subject mapping for this aspect
+    return redisOps.getAspSubjMapMembers(aspectName, false);
+  })
+  .then((subjAbsPaths) => redisOps.deleteAspectFromSubjectResourceMaps(
+      subjAbsPaths, aspectName, false))
+  .then(() => redisOps.deleteKey(aspSubMapType, aspectName))
+  .then(() => Promise.resolve(samples));
+} // removeRelatedSamples
+
 module.exports = {
   validateStatusRange,
+  removeAspectRelatedSamples,
 }; // exports

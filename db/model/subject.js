@@ -216,6 +216,22 @@ module.exports = function subject(seq, dataTypes) {
           promiseArr.push(redisOps.renameKey(subjectType, oldAbsPath,
            newAbsPath));
 
+          if (inst.isPublished) {
+            // duplicate subject-to-aspect resource map with new absolute path
+            promiseArr.push(redisOps.duplicateSet(
+              redisOps.subAspMapType, newAbsPath, oldAbsPath, false
+            ));
+
+            /* add new subject absolute path entries to aspect-to-subject
+              resource maps */
+            promiseArr.push(
+              redisOps.getSubjAspMapMembers(oldAbsPath, false)
+              .map((aspectName) => redisOps.addSubjectAbsPathInAspectSet(
+                aspectName, newAbsPath, false)
+              )
+            );
+          }
+
           // remove all the related samples
           promiseArr.push(
             subjectUtils.removeRelatedSamples(inst._previousDataValues, seq));
