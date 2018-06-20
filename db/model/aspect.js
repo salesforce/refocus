@@ -189,11 +189,14 @@ module.exports = function aspect(seq, dataTypes) {
         if (inst.isPublished && inst.changed('tags')) {
           return new seq.Promise((resolve, reject) => {
             redisOps.getSamplesFromAspectName(inst.name)
-            .each((samp) =>
-              publishSample(
-                samp, seq.models.Subject, sampleEventNames.del,
-                seq.models.Aspect
-              ))
+            .each((samp) => {
+              if (samp) {
+                publishSample(
+                  samp, seq.models.Subject, sampleEventNames.del,
+                  seq.models.Aspect
+                );
+              }
+            })
             .then(() => resolve(inst))
             .catch(reject);
           });
@@ -274,11 +277,14 @@ module.exports = function aspect(seq, dataTypes) {
         if (inst.isPublished && inst.changed('tags')) {
           return new seq.Promise((resolve, reject) => {
             redisOps.getSamplesFromAspectName(inst.name)
-            .each((samp) =>
-              publishSample(
-                samp, seq.models.Subject, sampleEventNames.add,
-                seq.models.Aspect
-              ))
+            .each((samp) => {
+              if (samp) {
+                publishSample(
+                  samp, seq.models.Subject, sampleEventNames.del,
+                  seq.models.Aspect
+                );
+              }
+            })
             .then(() => resolve(inst))
             .catch(reject);
           });

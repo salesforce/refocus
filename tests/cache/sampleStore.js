@@ -25,6 +25,8 @@ const initialFeatureState = featureToggles
   .isFeatureEnabled(sampleStore.constants.featureName);
 const subAspMapType = ssConstants.prefix + ssConstants.separator +
   ssConstants.objectType.subAspMap;
+const aspSubMapType = ssConstants.prefix + ssConstants.separator +
+  ssConstants.objectType.aspSubMap;
 
 describe('tests/cache/sampleStore.js >', () => {
   describe('feature off >', () => {
@@ -238,7 +240,23 @@ describe('tests/cache/sampleStore.js >', () => {
       })
       .then(() => rcli.smembersAsync('samsto:subaspmap:___subject1.___subject2'))
       .then((res) => {
-        expect(res.includes(['aspect1', 'aspect2']));
+        expect(res).to.deep.equal(['___aspect1', '___aspect2']);
+      })
+      .then(() => rcli.keysAsync(aspSubMapType + '*'))
+      .then((res) => {
+        expect(res.includes('samsto:aspsubmap:___aspect1'))
+        .to.be.true;
+        expect(res.includes('samsto:aspsubmap:___aspect2'))
+        .to.be.true;
+      })
+      .then(() => rcli.smembersAsync('samsto:aspsubmap:___aspect1'))
+      .then((res) => {
+        expect(res).to.deep.equal(
+          ['___subject1.___subject2', '___subject1.___subject3']);
+      })
+      .then(() => rcli.smembersAsync('samsto:aspsubmap:___aspect2'))
+      .then((res) => {
+        expect(res).to.deep.equal(['___subject1.___subject2']);
       })
       .then(() => samstoinit.init())
       .then((res) => expect(res).to.not.be.false)

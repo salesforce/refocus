@@ -17,6 +17,7 @@ const redisClient = require('./redisCache').client.sampleStore;
 const rsConstant = redisStore.constants;
 const subjectType = redisStore.constants.objectType.subject;
 const subAspMapType = redisStore.constants.objectType.subAspMap;
+const aspSubMapType = redisStore.constants.objectType.aspSubMap;
 const aspectType = redisStore.constants.objectType.aspect;
 const sampleType = redisStore.constants.objectType.sample;
 
@@ -335,6 +336,20 @@ module.exports = {
       'sadd',
       redisStore.toKey(subAspMapType, subjAbsPath),
       aspName.toLowerCase(),
+    ];
+  },
+
+  /**
+   * Command to add subject absolute path to aspect-to-subject resource mapping
+   * @param  {String} aspName - Aspect name
+   * @param  {String} subjAbsPath - Subject absolute path
+   * @returns {Array} - Command array
+   */
+  addSubjectAbsPathInAspectSetCmd(aspName, subjAbsPath) {
+    return [
+      'sadd',
+      redisStore.toKey(aspSubMapType, aspName),
+      subjAbsPath.toLowerCase(),
     ];
   },
 
