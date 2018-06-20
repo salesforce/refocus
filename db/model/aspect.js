@@ -168,12 +168,14 @@ module.exports = function aspect(seq, dataTypes) {
         const promiseArr = [];
 
         promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
-          .each((samp) =>
-            publishSample(
-              samp, seq.models.Subject, sampleEventNames.del,
-              seq.models.Aspect
-            )
-          )
+          .each((samp) => {
+            if (samp) {
+              publishSample(
+                samp, seq.models.Subject, sampleEventNames.del,
+                seq.models.Aspect
+              );
+            }
+          })
         );
 
         promiseArr.push(inst.checkGeneratorReferences('delete')
@@ -206,12 +208,14 @@ module.exports = function aspect(seq, dataTypes) {
         if (inst.isPublished && inst.changed('tags') ||
           (inst.changed('isPublished') && inst.previous('isPublished'))) {
           promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
-            .each((samp) =>
-              publishSample(
-                samp, seq.models.Subject, sampleEventNames.del,
-                seq.models.Aspect
-              )
-            )
+            .each((samp) => {
+              if (samp) {
+                publishSample(
+                  samp, seq.models.Subject, sampleEventNames.del,
+                  seq.models.Aspect
+                );
+              }
+            })
           );
         } // tags changed
 
@@ -288,16 +292,16 @@ module.exports = function aspect(seq, dataTypes) {
          * which filter by aspect tags will get the right samples.
          */
         if (inst.isPublished && inst.changed('tags')) {
-          return new seq.Promise((resolve, reject) => {
-            redisOps.getSamplesFromAspectName(inst.name)
-            .each((samp) =>
-              publishSample(
-                samp, seq.models.Subject, sampleEventNames.add,
-                seq.models.Aspect
-              ))
-            .then(() => resolve(inst))
-            .catch(reject);
-          });
+          promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
+            .each((samp) => {
+              if (samp) {
+                publishSample(
+                  samp, seq.models.Subject, sampleEventNames.add,
+                  seq.models.Aspect
+                );
+              }
+            })
+          );
         } // tags changed
 
         return seq.Promise.all(promiseArr);
