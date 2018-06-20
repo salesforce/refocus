@@ -792,9 +792,18 @@ function responsify(rec, props, method) {
   return o;
 } // responsify
 
-function getHash(string) {
-  return md5(string);
-}
+/**
+ * Hashes input string with the md5 algorithm and prefixes the hash
+ * with the resource type we are storing (i.e. perspective, subject, etc.)
+ *
+ * @param {String} resource - type of resource that is being cached
+ * @param {String} url - url string including query params
+ *
+ * @returns {String} hashed url prefixed with resource
+ */
+function getHash(resource, url) {
+  return (resource + md5(url));
+} // getHash
 
 // ----------------------------------------------------------------------------
 

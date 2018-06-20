@@ -28,7 +28,7 @@ const featureToggles = require('feature-toggles');
 const config = require('../../../config');
 const fu = require('../helpers/verbs/findUtils');
 const redisCache = require('../../../cache/redisCache').client.cache;
-const perspectivesHash = u.getHash('/v1/perspectives');
+const perspectivesHash = u.getHash(config.resourceTypes.perspective, '/v1/perspectives');
 
 function clearCacheKey(key) {
   if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
@@ -93,7 +93,8 @@ module.exports = {
     // Caching perspective, use hash of url as key
     if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
       helper.cacheEnabled = true;
-      helper.cacheKey = u.getHash(req.originalUrl);
+      // prefix 'perspective' on the hashed url string, use this as the cache key
+      helper.cacheKey = u.getHash(config.resourceTypes.perspective, req.originalUrl);
       helper.cacheExpiry = config.CACHE_EXPIRY_IN_SECS;
     }
 
