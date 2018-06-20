@@ -95,6 +95,7 @@
     "debug": "^2.2.0",
     "errors": "^0.3.0",
     "etag": "^1.8.1",
+    "event-stream": "^3.3.4",
     "express": "^4.16.3",
     "express-enforces-ssl": "^1.1.0",
     "express-ipfilter": "^0.0.24",
