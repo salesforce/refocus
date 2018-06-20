@@ -7,56 +7,52 @@
  */
 
 /**
- * clock/scheduledJobs/sampleTimeoutJob.js
+ * clock/scheduledJobs/deactivateRooms.js
  *
- * Executes the sample timeout process. If worker process is enabled, enqueues
- * a job, otherwise just executes work directly in this process.
+ * Gets an array of all rooms which should be deactivated, then deactivates
+ * them and does a sync if this is enabled in the room settings.
  */
 const featureToggles = require('feature-toggles');
-const dbRoom = require('../../db/index').Room;
-const dbBotAction = require('../../db/index').BotAction;
+const moment = require('moment');
 
-/**
- * Execute the call to check for sample timeouts.
- *
- * @returns {Promise}
+const dbRoom = require('../../db/index').Room;
+const dbEvent = require('../../db/index').Event;
+
+const THRESHOLD_IN_MINUTES = 180;
+
+/* For each room that should be deactivated we need to:
+ *  - Set active to false
+ *  - If sync exists in settings, create sync action
  */
 function execute() {
-  console.log("bbbb")
-  return dbRoom.shouldBeDeactivated()
+  dbRoom.findAll({ where: { active: true } })
   .then((dbRes) => {
     dbRes.forEach((r) => {
-      console.log("aaaa")
-      /* For each room that should be deactivated we need to:
-       *  - Set active to false
-       *  - If sync exists in settings, create sync action
-       */
+      dbEvent.findOne({ where: { roomId: r.id } })
+      .then((e) => {
+        const minsSinceLastEvent =
+          moment().diff(moment(e.createdAt), 'minutes');
+        console.log(minsSinceLastEvent);
+        if (minsSinceLastEvent > THRESHOLD_IN_MINUTES) {
+          r.update({ active: false })
+          .then((res) => {
+            if (r.settings && r.settings.sync) {
+              r.settings.sync.forEach((bot) => {
+                const syncBotAction = {
+                    name: bot.botAction,
+                    botId: bot.botId,
+                    roomId: r.id,
+                    isPending: true,
+                    parameters: [],
+                };
 
-      r.update({ active: false })
-      .then((res,err) => {
-        if (err) {
-          return console.log(err);
-        }
-
-        console.log(res);
-        if (r.settings && r.settings.sync) {
-          r.settings.sync.forEach((bot) => {
-            const syncBotAction = {
-                name: bot.botAction,
-                botId: bot.botId,
-                userId: _user.id,
-                roomId: parseInt(ROOM_ID, 10),
-                isPending: true,
-                parameters: [],
-            };
-
-            dbBotAction.create(syncBotAction)
+                dbBotAction.create(syncBotAction)
+              })
+            }
           })
         }
       })
     });
-
-    return Promise.resolve(dbRes);
   });
 } // execute
 

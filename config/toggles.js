@@ -176,9 +176,9 @@ const shortTermToggles = {
     pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'
   ),
 
-  autoDeactivateRooms: true//environmentVariableTrue(
-    //pe, 'AUTO_DEACTIVATE_ROOMS'
-  //),
+  autoDeactivateRooms: environmentVariableTrue(
+    pe, 'AUTO_DEACTIVATE_ROOMS'
+  ),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
