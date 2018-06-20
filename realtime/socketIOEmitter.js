@@ -13,7 +13,8 @@
 'use strict'; // eslint-disable-line strict
 
 const rtUtils = require('./utils');
-const initPerspectiveEvent = 'refocus.internal.realtime.perspective.namespace.initialize';
+const initPerspectiveEvent =
+  'refocus.internal.realtime.perspective.namespace.initialize';
 const initBotEvent = 'refocus.internal.realtime.bot.namespace.initialize';
 
 module.exports = (io, key, obj) => {

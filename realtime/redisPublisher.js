@@ -83,8 +83,6 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
     channelName = opts.channel ? config.redis[opts.channel] : channelName;
   }
 
-  console.log('before prepareToPublish', obj);
-
   /**
    * The shape of the object required for update events are a bit different.
    * changedKeys and ignoreAttributes are passed in as arrays by the
@@ -93,12 +91,10 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
    */
   if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
     obj[event] = prepareToPublish(inst, changedKeys, ignoreAttributes);
-    console.log('after prepareToPublish', obj);
   }
 
   if (obj[event]) {
     pubClient.publish(channelName, JSON.stringify(obj));
-    console.log('published', channelName, JSON.stringify(obj));
     return obj;
   }
 
