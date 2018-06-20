@@ -44,20 +44,6 @@ const GENERATOR_SIMPLE = {
 };
 
 /**
- * Copied from api/v1/helpers/verbs/utils.js
- * Returns a where clause object that uses the "IN" operator
- * @param  {Array} arr - An array that needs to be
- * assigned to the "IN" operator
- * @returns {Object} - An where clause object
- */
-function whereClauseForNameInArr(arr) {
-  const whr = {};
-  whr.name = {};
-  whr.name[Op.in] = arr;
-  return whr;
-} // whereClauseForNameInArr
-
-/**
  * Given a sample generator template sgt and a sample generator sg, assign the
  * sgt name and sgt version to sg.generatorTemplate.name and
  * sg.generatorTemplate.version keys of sg.
@@ -152,5 +138,4 @@ module.exports = {
   gtUtil,
   BAD_REQUEST_STATUS_CODE,
   NOT_FOUND_STATUS_CODE,
-  whereClauseForNameInArr,
 };
