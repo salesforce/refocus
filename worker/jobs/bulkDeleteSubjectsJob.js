@@ -119,6 +119,9 @@ module.exports = (job, done) => {
           dbStartTime,
           dbEndTime,
         });
+      }
+
+      if (featureToggles.isFeatureEnabled('enableJobActivityLogs')) {
         jobLog(jobStartTime, job);
       }
 
