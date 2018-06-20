@@ -299,11 +299,11 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
   it('basic get by id, response present in cache', (done) => {
     redisCache.getAsync(perspectiveId)
     .then((reply) => {
-          const jsonReply = JSON.parse(reply);
-          expect(jsonReply.name).to.equal(`${tu.namePrefix}testPersp`);
-          expect(jsonReply.rootSubject).to.equal('myMainSubject');
-          expect(jsonReply.lensId).to.equal(lensId);
-          return done();
+      const jsonReply = JSON.parse(reply);
+      expect(jsonReply.name).to.equal(`${tu.namePrefix}testPersp`);
+      expect(jsonReply.rootSubject).to.equal('myMainSubject');
+      expect(jsonReply.lensId).to.equal(lensId);
+      return done();
     })
     .catch(() => done(cacheMissError));
   });
