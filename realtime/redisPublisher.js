@@ -115,7 +115,6 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   if (featureToggles.isFeatureEnabled('publishSampleNoChange')) {
-    console.log('publishSample', sampleInst);
     if (sampleInst.noChange) return publishSampleNoChange(sampleInst);
   }
 
@@ -141,6 +140,7 @@ function publishSampleNoChange(sample) {
     absolutePath: sample.absolutePath, // used for persp filtering
     updatedAt: sample.updatedAt,
   };
+  console.log('publishSampleNoChange', sampleEvent.nc, s);
   return Promise.resolve(publishObject(s, sampleEvent.nc, ['updatedAt']));
 } // publishSampleNoChange
 
