@@ -90,10 +90,9 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findPerspectives(req, res, next) {
-    // Caching perspective, use hash of url as key
+    // Caching perspective, set cache key as hashed url, prefixed with 'perspective'
     if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
       helper.cacheEnabled = true;
-      // prefix 'perspective' on the hashed url string, use this as the cache key
       helper.cacheKey = u.getHash(config.resourceTypes.perspective, req.originalUrl);
       helper.cacheExpiry = config.CACHE_EXPIRY_IN_SECS;
     }
