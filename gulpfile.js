@@ -17,6 +17,7 @@ const browserify = require('browserify');
 const babelify = require('babelify');
 const fs = require('fs');
 const chmod = require('gulp-chmod');
+const es = require('event-stream');
 
 const conf = {
   tasks: {
@@ -52,12 +53,7 @@ const conf = {
   },
 };
 
-/*
- * Browserifies the views, generating output under the designated destination
- * directory.
- */
-gulp.task('browserifyViews', () => {
-
+function browserifyTask() {
   /*
    * List all app files in a directory, recursively and synchronously.
    * @param {string} dir Path to start searching from.
@@ -75,6 +71,7 @@ gulp.task('browserifyViews', () => {
         results.push(file);
       }
     });
+
     return results;
   }
 
@@ -82,47 +79,45 @@ gulp.task('browserifyViews', () => {
    * Transforms each app file into an app, including translating JSX to JS.
    * Puts the output js in outputPath.
    *
-   * @param {string} pathToApp Path to source app file.
+   * @param {Array} pathToApp Array of Path to source app files.
    * @return {Object} bundle Bundled dependencies.
    */
   function rebundle(pathToApp) {
+    var tasks = pathToApp.map((entry) => {
+      const outputPath = entry.split('/').splice(2).join('/');
+      const props = {
+        entries: [entry],
+        debug: true,
+        transform: [babelify],
+      };
 
-    const props = {
-      entries: [pathToApp],
-      debug: true,
-      transform: [babelify],
-    };
-    const bundler = browserify(props);
-    const outputPath = pathToApp.split('/').splice(2).join('/');
+      return browserify(props).transform('uglifyify').bundle()
+        .pipe(source(outputPath))
 
-    var stream = bundler.transform('uglifyify').bundle();
-    return stream
-      .on('error', (err) => {
-        console.error(err);
-        process.exit(1);
-      })
-      .pipe(source(outputPath))
-      .pipe(gulp.dest(conf.view.dest))
-      .once('end', function () {
-        console.log('finished building', outputPath);
-        if (appFiles.length) {
-          rebundle(appFiles.pop());
-        } else {
-          process.exit(0);
-        }
-      });
+        // rename them to have "bundle as postfix"
+        .pipe(gulp.dest(conf.view.dest))
+        .once('end', () => {
+          console.log('finished building', outputPath);
+        });
+    });
+
+    return es.merge.apply(null, tasks);
   }
 
   const appFiles = getAppFiles(conf.view.dir);
-  rebundle(appFiles.pop());
-});
+  return rebundle(appFiles);
+}
+
+/*
+ * Browserifies the views, generating output under the designated destination
+ * directory.
+ */
+gulp.task('browserifyViews', browserifyTask);
 
 /*
  * Runs the default tasks.
  */
-gulp.task('default', conf.tasks.default, () => {
-  process.exit();
-});
+gulp.task('default', conf.tasks.default);
 
 /*
  * Copies css files over to public.
@@ -130,9 +125,6 @@ gulp.task('default', conf.tasks.default, () => {
 gulp.task('movecss', () =>
   gulp.src(conf.view.dir + conf.view.cssFiles)
     .pipe(gulp.dest(conf.view.dest))
-    .on('end', () => {
-      process.exit();
-    })
 );
 
 /*
@@ -142,7 +134,4 @@ gulp.task('copygitprecommit', () =>
   gulp.src('./scripts/git/pre-commit')
     .pipe(chmod(755))
     .pipe(gulp.dest('./.git/hooks'))
-    .on('end', () => {
-      process.exit();
-    })
 );
