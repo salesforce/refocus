@@ -13,9 +13,63 @@ const logger = require('winston');
 const subjectHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
-const subjectCacheModel = require('../../cache/models/subject');
 const publisher = require('../../realtime/redisPublisher');
 const jobLog = require('../jobLog');
+const utils = require('../../api/v1/helpers/verbs/utils');
+
+/**
+ * Delete subject by key.
+ *
+ * If the user has permission, remove subject from Postgres then from Redis
+ * via hook.
+ *
+ * @param {String} key - subject id or absolute path
+ * @param {Object} user
+ * @returns {Promise} - Indicates success or failure
+ */
+function deleteByKey(key, user) {
+  const params = {};
+  let deletedSubject;
+  params.key = { value: key };
+  return utils.findByKey(subjectHelper, params)
+    .then((subject) => utils.isWritable({ user }, subject))
+    .then((subject) => {
+      deletedSubject = subject;
+      return subject.destroy();
+    })
+    .then(() => Promise.resolve({ isFailed: false }))
+    .catch((err) => Promise.resolve({ isFailed: true, explanation: err }));
+}
+
+/**
+ * Executes bulk subject deletion.
+ *
+ * @param {Array} - List of subject keys, meaning that key is
+ *  a string either subject id or absolutePath.
+ * @param {Array} - nouns/subjects/readOnlyFields
+ * @param {Object} - user
+ * @returns {[Promise]} - Indicates success or failure for each
+ *  subject key
+ */
+function bulkDelete(subjectKeys, readOnlyFields, user) {
+  if (!subjectKeys || !Array.isArray(subjectKeys) ||
+    subjectKeys.length < 1) {
+    const err = 'Must provide an array of one or more strings, where each ' +
+      'string is a subject id or absolutePath.';
+    return Promise.all(
+      [Promise.resolve({ isFailed: true, explanation: err, })]
+    );
+  }
+
+  const subjectDeletePromise = subjectKeys.map((key) => {
+    try {
+      return deleteByKey(key, user);
+    } catch (err) {
+      return Promise.reject({ isFailed: true, explanation: err });
+    }
+  });
+  return Promise.all(subjectDeletePromise);
+}
 
 module.exports = (job, done) => {
   const jobStartTime = Date.now();
@@ -35,7 +89,7 @@ module.exports = (job, done) => {
   let dbEndTime;
   let successCount = 0;
 
-  subjectCacheModel.bulkDelete(subjectKeys, readOnlyFields, user)
+  bulkDelete(subjectKeys, readOnlyFields, user)
     .then((results) => {
       // Split success and failures
       dbEndTime = Date.now();

@@ -344,24 +344,4 @@ module.exports = {
       return response;
     });
   },
-
-  bulkDelete(subjectKeys, readOnlyFields, user) {
-    if (!subjectKeys || !Array.isArray(subjectKeys) ||
-      subjectKeys.length < 1) {
-      const err = 'Must provide an array of one or more strings, where each ' +
-        'string is a subject id or absolutePath.';
-      return Promise.all(
-        [Promise.resolve({ isFailed: true, explanation: err, })]
-      );
-    }
-
-    const subjectDeletePromise = subjectKeys.map((key) => {
-      try {
-        return deleteByKey(key, user);
-      } catch (err) {
-        return Promise.reject({ isFailed: true, explanation: err });
-      }
-    });
-    return Promise.all(subjectDeletePromise);
-  },
 }; // exports

@@ -575,13 +575,13 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    * @returns {Promise} - A promise that resolves to the response object,
-   * indicating that the bulk subject delete request has been received.
+   *  indicating that the bulk subject delete request has been received.
    */
   deleteSubjects(req, res, next) {
     /**
      * Create a job for a worker process to delete the specified subjects.
-     * @param user
-     * @returns {Promise} the response object with status and body.
+     * @param {Object} - user
+     * @returns {Promise} - the response object with status and body.
      */
     function createJob(user) {
       const subjectDataWrapper = {};
