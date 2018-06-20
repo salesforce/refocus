@@ -378,7 +378,10 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
 
     if (featureToggles.isFeatureEnabled('publishSampleNoChange')) {
       // Add this attribute to signal to publish the sample.nochange event
-      if (noChange) updatedSamp.noChange = true;
+      if (noChange) {
+        updatedSamp.noChange = true;
+        updatedSamp.absolutePath = subject.absolutePath;
+      }
     }
 
     return cleanAddAspectToSample(updatedSamp, aspectObj);
