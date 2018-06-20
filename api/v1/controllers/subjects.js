@@ -571,6 +571,8 @@ module.exports = {
    *
    * Executes asynchronous bulk subject deletion.
    *
+   * Create a job for a worker process to delete the specified subjects.
+   *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
@@ -578,39 +580,27 @@ module.exports = {
    *  indicating that the bulk subject delete request has been received.
    */
   deleteSubjects(req, res, next) {
-    /**
-     * Create a job for a worker process to delete the specified subjects.
-     * @param {Object} - user
-     * @returns {Promise} - the response object with status and body.
-     */
-    function createJob(user) {
-      const subjectDataWrapper = {};
-      subjectDataWrapper.subjects = req.swagger.params.queryBody.value;
-      subjectDataWrapper.user = user;
-      subjectDataWrapper.reqStartTime = Date.now();
-      subjectDataWrapper.readOnlyFields = helper.readOnlyFields
-        .filter((field) => field !== 'name');
-      const jobPromise = jobWrapper.createPromisifiedJob(
-        jobType.BULKDELETESUBJECTS,
-        subjectDataWrapper,
-        req);
-      return jobPromise
-        .then((job) => {
-          const body = { status: 'OK' };
-          const resultObj = { reqStartTime: req.timestamp };
+    const subjectDataWrapper = {};
+    subjectDataWrapper.subjects = req.swagger.params.queryBody.value;
+    subjectDataWrapper.user = req.user;
+    subjectDataWrapper.reqStartTime = Date.now();
+    subjectDataWrapper.readOnlyFields = helper.readOnlyFields
+      .filter((field) => field !== 'name');
+    const jobPromise = jobWrapper.createPromisifiedJob(
+      jobType.BULK_DELETE_SUBJECTS,
+      subjectDataWrapper,
+      req);
+    return jobPromise
+      .then((job) => {
+        const body = { status: 'OK' };
+        const resultObj = { reqStartTime: req.timestamp };
 
-          // gives the jobId back to the client
-          body.jobId = job.id;
-          verbsUtils.logAPI(req, resultObj, body,
-            req.swagger.params.queryBody.value.length);
-          return res.status(httpStatus.OK).json(body);
-        })
-        .catch((err) => {
-          verbsUtils.handleError(next, err, helper.modelName);
-        });
-    }
-
-    return createJob(req.user)
+        // gives the jobId back to the client
+        body.jobId = job.id;
+        verbsUtils.logAPI(req, resultObj, body,
+          req.swagger.params.queryBody.value.length);
+        return res.status(httpStatus.OK).json(body);
+      })
       .catch((err) => {
         verbsUtils.handleError(next, err, helper.modelName);
       });
@@ -633,7 +623,7 @@ module.exports = {
     kue.Job.get(jobId, (_err, job) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
-      if (_err || !job || job.type !== kueSetup.jobType.BULKDELETESUBJECTS) {
+      if (_err || !job || job.type !== kueSetup.jobType.BULK_DELETE_SUBJECTS) {
         const err = new apiErrors.ResourceNotFoundError();
         return verbsUtils.handleError(next, err, helper.modelName);
       }

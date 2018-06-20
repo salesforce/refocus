@@ -37,7 +37,7 @@ describe('tests/api/v1/subjects/bulkDeleteStatus.js', () => {
 
   before((done) => {
     // Start JobQueue
-    jobQueue.process(jobType.BULKDELETESUBJECTS, bulkDeleteSubjectsJob);
+    jobQueue.process(jobType.BULK_DELETE_SUBJECTS, bulkDeleteSubjectsJob);
 
     testUtils.createToken()
       .then((returnedToken) => {

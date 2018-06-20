@@ -38,7 +38,7 @@ describe('tests/api/v1/subjects/delete.js >', () => {
 
     describe('Childless Subjects >', () => {
       const subject = { name: `${tu.namePrefix}NorthAmerica` };
-      let isubjectId = 0;
+      let subjectId = 0;
 
       function bodyCheckIfDeleted(res) {
         const errors = [];
@@ -53,7 +53,7 @@ describe('tests/api/v1/subjects/delete.js >', () => {
 
       function notFound() {
         const errors = [];
-        Subject.findById(isubjectId)
+        Subject.findById(subjectId)
         .then((subj) => {
           if (subj) {
             errors.push(new Error('should not have found a record with this id'));
@@ -67,7 +67,7 @@ describe('tests/api/v1/subjects/delete.js >', () => {
       beforeEach((done) => {
         Subject.create(subject)
         .then((subj) => {
-          isubjectId = subj.id;
+          subjectId = subj.id;
           done();
         })
         .catch(done);
@@ -78,7 +78,7 @@ describe('tests/api/v1/subjects/delete.js >', () => {
       afterEach(u.forceDelete);
 
       it('delete childless subject by id', (done) => {
-        api.delete(`${path}/${isubjectId}`)
+        api.delete(`${path}/${subjectId}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
         .expect(bodyCheckIfDeleted)
