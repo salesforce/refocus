@@ -196,9 +196,6 @@ function setupSocketIOClient(persBody) {
   socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
     handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
   });
-  socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
-  });
   socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
     handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
   });
