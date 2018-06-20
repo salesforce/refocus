@@ -98,7 +98,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   }
 
   return obj;
-} // publishChange
+} // publishObject
 
 /**
  * The sample object needs to be attached its subject object and it also needs
@@ -113,6 +113,10 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  * @returns {Promise} - which resolves to a sample object
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
+  if (featureToggles.isFeatureEnabled('publishSampleNoChange')) {
+    if (sampleInst.noChange) return publishSampleNoChange(sampleInst);
+  }
+
   const eventType = event || getSampleEventType(sampleInst);
   return rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel)
   .then((sample) => {
@@ -122,6 +126,20 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     }
   });
 } // publishSample
+
+/**
+ * Publish a sample when nothing changed except last update timestamp.
+ *
+ * @param  {Object} sample - The sample to be published
+ * @returns {Promise} - which resolves to the object that was published
+ */
+function publishSampleNoChange(sample) {
+  const s = {
+    name: sample.name,
+    updatedAt: sample.updatedAt,
+  };
+  return Promise.resolve(publishObject(s, sampleEvent.nc, ['updatedAt']));
+} // publishSampleNoChange
 
 module.exports = {
   publishObject,

@@ -31,6 +31,7 @@ const sampleType = redisOps.sampleType;
 const commonUtils = require('../../utils/common');
 const sampleNameSeparator = '|';
 const logger = require('winston');
+const featureToggles = require('feature-toggles');
 
 const sampFields = {
   PROVIDER: 'provider',
@@ -144,6 +145,21 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
 
   return sampleRes;
 } // cleanAddAspectToSample
+
+/**
+ * Returns true if any attributes are being modified. (Don't bother comparing
+ * the "name" attribute--the only difference would be uppercase/lowercase and
+ * that should not be treated as a change.)
+ *
+ * @param {Object} newSample - received from query body
+ * @param {Object} oldSample - from redis
+ * @returns {Boolean} true if any sample attributes are being modified
+ */
+function isSampleChanged(newSample, oldSample) {
+  const delta = Object.keys(newSample)
+    .filter((key) => key !== 'name' && newSample[key] !== oldSample[key]);
+  return delta.length > 0;
+} // isSampleChanged
 
 /**
  * Create properties array with fields to update/create. Value is empty string
@@ -276,6 +292,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   let subject;
   let aspect;
   let sample;
+  let noChange = false;
 
   /*
    * If any of these promises throws an error, we drop through to the catch
@@ -305,6 +322,13 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     return checkWritePermission(aspectObj, userName, isBulk);
   })
   .then(() => {
+    if(featureToggles.isFeatureEnabled('publishSampleNoChange')) {
+      if (sample && !isSampleChanged(sampleQueryBodyObj, sample)) {
+        /* Sample is not new AND nothing has changed */
+        noChange = true;
+      }
+    }
+
     // sampleQueryBodyObj updated with fields
     createSampHsetCommand(sampleQueryBodyObj, sample, aspectObj);
 
@@ -350,6 +374,11 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   .then((updatedSamp) => {
     if (!updatedSamp.name) {
       updatedSamp.name = subject.absolutePath + '|' + aspectObj.name;
+    }
+
+    if(featureToggles.isFeatureEnabled('publishSampleNoChange')) {
+      // Add this attribute to signal to publish the sample.nochange event
+      if (noChange) updatedSamp.noChange = true;
     }
 
     return cleanAddAspectToSample(updatedSamp, aspectObj);
