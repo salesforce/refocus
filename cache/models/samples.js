@@ -322,7 +322,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     return checkWritePermission(aspectObj, userName, isBulk);
   })
   .then(() => {
-    if(featureToggles.isFeatureEnabled('publishSampleNoChange')) {
+    if (featureToggles.isFeatureEnabled('publishSampleNoChange')) {
       if (sample && !isSampleChanged(sampleQueryBodyObj, sample)) {
         /* Sample is not new AND nothing has changed */
         noChange = true;
@@ -376,7 +376,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       updatedSamp.name = subject.absolutePath + '|' + aspectObj.name;
     }
 
-    if(featureToggles.isFeatureEnabled('publishSampleNoChange')) {
+    if (featureToggles.isFeatureEnabled('publishSampleNoChange')) {
       // Add this attribute to signal to publish the sample.nochange event
       if (noChange) updatedSamp.noChange = true;
     }

@@ -130,6 +130,9 @@ function handleEvent(eventData, eventTypeName) {
   } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_UPD) {
     const newSample = j[eventTypeName].new;
     updateTimeoutValues(newSample.aspect.timeout);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_NC) {
+    console.log('TODO update timeout values?',
+      eventsQueue.eventType.INTRNL_SMPL_NC, j[eventTypeName]);
   } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_DEL) {
     const sample = j[eventTypeName];
     updateDeletedTimeoutValues(sample.aspect.timeout);
@@ -192,6 +195,12 @@ function setupSocketIOClient(persBody) {
   });
   socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
     handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
+  });
+  socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
+    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
+  });
+  socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
+    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
   });
 } // setupSocketIOClient
 
