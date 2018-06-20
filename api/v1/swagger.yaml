@@ -9968,7 +9968,7 @@ paths:
       summary: Bulk subject delete
       tags: [ subjects ]
       description: >-
-        Operates asynchronous bulk subject deletion.
+        Executes asynchronous bulk subject deletion.
       operationId: deleteSubjects
       produces:
         - text/plain; charset=utf-8
@@ -9983,7 +9983,7 @@ paths:
             items:
               type: string
             description: >
-              List of subject ID or absolute path.
+              Array of strings where each string is a subject id or absolutePath.
       responses:
         200:
           description: >-
@@ -10000,7 +10000,7 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
-  /subjects/bulk/{key}/status:
+  /subjects/delete/bulk/{key}/status:
     x-swagger-router-controller: subjects
     get:
       security:
@@ -10008,7 +10008,7 @@ paths:
       summary: Bulk subject delete job status
       tags: [ subjects ]
       description: >-
-        Retrieve the status of the job requested by id.
+        Retrieve the job status (and any errors) for the specified bulk subject delete job.
       operationId: getSubjectBulkDeleteStatus
       parameters:
         -
@@ -12002,8 +12002,7 @@ definitions:
         description: >
           Optionally a jobId is returned with the response when the bulk subject
           delete request is enqueued as a job for the workers to process it
-          asynchronously. The returned jobId can be ultimately used to check the status
-          of the bulk subject delete request.
+          asynchronously. The returned jobId can then be used to check the status of the bulk subject delete request.
 
   GetBulkSubjectDeleteStatusResponse:
     type: object
@@ -12020,7 +12019,7 @@ definitions:
         type: array
         readOnly: true
         description: >
-          An array containing the error information.
+          An array of errors, if any errors were encountered while attempting to bulk delete subjects.
         items:
           type: object
 

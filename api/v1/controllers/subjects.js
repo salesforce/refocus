@@ -569,16 +569,17 @@ module.exports = {
   /**
    * POST /subjects/delete/bulk
    *
-   * Operates asynchronous bulk subject deletion.
+   * Executes asynchronous bulk subject deletion.
    *
-   * @param request body with a required list of subject ID or absolute path
-   * @returns Status of the operation and job id that can be used to check
-   * the status of the bulk subject delete request.
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   * @returns {Promise} - A promise that resolves to the response object,
+   * indicating that the bulk subject delete request has been received.
    */
   deleteSubjects(req, res, next) {
     /**
-     * Performs bulk delete through worker, cache or db model.
-     *
+     * Create a job for a worker process to delete the specified subjects.
      * @param user
      * @returns {Promise} the response object with status and body.
      */
@@ -605,28 +606,25 @@ module.exports = {
           return res.status(httpStatus.OK).json(body);
         })
         .catch((err) => {
-          // eslint-disable-next-line no-console
-          console.log(err);
           verbsUtils.handleError(next, err, helper.modelName);
         });
     }
 
     return createJob(req.user)
       .catch((err) => {
-        // eslint-disable-next-line no-console
-        console.log(err);
         verbsUtils.handleError(next, err, helper.modelName);
       });
   },
 
   /**
-   * GET /subjects/bulk/{key}/status
+   * GET /subjects/delete/bulk/{key}/status
    *
-   * Retrieve the status of the job requested by id.
+   * Retrieves the status of the bulk subject delete job and
+   * sends it back in the response
    *
-   * @param {key} as the job id
-   * @returns Status of the bulk subject delete request and
-   * an array containing the error information (if that's the case).
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
    */
   getSubjectBulkDeleteStatus(req, res, next) {
     const resultObj = { reqStartTime: new Date() };

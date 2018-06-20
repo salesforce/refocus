@@ -246,12 +246,11 @@ function prepareFields(subject, opts, req) {
  * Delete subject by key, meaning that key is either subject.id or
  * subject.absolutePath.
  *
- * Removes first from Postgres and then Redis if logged user has
- * permission.
+ * If the user has permission, remove subject from Postgres then from Redis.
  *
- * @param key (String subject id or abs path)
- * @param user
- * @returns {Promise} indicating success or failure
+ * @param {String} key - subject id or absolute path
+ * @param {Object} user
+ * @returns {Promise} - Indicates success or failure
  */
 function deleteByKey(key, user) {
   const params = {};
@@ -263,7 +262,6 @@ function deleteByKey(key, user) {
       deletedSubject = subject;
       return subject.destroy();
     })
-    .then(() => subjectUtils.removeFromRedis(deletedSubject))
     .then(() => Promise.resolve({ isFailed: false }))
     .catch((err) => Promise.resolve({ isFailed: true, explanation: err }));
 }
@@ -347,16 +345,17 @@ module.exports = {
     });
   },
 
-  bulkDelete(subjectsKeys, readOnlyFields, user) {
-    if (!subjectsKeys || !Array.isArray(subjectsKeys) ||
-      subjectsKeys.length < 1) {
-      const err = 'Error, subject keys to delete are not valid.';
+  bulkDelete(subjectKeys, readOnlyFields, user) {
+    if (!subjectKeys || !Array.isArray(subjectKeys) ||
+      subjectKeys.length < 1) {
+      const err = 'Must provide an array of one or more strings, where each ' +
+        'string is a subject id or absolutePath.';
       return Promise.all(
         [Promise.resolve({ isFailed: true, explanation: err, })]
       );
     }
 
-    const subjectDeletePromise = subjectsKeys.map((key) => {
+    const subjectDeletePromise = subjectKeys.map((key) => {
       try {
         return deleteByKey(key, user);
       } catch (err) {

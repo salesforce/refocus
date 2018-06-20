@@ -1,10 +1,5 @@
-// jscs:disable requirePaddingNewLinesBeforeLineComments
-// jscs:disable maximumLineLength
-// jscs:disable disallowTrailingWhitespace
-/* eslint-disable */
-
 /**
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -51,14 +46,19 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
       .catch(done);
   });
 
-  describe('Create 3 subjects and delete one', () => {
+  describe('Create 3 subjects and delete two', () => {
     before((done) => {
       northAmericaName = `${testUtils.namePrefix}NorthAmerica`;
-      const subjectNorthAmerica = { name: northAmericaName, isPublished: true, absolutePath: northAmericaName, };
-      const subjectSouthAmerica = { name: `${testUtils.namePrefix}SouthAmerica`, isPublished: false, };
-      const subjectEurope = { name: `${testUtils.namePrefix}Europe`, isPublished: false, };
-      const aspectTemperature = { name: 'temperature', timeout: '30s', isPublished: true, tags: ['temp'], };
-      const aspectHumid = { name: 'humidity', timeout: '30s', isPublished: true, };
+      const subjectNorthAmerica = { name: northAmericaName, isPublished: true,
+        absolutePath: northAmericaName, };
+      const subjectSouthAmerica = { name: `${testUtils.namePrefix}SouthAmerica`,
+        isPublished: false, };
+      const subjectEurope = { name: `${testUtils.namePrefix}Europe`,
+        isPublished: false, };
+      const aspectTemperature = { name: 'temperature', timeout: '30s',
+        isPublished: true, tags: ['temp'], };
+      const aspectHumid = { name: 'humidity', timeout: '30s',
+        isPublished: true, };
       const sample1 = { value: '10' };
       const sample2 = { value: '10' };
 
@@ -102,7 +102,8 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
         .then(() => done());
     });
 
-    it('Must be able to delete subject N.America by path and EU by ID retrieving current JobId', (done) => {
+    it('Must be able to delete subject N.America by path and EU by ID ' +
+      'retrieving current JobId', (done) => {
       api.post(DELETE_PATH)
         .set(AUTHORIZATION, token)
         .send([northAmericaName, europeId])
@@ -126,17 +127,27 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
               .set('Authorization', token)
               .expect(constants.httpStatus.NOT_FOUND)
               .then((res) => {
-                expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
+                expect(res.body.errors[0].type).to
+                  .equal('ResourceNotFoundError');
               });
+
+            // Must not find europe
+            api.get(`/v1/subjects/${europeId}`)
+              .set('Authorization', token)
+              .expect(constants.httpStatus.NOT_FOUND)
+              .then((res) => {
+                expect(res.body.errors[0].type).to
+                  .equal('ResourceNotFoundError');
+              });
+
             // Must find south america
             api.get(`/v1/subjects/${southAmericaId}`)
               .set('Authorization', token)
               .expect(constants.httpStatus.OK)
               .then((res) => {
                 expect(res.body.id).to.equal(southAmericaId);
-                return done();
               });
-          }, 1000);
+          }, 100);
         });
     });
   });

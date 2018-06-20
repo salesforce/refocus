@@ -98,7 +98,7 @@ describe('tests/api/v1/subjects/bulkDeleteStatus.js', () => {
         })
         .then((jobId) => {
           setTimeout(() => {
-            api.get(`/v1/subjects/bulk/${jobId}/status`)
+            api.get(`/v1/subjects/delete/bulk/${jobId}/status`)
               .set('Authorization', token)
               .expect(constants.httpStatus.OK)
               .then((res) => {
@@ -106,7 +106,7 @@ describe('tests/api/v1/subjects/bulkDeleteStatus.js', () => {
                 expect(res.body.errors[0].name).to.equal('SubjectDeleteConstraintError');
                 return done();
               });
-          }, 1000);
+          }, 100);
         });
     });
 
@@ -121,7 +121,7 @@ describe('tests/api/v1/subjects/bulkDeleteStatus.js', () => {
         })
         .then((jobId) => {
           setTimeout(() => {
-            api.get(`/v1/subjects/bulk/${jobId}/status`)
+            api.get(`/v1/subjects/delete/bulk/${jobId}/status`)
               .set('Authorization', token)
               .expect(constants.httpStatus.OK)
               .then((res) => {
@@ -129,7 +129,7 @@ describe('tests/api/v1/subjects/bulkDeleteStatus.js', () => {
                 expect(res.body.status).to.equal('complete');
                 return done();
               });
-          }, 1000);
+          }, 100);
         });
     });
   });
