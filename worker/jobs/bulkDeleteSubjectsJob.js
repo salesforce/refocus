@@ -119,9 +119,9 @@ module.exports = (job, done) => {
           dbStartTime,
           dbEndTime,
         });
+        jobLog(jobStartTime, job);
       }
 
-      jobLog(jobStartTime, job);
       return done(null, jobResultData);
     })
     .catch((err) => {
