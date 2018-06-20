@@ -72,7 +72,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     ];
     localGenerator.currentCollector = collector1.name;
 
-    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
+    Generator.createWithCollectors(localGenerator)
     .then((o) => {
       expect(o.collectors.length).to.equal(THREE);
       const collectorNames = o.collectors.map((collector) => collector.name);
@@ -104,7 +104,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   it('400 error with duplicate collectors in request body', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [collector1.name, collector1.name];
-    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
+    Generator.createWithCollectors(localGenerator)
     .then((o) => done(new Error('Expected DuplicateCollectorError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
@@ -118,7 +118,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   it('404 error for request body with an non-existant collector', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = ['iDontExist'];
-    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
+    Generator.createWithCollectors(localGenerator)
     .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.NOT_FOUND_STATUS_CODE);
@@ -133,7 +133,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     'non-existant collector', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.collectors = [collector1.name, 'iDontExist'];
-    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
+    Generator.createWithCollectors(localGenerator)
     .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.NOT_FOUND_STATUS_CODE);
