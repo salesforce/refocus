@@ -69,7 +69,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
 
   it('update without collectors field should preserve the collectors', (done) => {
     generatorDBInstance
-    .updateWithCollectors({ name: 'New_Name' }, u.whereClauseForNameInArr)
+    .updateWithCollectors({ name: 'New_Name' })
     .then((o) => {
       expect(o.name).to.equal('New_Name');
 
@@ -83,7 +83,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
 
   it('ok: update to a collector that is already attached to the generator', (done) => {
     generatorDBInstance
-    .updateWithCollectors({ collectors: [collector1.name] }, u.whereClauseForNameInArr)
+    .updateWithCollectors({ collectors: [collector1.name] })
     .then((o) => {
       expect(Array.isArray(o.collectors)).to.be.true;
       expect(o.collectors.length).to.equal(ONE);
@@ -94,8 +94,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
 
   it('ok: update to add new collectors', (done) => {
     generatorDBInstance
-    .updateWithCollectors({ collectors: [collector2.name, collector3.name] },
-      u.whereClauseForNameInArr)
+    .updateWithCollectors({ collectors: [collector2.name, collector3.name] })
     .then((o) => {
       expect(Array.isArray(o.collectors)).to.be.true;
       expect(o.collectors.length).to.equal(THREE);
@@ -110,9 +109,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
 
   it('400 error with duplicate collectors in request body', (done) => {
     const _collectors = [collector1.name, collector1.name];
-    generatorDBInstance.updateWithCollectors({
-      collectors: _collectors,
-    }, u.whereClauseForNameInArr)
+    generatorDBInstance.updateWithCollectors({ collectors: _collectors, })
     .then((o) => done(new Error('Expected DuplicateCollectorError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
@@ -126,9 +123,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
   it('404 error for request body with an existing and a ' +
     'non-existant collector', (done) => {
     const _collectors = [collector1.name, 'iDontExist'];
-    generatorDBInstance.updateWithCollectors({
-      collectors: _collectors,
-    }, u.whereClauseForNameInArr)
+    generatorDBInstance.updateWithCollectors({ collectors: _collectors, })
     .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.NOT_FOUND_STATUS_CODE);
