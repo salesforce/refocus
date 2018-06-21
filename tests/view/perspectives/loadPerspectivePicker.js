@@ -33,7 +33,6 @@ describe('tests/view/perspectives/loadPerspectivePicker.js, ' +
   const DUMMY_ID = '743bcf42-cd79-46d0-8c0f-d43adbb63866';
   const DUMMY_FUNCTION = () => {};
   let request;
-  let sandbox;
   let spy;
   const GET_DEFAULT_PERSPECTIVE = '/v1/globalconfig/DEFAULT_PERSPECTIVE';
   let accumulatorObject = {
@@ -77,28 +76,27 @@ describe('tests/view/perspectives/loadPerspectivePicker.js, ' +
 
     const valueObject = Object.assign(defaultValuePairs, valuePairs);
 
+    for (let key in valueObject) {
+      request.withArgs(sinon.match(key)).returns(Promise.resolve(valueObject[key]));
+    }
+
     // for first argument
     request.withArgs(sinon.match('/v1/perspectives/' + DUMMY_STRING))
-      .returns(Promise.resolve({
-        body: valueObject['/v1/perspectives'].body[0] ,
+    .returns(Promise.resolve({
+      body: valueObject['/v1/perspectives'].body[0] ,
     }));
 
     request.withArgs(sinon.match('/v1/lenses/' + DUMMY_ID)).returns(Promise.resolve({
       body: valueObject['/v1/lenses'].body[0] ,
     }));
-
-    for (let key in valueObject) {
-      request.withArgs(sinon.match(key)).returns(Promise.resolve(valueObject[key]));
-    }
   }
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
-    request = sandbox.stub();
-    spy = sandbox.spy();
+    request = sinon.stub();
+    spy = sinon.spy();
   });
   afterEach(() => {
-    sandbox.restore();
+    sinon.restore();
   });
 
   function getNamedPerspectiveUrl() {
