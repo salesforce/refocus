@@ -202,10 +202,8 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
   describe('aspect isPublished false >', () => {
     beforeEach((done) => {
       tu.db.Aspect.findById(aspectId1)
-      .then((asp) => {
-        asp.update({ isPublished: false });
-        done();
-      })
+      .then((asp) => asp.update({ isPublished: false }))
+      .then(() => done())
       .catch(done);
     });
 
