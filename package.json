@@ -95,6 +95,7 @@
     "debug": "^2.2.0",
     "errors": "^0.3.0",
     "etag": "^1.8.1",
+    "event-stream": "^3.3.4",
     "express": "^4.16.3",
     "express-enforces-ssl": "^1.1.0",
     "express-ipfilter": "^0.0.24",
@@ -182,7 +183,7 @@
     "mocha-lcov-reporter": "1.2.0",
     "redbox-react": "^1.6.0",
     "require-dir": "^0.3.2",
-    "sinon": "^1.17.2",
+    "sinon": "^5.0.10",
     "supertest": "^3.1.0",
     "webpack-dev-middleware": "^1.4.0",
     "webpack-dev-server": "^1.12.1"
