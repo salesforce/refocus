@@ -24,6 +24,9 @@ const constants = samsto.constants;
 const infoLoggingEnabled =
   featureToggles.isFeatureEnabled('enableSampleStoreInfoLogging');
 const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
+const ONE = 1;
+const ZERO = 0;
+
 /**
  * Deletes the previousStatuskey (that stores the previous value of the
  * "enableRedisSampleStore" flag).
@@ -34,27 +37,38 @@ function deletePreviousStatus() {
 } // deletePreviousStatus
 
 /**
- * When passed an array of sample keys, it extracts the subject name part from
- * each of the key and returns an array of keys prefixed with
- * "samsto:subaspmap". For example if
+ * When passed an array of sample keys, it extracts the subject and aspect name part from
+ * each of the key and returns an array of arrays of keys prefixed with
+ * "samsto:subaspmap" and "samsto:aspsubmap" respectively . For example if
  * ['samsto:sample:subject1|aspect1','samsto:sample:subject2|aspect2']
  * is the input, the output is
- *['samsto:subaspmap:subject1','samsto:subaspmap:subject2']
+ * [['samsto:subaspmap:subject1','samsto:subaspmap:subject2'],
+ * ['samsto:aspsubmap:aspect1','samsto:aspsubmap:aspect2']]
  * @param  {Array} keys - An array of sample keys
- * @returns {Array} - An array of subaspmap keys
+ * @returns {Array of arrays} - An array of subaspmap keys and aspsubmap keys
  */
-function getSubAspMapKeys(keys) {
+function getResourceMapsKeys(keys) {
   const subAspMapSet = new Set();
+  const aspSubMapSet = new Set();
+
   const subAspPrefix = constants.prefix + constants.separator +
     constants.objectType.subAspMap + constants.separator;
+
+  const aspSubPrefix = constants.prefix + constants.separator +
+    constants.objectType.aspSubMap + constants.separator;
+
   keys.forEach((key) => {
     const keyNameParts = key.split(constants.separator);
     const sampleNamePart = keyNameParts[2].split('|');
     const subjectNamePart = sampleNamePart[0];
+    const aspectNamePart = sampleNamePart[1];
+
     subAspMapSet.add(subAspPrefix + subjectNamePart);
+    aspSubMapSet.add(aspSubPrefix + aspectNamePart);
   });
-  return Array.from(subAspMapSet);
-} // getSubAspMapKeys
+
+  return [Array.from(subAspMapSet), Array.from(aspSubMapSet)];
+} // getResourceMapsKeys
 
 /**
  * Gets the value of "previousStatusKey"
@@ -66,7 +80,8 @@ function getPreviousStatus() {
 } // persistInProgress
 
 /**
- * Clear all the "sampleStore" keys (for subjects, aspects, samples, subaspmap)
+ * Clear all the "sampleStore" keys (for subjects, aspects, samples, subaspmap,
+ *  aspsubmap)
  * from redis.
  *
  * @returns {Promise} upon completion.
@@ -76,8 +91,13 @@ function eradicate() {
     .map((s) => redisClient.smembersAsync(constants.indexKey[s])
     .then((keys) => {
       if (constants.indexKey[s] === constants.indexKey.sample) {
-        // this is done to delete keys prefixed with "samsto:subaspmap:"
-        keys.push(...getSubAspMapKeys(keys));
+
+        /**
+         * this is done to delete keys prefixed with "samsto:subaspmap:" and
+         * "samsto:aspsubmap:"
+         */
+        keys.push(...getResourceMapsKeys(keys)[ZERO]);
+        keys.push(...getResourceMapsKeys(keys)[ONE]);
       }
 
       keys.push(constants.indexKey[s]);
@@ -207,16 +227,22 @@ function populateSamples() {
 
     const sampleIdx = new Set();
     const subjectSets = {};
+    const aspectResourceMaps = {};
     const sampleHashes = {};
     samples.forEach((s) => {
       const nameParts = s.name.split('|');
 
       // Generate the redis keys for this aspect, sample and subject.
-      const aspName = nameParts[1] // eslint-disable-line no-magic-numbers
-        .toLowerCase();
+      const aspName = nameParts[ONE].toLowerCase();
+      const subjAbsPath = nameParts[ZERO].toLowerCase();
+
       const samKey = samsto.toKey(constants.objectType.sample, s.name);
-      const subAspMapKey = samsto.toKey(constants.objectType.subAspMap,
-        nameParts[0]); // eslint-disable-line no-magic-numbers
+      const subAspMapKey = samsto.toKey(
+        constants.objectType.subAspMap, subjAbsPath
+      );
+      const aspSubMapKey = samsto.toKey(
+        constants.objectType.aspSubMap, aspName
+      );
 
       // Track each of these in the master indexes for each object type.
       sampleIdx.add(samKey);
@@ -229,6 +255,16 @@ function populateSamples() {
         subjectSets[subAspMapKey].push(aspName);
       } else {
         subjectSets[subAspMapKey] = [aspName];
+      }
+
+      /*
+       * Create aspect-to-subject resource map - a mapping of aspect and a list of
+       * subjects for corresponding samples
+       */
+      if (aspectResourceMaps.hasOwnProperty(aspSubMapKey)) {
+        aspectResourceMaps[aspSubMapKey].push(subjAbsPath);
+      } else {
+        aspectResourceMaps[aspSubMapKey] = [subjAbsPath];
       }
 
       // For creating each individual sample hash...
@@ -245,6 +281,11 @@ function populateSamples() {
     const subjectCmds = Object.keys(subjectSets)
       .map((key) => ['sadd', key, subjectSets[key]]);
     batchPromises.push(redisClient.batch(subjectCmds).execAsync());
+
+    // Batch of commands to create each individal aspect resource map...
+    const aspectResouceMapCmds = Object.keys(aspectResourceMaps)
+      .map((key) => ['sadd', key, aspectResourceMaps[key]]);
+    batchPromises.push(redisClient.batch(aspectResouceMapCmds).execAsync());
 
     // Batch of commands to create each individal sample hash...
     const sampleCmds = Object.keys(sampleHashes)

@@ -121,9 +121,7 @@ module.exports = (job, done) => {
         });
       }
 
-      if (featureToggles.isFeatureEnabled('enableJobActivityLogs')) {
-        jobLog(jobStartTime, job);
-      }
+      jobLog(jobStartTime, job);
 
       return done(null, jobResultData);
     })
