@@ -193,10 +193,11 @@ module.exports = {
 
   heartbeat(req, res, next) {
     const timestamp = req.body.currentTimestamp;
+
     u.findByKey(helper, req.swagger.params)
     .then((o) => {
       o.set('lastHeartbeat', timestamp);
-      res.status(httpStatus.OK).json()
+      res.status(httpStatus.OK).json();
       return o.save();
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
