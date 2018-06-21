@@ -66,6 +66,7 @@ describe('tests/api/v1/register/registerUser.js >', () => {
       .expect(/Missing required property: password/)
       .end(done);
     });
+
     it('user already exists', (done) => {
       api.post(path)
       .send(u.toCreate)
@@ -126,6 +127,24 @@ describe('tests/api/v1/register/registerUser.js >', () => {
         expect(res.body.email).to.be.equal('user@example.com');
         expect(res.body.sso).to.be.equal(false);
         done();
+      });
+    });
+  });
+
+  describe('rejectLocalUserRegistration >', () => {
+    before(() => tu.toggleOverride('rejectLocalUserRegistration', true));
+    after(() => tu.toggleOverride('rejectLocalUserRegistration', false));
+    after(u.forceDelete);
+
+    it('forbidden', (done) => {
+      api.post(path)
+      .send(u.toCreate)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) return done(err);
+        expect(res.body.errors[0]).to.have.property('description',
+          'New user registration is not permitted.');
+        return done();
       });
     });
   });
