@@ -108,11 +108,11 @@ module.exports = {
     let timedOutSamples;
 
     // ioredis use
-    const redisUse = featureToggles.isFeatureEnabled('enableIORedis') ?
-          ioredisClient.smembers(sampleStore.constants.indexKey.sample) :
-          redisClient.smembersAsync(sampleStore.constants.indexKey.sample);
+    const membersCmd = featureToggles.isFeatureEnabled('enableIORedis') ?
+      ioredisClient.smembers(sampleStore.constants.indexKey.sample) :
+      redisClient.smembersAsync(sampleStore.constants.indexKey.sample);
 
-    return redisUse
+    return membersCmd
     .then((allSamples) => {
       const commands = [];
       const aspectsSet = new Set();
