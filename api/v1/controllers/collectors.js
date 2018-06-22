@@ -377,7 +377,6 @@ function startCollector(req, res, next) {
   body.status = 'Running';
   body.createdBy = req.user.id;
   let collToReturn;
-  let name;
   return helper.model.findOne({ where: { name: body.name } })
   /* Already exists? Verify that this user has write permission. */
   .then((coll) => {
@@ -406,9 +405,9 @@ function startCollector(req, res, next) {
   /* Update or create */
   .then((coll) => coll ? coll.update(body) : helper.model.create(body))
   .then((coll) => {
-    name = coll.name;
     collToReturn = coll;
     /* TODO: change to use currentGenerators once that includes current gens only */
+
     // return Generator.findAll({ where: { currentCollector: coll.name } });
     /*
      * TODO: this actually maps to Generator.collectors, not currentCollector.
