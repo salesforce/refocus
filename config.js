@@ -73,6 +73,8 @@ const DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS = 120000; // 2min
 
 const botEventLimit = pe.BOT_EVENT_LIMIT || 100;
 
+const deactivateRoomsInterval = pe.DEACTIVATE_ROOMS_INTERVAL || 10000; // 5min
+
 /*
  * name of the environment variable containing the read-only
  * database names as CSV
@@ -263,6 +265,7 @@ module.exports = {
   expressLimiterTotal2,
   expressLimiterExpire2,
   botEventLimit,
+  deactivateRoomsInterval,
   kueStatsInactiveWarning: pe.KUESTATS_INACTIVE_WARNING,
   newRelicKey,
   nodeEnv,
