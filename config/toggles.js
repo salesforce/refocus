@@ -159,6 +159,10 @@ const shortTermToggles = {
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),
 
+  // Enable IOREDIS instead of node redis
+  enableIORedis: environmentVariableTrue(pe,
+    'ENABLE_IOREDIS'),
+
   // Enable using worker dyno for hierarchy queries
   enqueueHierarchy: environmentVariableTrue(pe, 'ENQUEUE_HIERARCHY'),
 
