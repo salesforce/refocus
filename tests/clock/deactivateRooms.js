@@ -21,7 +21,7 @@ const Event = tu.db.Event;
 
 const ZERO = 0;
 const ONE = 1;
-const MOON_LANDING = "1969-07-20T20:18:00+00:00";
+const MOON_LANDING = '1969-07-20T20:18:00+00:00';
 
 describe('tests/clock/deactivateRooms.js >', () => {
   afterEach(u.forceDelete);
@@ -30,12 +30,11 @@ describe('tests/clock/deactivateRooms.js >', () => {
   it('No rooms exist so none are deactivated', (done) => {
     deactivateRooms.execute()
     .then((deactivatedRooms) => {
-      expect(deactivatedRooms.length).to.equal(ZERO);
       Room.findAll({ where: { active: true } })
       .then((r) => {
-        expect(r.length).to.equal(ZERO)
+        expect(r.length).to.equal(ZERO);
         done();
-      })
+      });
     })
     .catch(done);
   });
@@ -51,13 +50,12 @@ describe('tests/clock/deactivateRooms.js >', () => {
     .then((room) => {
       deactivateRooms.execute()
       .then((deactivatedRooms) => {
-        expect(deactivatedRooms.length).to.equal(ZERO)
         Room.findAll({ where: { active: true } })
         .then((r) => {
-          expect(r.length).to.equal(ONE)
+          expect(r.length).to.equal(ONE);
           done();
-        })
-      })
+        });
+      });
     })
     .catch(done);
   });
@@ -78,13 +76,12 @@ describe('tests/clock/deactivateRooms.js >', () => {
     .then((event) => {
       deactivateRooms.execute()
       .then((deactivatedRooms) => {
-        expect(deactivatedRooms.length).to.equal(ONE)
         Room.findAll({ where: { active: true } })
         .then((r) => {
-          expect(r.length).to.equal(ZERO)
+          expect(r.length).to.equal(ZERO);
           done();
-        })
-      })
+        });
+      });
     })
     .catch(done);
   });
@@ -104,13 +101,12 @@ describe('tests/clock/deactivateRooms.js >', () => {
     .then((event) => {
       deactivateRooms.execute()
       .then((deactivatedRooms) => {
-        expect(deactivatedRooms.length).to.equal(ZERO)
         Room.findAll({ where: { active: true } })
         .then((r) => {
-          expect(r.length).to.equal(ONE)
+          expect(r.length).to.equal(ONE);
           done();
-        })
-      })
+        });
+      });
     })
     .catch(done);
   });

@@ -25,6 +25,7 @@ function checkAndDeactivateRoom(room) {
     where: { roomId: room.id },
   })
   .then((evt) => {
+    if (evt) {
       const minsSinceLastEvent =
         moment().diff(moment(evt.createdAt), 'minutes');
       if (minsSinceLastEvent > THRESHOLD_IN_MINUTES) {
@@ -42,9 +43,10 @@ function checkAndDeactivateRoom(room) {
           });
         }
 
-        return room.update({ active: false })
+        return room.update({ active: false });
       }
-  })
+    }
+  });
 }
 
 /* For each room that should be deactivated we need to:
@@ -56,10 +58,7 @@ function execute() {
   return dbRoom.findAll({ where: { active: true } })
   .then((dbRes) => {
     const promises = dbRes.map((room) => checkAndDeactivateRoom(room));
-    Promise.all(promises)
-    .then((roomsToBeDeactivated) => {
-      return Promise.resolve(roomsToBeDeactivated);
-    });
+    return Promise.all(promises);
   });
 } // execute
 
