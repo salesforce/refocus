@@ -18,11 +18,19 @@ const initBotEvent = 'refocus.internal.realtime.bot.namespace.initialize';
 
 let tracker = {};
 setInterval(() => {
-  console.log(tracker);
-  tracker = {};
+  Object.keys(tracker).forEach((key) => {
+    console.log(`emitted:${key}:${tracker[key]}`);
+    tracker[key] = 0;
+  });
 }, 60000);
 
 module.exports = (io, key, obj) => {
+  if (tracker.hasOwnProperty(key)) {
+    tracker[key]++;
+  } else {
+    tracker[key] = 1;
+  }
+
   // newObjectAsString contains { key: {new: obj }}
   let newObjectAsString = rtUtils.getNewObjAsString(key, obj);
 
@@ -45,16 +53,6 @@ module.exports = (io, key, obj) => {
       }
 
       io.of(nsp).emit(key, newObjectAsString);
-      if (tracker.hasOwnProperty(nsp)) {
-        if (tracker[nsp].hasOwnProperty(key)) {
-          tracker[nsp][key]++;
-        } else {
-          tracker[nsp][key] = 1;
-        }
-      } else {
-        tracker[nsp] = {};
-        tracker[nsp][key] = 1;
-      }
     }
   }
 };
