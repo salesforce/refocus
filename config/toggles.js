@@ -85,6 +85,8 @@ const longTermToggles = {
   enableJobActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'job'),
   enableKueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'kueStats'),
+  enableLimiterActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'limiter'),
   enablePubStatsLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'pubStats'),
   enableQueueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'queueStats'),
@@ -115,6 +117,10 @@ const longTermToggles = {
    * achieve better web process throughput and response times.
    */
   enableWorkerProcess: environmentVariableTrue(pe, 'ENABLE_WORKER_PROCESS'),
+
+  // Reject local user registration
+  rejectLocalUserRegistration:
+    environmentVariableTrue(pe, 'REJECT_LOCAL_USER_REGISTRATION'),
 
   // Reject (401) requests with multiple X-Forwarded-For values
   rejectMultipleXForwardedFor:
@@ -162,6 +168,10 @@ const shortTermToggles = {
 
   // Add some job queue instrumentation logging
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
+
+  // Look up the subject inside the promise chain when publishing sample
+  publishSampleInPromiseChain: environmentVariableTrue(pe,
+    'PUBLISH_SAMPLE_IN_PROMISE_CHAIN'),
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 

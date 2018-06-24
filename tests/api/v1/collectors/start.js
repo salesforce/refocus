@@ -59,10 +59,12 @@ describe('tests/api/v1/collectors/start.js >', () => {
       const gen1 = sgUtils.getGenerator();
       gen1.name += 'generator-1';
       gen1.createdBy = user.id;
+      gen1.currentCollector = u.getCollectorToCreate().name;
 
       const gen2 = sgUtils.getGenerator();
       gen2.name += 'generator-2';
       gen2.createdBy = user.id;
+      gen2.currentCollector = u.getCollectorToCreate().name;
       return Generator.bulkCreate([gen1, gen2]);
     })
     .then((generators) => {
@@ -116,7 +118,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
       .send(defaultCollector)
       .expect(constants.httpStatus.FORBIDDEN)
       .expect((res) => {
-        expect(res.body.errors[0].description).to.equal('Invalid Token.');
+        expect(res.body.errors[0].description)
+          .to.equal('Authentication Failed');
       })
       .end(done);
     });
@@ -128,7 +131,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
     .send({})
     .expect(constants.httpStatus.FORBIDDEN)
     .expect((res) => {
-      expect(res.body.errors[0].description).to.equal('Invalid Token.');
+      expect(res.body.errors[0].description)
+        .to.equal('Authentication Failed');
     })
     .end(done);
   });

@@ -86,7 +86,7 @@ function validateGeneratorAspectsPermissions(aspects, req) {
       const error = results[i].error;
       if (error) {
         if (error.name === 'ForbiddenError' &&
-         error.message === 'Resource not writable for provided token') {
+         error.message === 'Insufficient Privileges') {
           aspInvalidPerm.push(results[i].aspectName);
         } else {
           // aspect name added to all errors already
@@ -97,12 +97,9 @@ function validateGeneratorAspectsPermissions(aspects, req) {
     }
 
     if (aspInvalidPerm.length > 0) {
-      return Promise.reject(
-        new apiErrors.ValidationError(
-          'User does not have permission to upsert samples for the ' +
-          'following aspects:' + aspInvalidPerm
-        )
-      );
+      return Promise.reject(new apiErrors.ForbiddenError({
+        explanation: 'Insufficient Privileges',
+      }));
     }
 
     return Promise.resolve();
@@ -151,20 +148,14 @@ module.exports = {
     apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     const resultObj = { reqStartTime: req.timestamp };
     const requestBody = req.swagger.params.queryBody.value;
-    let oldCollectors;
     validateGeneratorAspectsPermissions(requestBody.aspects, req)
     .then(() => u.findByKey(helper, req.swagger.params))
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       u.patchArrayFields(o, requestBody, helper);
-      oldCollectors = o.collectors.map(collector => collector.name);
-      return o.updateWithCollectors(requestBody, u.whereClauseForNameInArr);
+      return o.updateWithCollectors(requestBody);
     })
-    .then((retVal) => {
-      const newCollectors = retVal.collectors.map(collector => collector.name);
-      heartbeatUtils.trackGeneratorChanges(retVal, oldCollectors, newCollectors);
-      return u.handleUpdatePromise(resultObj, req, retVal, helper, res);
-    })
+    .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
@@ -186,13 +177,10 @@ module.exports = {
     toPost.createdBy = req.user.id;
     validateGeneratorAspectsPermissions(toPost.aspects, req)
     .then(() =>
-      helper.model.createWithCollectors(toPost, u.whereClauseForNameInArr))
+      helper.model.createWithCollectors(toPost))
     .then((o) => o.reload())
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      const oldCollectors = [];
-      const newCollectors = o.collectors.map(collector => collector.name);
-      heartbeatUtils.trackGeneratorChanges(o, oldCollectors, newCollectors);
       u.sortArrayObjectsByField(helper, o); // order collectors by name
       u.logAPI(req, resultObj, o);
       res.status(constants.httpStatus.CREATED)
@@ -229,8 +217,7 @@ module.exports = {
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       instance = o;
-      return helper.model.validateCollectors(
-        toPut.collectors, u.whereClauseForNameInArr);
+      return helper.model.validateCollectors(toPut.collectors);
     })
     .then((_collectors) => {
       collectors = _collectors;
@@ -238,9 +225,6 @@ module.exports = {
     })
     .then((_updatedInstance) => {
       instance = _updatedInstance;
-      const oldCollectors = instance.collectors.map(c => c.name);
-      const newCollectors = collectors.map(c => c.name);
-      heartbeatUtils.trackGeneratorChanges(instance, oldCollectors, newCollectors);
       return instance.setCollectors(collectors);
     }) // need reload instance to attach associations
     .then(() => instance.reload())

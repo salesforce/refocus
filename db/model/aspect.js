@@ -23,6 +23,12 @@ const aspectType = redisOps.aspectType;
 const sampleType = redisOps.sampleType;
 const Promise = require('bluebird');
 const Op = require('sequelize').Op;
+const publishSample = require('../../realtime/redisPublisher').publishSample;
+const sampleEventNames = {
+  add: 'refocus.internal.realtime.sample.add',
+  upd: 'refocus.internal.realtime.sample.update',
+  del: 'refocus.internal.realtime.sample.remove',
+};
 
 module.exports = function aspect(seq, dataTypes) {
   const Aspect = seq.define('Aspect', {
@@ -152,13 +158,30 @@ module.exports = function aspect(seq, dataTypes) {
 
       /**
        * Check Generator references and set the isDeleted timestamp.
+       * If aspect is deleted then send realtime "del" event to delete all
+       * samples associated with that aspect for perspectives.
        *
        * @param {Aspect} inst - The instance being destroyed
        * @returns {Promise}
        */
       beforeDestroy(inst /* , opts */) {
-        return inst.checkGeneratorReferences('delete')
-        .then(() => common.setIsDeleted(seq.Promise, inst));
+        const promiseArr = [];
+
+        promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
+          .each((samp) => {
+            if (samp) {
+              publishSample(
+                samp, seq.models.Subject, sampleEventNames.del,
+                seq.models.Aspect
+              );
+            }
+          })
+        );
+
+        promiseArr.push(inst.checkGeneratorReferences('delete')
+        .then(() => common.setIsDeleted(seq.Promise, inst)));
+
+        return seq.Promise.all(promiseArr);
       }, // hooks.beforeDestroy
 
       /**
@@ -167,21 +190,41 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       beforeUpdate(inst /* , opts */) {
+        const promiseArr = [];
         const unpublished = inst.previous('isPublished') && !inst.isPublished;
         const renamed = inst.previous('name') !== inst.name;
         if (unpublished || renamed) {
           const action = unpublished ? 'unpublish' : 'rename';
-          return inst.checkGeneratorReferences(action);
+          promiseArr.push(inst.checkGeneratorReferences(action));
         }
+
+        /*
+         * If aspect is published and tags change or unpublished,
+         * send a "del" realtime event for all the
+         * samples for this aspect. (The afterUpdate hook
+         * will send an "add" event.) This way, perspectives
+         * which filter by aspect tags will get the right samples.
+         */
+        if (inst.isPublished && inst.changed('tags') ||
+          (inst.changed('isPublished') && inst.previous('isPublished'))) {
+          promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
+            .each((samp) => {
+              if (samp) {
+                publishSample(
+                  samp, seq.models.Subject, sampleEventNames.del,
+                  seq.models.Aspect
+                );
+              }
+            })
+          );
+        } // tags changed
+
+        return seq.Promise.all(promiseArr);
       }, // hooks.beforeUpdate
 
       /**
        * If isPublished is being updated from true to false or the name of the
        * aspect is changed, delete any samples associated with the aspect.
-       * If aspect tags changed, send an "add" realtime event for all the
-       * samples for this aspect. (The beforeUpdate hook will already have
-       * sent a "delete" event.) This way, perspectives which filter by aspect
-       * tags will get the right samples.
        *
        * @param {Aspect} inst - The updated instance
        * @returns {Promise}
@@ -241,6 +284,25 @@ module.exports = function aspect(seq, dataTypes) {
           });
           promiseArr.push(redisOps.hmSet(aspectType, inst.name, instChanged));
         }
+
+        /*
+         * If aspect is published and tags change, send an "add" realtime
+         * event for all the samples for this aspect. (The beforeUpdate hook
+         * will already have sent a "delete" event.) This way, perspectives
+         * which filter by aspect tags will get the right samples.
+         */
+        if (inst.isPublished && inst.changed('tags')) {
+          promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
+            .each((samp) => {
+              if (samp) {
+                publishSample(
+                  samp, seq.models.Subject, sampleEventNames.add,
+                  seq.models.Aspect
+                );
+              }
+            })
+          );
+        } // tags changed
 
         return seq.Promise.all(promiseArr);
       }, // hooks.afterUpdate

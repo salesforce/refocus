@@ -85,6 +85,10 @@ module.exports = function bot(seq, dataTypes) {
       },
       comment: 'List of data variables a bot has available',
     },
+    lastHeartbeat: {
+      type: dataTypes.DATE,
+      allowNull: true,
+    },
     version: {
       type: dataTypes.STRING(constants.fieldlen.shortish),
       allowNull: false,

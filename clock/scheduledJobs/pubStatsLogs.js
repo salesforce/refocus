@@ -45,7 +45,13 @@ function generateLogObjects() {
   return redis.hgetallAsync(PUB_STATS_HASH)
   .then((res) => p = res)
   .then(() => redis.delAsync(PUB_STATS_HASH))
-  .then(() => Object.keys(p).map((key) => toLogObj(key, p[key])));
+  .then(() => {
+    if (p) {
+      return Object.keys(p).map((key) => toLogObj(key, p[key]));
+    }
+
+    return [];
+  });
 } // generateLogObjects
 
 /**
