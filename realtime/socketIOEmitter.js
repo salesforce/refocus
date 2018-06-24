@@ -17,7 +17,7 @@ const initPerspectiveEvent = 'refocus.internal.realtime.perspective.namespace.in
 const initBotEvent = 'refocus.internal.realtime.bot.namespace.initialize';
 
 module.exports = (io, key, obj) => {
-  console.log(key, obj);
+  console.log(key);
   // newObjectAsString contains { key: {new: obj }}
   let newObjectAsString = rtUtils.getNewObjAsString(key, obj);
 
