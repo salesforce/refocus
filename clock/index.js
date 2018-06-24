@@ -62,7 +62,6 @@ if (featureToggles.isFeatureEnabled('enablePubStatsLogs')) {
   setInterval(pubStatsLogs.execute, conf.pubStatsLogsIntervalMillis);
 }
 
-// If enableAutoDeactivateRooms is true then automatically deactivate rooms
 if (featureToggles.isFeatureEnabled('autoDeactivateRooms')) {
   setInterval(deactivateRooms.execute, conf.deactivateRoomsInterval);
 }

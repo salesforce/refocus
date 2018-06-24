@@ -17,18 +17,30 @@ const moment = require('moment');
 
 const dbRoom = require('../../db/index').Room;
 const dbEvent = require('../../db/index').Event;
+const dbBotAction = require('../../db/index').botAction;
 
 const THRESHOLD_IN_MINUTES = 120; // 2 hours
 
+/**
+ * Deactivates a room if there has not been any recent activity in the room.
+ * If a sync is defined in the settings of the room, it creates an action.
+ *
+ * @param {Object} room - Active room.
+ * @returns {Promise} - Promise that room was deactivated.
+ */
 function checkAndDeactivateRoom(room) {
+  // Getting most recent event for this room
   return dbEvent.findOne({
     where: { roomId: room.id },
+    order: [['createdAt', 'DESC']],
   })
   .then((evt) => {
     if (evt) {
+      // Time in minutes since any activity in this room
       const minsSinceLastEvent =
         moment().diff(moment(evt.createdAt), 'minutes');
       if (minsSinceLastEvent > THRESHOLD_IN_MINUTES) {
+        // If a sync is defined we need to create an action
         if (room.settings && room.settings.sync) {
           room.settings.sync.forEach((bot) => {
             const syncBotAction = {
@@ -49,12 +61,12 @@ function checkAndDeactivateRoom(room) {
   });
 }
 
-/* For each room that should be deactivated we need to:
- *  - Set active to false
- *  - If sync exists in settings, create sync action
+/**
+ * Execute the call to deactivate rooms with no recent activity
+ *
+ * @returns {Promise} - Promise that rooms were deactivated
  */
 function execute() {
-  const deactivateRooms = []; // Keeping track of rooms that were deactivated
   return dbRoom.findAll({ where: { active: true } })
   .then((dbRes) => {
     const promises = dbRes.map((room) => checkAndDeactivateRoom(room));
