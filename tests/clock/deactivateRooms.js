@@ -25,7 +25,7 @@ const MOON_LANDING = '1969-07-20T20:18:00+00:00';
 
 describe('tests/clock/deactivateRooms.js >', () => {
   afterEach(u.forceDelete);
-  afterEach(e.forceDelete);
+  after(e.forceDelete);
 
   it('No rooms exist so none are deactivated', (done) => {
     deactivateRooms.execute()
