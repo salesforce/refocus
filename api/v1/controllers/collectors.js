@@ -407,7 +407,14 @@ function startCollector(req, res, next) {
   .then((coll) => {
     collToReturn = coll;
     /* TODO: change to use currentGenerators once that includes current gens only */
-    return Generator.findAll({ where: { currentCollector: coll.name } });
+
+    // return Generator.findAll({ where: { currentCollector: coll.name } });
+    /*
+     * TODO: this actually maps to Generator.collectors, not currentCollector.
+     * This is necessary for now since currentCollector is not being set yet.
+     * Change to use only current collectors once all the assignment logic is in place.
+     */
+    return coll.getCurrentGenerators();
   })
   /* Add all the attributes necessary to send back to collector. */
   .then((gens) => Promise.all(gens.map((g) => g.updateForHeartbeat())))
