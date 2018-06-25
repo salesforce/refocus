@@ -25,7 +25,7 @@ const MOON_LANDING = '1969-07-20T20:18:00+00:00';
 
 describe('tests/clock/deactivateRooms.js >', () => {
   afterEach(u.forceDelete);
-  after(e.forceDelete);
+  afterEach(e.forceDelete);
 
   it('No rooms exist so none are deactivated', (done) => {
     deactivateRooms.execute()
@@ -40,7 +40,6 @@ describe('tests/clock/deactivateRooms.js >', () => {
   });
 
   it('Room that has no events at all should not be deactivated', (done) => {
-    const testEvent = e.getStandard();
     RoomType.create(v.getStandard())
     .then((roomType) => {
       const room = u.getStandard();
@@ -78,6 +77,7 @@ describe('tests/clock/deactivateRooms.js >', () => {
       .then((deactivatedRooms) => {
         Room.findAll({ where: { active: true } })
         .then((r) => {
+          event.destroy();
           expect(r.length).to.equal(ZERO);
           done();
         });
