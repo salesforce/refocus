@@ -381,6 +381,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       if (noChange) {
         updatedSamp.noChange = true;
         updatedSamp.absolutePath = subject.absolutePath;
+        updatedSamp.subjectTags = subject.tags || [];
       }
     }
 
