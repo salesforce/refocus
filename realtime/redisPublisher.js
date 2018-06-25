@@ -135,7 +135,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
  * @returns {Promise} - which resolves to the object that was published
  */
 function publishSampleNoChange(sample) {
-  console.log('publishSampleNoChange', sample);
+  // console.log('publishSampleNoChange', sample);
   const s = {
     name: sample.name,
     status: sample.status,
@@ -150,7 +150,7 @@ function publishSampleNoChange(sample) {
       tags: sample.aspect.tags,
     }
   };
-  console.log('publishSampleNoChange', sampleEvent.nc, s);
+  // console.log('publishSampleNoChange', sampleEvent.nc, s);
   return Promise.resolve(publishObject(s, sampleEvent.nc, ['updatedAt']));
 } // publishSampleNoChange
 
