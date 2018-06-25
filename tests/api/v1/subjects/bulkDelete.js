@@ -27,8 +27,10 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
   const AUTHORIZATION = 'Authorization';
   const DELETE_PATH = '/v1/subjects/delete/bulk';
 
-  let parentAndChildIdStore = [];
-  let fooAndBlahIdStore = [];
+  const parentAndChildIdStore = [];
+  const fooAndBlahIdStore = [];
+
+  const TIME_OUT = 100;
 
   before((done) => {
     testUtils.createToken()
@@ -40,6 +42,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
 
   describe('Create subjects and check status', () => {
     before(() => testUtils.toggleOverride('enableWorkerProcess', true));
+
     // Start JobQueue
     jobQueue.process(jobType.BULK_DELETE_SUBJECTS, bulkDeleteSubjectsJob);
 
@@ -88,6 +91,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
         .send(parentAndChildIdStore)
         .expect(constants.httpStatus.OK)
         .then((res) => {
+          // eslint-disable-next-line no-unused-expressions
           expect(res.body.jobId).to.not.be.empty;
           return Promise.resolve(res.body.jobId);
         })
@@ -103,7 +107,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
                   .to.equal('SubjectDeleteConstraintError');
                 return done();
               });
-          }, 100);
+          }, TIME_OUT);
         });
     });
 
@@ -127,7 +131,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
                 expect(res.body.status).to.equal('complete');
                 return done();
               });
-          }, 100);
+          }, TIME_OUT);
         })
         .then(() => {
           setTimeout(() => {
@@ -148,7 +152,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
                 expect(res.body.errors[0].type).to
                   .equal('ResourceNotFoundError');
               });
-          }, 100);
+          }, TIME_OUT);
         });
     });
   });
