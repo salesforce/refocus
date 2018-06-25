@@ -21,7 +21,7 @@ let tracker = {};
 setInterval(() => {
   Object.keys(tracker).forEach((key) => {
     console.log(`emitted:${key}:${tracker[key]}`);
-    tracker[key] = 0;
+    delete tracker[key];
   });
 }, 60000);
 
