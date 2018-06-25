@@ -127,12 +127,6 @@ const queueStatsActivityLogsInterval = 60000;
 // sent to collector.
 const encryptionAlgoForCollector = 'aes-256-cbc';
 
-// strings to represent resource type for caching. used by getHash() function
-// to generate keys for redis
-const resourceTypes = {
-  perspective: 'perspective',
-};
-
 module.exports = {
   api: {
     defaults: {
@@ -285,5 +279,4 @@ module.exports = {
   hiddenRoutes,
   corsRoutes,
   encryptionAlgoForCollector,
-  resourceTypes,
 };
