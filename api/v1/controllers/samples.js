@@ -51,8 +51,10 @@ function doFindSample(req, res, next, resultObj, cacheKey, cacheExpiry) {
      * store).
      */
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
     /* Add response header with record count. */
     res.set(COUNT_HEADER_NAME, response.length);
+
     /* Delete any attributes designated for exclusion from the response. */
     if (helper.fieldsToExclude) {
       for (let i = response.length - 1; i >= 0; i--) {
@@ -468,5 +470,4 @@ module.exports = {
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
-
 }; // exports

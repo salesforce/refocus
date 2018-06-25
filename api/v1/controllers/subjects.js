@@ -24,7 +24,7 @@ const doGetHierarchy = require('../helpers/verbs/doGetHierarchy');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
-const u = require('../helpers/verbs/utils');
+const verbsUtils = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const redisSubjectModel = require('../../../cache/models/subject');
@@ -35,6 +35,8 @@ const common = require('../../../utils/common');
 const WORKER_TTL = 1000 * jobSetup.ttlForJobsSync;
 const ZERO = 0;
 const Op = require('sequelize').Op;
+const kueSetup = require('../../../jobQueue/setup');
+const kue = kueSetup.kue;
 
 /**
  * If both parentAbsolutePath and parentId are provided,
@@ -77,7 +79,7 @@ function validateParentFields(req, res, next, callback) {
       callback();
     })
     .catch((err) => {
-      u.handleError(next, err, helper.modelName);
+      verbsUtils.handleError(next, err, helper.modelName);
     });
   } else {
     callback();
@@ -158,14 +160,14 @@ module.exports = {
   deleteSubjectHierarchy(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
-    u.findByKey(helper, params, ['hierarchy'])
+    verbsUtils.findByKey(helper, params, ['hierarchy'])
     .then((o) => o.deleteHierarchy())
     .then(() => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      u.logAPI(req, resultObj, {});
+      verbsUtils.logAPI(req, resultObj, {});
       return res.status(httpStatus.OK).json({});
     })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => verbsUtils.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -211,10 +213,10 @@ module.exports = {
       const resultObj = { reqStartTime: req.timestamp }; // for logging
       redisSubjectModel.findSubjects(req, res, resultObj)
       .then((response) => {
-        u.logAPI(req, resultObj, response);
+        verbsUtils.logAPI(req, resultObj, response);
         res.status(httpStatus.OK).json(response);
       })
-      .catch((err) => u.handleError(next, err, helper.modelName));
+      .catch((err) => verbsUtils.handleError(next, err, helper.modelName));
     } else {
       doFind(req, res, next, helper);
     }
@@ -239,10 +241,10 @@ module.exports = {
       const resultObj = { reqStartTime: req.timestamp }; // for logging
       redisSubjectModel.getSubject(req, res, resultObj)
       .then((response) => {
-        u.logAPI(req, resultObj, response); // audit log
+        verbsUtils.logAPI(req, resultObj, response); // audit log
         res.status(httpStatus.OK).json(response);
       })
-      .catch((err) => u.handleError(next, err, helper.modelName));
+      .catch((err) => verbsUtils.handleError(next, err, helper.modelName));
     } else {
       doGet(req, res, next, helper);
     }
@@ -272,7 +274,7 @@ module.exports = {
 
     const resultObj = {
       reqStartTime: Date.now(),
-      params: params,
+      params,
     };
 
     if (featureToggles.isFeatureEnabled('enableWorkerProcess')
@@ -280,7 +282,7 @@ module.exports = {
       jobWrapper.createJob(jobType.GET_HIERARCHY, resultObj, req)
       .ttl(WORKER_TTL)
       .on('complete', (resultObj) => {
-        u.logAPI(req, resultObj, resultObj.retval);
+        verbsUtils.logAPI(req, resultObj, resultObj.retval);
         res.status(httpStatus.OK).json(resultObj.retval);
       })
       .on('failed', (errString) => {
@@ -292,9 +294,9 @@ module.exports = {
         }
 
         let newErr;
-        if (parsedErr) { //errString contains a serialized error object.
-
-          //create a new error object of the correct type
+        if (parsedErr) {
+          // errString contains a serialized error object.
+          // create a new error object of the correct type
           if (apiErrors[parsedErr.name]) {
             newErr = new apiErrors[parsedErr.name]();
           } else if (global[parsedErr.name]) {
@@ -303,15 +305,14 @@ module.exports = {
             newErr = new Error();
           }
 
-          //copy props to new error
+          // copy props to new error
           Object.keys(parsedErr).forEach((prop) => {
             if (!newErr.hasOwnProperty(prop)
             || Object.getOwnPropertyDescriptor(newErr, prop).writable) {
               newErr[prop] = parsedErr[prop];
             }
           });
-
-        } else { //errString contains an error message.
+        } else { // errString contains an error message.
           if (errString === 'TTL exceeded') {
             newErr = new apiErrors.WorkerTimeoutError();
           } else {
@@ -319,16 +320,16 @@ module.exports = {
           }
         }
 
-        u.handleError(next, newErr, helper.modelName);
+        verbsUtils.handleError(next, newErr, helper.modelName);
       });
     } else {
       doGetHierarchy(resultObj)
       .then((resultObj) => {
-        u.logAPI(req, resultObj, resultObj.retval);
+        verbsUtils.logAPI(req, resultObj, resultObj.retval);
         res.status(httpStatus.OK).json(resultObj.retval);
       })
       .catch((err) => {
-        u.handleError(next, err, helper.modelName);
+        verbsUtils.handleError(next, err, helper.modelName);
       });
     }
   }, // getSubjectHierarchy
@@ -418,7 +419,7 @@ module.exports = {
      * do normal post.
      */
     if (featureToggles.isFeatureEnabled('getSubjectFromCache') &&
-      !u.looksLikeId(parentId)) {
+      !verbsUtils.looksLikeId(parentId)) {
       const absolutePath = parentAbsolutePath ?
         (parentAbsolutePath + '.' + name) : name;
       redisSubjectModel.subjectInSampleStore(absolutePath)
@@ -431,7 +432,7 @@ module.exports = {
         doPost(req, res, next, helper);
       })
       .catch((err) => {
-        u.handleError(next, err, helper.modelName);
+        verbsUtils.handleError(next, err, helper.modelName);
       });
     } else {
       doPost(req, res, next, helper);
@@ -459,16 +460,16 @@ module.exports = {
     }
 
     const key = req.swagger.params.key.value;
-    if (u.looksLikeId(key)) {
+    if (verbsUtils.looksLikeId(key)) {
       req.swagger.params.queryBody.value.parentId = key;
       doPost(req, res, next, helper);
     } else {
-      u.findByKey(helper, req.swagger.params)
+      verbsUtils.findByKey(helper, req.swagger.params)
       .then((o) => {
         req.swagger.params.queryBody.value.parentId = o.id;
         doPost(req, res, next, helper);
       })
-      .catch((err) => u.handleError(next, err, helper.modelName));
+      .catch((err) => verbsUtils.handleError(next, err, helper.modelName));
     }
   },
 
@@ -511,24 +512,24 @@ module.exports = {
   deleteSubjectTags(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
-    u.findByKey(helper, params)
-    .then((o) => u.isWritable(req, o))
+    verbsUtils.findByKey(helper, params)
+    .then((o) => verbsUtils.isWritable(req, o))
     .then((o) => {
       let updatedTagArray = [];
       if (params.tagName) {
         updatedTagArray =
-          u.deleteArrayElement(o.tags, params.tagName.value);
+          verbsUtils.deleteArrayElement(o.tags, params.tagName.value);
       }
 
       return o.update({ tags: updatedTagArray });
     })
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      const retval = u.responsify(o, helper, req.method);
-      u.logAPI(req, resultObj, retval);
+      const retval = verbsUtils.responsify(o, helper, req.method);
+      verbsUtils.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => verbsUtils.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -545,23 +546,93 @@ module.exports = {
   deleteSubjectRelatedLinks(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
-    u.findByKey(helper, params)
-    .then((o) => u.isWritable(req, o))
+    verbsUtils.findByKey(helper, params)
+    .then((o) => verbsUtils.isWritable(req, o))
     .then((o) => {
       let jsonData = [];
       if (params.relName) {
         jsonData =
-          u.deleteAJsonArrayElement(o.relatedLinks, params.relName.value);
+          verbsUtils.deleteAJsonArrayElement(o.relatedLinks, params.relName.value);
       }
 
       return o.update({ relatedLinks: jsonData });
     })
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      const retval = u.responsify(o, helper, req.method);
-      u.logAPI(req, resultObj, retval);
+      const retval = verbsUtils.responsify(o, helper, req.method);
+      verbsUtils.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => verbsUtils.handleError(next, err, helper.modelName));
+  },
+
+  /**
+   * POST /subjects/delete/bulk
+   *
+   * Executes asynchronous bulk subject deletion.
+   *
+   * Create a job for a worker process to delete the specified subjects.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   * @returns {Promise} - A promise that resolves to the response object,
+   *  indicating that the bulk subject delete request has been received.
+   */
+  deleteSubjects(req, res, next) {
+    const subjectDataWrapper = {};
+    subjectDataWrapper.subjects = req.swagger.params.queryBody.value;
+    subjectDataWrapper.user = req.user;
+    subjectDataWrapper.reqStartTime = Date.now();
+    subjectDataWrapper.readOnlyFields = helper.readOnlyFields
+      .filter((field) => field !== 'name');
+    const jobPromise = jobWrapper.createPromisifiedJob(
+      jobType.BULK_DELETE_SUBJECTS,
+      subjectDataWrapper,
+      req);
+    return jobPromise
+      .then((job) => {
+        const body = { status: 'OK' };
+        const resultObj = { reqStartTime: req.timestamp };
+
+        // gives the jobId back to the client
+        body.jobId = job.id;
+        verbsUtils.logAPI(req, resultObj, body,
+          req.swagger.params.queryBody.value.length);
+        return res.status(httpStatus.OK).json(body);
+      })
+      .catch((err) => {
+        verbsUtils.handleError(next, err, helper.modelName);
+      });
+  },
+
+  /**
+   * GET /subjects/delete/bulk/{key}/status
+   *
+   * Retrieves the status of the bulk subject delete job and
+   * sends it back in the response
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getSubjectBulkDeleteStatus(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
+    const reqParams = req.swagger.params;
+    const jobId = reqParams.key.value;
+    kue.Job.get(jobId, (_err, job) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+      if (_err || !job || job.type !== kueSetup.jobType.BULK_DELETE_SUBJECTS) {
+        const err = new apiErrors.ResourceNotFoundError();
+        return verbsUtils.handleError(next, err, helper.modelName);
+      }
+
+      const ret = {};
+      ret.status = job._state;
+      ret.errors = job.result ? job.result.errors : [];
+      verbsUtils.logAPI(req, resultObj, ret);
+      return res.status(httpStatus.OK).json(ret);
+    });
   },
 }; // exports

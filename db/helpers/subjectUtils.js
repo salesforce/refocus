@@ -170,8 +170,10 @@ function removeRelatedSamples(subject, seq) {
  * @returns {Promise}
  */
 function removeFromRedis(subject, seq) {
-  return Promise.join(redisOps.deleteKey(subjectType, subject.absolutePath),
-    removeRelatedSamples(subject, seq));
+  return Promise.join(
+    redisOps.deleteKey(subjectType, subject.absolutePath),
+    removeRelatedSamples(subject, seq)
+  );
 } // removeFromRedis
 
 module.exports = {

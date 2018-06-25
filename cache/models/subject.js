@@ -11,7 +11,8 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const helper = require('../../api/v1/helpers/nouns/subjects');
+const subjectHelper = require('../../api/v1/helpers/nouns/subjects');
+const subjectUtils = require('../../db/helpers/subjectUtils');
 const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const utils = require('../../api/v1/helpers/verbs/utils');
 const sampleStore = require('../sampleStore');
@@ -20,6 +21,7 @@ const redisClient = require('../redisCache').client.sampleStore;
 const u = require('../../utils/filters');
 const modelUtils = require('./utils');
 const redisErrors = require('../redisErrors');
+const commonUtils = require('../../utils/common');
 const ONE = 1;
 const TWO = 2;
 
@@ -112,7 +114,6 @@ function attachSamples(res) {
       const sample = saArray[i];
       const asp = saArray[i + ONE];
       if (sample && asp) {
-
         // parse the array fields to JSON before adding them to the sample list
         sampleStore.arrayObjsStringsToJson(sample,
                                     constants.fieldsToStringify.sample);
@@ -238,12 +239,35 @@ function prepareFields(subject, opts, req) {
   }
 
   // add api links
-  subject.apiLinks = utils.getApiLinks(subject.name, helper, req.method);
+  subject.apiLinks = utils.getApiLinks(subject.name, subjectHelper, req.method);
+}
+
+/**
+ * Delete subject by key, meaning that key is either subject.id or
+ * subject.absolutePath.
+ *
+ * If the user has permission, remove subject from Postgres then from Redis.
+ *
+ * @param {String} key - subject id or absolute path
+ * @param {Object} user
+ * @returns {Promise} - Indicates success or failure
+ */
+function deleteByKey(key, user) {
+  const params = {};
+  let deletedSubject;
+  params.key = { value: key };
+  return utils.findByKey(subjectHelper, params)
+    .then((subject) => utils.isWritable({ user }, subject))
+    .then((subject) => {
+      deletedSubject = subject;
+      return subject.destroy();
+    })
+    .then(() => Promise.resolve({ isFailed: false }))
+    .catch((err) => Promise.resolve({ isFailed: true, explanation: err }));
 }
 
 module.exports = {
   completeSubjectHierarchy,
-
   subjectInSampleStore,
 
   /**
@@ -254,7 +278,7 @@ module.exports = {
    * @returns {Promise} - Resolves to a subject objects
    */
   getSubject(req, res, logObject) {
-    const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
+    const opts = modelUtils.getOptionsFromReq(req.swagger.params, subjectHelper);
     const key = sampleStore.toKey(constants.objectType.subject, opts.filter.key);
     return redisClient.hgetallAsync(key)
     .then((subject) => {
@@ -289,7 +313,7 @@ module.exports = {
    * @returns {Promise} - Resolves to a list of all subjects objects
    */
   findSubjects(req, res, logObject) {
-    const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
+    const opts = modelUtils.getOptionsFromReq(req.swagger.params, subjectHelper);
     const response = [];
 
     res.links({

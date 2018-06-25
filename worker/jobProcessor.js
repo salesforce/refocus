@@ -31,8 +31,7 @@ const jobCleanupJob = require('./jobs/jobCleanupJob');
 const sampleTimeoutJob = require('./jobs/sampleTimeoutJob');
 const persistSampleStoreJob = require('./jobs/persistSampleStoreJob');
 const createAuditEventJob = require('./jobs/createAuditEventsJob');
-const workerStarted = 'Worker Process Started';
-logger.info(workerStarted);
+const bulkDeleteSubjectsJob = require('./jobs/bulkDeleteSubjectsJob');
 
 jobQueue.process(jobType.BULKUPSERTSAMPLES, jobConcurrency.BULKUPSERTSAMPLES,
   bulkUpsertSamplesJob);
@@ -46,3 +45,7 @@ jobQueue.process(jobType.PERSIST_SAMPLE_STORE,
   jobConcurrency.PERSIST_SAMPLE_STORE, persistSampleStoreJob);
 jobQueue.process(jobType.BULK_CREATE_AUDIT_EVENTS,
   jobConcurrency.BULK_CREATE_AUDIT_EVENTS, createAuditEventJob);
+jobQueue.process(jobType.BULK_DELETE_SUBJECTS,
+  jobConcurrency.BULK_DELETE_SUBJECTS, bulkDeleteSubjectsJob);
+
+logger.info('Worker Process Started');
