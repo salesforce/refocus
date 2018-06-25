@@ -11920,6 +11920,7 @@ definitions:
         description: >
           Id of the User who created this generatorTemplate.
 
+
   RoomResponse:
     type: object
     description: A response for information about a room

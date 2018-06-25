@@ -103,7 +103,7 @@ const JOB_REMOVAL_BATCH_SIZE = pe.KUE_JOBS_REMOVAL_BATCH_SIZE ||
 const DEFAULT_JOB_COUNTER_RESET_INTERVAL_MINUTES = 24 * 60;
 const JOB_COUNTER_RESET_INTERVAL = 60 * 1000 *
   (pe.KUE_JOB_COUNTER_RESET_INTERVAL_MINUTES ||
-    DEFAULT_JOB_COUNTER_RESET_INTERVAL_MINUTES);
+  DEFAULT_JOB_COUNTER_RESET_INTERVAL_MINUTES);
 
 /*
  * If you're using worker dynos, you can set env vars PRIORITIZE_JOBS_FROM
@@ -188,7 +188,7 @@ module.exports = {
       ipWhitelist: iplist.push('::ffff:127.0.0.1'),
       dialect: 'postgres',
       tokenSecret:
-        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     development: {
       dbLogging: false, // console.log | false | ...
@@ -202,7 +202,7 @@ module.exports = {
         ssl: true,
       },
       tokenSecret:
-        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     production: {
       dbLogging: false, // console.log | false | ...
@@ -214,7 +214,7 @@ module.exports = {
         ssl: true,
       },
       tokenSecret: pe.SECRET_TOKEN ||
-      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     testWhitelistLocalhost: {
       dbLogging: false, // console.log | false | ...
@@ -223,7 +223,7 @@ module.exports = {
       host: '127.0.0.1',
       ipWhitelist: iplist,
       tokenSecret:
-        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
     testBlockAllhosts: {
       dbLogging: false, // console.log | false | ...
@@ -232,25 +232,25 @@ module.exports = {
       host: '127.0.0.1',
       ipWhitelist: [''],
       tokenSecret:
-        '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
     },
   },
 
   bulkUpsertSampleJobConcurrency: pe.BULK_UPSERT_JOB_CONCURRENCY ||
-  DEFAULT_BULK_UPSERT_JOB_CONCURRENCY,
+    DEFAULT_BULK_UPSERT_JOB_CONCURRENCY,
   getHierarchyJobConcurrency: pe.GET_HIERARCHY_JOB_CONCURRENCY ||
   DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY,
   getBulkCreateAuditEventJobConcurrency:
-  pe.BULK_CREATE_AUDIT_EVENT_JOB_CONCURRENCY ||
-  DEFAULT_BULK_CREATE_AUDIT_EVENT_JOB_CONCURRENCY,
+    pe.BULK_CREATE_AUDIT_EVENT_JOB_CONCURRENCY ||
+      DEFAULT_BULK_CREATE_AUDIT_EVENT_JOB_CONCURRENCY,
   getBulkDeleteSubjectsJobConcurrency:
-  pe.BULK_DELETE_SUBJECTS_JOB_CONCURRENCY ||
-  DEFAULT_BULK_DELETE_SUBJECTS_JOB_CONCURRENCY,
+    pe.BULK_DELETE_SUBJECTS_JOB_CONCURRENCY ||
+      DEFAULT_BULK_DELETE_SUBJECTS_JOB_CONCURRENCY,
   checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
-  DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
+    DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
   getSamplesWildcardCacheInvalidation:
-  pe.GET_SAMPLES_WILDCARD_CACHE_INVALIDATION ||
-  DEFAULT_GET_SAMPLES_WILDCARD_CACHE_INVALIDATION,
+    pe.GET_SAMPLES_WILDCARD_CACHE_INVALIDATION ||
+    DEFAULT_GET_SAMPLES_WILDCARD_CACHE_INVALIDATION,
   CACHE_EXPIRY_IN_SECS,
   JOB_QUEUE_TTL_SECONDS_ASYNC,
   JOB_QUEUE_TTL_SECONDS_SYNC,
@@ -272,11 +272,11 @@ module.exports = {
   nodeEnv,
   payloadLimit,
   persistRedisSampleStoreMilliseconds:
-  pe.PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS ||
-  DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS,
+    pe.PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS ||
+    DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS,
   port,
   prioritizeJobsFrom,
-  pubStatsLogsIntervalMillis: + pe.PUB_STATS_LOGS_INTERVAL_MILLIS || 60000,
+  pubStatsLogsIntervalMillis: +pe.PUB_STATS_LOGS_INTERVAL_MILLIS || 60000,
   queueStatsActivityLogsInterval,
   queueTime95thMillis: pe.QUEUESTATS_95TH_WARNING_MILLIS,
   readReplicas,

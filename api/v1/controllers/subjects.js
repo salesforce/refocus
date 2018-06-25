@@ -24,7 +24,7 @@ const doGetHierarchy = require('../helpers/verbs/doGetHierarchy');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
-const verbsUtils = require('../helpers/verbs/utils');
+const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const redisSubjectModel = require('../../../cache/models/subject');
@@ -62,25 +62,25 @@ function validateParentFields(req, res, next, callback) {
     helper.model.findOne(
       { where: { absolutePath: { [Op.iLike]: parentAbsolutePath } } }
     )
-      .then((parent) => {
-        if (parent && parent.id !== parentId) {
-          // parentAbsolutePath does not match parentId
-          throw new apiErrors.ParentSubjectNotMatch({
-            message: parent.id + ' does not match ' + parentId,
-          });
-        } else if (!parent) {
-          // no parent found
-          throw new apiErrors.ParentSubjectNotFound({
-            message: parentAbsolutePath + ' not found.',
-          });
-        }
+    .then((parent) => {
+      if (parent && parent.id !== parentId) {
+        // parentAbsolutePath does not match parentId
+        throw new apiErrors.ParentSubjectNotMatch({
+          message: parent.id + ' does not match ' + parentId,
+        });
+      } else if (!parent) {
+        // no parent found
+        throw new apiErrors.ParentSubjectNotFound({
+          message: parentAbsolutePath + ' not found.',
+        });
+      }
 
-        // if parents match
-        callback();
-      })
-      .catch((err) => {
-        verbsUtils.handleError(next, err, helper.modelName);
-      });
+      // if parents match
+      callback();
+    })
+    .catch((err) => {
+      u.handleError(next, err, helper.modelName);
+    });
   } else {
     callback();
   }
@@ -160,14 +160,14 @@ module.exports = {
   deleteSubjectHierarchy(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
-    verbsUtils.findByKey(helper, params, ['hierarchy'])
-      .then((o) => o.deleteHierarchy())
-      .then(() => {
-        resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        verbsUtils.logAPI(req, resultObj, {});
-        return res.status(httpStatus.OK).json({});
-      })
-      .catch((err) => verbsUtils.handleError(next, err, helper.modelName));
+    u.findByKey(helper, params, ['hierarchy'])
+    .then((o) => o.deleteHierarchy())
+    .then(() => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      u.logAPI(req, resultObj, {});
+      return res.status(httpStatus.OK).json({});
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -195,7 +195,7 @@ module.exports = {
   deleteSubjectWriter(req, res, next) {
     const userNameOrId = req.swagger.params.userNameOrId.value;
     doDeleteOneAssoc(req, res, next, helper,
-      helper.belongsToManyAssoc.users, userNameOrId);
+        helper.belongsToManyAssoc.users, userNameOrId);
   },
 
   /**
@@ -212,11 +212,11 @@ module.exports = {
     if (featureToggles.isFeatureEnabled('getSubjectFromCache')) {
       const resultObj = { reqStartTime: req.timestamp }; // for logging
       redisSubjectModel.findSubjects(req, res, resultObj)
-        .then((response) => {
-          verbsUtils.logAPI(req, resultObj, response);
-          res.status(httpStatus.OK).json(response);
-        })
-        .catch((err) => verbsUtils.handleError(next, err, helper.modelName));
+      .then((response) => {
+        u.logAPI(req, resultObj, response);
+        res.status(httpStatus.OK).json(response);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
     } else {
       doFind(req, res, next, helper);
     }
@@ -240,11 +240,11 @@ module.exports = {
     ) {
       const resultObj = { reqStartTime: req.timestamp }; // for logging
       redisSubjectModel.getSubject(req, res, resultObj)
-        .then((response) => {
-          verbsUtils.logAPI(req, resultObj, response); // audit log
-          res.status(httpStatus.OK).json(response);
-        })
-        .catch((err) => verbsUtils.handleError(next, err, helper.modelName));
+      .then((response) => {
+        u.logAPI(req, resultObj, response); // audit log
+        res.status(httpStatus.OK).json(response);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
     } else {
       doGet(req, res, next, helper);
     }
@@ -274,63 +274,64 @@ module.exports = {
 
     const resultObj = {
       reqStartTime: Date.now(),
-      params,
+      params: params,
     };
 
     if (featureToggles.isFeatureEnabled('enableWorkerProcess')
-      && featureToggles.isFeatureEnabled('enqueueHierarchy')) {
+    && featureToggles.isFeatureEnabled('enqueueHierarchy')) {
       jobWrapper.createJob(jobType.GET_HIERARCHY, resultObj, req)
-        .ttl(WORKER_TTL)
-        .on('complete', (resultObj) => {
-          verbsUtils.logAPI(req, resultObj, resultObj.retval);
-          res.status(httpStatus.OK).json(resultObj.retval);
-        })
-        .on('failed', (errString) => {
-          let parsedErr;
-          try {
-            parsedErr = JSON.parse(errString);
-          } catch (e) {
-            parsedErr = null;
+      .ttl(WORKER_TTL)
+      .on('complete', (resultObj) => {
+        u.logAPI(req, resultObj, resultObj.retval);
+        res.status(httpStatus.OK).json(resultObj.retval);
+      })
+      .on('failed', (errString) => {
+        let parsedErr;
+        try {
+          parsedErr = JSON.parse(errString);
+        } catch (e) {
+          parsedErr = null;
+        }
+
+        let newErr;
+        if (parsedErr) { //errString contains a serialized error object.
+
+          //create a new error object of the correct type
+          if (apiErrors[parsedErr.name]) {
+            newErr = new apiErrors[parsedErr.name]();
+          } else if (global[parsedErr.name]) {
+            newErr = new global[parsedErr.name]();
+          } else {
+            newErr = new Error();
           }
 
-          let newErr;
-          if (parsedErr) {
-            // errString contains a serialized error object.
-            // create a new error object of the correct type
-            if (apiErrors[parsedErr.name]) {
-              newErr = new apiErrors[parsedErr.name]();
-            } else if (global[parsedErr.name]) {
-              newErr = new global[parsedErr.name]();
-            } else {
-              newErr = new Error();
+          //copy props to new error
+          Object.keys(parsedErr).forEach((prop) => {
+            if (!newErr.hasOwnProperty(prop)
+            || Object.getOwnPropertyDescriptor(newErr, prop).writable) {
+              newErr[prop] = parsedErr[prop];
             }
+          });
 
-            // copy props to new error
-            Object.keys(parsedErr).forEach((prop) => {
-              if (!newErr.hasOwnProperty(prop)
-                || Object.getOwnPropertyDescriptor(newErr, prop).writable) {
-                newErr[prop] = parsedErr[prop];
-              }
-            });
-          } else { // errString contains an error message.
-            if (errString === 'TTL exceeded') {
-              newErr = new apiErrors.WorkerTimeoutError();
-            } else {
-              newErr = new Error(errString);
-            }
+        } else { //errString contains an error message.
+          if (errString === 'TTL exceeded') {
+            newErr = new apiErrors.WorkerTimeoutError();
+          } else {
+            newErr = new Error(errString);
           }
+        }
 
-          verbsUtils.handleError(next, newErr, helper.modelName);
-        });
+        u.handleError(next, newErr, helper.modelName);
+      });
     } else {
       doGetHierarchy(resultObj)
-        .then((resultObj) => {
-          verbsUtils.logAPI(req, resultObj, resultObj.retval);
-          res.status(httpStatus.OK).json(resultObj.retval);
-        })
-        .catch((err) => {
-          verbsUtils.handleError(next, err, helper.modelName);
-        });
+      .then((resultObj) => {
+        u.logAPI(req, resultObj, resultObj.retval);
+        res.status(httpStatus.OK).json(resultObj.retval);
+      })
+      .catch((err) => {
+        u.handleError(next, err, helper.modelName);
+      });
     }
   }, // getSubjectHierarchy
 
@@ -419,21 +420,21 @@ module.exports = {
      * do normal post.
      */
     if (featureToggles.isFeatureEnabled('getSubjectFromCache') &&
-      !verbsUtils.looksLikeId(parentId)) {
+      !u.looksLikeId(parentId)) {
       const absolutePath = parentAbsolutePath ?
         (parentAbsolutePath + '.' + name) : name;
       redisSubjectModel.subjectInSampleStore(absolutePath)
-        .then((found) => {
-          if (found) {
-            throw new apiErrors.DuplicateResourceError(
-              'The subject lower case absolutePath must be unique');
-          }
+      .then((found) => {
+        if (found) {
+          throw new apiErrors.DuplicateResourceError(
+            'The subject lower case absolutePath must be unique');
+        }
 
-          doPost(req, res, next, helper);
-        })
-        .catch((err) => {
-          verbsUtils.handleError(next, err, helper.modelName);
-        });
+        doPost(req, res, next, helper);
+      })
+      .catch((err) => {
+        u.handleError(next, err, helper.modelName);
+      });
     } else {
       doPost(req, res, next, helper);
     }
@@ -460,16 +461,16 @@ module.exports = {
     }
 
     const key = req.swagger.params.key.value;
-    if (verbsUtils.looksLikeId(key)) {
+    if (u.looksLikeId(key)) {
       req.swagger.params.queryBody.value.parentId = key;
       doPost(req, res, next, helper);
     } else {
-      verbsUtils.findByKey(helper, req.swagger.params)
-        .then((o) => {
-          req.swagger.params.queryBody.value.parentId = o.id;
-          doPost(req, res, next, helper);
-        })
-        .catch((err) => verbsUtils.handleError(next, err, helper.modelName));
+      u.findByKey(helper, req.swagger.params)
+      .then((o) => {
+        req.swagger.params.queryBody.value.parentId = o.id;
+        doPost(req, res, next, helper);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
     }
   },
 
@@ -512,24 +513,24 @@ module.exports = {
   deleteSubjectTags(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
-    verbsUtils.findByKey(helper, params)
-      .then((o) => verbsUtils.isWritable(req, o))
-      .then((o) => {
-        let updatedTagArray = [];
-        if (params.tagName) {
-          updatedTagArray =
-            verbsUtils.deleteArrayElement(o.tags, params.tagName.value);
-        }
+    u.findByKey(helper, params)
+    .then((o) => u.isWritable(req, o))
+    .then((o) => {
+      let updatedTagArray = [];
+      if (params.tagName) {
+        updatedTagArray =
+          u.deleteArrayElement(o.tags, params.tagName.value);
+      }
 
-        return o.update({ tags: updatedTagArray });
-      })
-      .then((o) => {
-        resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        const retval = verbsUtils.responsify(o, helper, req.method);
-        verbsUtils.logAPI(req, resultObj, retval);
-        res.status(httpStatus.OK).json(retval);
-      })
-      .catch((err) => verbsUtils.handleError(next, err, helper.modelName));
+      return o.update({ tags: updatedTagArray });
+    })
+    .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
+      res.status(httpStatus.OK).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -546,24 +547,24 @@ module.exports = {
   deleteSubjectRelatedLinks(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
-    verbsUtils.findByKey(helper, params)
-      .then((o) => verbsUtils.isWritable(req, o))
-      .then((o) => {
-        let jsonData = [];
-        if (params.relName) {
-          jsonData =
-            verbsUtils.deleteAJsonArrayElement(o.relatedLinks, params.relName.value);
-        }
+    u.findByKey(helper, params)
+    .then((o) => u.isWritable(req, o))
+    .then((o) => {
+      let jsonData = [];
+      if (params.relName) {
+        jsonData =
+          u.deleteAJsonArrayElement(o.relatedLinks, params.relName.value);
+      }
 
-        return o.update({ relatedLinks: jsonData });
-      })
-      .then((o) => {
-        resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        const retval = verbsUtils.responsify(o, helper, req.method);
-        verbsUtils.logAPI(req, resultObj, retval);
-        res.status(httpStatus.OK).json(retval);
-      })
-      .catch((err) => verbsUtils.handleError(next, err, helper.modelName));
+      return o.update({ relatedLinks: jsonData });
+    })
+    .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      const retval = u.responsify(o, helper, req.method);
+      u.logAPI(req, resultObj, retval);
+      res.status(httpStatus.OK).json(retval);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
@@ -597,12 +598,12 @@ module.exports = {
 
         // gives the jobId back to the client
         body.jobId = job.id;
-        verbsUtils.logAPI(req, resultObj, body,
+        u.logAPI(req, resultObj, body,
           req.swagger.params.queryBody.value.length);
         return res.status(httpStatus.OK).json(body);
       })
       .catch((err) => {
-        verbsUtils.handleError(next, err, helper.modelName);
+        u.handleError(next, err, helper.modelName);
       });
   },
 
@@ -625,13 +626,13 @@ module.exports = {
 
       if (_err || !job || job.type !== kueSetup.jobType.BULK_DELETE_SUBJECTS) {
         const err = new apiErrors.ResourceNotFoundError();
-        return verbsUtils.handleError(next, err, helper.modelName);
+        return u.handleError(next, err, helper.modelName);
       }
 
       const ret = {};
       ret.status = job._state;
       ret.errors = job.result ? job.result.errors : [];
-      verbsUtils.logAPI(req, resultObj, ret);
+      u.logAPI(req, resultObj, ret);
       return res.status(httpStatus.OK).json(ret);
     });
   },
