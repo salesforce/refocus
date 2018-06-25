@@ -27,7 +27,7 @@ const jobType = require('../../../../jobQueue/setup').jobType;
 const bulkDeleteSubjectsJob = require(
   '../../../../worker/jobs/bulkDeleteSubjectsJob');
 
-describe('tests/api/v1/subjects/bulkDelete.js', () => {
+describe.skip('tests/api/v1/subjects/bulkDelete.js', () => {
   let token;
   const AUTHORIZATION = 'Authorization';
   const DELETE_PATH = '/v1/subjects/delete/bulk';
