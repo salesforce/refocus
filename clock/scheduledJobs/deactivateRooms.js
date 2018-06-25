@@ -43,15 +43,17 @@ function checkAndDeactivateRoom(room) {
         // If a sync is defined we need to create an action
         if (room.settings && room.settings.sync) {
           room.settings.sync.forEach((bot) => {
-            const syncBotAction = {
-              name: bot.botAction,
-              botId: bot.botId,
-              roomId: room.id,
-              isPending: true,
-              parameters: [],
-            };
+            if (bot.botId && bot.botAction) {
+              const syncBotAction = {
+                name: bot.botAction,
+                botId: bot.botId,
+                roomId: room.id,
+                isPending: true,
+                parameters: [],
+              };
 
-            dbBotAction.create(syncBotAction);
+              dbBotAction.create(syncBotAction);
+            }
           });
         }
 
