@@ -535,9 +535,6 @@ module.exports = {
    * DELETE /v1/subjects/{key}/relatedLinks/
    * DELETE /v1/subjects/{key}/relatedLinks/{name}
    *
-   * Deletes specified/all related links from the subject and sends updated
-   * subject in the response.
-   *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
