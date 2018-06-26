@@ -43,6 +43,7 @@ describe('tests/clock/deactivateRooms.js >', () => {
     RoomType.create(v.getStandard())
     .then((roomType) => {
       const room = u.getStandard();
+      room.createdAt = MOON_LANDING;
       room.type = roomType.id;
       return Room.create(room);
     })
@@ -64,6 +65,7 @@ describe('tests/clock/deactivateRooms.js >', () => {
     RoomType.create(v.getStandard())
     .then((roomType) => {
       const room = u.getStandard();
+      room.createdAt = MOON_LANDING;
       room.type = roomType.id;
       return Room.create(room);
     })

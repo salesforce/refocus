@@ -14,11 +14,13 @@
  */
 const featureToggles = require('feature-toggles');
 const moment = require('moment');
+const Op = require('sequelize').Op;
 
 const dbRoom = require('../../db/index').Room;
 const dbEvent = require('../../db/index').Event;
 const dbBotAction = require('../../db/index').botAction;
 
+const TWO = 2;
 const THRESHOLD_IN_MINUTES = 120; // 2 hours
 
 /**
@@ -69,7 +71,17 @@ function checkAndDeactivateRoom(room) {
  * @returns {Promise} - Promise that rooms were deactivated
  */
 function execute() {
-  return dbRoom.findAll({ where: { active: true } })
+  const date = new Date();
+  date.setHours(date.getHours() - TWO);
+  return dbRoom.findAll(
+    { where:
+      {
+        active: true,
+        createdAt: {
+          [Op.lt]: date,
+        },
+      },
+  })
   .then((dbRes) => {
     const promises = dbRes.map((room) => checkAndDeactivateRoom(room));
     return Promise.all(promises);
