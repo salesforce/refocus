@@ -131,8 +131,8 @@ function handleEvent(eventData, eventTypeName) {
     const newSample = j[eventTypeName].new;
     updateTimeoutValues(newSample.aspect.timeout);
   } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_NC) {
-    console.log('TODO update timeout values?',
-      eventsQueue.eventType.INTRNL_SMPL_NC, j[eventTypeName]);
+    const sample = j[eventTypeName];
+    updateTimeoutValues(sample.aspect.timeout);
   } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_DEL) {
     const sample = j[eventTypeName];
     updateDeletedTimeoutValues(sample.aspect.timeout);

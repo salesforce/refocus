@@ -137,16 +137,21 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
 function publishSampleNoChange(sample) {
   const s = {
     name: sample.name,
-    status: sample.status,
+    status: sample.status, // for socket.io perspective filtering
     absolutePath: sample.absolutePath, // used for persp filtering
     updatedAt: sample.updatedAt,
     subject: {
       absolutePath: sample.absolutePath,
-      tags: sample.subjectTags,
+      tags: sample.subjectTags, // for socket.io perspective filtering
     },
     aspect: {
-      name: sample.aspect.name,
-      tags: sample.aspect.tags,
+      name: sample.aspect.name, // for socket.io perspective filtering
+      tags: sample.aspect.tags, // for socket.io perspective filtering
+      /*
+       * aspect.timeout is needed by perspective to track whether page is still
+       * getting real-time events
+       */
+      timeout: sample.aspect.timeout,
     }
   };
   publishObject(s, sampleEvent.nc, ['updatedAt']);
