@@ -29,10 +29,12 @@ const utils = require('../../api/v1/helpers/verbs/utils');
  */
 function deleteByKey(key, user) {
   const params = {};
+  let deletedSubject;
   params.key = { value: key };
   return utils.findByKey(subjectHelper, params)
     .then((subject) => utils.isWritable({ user }, subject))
     .then((subject) => {
+      deletedSubject = subject;
       return subject.destroy();
     })
     .then(() => Promise.resolve({ isFailed: false }))
