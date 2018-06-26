@@ -14,8 +14,7 @@ import { expect } from 'chai';
 import { getArray,
   getTagsFromResources,
   getConfig,
-  filteredArray,
-  getOptions,
+  arrayFilter,
   getTagsFromArrays,
 } from '../../../view/perspective/utils';
 
@@ -68,24 +67,38 @@ describe('tests/view/perspectives/utils.js, Config perspective functions >',
     expect(resultArr).to.deep.equal([WORD]);
   });
 
-  it('dropdown removes all options, if values === options', () => {
-    // remove empty spaces
-    const arr = getOptions(
-      ARR,
-      ARR,
-    );
-    expect(arr).to.be.empty;
-  });
+  describe('arrayFilter >', () => {
+    it('filters out numbers', () => {
+      const arr1 = [1, 2, 3, 4, 5];
+      const arr2 = [1, 2, 3];
+      const filtered = arrayFilter(arr1, arr2);
+      expect(filtered).to.deep.equal([4, 5]);
+    });
 
-  it('dropdown removes existing option ' +
-    'from available options', () => {
-    // remove empty spaces
-    const arr = filteredArray(
-      POPULAR_SAYING.split(''),
-      ' ',
-    );
-    expect(arr).to.not.contain(' ');
-  });
+    it('dropdown removes all options, if values === options', () => {
+      // remove empty spaces
+      const arr = arrayFilter(
+        ARR,
+        ARR,
+      );
+      expect(arr).to.be.empty;
+    });
+
+    it('dropdown removes existing option ' +
+      'from available options', () => {
+      // remove empty spaces
+      const arr = arrayFilter(
+        POPULAR_SAYING.split(''),
+        ' ',
+      );
+      expect(arr).to.not.contain(' ');
+    });
+
+    it('pass in null value', () => {
+      const arr = arrayFilter(ARR);
+      expect(arr).to.deep.equal(ARR);
+    });
+  })
 
   describe('getConfig >', () => {
     it('config options contain the expected number of options', () => {
@@ -104,17 +117,6 @@ describe('tests/view/perspectives/utils.js, Config perspective functions >',
       const value = [WORD];
       const config = getConfig(values, key, value);
       expect(config.options).to.not.contain(WORD);
-    });
-
-    it('options contain only values not in field', () => {
-      const key = 'statusFilter'; // any string
-      const values = {};
-      values[key] = [1, 2, 3, 4, 5];
-      const value = [1, 2, 3];
-      const config = getConfig(values, key, value);
-      expect(config.options).to.not.contain(1);
-      expect(config.options).to.not.contain(2);
-      expect(config.options).to.not.contain(3);
     });
   });
 
