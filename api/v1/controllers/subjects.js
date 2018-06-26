@@ -35,6 +35,8 @@ const common = require('../../../utils/common');
 const WORKER_TTL = 1000 * jobSetup.ttlForJobsSync;
 const ZERO = 0;
 const Op = require('sequelize').Op;
+const kueSetup = require('../../../jobQueue/setup');
+const kue = kueSetup.kue;
 
 /**
  * If both parentAbsolutePath and parentId are provided,
@@ -563,5 +565,75 @@ module.exports = {
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
+  },
+
+  /**
+   * POST /subjects/delete/bulk
+   *
+   * Executes asynchronous bulk subject deletion.
+   *
+   * Create a job for a worker process to delete the specified subjects.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   * @returns {Promise} - A promise that resolves to the response object,
+   *  indicating that the bulk subject delete request has been received.
+   */
+  deleteSubjects(req, res, next) {
+    const subjectDataWrapper = {};
+    subjectDataWrapper.subjects = req.swagger.params.queryBody.value;
+    subjectDataWrapper.user = req.user;
+    subjectDataWrapper.reqStartTime = Date.now();
+    subjectDataWrapper.readOnlyFields = helper.readOnlyFields
+      .filter((field) => field !== 'name');
+    const jobPromise = jobWrapper.createPromisifiedJob(
+      jobType.BULK_DELETE_SUBJECTS,
+      subjectDataWrapper,
+      req);
+    return jobPromise
+      .then((job) => {
+        const body = { status: 'OK' };
+        const resultObj = { reqStartTime: req.timestamp };
+
+        // gives the jobId back to the client
+        body.jobId = job.id;
+        u.logAPI(req, resultObj, body,
+          req.swagger.params.queryBody.value.length);
+        return res.status(httpStatus.OK).json(body);
+      })
+      .catch((err) => {
+        u.handleError(next, err, helper.modelName);
+      });
+  },
+
+  /**
+   * GET /subjects/delete/bulk/{key}/status
+   *
+   * Retrieves the status of the bulk subject delete job and
+   * sends it back in the response
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getSubjectBulkDeleteStatus(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
+    const reqParams = req.swagger.params;
+    const jobId = reqParams.key.value;
+    kue.Job.get(jobId, (_err, job) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+      if (_err || !job || job.type !== kueSetup.jobType.BULK_DELETE_SUBJECTS) {
+        const err = new apiErrors.ResourceNotFoundError();
+        return u.handleError(next, err, helper.modelName);
+      }
+
+      const ret = {};
+      ret.status = job._state;
+      ret.errors = job.result ? job.result.errors : [];
+      u.logAPI(req, resultObj, ret);
+      return res.status(httpStatus.OK).json(ret);
+    });
   },
 }; // exports
