@@ -25,16 +25,14 @@ const utils = require('../../api/v1/helpers/verbs/utils');
  *
  * @param {String} key - subject id or absolute path
  * @param {Object} user
- * @returns {Promise} - Indicates success or failure
+ * @returns {Promise} - Indicates success or failure.
  */
 function deleteByKey(key, user) {
   const params = {};
-  let deletedSubject;
   params.key = { value: key };
   return utils.findByKey(subjectHelper, params)
     .then((subject) => utils.isWritable({ user }, subject))
     .then((subject) => {
-      deletedSubject = subject;
       return subject.destroy();
     })
     .then(() => Promise.resolve({ isFailed: false }))
@@ -48,8 +46,8 @@ function deleteByKey(key, user) {
  *  a string either subject id or absolutePath.
  * @param {Array} - nouns/subjects/readOnlyFields
  * @param {Object} - user
- * @returns {[Promise]} - Indicates success or failure for each
- *  subject key
+ * @returns [{Promise}] - Array of Promises where each promise resolves
+ *  to indicate the success or failure of deleting one individual subject.
  */
 function bulkDelete(subjectKeys, readOnlyFields, user) {
   if (!subjectKeys || !Array.isArray(subjectKeys) ||

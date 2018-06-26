@@ -30,7 +30,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
   const parentAndChildIdStore = [];
   const fooAndBlahIdStore = [];
 
-  const TIME_OUT = 100;
+  const TIMEOUT = 100;
 
   before((done) => {
     testUtils.createToken()
@@ -102,12 +102,13 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
               .set('Authorization', token)
               .expect(constants.httpStatus.OK)
               .then((res) => {
+                // eslint-disable-next-line no-unused-expressions
                 expect(res.body.errors).to.not.be.empty;
                 expect(res.body.errors[0].name)
                   .to.equal('SubjectDeleteConstraintError');
                 return done();
               });
-          }, TIME_OUT);
+          }, TIMEOUT);
         });
     });
 
@@ -131,7 +132,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
                 expect(res.body.status).to.equal('complete');
                 return done();
               });
-          }, TIME_OUT);
+          }, TIMEOUT);
         })
         .then(() => {
           setTimeout(() => {
@@ -152,7 +153,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
                 expect(res.body.errors[0].type).to
                   .equal('ResourceNotFoundError');
               });
-          }, TIME_OUT);
+          }, TIMEOUT);
         });
     });
   });
