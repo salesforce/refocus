@@ -115,7 +115,9 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   if (featureToggles.isFeatureEnabled('publishSampleNoChange')) {
-    if (sampleInst.noChange) return publishSampleNoChange(sampleInst);
+    if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
+      return publishSampleNoChange(sampleInst);
+    }
   }
 
   const eventType = event || getSampleEventType(sampleInst);

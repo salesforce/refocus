@@ -23,7 +23,7 @@ setInterval(() => {
     console.log(`emitted:${key}:${tracker[key]}`);
     delete tracker[key];
   });
-}, 60000);
+}, 10000);
 
 module.exports = (io, key, obj) => {
   if (tracker.hasOwnProperty(key)) {
@@ -51,6 +51,12 @@ module.exports = (io, key, obj) => {
       if (obj.pubOpts) {
         delete obj.pubOpts;
         newObjectAsString = rtUtils.getNewObjAsString(key, obj);
+      }
+
+      if (tracker.hasOwnProperty('x')) {
+        tracker[obj.name]++
+      } else {
+        tracker[obj.name] = 1;
       }
 
       io.of(nsp).emit(key, newObjectAsString);
