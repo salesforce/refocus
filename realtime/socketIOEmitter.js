@@ -54,7 +54,7 @@ module.exports = (io, key, obj) => {
       }
 
       if (tracker.hasOwnProperty('x')) {
-        tracker[obj.name]++
+        tracker[obj.name]++;
       } else {
         tracker[obj.name] = 1;
       }
