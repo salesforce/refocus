@@ -157,7 +157,9 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
  */
 function isSampleChanged(newSample, oldSample) {
   const delta = Object.keys(newSample)
-    .filter((key) => key !== 'name' && newSample[key] !== oldSample[key]);
+    .filter((key) => key !== 'name')
+    .filter((key) =>
+      !oldSample.hasOwnProperty(key) || newSample[key] !== oldSample[key]);
   return delta.length > 0;
 } // isSampleChanged
 
@@ -531,6 +533,8 @@ module.exports = {
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
     .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
   }, // deleteSampleRelatedLinks
+
+  isSampleChanged, // export for testing only
 
   /**
    * Patch sample. First get sample. If not found, throw error. Get aspect.
