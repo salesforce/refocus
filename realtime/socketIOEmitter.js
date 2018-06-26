@@ -59,6 +59,7 @@ module.exports = (io, key, obj) => {
         tracker[obj.name] = 1;
       }
 
+      console.log('socket emit', nsp, key, newObjectAsString);
       io.of(nsp).emit(key, newObjectAsString);
     }
   }
