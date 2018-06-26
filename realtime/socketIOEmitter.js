@@ -23,7 +23,7 @@ setInterval(() => {
     console.log(`emitted:${key}:${tracker[key]}`);
     delete tracker[key];
   });
-}, 10000);
+}, 60000);
 
 module.exports = (io, key, obj) => {
   if (tracker.hasOwnProperty(key)) {
