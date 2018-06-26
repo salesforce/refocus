@@ -13,6 +13,7 @@
 
 const common = require('./common');
 const dbErrors = require('../dbErrors');
+const Op = require('sequelize').Op;
 
 /**
  * Function to validate the context field of the sample generator based on the
@@ -119,11 +120,9 @@ function validateCollectorNames(collectorNames) {
 
  * @param {Object} seq The sequelize object
  * @param {Array} collectorNames Array of Strings
- * @param {Function} whereClauseForNameInArr Passed in from API
  * @returns {Promise} with an array if check passed, error otherwise
  */
-function checkCollectorsExist(seq,
-  collectorNames, whereClauseForNameInArr) {
+function checkCollectorsExist(seq, collectorNames) {
   if (!collectorNames || !collectorNames.length) {
     return [];
   }
@@ -161,20 +160,29 @@ function checkCollectorsExist(seq,
  *
  * @param {Object} seq the Sequelize object
  * @param {Array} collectorNames Array of strings
- * @param {Function} whereClauseForNameInArr Passed in from API
  * @returns {Promise} with collectors if validation and check pass,
  * rejected promise with the appropriate error otherwise.
  */
-function validateCollectors(seq, collectorNames,
-  whereClauseForNameInArr) {
+function validateCollectors(seq, collectorNames) {
   return new seq.Promise((resolve, reject) =>
     validateCollectorNames(collectorNames)
-    .then(() => checkCollectorsExist(
-      seq, collectorNames, whereClauseForNameInArr))
+    .then(() => checkCollectorsExist(seq, collectorNames))
     .then(resolve)
     .catch(reject)
   );
 }
+
+/**
+ * Returns a where clause object that uses the "IN" operator
+ * @param  {Array} arr - An array that needs to be assigned to the "IN" operator
+ * @returns {Object} - An where clause object
+ */
+function whereClauseForNameInArr(arr) {
+  const whr = {};
+  whr.name = {};
+  whr.name[Op.in] = arr;
+  return whr;
+} // whereClauseForNameInArr
 
 module.exports = {
   validateCollectorNames,

@@ -118,6 +118,10 @@ const longTermToggles = {
    */
   enableWorkerProcess: environmentVariableTrue(pe, 'ENABLE_WORKER_PROCESS'),
 
+  // Reject local user registration
+  rejectLocalUserRegistration:
+    environmentVariableTrue(pe, 'REJECT_LOCAL_USER_REGISTRATION'),
+
   // Reject (401) requests with multiple X-Forwarded-For values
   rejectMultipleXForwardedFor:
     environmentVariableTrue(pe, 'REJECT_MULTIPLE_X_FORWARDED_FOR'),
