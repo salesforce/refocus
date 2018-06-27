@@ -156,7 +156,7 @@ function publishSampleNoChange(sample) {
       timeout: sample.aspect.timeout,
     }
   };
-  publishObject(s, sampleEvent.add, ['updatedAt']);
+  publishObject(s, sampleEvent.nc, ['updatedAt']);
   return sample;
 } // publishSampleNoChange
 
