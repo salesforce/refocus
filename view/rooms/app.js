@@ -143,30 +143,8 @@ function resetColumns() {
     blankBot.parentElement.removeChild(blankBot);
   }
 
-  const leftColumn = document.getElementById('botsLeftColumn');
-  const middleColumn = document.getElementById('botsMiddleColumn');
-  const rightColumn = document.getElementById('botsRightColumn');
-
-  const botsLayout = {
-    leftColumn: [],
-    middleColumn: [],
-    rightColumn: [],
-  };
-
-  Array.from(leftColumn.children).forEach((c) => {
-    botsLayout.leftColumn.push(c.id.replace('section', ''));
-  })
-
-  Array.from(middleColumn.children).forEach((c) => {
-    botsLayout.middleColumn.push(c.id.replace('section', ''));
-  })
-
-  Array.from(rightColumn.children).forEach((c) => {
-    botsLayout.rightColumn.push(c.id.replace('section', ''));
-  })
-
-  Cookies.set(`${window.location.pathname}-bots-layout`, botsLayout);
-  console.log(botsLayout);
+  // CALL GOES HERE
+  uPage.saveLayoutAsCookie();
 
 
   // Resetting variable as no bots are being moved
@@ -202,7 +180,6 @@ function drop(event, col) {
  * @returns {String} - L, M or R
  */
 function decideBotPosition(botName, botIndex) {
-  console.log(_botsLayout);
   // A bot layout was defined in room/roomType settings
   if (_botsLayout) {
     if (_botsLayout.leftColumn && _botsLayout.leftColumn.includes(botName)) {
@@ -969,10 +946,8 @@ window.onload = () => {
     document.title = subTitle;
     const layoutCookie =
       Cookies.get(`${window.location.pathname}-bots-layout`);
-    console.log(layoutCookie);
     if (layoutCookie) {
-      console.log(layoutCookie);
-      _botsLayout = JSON.parse(layoutCookie)
+      _botsLayout = JSON.parse(layoutCookie);
     } else if (room.settings && room.settings.botsLayout) {
       _botsLayout = room.settings.botsLayout;
     }

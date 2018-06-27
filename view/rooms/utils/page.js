@@ -75,4 +75,32 @@ module.exports = {
       console.log('Cannot inject dynamic contents into iframe.');
     }
   },
+
+  saveLayoutAsCookie() {
+    const leftColumn = document.getElementById('botsLeftColumn');
+    const middleColumn = document.getElementById('botsMiddleColumn');
+    const rightColumn = document.getElementById('botsRightColumn');
+
+    const botsLayout = {
+      leftColumn: [],
+      middleColumn: [],
+      rightColumn: [],
+    };
+
+    if (leftColumn && middleColumn && rightColumn) {
+      Array.from(leftColumn.children).forEach((c) => {
+        botsLayout.leftColumn.unshift(c.id.replace('-section', ''));
+      })
+
+      Array.from(middleColumn.children).forEach((c) => {
+        botsLayout.middleColumn.unshift(c.id.replace('-section', ''));
+      })
+
+      Array.from(rightColumn.children).forEach((c) => {
+        botsLayout.rightColumn.unshift(c.id.replace('-section', ''));
+      })
+
+      Cookies.set(`${window.location.pathname}-bots-layout`, botsLayout);
+    }
+  }
 };
