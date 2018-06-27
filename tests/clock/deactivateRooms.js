@@ -50,9 +50,9 @@ describe('tests/clock/deactivateRooms.js >', () => {
     .then((room) => {
       deactivateRooms.execute()
       .then((deactivatedRooms) => {
-        Room.findAll({ where: { active: true } })
+        Room.findOne({ where: { id: room.id } })
         .then((r) => {
-          expect(r.length).to.equal(ONE);
+          expect(r.active).to.equal(true);
           done();
         });
       });
@@ -72,15 +72,20 @@ describe('tests/clock/deactivateRooms.js >', () => {
     .then((room) => {
       testEvent.roomId = room.id;
       testEvent.createdAt = MOON_LANDING;
-      return Event.create(testEvent);
+      return (Event.create(testEvent));
     })
     .then((event) => {
       deactivateRooms.execute()
       .then((deactivatedRooms) => {
-        Room.findAll({ where: { active: true } })
+        Room.findOne({ where: { id: event.roomId } })
         .then((r) => {
+        /**
+         * Need to use event.destroy(); here because forceDelete relies
+         * on the createdAt to be within timeframe of tests running.
+         * I altered the createdAt of the event to test this properly.
+         */
           event.destroy();
-          expect(r.length).to.equal(ZERO);
+          expect(r.active).to.equal(false);
           done();
         });
       });
@@ -103,9 +108,9 @@ describe('tests/clock/deactivateRooms.js >', () => {
     .then((event) => {
       deactivateRooms.execute()
       .then((deactivatedRooms) => {
-        Room.findAll({ where: { active: true } })
+        Room.findOne({ where: { id: event.roomId } })
         .then((r) => {
-          expect(r.length).to.equal(ONE);
+          expect(r.active).to.equal(true);
           done();
         });
       });
