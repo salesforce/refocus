@@ -46,7 +46,7 @@ describe('tests/view/components/createPerspective.js, Perspective view >',
    * @returns {Object} The rendered component
    */
   function setup(valuesAddons, otherPropsObj) {
-    const PERSPECITVE_OBJECT = {
+    const PERSPECTIVE_OBJECT = {
       name: PERS_NAME,
       lens: LENS,
       rootSubject: DUMMY_STRING,
@@ -68,7 +68,7 @@ describe('tests/view/components/createPerspective.js, Perspective view >',
       sendResource: spy,
       // options or all possible values
       values: {
-        perspectives: [PERSPECITVE_OBJECT],
+        perspectives: [PERSPECTIVE_OBJECT],
         subjects: [], // { name: absolutePath, id }
         aspectTagFilter: [], // { name, id }
         aspectFilter: [], // strings
@@ -79,7 +79,7 @@ describe('tests/view/components/createPerspective.js, Perspective view >',
         rootSubject: {},
         lens: {}, // includes library
         // actual values
-        perspective: PERSPECITVE_OBJECT,
+        perspective: PERSPECTIVE_OBJECT,
       },
     };
     // update defaultProps as needed
