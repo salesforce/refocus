@@ -53,7 +53,7 @@ module.exports = (io, key, obj) => {
         newObjectAsString = rtUtils.getNewObjAsString(key, obj);
       }
 
-      if (tracker.hasOwnProperty('x')) {
+      if (tracker.hasOwnProperty(obj.name)) {
         tracker[obj.name]++;
       } else {
         tracker[obj.name] = 1;
