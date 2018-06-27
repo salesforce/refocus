@@ -137,7 +137,7 @@ module.exports = {
 
       // ioredis use
       if (featureToggles.isFeatureEnabled('enableIORedis'))
-        return ioredisClient.pipeline(commands).exec();
+        return ioredisClient.multi(commands).exec();
 
       return redisClient.batch(commands).execAsync();
     })
@@ -177,7 +177,7 @@ module.exports = {
 
       // ioredis use
       if (featureToggles.isFeatureEnabled('enableIORedis'))
-        return ioredisClient.pipeline(sampCmds).exec();
+        return ioredisClient.multi(sampCmds).exec();
 
       return redisClient.batch(sampCmds).execAsync();
     })
