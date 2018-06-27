@@ -102,5 +102,5 @@ module.exports = {
 
       Cookies.set(`${window.location.pathname}-bots-layout`, botsLayout);
     }
-  }
+  },
 };

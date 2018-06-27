@@ -21,7 +21,6 @@ const ONE = 1;
 const TWO = 2;
 const THREE = 3;
 const MIN_BOT_HEIGHT = 100;
-
 const botsContainer = document.getElementById('botsContainer');
 const botsLeft = document.getElementById('botsLeftColumn');
 const botsMiddle = document.getElementById('botsMiddleColumn');
@@ -35,7 +34,6 @@ const confirmationModal =
   document.getElementById('active_confirmation_modal');
 const confirmationText =
   document.getElementById('active_confirmation_text');
-
 const u = require('../utils');
 const uPage = require('./utils/page');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
@@ -143,12 +141,9 @@ function resetColumns() {
     blankBot.parentElement.removeChild(blankBot);
   }
 
-  // CALL GOES HERE
-  uPage.saveLayoutAsCookie();
-
-
   // Resetting variable as no bots are being moved
   _movingContent = null;
+  uPage.saveLayoutAsCookie();
 }
 
 /**
@@ -946,7 +941,6 @@ window.onload = () => {
     document.title = subTitle;
     const layoutCookie =
       Cookies.get(`${window.location.pathname}-bots-layout`);
-    console.log(res.body.bots.length)
     if (layoutCookie) {
       _botsLayout = JSON.parse(layoutCookie);
     } else if (room.settings && room.settings.botsLayout) {
