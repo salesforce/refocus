@@ -18,10 +18,8 @@ const Op = require('sequelize').Op;
 
 const dbRoom = require('../../db/index').Room;
 const dbEvent = require('../../db/index').Event;
-const dbBotAction = require('../../db/index').botAction;
-
-const TWO = 2;
-const THRESHOLD_IN_MINUTES = 120; // 2 hours
+const dbBotAction = require('../../db/index').BotAction;
+const conf = require('../../config');
 
 /**
  * Deactivates a room if there has not been any recent activity in the room.
@@ -41,7 +39,7 @@ function checkAndDeactivateRoom(room) {
       // Time in minutes since any activity in this room
       const minsSinceLastEvent =
         moment().diff(moment(evt.createdAt), 'minutes');
-      if (minsSinceLastEvent > THRESHOLD_IN_MINUTES) {
+      if (minsSinceLastEvent > conf.minRoomDeactivationAge) {
         // If a sync is defined we need to create an action
         if (room.settings && room.settings.sync) {
           room.settings.sync.forEach((bot) => {
@@ -59,7 +57,22 @@ function checkAndDeactivateRoom(room) {
           });
         }
 
-        return room.update({ active: false });
+        return room.update({ active: false })
+        .then(() => {
+          const message = 'Room automatically deactivated due to ' +
+            `${conf.minRoomDeactivationAge} minutes of inactivity.`;
+          const eventType = {
+            type: 'RoomState',
+            active: false,
+          };
+          const deactivateEvent = {
+            log: message,
+            context: eventType,
+            roomId: room.id,
+          };
+
+          return dbEvent.create(deactivateEvent);
+        });
       }
     }
   });
@@ -72,7 +85,7 @@ function checkAndDeactivateRoom(room) {
  */
 function execute() {
   const date = new Date();
-  date.setHours(date.getHours() - TWO);
+  date.setHours(date.getMinutes() - conf.minRoomDeactivationAge);
   return dbRoom.findAll(
     { where:
       {
