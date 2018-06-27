@@ -12,6 +12,10 @@
  * When page is loaded we take all the bots queried and processed
  * to have their UI appended to the page.
  */
+
+const AdmZip = require('adm-zip');
+const Cookies = require('js-cookie');
+
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -30,7 +34,6 @@ const confirmationModal =
   document.getElementById('active_confirmation_modal');
 const confirmationText =
   document.getElementById('active_confirmation_text');
-const AdmZip = require('adm-zip');
 const u = require('../utils');
 const uPage = require('./utils/page');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
@@ -140,6 +143,7 @@ function resetColumns() {
 
   // Resetting variable as no bots are being moved
   _movingContent = null;
+  uPage.saveLayoutAsCookie();
 }
 
 /**
@@ -935,8 +939,15 @@ window.onload = () => {
     const subTitle = `${_roomName} - ${res.body.name}`;
     uPage.setSubtitle(subTitle);
     document.title = subTitle;
-
-    if (room.settings && room.settings.botsLayout) {
+    let layoutCookie =
+      Cookies.get(`${window.location.pathname}-bots-layout`);
+    if (layoutCookie) {
+      layoutCookie = JSON.parse(layoutCookie);
+      if (layoutCookie.leftColumn.length + layoutCookie.middleColumn.length +
+        layoutCookie.rightColumn.length === room.bots.length) {
+        _botsLayout = layoutCookie;
+      }
+    } else if (room.settings && room.settings.botsLayout) {
       _botsLayout = room.settings.botsLayout;
     }
 

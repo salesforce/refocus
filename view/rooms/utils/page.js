@@ -9,7 +9,7 @@
 /**
  * rooms/utils/page.js
  */
-
+const Cookies = require('js-cookie');
 const u = require('./../../utils');
 
 // ids from view/rooms/index.pug
@@ -73,6 +73,34 @@ module.exports = {
       iframedoc.close();
     } else if (DEBUG_REALTIME) {
       console.log('Cannot inject dynamic contents into iframe.');
+    }
+  },
+
+  saveLayoutAsCookie() {
+    const leftColumn = document.getElementById('botsLeftColumn');
+    const middleColumn = document.getElementById('botsMiddleColumn');
+    const rightColumn = document.getElementById('botsRightColumn');
+
+    const botsLayout = {
+      leftColumn: [],
+      middleColumn: [],
+      rightColumn: [],
+    };
+
+    if (leftColumn && middleColumn && rightColumn) {
+      Array.from(leftColumn.children).forEach((c) => {
+        botsLayout.leftColumn.push(c.id.replace('-section', ''));
+      });
+
+      Array.from(middleColumn.children).forEach((c) => {
+        botsLayout.middleColumn.push(c.id.replace('-section', ''));
+      });
+
+      Array.from(rightColumn.children).forEach((c) => {
+        botsLayout.rightColumn.push(c.id.replace('-section', ''));
+      });
+
+      Cookies.set(`${window.location.pathname}-bots-layout`, botsLayout);
     }
   },
 };
