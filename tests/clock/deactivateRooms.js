@@ -79,11 +79,11 @@ describe('tests/clock/deactivateRooms.js >', () => {
       .then((deactivatedRooms) => {
         Room.findOne({ where: { id: event.roomId } })
         .then((r) => {
-        /**
-         * Need to use event.destroy(); here because forceDelete relies
-         * on the createdAt to be within timeframe of tests running.
-         * I altered the createdAt of the event to test this properly.
-         */
+          /**
+           * Need to use event.destroy(); here because forceDelete relies
+           * on the createdAt to be within timeframe of tests running.
+           * I altered the createdAt of the event to test this properly.
+           */
           event.destroy();
           expect(r.active).to.equal(false);
           done();
