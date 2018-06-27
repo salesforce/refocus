@@ -951,6 +951,11 @@ window.onload = () => {
       _botsLayout = room.settings.botsLayout;
     }
 
+    if (uPage.botLayoutIsValid(_botsLayout, room.bots)) {
+      room.bots = _botsLayout.leftColumn.concat(_botsLayout.middleColumn)
+        .concat(_botsLayout.rightColumn);
+    }
+
     const promises = room.bots.map((botName) =>
       u.getPromiseWithUrl(GET_BOTS + '/' + botName, BOT_REQ_HEADERS));
     return Promise.all(promises);

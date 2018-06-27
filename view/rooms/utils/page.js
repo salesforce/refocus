@@ -20,6 +20,7 @@ const ROOMS_TAB = 'roomsTab';
 const ROOM_TYPES_TAB = 'roomTypesTab';
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
+const NEG_ONE = -1;
 
 module.exports = {
 
@@ -74,6 +75,23 @@ module.exports = {
     } else if (DEBUG_REALTIME) {
       console.log('Cannot inject dynamic contents into iframe.');
     }
+  },
+
+  botLayoutIsValid(layout, arr) {
+    if (!layout.leftColumn || !layout.middleColumn || !layout.rightColumn) {
+      console.log('first false');
+      return false;
+    }
+
+    for(const param in layout) {
+      // If a bot in the layout does not actually exist in the room
+      if (layout[param].every(bot => arr.indexOf(bot) === NEG_ONE)) {
+        console.log('second false');
+        return false;
+      }
+    }
+
+    return true;
   },
 
   saveLayoutAsCookie() {
