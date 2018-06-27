@@ -157,7 +157,7 @@ function publishSampleNoChange(sample) {
     }
   };
   publishObject(s, sampleEvent.nc, ['updatedAt']);
-  return sample;
+  return Promise.resolve(sample);
 } // publishSampleNoChange
 
 module.exports = {

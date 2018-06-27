@@ -110,14 +110,7 @@ function handleError(err) {
  * @param  {String} eventTypeName - Event type
  */
 function handleEvent(eventData, eventTypeName) {
-  console.log(eventTypeName);
-  console.log(eventData);
-  let j;
-  try {
-    j = JSON.parse(eventData);
-  } catch (err) {
-    console.error('parse eventData error', err);
-  }
+  const j = JSON.parse(eventData);
 
   if (DEBUG_REALTIME) {
     console.log({ // eslint-disable-line no-console
@@ -202,11 +195,9 @@ function setupSocketIOClient(persBody) {
     handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_DEL);
   });
   socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
-    console.log(eventsQueue.eventType.INTRNL_SMPL_UPD, 'in socket.on', data);
     handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
   });
   socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
-    console.log(eventsQueue.eventType.INTRNL_SMPL_NC, 'in socket.on', data);
     handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
   });
 } // setupSocketIOClient

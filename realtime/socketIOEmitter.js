@@ -53,13 +53,13 @@ module.exports = (io, key, obj) => {
         newObjectAsString = rtUtils.getNewObjAsString(key, obj);
       }
 
-      if (tracker.hasOwnProperty(obj.name)) {
-        tracker[obj.name]++;
-      } else {
-        tracker[obj.name] = 1;
-      }
+      // if (tracker.hasOwnProperty(obj.name)) {
+      //   tracker[obj.name]++;
+      // } else {
+      //   tracker[obj.name] = 1;
+      // }
 
-      console.log('socket emit', nsp, key, newObjectAsString);
+      // console.log('socket emit', nsp, key, newObjectAsString);
       io.of(nsp).emit(key, newObjectAsString);
     }
   }
