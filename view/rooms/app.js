@@ -12,11 +12,16 @@
  * When page is loaded we take all the bots queried and processed
  * to have their UI appended to the page.
  */
+
+const AdmZip = require('adm-zip');
+const Cookies = require('js-cookie');
+
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 const THREE = 3;
 const MIN_BOT_HEIGHT = 100;
+
 const botsContainer = document.getElementById('botsContainer');
 const botsLeft = document.getElementById('botsLeftColumn');
 const botsMiddle = document.getElementById('botsMiddleColumn');
@@ -30,7 +35,7 @@ const confirmationModal =
   document.getElementById('active_confirmation_modal');
 const confirmationText =
   document.getElementById('active_confirmation_text');
-const AdmZip = require('adm-zip');
+
 const u = require('../utils');
 const uPage = require('./utils/page');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
@@ -138,6 +143,32 @@ function resetColumns() {
     blankBot.parentElement.removeChild(blankBot);
   }
 
+  const leftColumn = document.getElementById('botsLeftColumn');
+  const middleColumn = document.getElementById('botsMiddleColumn');
+  const rightColumn = document.getElementById('botsRightColumn');
+
+  const botsLayout = {
+    leftColumn: [],
+    middleColumn: [],
+    rightColumn: [],
+  };
+
+  Array.from(leftColumn.children).forEach((c) => {
+    botsLayout.leftColumn.push(c.id.replace('section', ''));
+  })
+
+  Array.from(middleColumn.children).forEach((c) => {
+    botsLayout.middleColumn.push(c.id.replace('section', ''));
+  })
+
+  Array.from(rightColumn.children).forEach((c) => {
+    botsLayout.rightColumn.push(c.id.replace('section', ''));
+  })
+
+  Cookies.set(`${window.location.pathname}-bots-layout`, botsLayout);
+  console.log(botsLayout);
+
+
   // Resetting variable as no bots are being moved
   _movingContent = null;
 }
@@ -171,6 +202,7 @@ function drop(event, col) {
  * @returns {String} - L, M or R
  */
 function decideBotPosition(botName, botIndex) {
+  console.log(_botsLayout);
   // A bot layout was defined in room/roomType settings
   if (_botsLayout) {
     if (_botsLayout.leftColumn && _botsLayout.leftColumn.includes(botName)) {
@@ -935,8 +967,13 @@ window.onload = () => {
     const subTitle = `${_roomName} - ${res.body.name}`;
     uPage.setSubtitle(subTitle);
     document.title = subTitle;
-
-    if (room.settings && room.settings.botsLayout) {
+    const layoutCookie =
+      Cookies.get(`${window.location.pathname}-bots-layout`);
+    console.log(layoutCookie);
+    if (layoutCookie) {
+      console.log(layoutCookie);
+      _botsLayout = JSON.parse(layoutCookie)
+    } else if (room.settings && room.settings.botsLayout) {
       _botsLayout = room.settings.botsLayout;
     }
 
