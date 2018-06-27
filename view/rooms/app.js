@@ -939,10 +939,14 @@ window.onload = () => {
     const subTitle = `${_roomName} - ${res.body.name}`;
     uPage.setSubtitle(subTitle);
     document.title = subTitle;
-    const layoutCookie =
+    let layoutCookie =
       Cookies.get(`${window.location.pathname}-bots-layout`);
     if (layoutCookie) {
-      _botsLayout = JSON.parse(layoutCookie);
+      layoutCookie = JSON.parse(layoutCookie);
+      if (layoutCookie.leftColumn.length + layoutCookie.middleColumn.length +
+        layoutCookie.rightColumn.length === room.bots.length) {
+        _botsLayout = layoutCookie;
+      }
     } else if (room.settings && room.settings.botsLayout) {
       _botsLayout = room.settings.botsLayout;
     }
