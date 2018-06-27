@@ -84,8 +84,9 @@ function checkAndDeactivateRoom(room) {
  * @returns {Promise} - Promise that rooms were deactivated
  */
 function execute() {
+  console.log("Deactivating")
   const date = new Date();
-  date.setHours(date.getMinutes() - conf.minRoomDeactivationAge);
+  date.setMinutes(date.getMinutes() - conf.minRoomDeactivationAge);
   return dbRoom.findAll(
     { where:
       {
