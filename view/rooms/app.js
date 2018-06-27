@@ -946,6 +946,7 @@ window.onload = () => {
     document.title = subTitle;
     const layoutCookie =
       Cookies.get(`${window.location.pathname}-bots-layout`);
+    console.log(res.body.bots.length)
     if (layoutCookie) {
       _botsLayout = JSON.parse(layoutCookie);
     } else if (room.settings && room.settings.botsLayout) {

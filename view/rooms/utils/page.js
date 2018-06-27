@@ -9,7 +9,7 @@
 /**
  * rooms/utils/page.js
  */
-
+const Cookies = require('js-cookie');
 const u = require('./../../utils');
 
 // ids from view/rooms/index.pug
@@ -89,16 +89,16 @@ module.exports = {
 
     if (leftColumn && middleColumn && rightColumn) {
       Array.from(leftColumn.children).forEach((c) => {
-        botsLayout.leftColumn.unshift(c.id.replace('-section', ''));
-      })
+        botsLayout.leftColumn.push(c.id.replace('-section', ''));
+      });
 
       Array.from(middleColumn.children).forEach((c) => {
-        botsLayout.middleColumn.unshift(c.id.replace('-section', ''));
-      })
+        botsLayout.middleColumn.push(c.id.replace('-section', ''));
+      });
 
       Array.from(rightColumn.children).forEach((c) => {
-        botsLayout.rightColumn.unshift(c.id.replace('-section', ''));
-      })
+        botsLayout.rightColumn.push(c.id.replace('-section', ''));
+      });
 
       Cookies.set(`${window.location.pathname}-bots-layout`, botsLayout);
     }
