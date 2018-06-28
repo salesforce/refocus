@@ -940,8 +940,10 @@ window.onload = () => {
       u.getCookie(`${window.location.pathname}-bots-layout`);
     if (layoutCookie) {
       layoutCookie = JSON.parse(layoutCookie);
+      // Checking if the layout that came from the cookie is valid
       if (uPage.botLayoutIsValid(layoutCookie, room.bots)) {
         _botsLayout = layoutCookie;
+        // Reordering bots so they will be in the correct layout
         room.bots = _botsLayout.leftColumn.concat(_botsLayout.middleColumn)
           .concat(_botsLayout.rightColumn);
       }
