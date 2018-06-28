@@ -102,7 +102,6 @@ function doFindResponse(reqResNext, props, opts, resultObj) {
 module.exports = function doFind(req, res, next, props) {
   const resultObj = { reqStartTime: req.timestamp };
   const opts = fu.options(req.swagger.params, props);
-
   // Check if Cache is on or not
   if (props.cacheEnabled) {
     redisCache.get(props.cacheKey, (cacheErr, reply) => {

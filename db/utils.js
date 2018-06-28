@@ -137,7 +137,6 @@ const opts = {
  * the "replication" property of options, instead of using env.dbUrl which has
  * username and password encoded in the url itself.
  */
-opts.logging = console.log;
 if (conf.readReplicas) {
   opts.dialect = env.dialect;
   opts.replication = getDBReplicationObject(primaryDb);

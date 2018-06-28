@@ -56,7 +56,6 @@ describe(`tests/api/v1/common/sequelizeBug.js, GET ${'/v1/generators'} >`, () =>
       .catch(done);
   });
 
-  const associations = ['user', 'collectors'];
   const schema = {
     user: Joi.object().keys({
       name: Joi.string().required(),
@@ -86,7 +85,103 @@ describe(`tests/api/v1/common/sequelizeBug.js, GET ${'/v1/generators'} >`, () =>
   describe('Sequelize bug', () => {
     it('find: multiple associations can be specified as' +
       ' field params', (done) => {
-      const fields = ['name', ...associations].toString();
+      const fields = ['name', 'user'].toString();
+      let path = `${'/v1/generators'}?fields=${fields}`;
+      api.get(path)
+        .set('Authorization', conf.token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.be.an('array');
+          res.body.forEach((record) => {
+            associations.forEach((assoc) => {
+              expect(record).to.have.property(assoc);
+              expect(Joi.validate(record[assoc],
+                schema[assoc]).error).to.be.null;
+            });
+          });
+        })
+        .end(done)
+        .catch((err) => {
+          console.log('ERRRR: ', err);
+          done();
+        });
+    });
+
+    it('find: multiple associations can be specified as' +
+      ' field params', (done) => {
+      const fields = ['name', 'collectors'].toString();
+      let path = `${'/v1/generators'}?fields=${fields}`;
+      api.get(path)
+        .set('Authorization', conf.token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.be.an('array');
+          res.body.forEach((record) => {
+            associations.forEach((assoc) => {
+              expect(record).to.have.property(assoc);
+              expect(Joi.validate(record[assoc],
+                schema[assoc]).error).to.be.null;
+            });
+          });
+        })
+        .end(done)
+        .catch((err) => {
+          console.log('ERRRR: ', err);
+          done();
+        });
+    });
+
+    it('find: multiple associations can be specified as' +
+      ' field params', (done) => {
+      const fields = ['name', 'collectors', 'user'].toString();
+      let path = `${'/v1/generators'}?fields=${fields}`;
+      api.get(path)
+        .set('Authorization', conf.token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.be.an('array');
+          res.body.forEach((record) => {
+            associations.forEach((assoc) => {
+              expect(record).to.have.property(assoc);
+              expect(Joi.validate(record[assoc],
+                schema[assoc]).error).to.be.null;
+            });
+          });
+        })
+        .end(done)
+        .catch((err) => {
+          console.log('ERRRR: ', err);
+          done();
+        });
+    });
+
+    it('find: multiple associations can be specified as' +
+      ' field params', (done) => {
+      const fields = ['name', 'user', 'collectors'].toString();
+      let path = `${'/v1/generators'}?fields=${fields}`;
+      api.get(path)
+        .set('Authorization', conf.token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.be.an('array');
+          res.body.forEach((record) => {
+            associations.forEach((assoc) => {
+              expect(record).to.have.property(assoc);
+              expect(Joi.validate(record[assoc],
+                schema[assoc]).error).to.be.null;
+            });
+          });
+        })
+        .end(done)
+        .catch((err) => {
+          console.log('ERRRR: ', err);
+          done();
+        });
+    });
+
+    it('find: multiple associations can be specified as' +
+      ' field params', (done) => {
+      const fields = ['name', 'profile'].toString();
       let path = `${'/v1/generators'}?fields=${fields}`;
       api.get(path)
         .set('Authorization', conf.token)
