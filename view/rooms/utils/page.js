@@ -77,14 +77,29 @@ module.exports = {
     }
   },
 
-  botLayoutIsValid(layout, arr) {
-    if (!layout.leftColumn || !layout.middleColumn || !layout.rightColumn) {
+  /**
+   * Checks whether a layout object is valid for an array of Bots
+   * @param {Object} layout - Layout object
+   * @param {Array} bots - Bots in the room
+   * @returns {boolean}
+   */
+  botLayoutIsValid(layout, bots) {
+    // Layout does not contain required field
+    if (!layout || !layout.leftColumn || !layout.middleColumn ||
+      !layout.rightColumn) {
       return false;
     }
 
-    for(const param in layout) {
+    // Amount of bots in layout does not match amount of bots in room
+    if (layout.leftColumn.length + layout.middleColumn.length +
+      layout.rightColumn.length !== bots.length) {
+      return false;
+    }
+
+    for (const param in layout) {
       // If a bot in the layout does not actually exist in the room
-      if (layout[param].every(bot => arr.indexOf(bot) === NEG_ONE)) {
+      if (layout[param] && layout[param].length
+        && layout[param].every(bot => bots.indexOf(bot) === NEG_ONE)) {
         return false;
       }
     }

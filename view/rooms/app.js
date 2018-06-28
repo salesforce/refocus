@@ -12,9 +12,6 @@
  * When page is loaded we take all the bots queried and processed
  * to have their UI appended to the page.
  */
-
-const AdmZip = require('adm-zip');
-
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -33,6 +30,7 @@ const confirmationModal =
   document.getElementById('active_confirmation_modal');
 const confirmationText =
   document.getElementById('active_confirmation_text');
+const AdmZip = require('adm-zip');
 const u = require('../utils');
 const uPage = require('./utils/page');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
@@ -942,17 +940,13 @@ window.onload = () => {
       u.getCookie(`${window.location.pathname}-bots-layout`);
     if (layoutCookie) {
       layoutCookie = JSON.parse(layoutCookie);
-      if (layoutCookie.leftColumn.length + layoutCookie.middleColumn.length +
-        layoutCookie.rightColumn.length === room.bots.length) {
+      if (uPage.botLayoutIsValid(layoutCookie, room.bots)) {
         _botsLayout = layoutCookie;
+        room.bots = _botsLayout.leftColumn.concat(_botsLayout.middleColumn)
+          .concat(_botsLayout.rightColumn);
       }
     } else if (room.settings && room.settings.botsLayout) {
       _botsLayout = room.settings.botsLayout;
-    }
-
-    if (_botsLayout && uPage.botLayoutIsValid(_botsLayout, room.bots)) {
-      room.bots = _botsLayout.leftColumn.concat(_botsLayout.middleColumn)
-        .concat(_botsLayout.rightColumn);
     }
 
     const promises = room.bots.map((botName) =>
