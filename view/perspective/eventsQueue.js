@@ -46,7 +46,6 @@ function enqueueEvent(eventName, eventData) {
   } else if (eventName === eventType.INTRNL_SMPL_UPD) {
     queue.push({ 'sample.update': eventData });
   } else if (eventName === eventType.INTRNL_SMPL_NC) {
-    console.log('enqueueEvent', { 'sample.nochange': eventData });
     queue.push({ 'sample.nochange': eventData });
   }
 }
