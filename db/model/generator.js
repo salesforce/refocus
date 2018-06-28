@@ -167,7 +167,22 @@ module.exports = function generator(seq, dataTypes) {
       beforeUpdate(inst /* , opts */) {
         const gtName = inst.generatorTemplate.name;
         const gtVersion = inst.generatorTemplate.version;
-        if (inst.changed('isActive')) {
+
+        /*
+         inst.get('possibleCollectors') would work instead of
+         inst.possibleCollectors because we set collectors in place at api layer
+         using instance.setDataValue('possibleCollectors', ...);
+         */
+        // console.log(inst);
+        let isCurrentCollectorIncluded = false;
+        if (inst.get('possibleCollectors')) {
+          isCurrentCollectorIncluded = inst.get('possibleCollectors').some(
+            (coll) => coll.name === inst.currentCollector
+          );
+        }
+
+        if (inst.changed('isActive') ||
+         (inst.changed('possibleCollectors') && !isCurrentCollectorIncluded)) {
           inst.assignToCollector();
         }
 
@@ -196,6 +211,7 @@ module.exports = function generator(seq, dataTypes) {
       }, // beforeDestroy
 
       afterCreate(inst /* , opts*/) {
+        // inst.assignToCollector();
         return Promise.all([
           Promise.resolve().then(() => {
             if (inst.currentCollector) {
@@ -208,13 +224,17 @@ module.exports = function generator(seq, dataTypes) {
               return inst.addWriter(inst.createdBy);
             }
           }),
+          // inst.save(),
         ]);
       }, // afterCreate
 
       afterUpdate(inst) {
-        let oldCollector = inst.previous('currentCollector');
-        let newCollector = inst.get('currentCollector');
-        return hbUtils.trackGeneratorChanges(inst, oldCollector, newCollector);
+        const oldCollector = inst.previous('currentCollector');
+        const newCollector = inst.get('currentCollector');
+
+        return Promise.all([
+          hbUtils.trackGeneratorChanges(inst, oldCollector, newCollector),
+        ]);
       }, //afterUpdate
     },
     validate: {
@@ -271,6 +291,7 @@ module.exports = function generator(seq, dataTypes) {
       as: 'possibleCollectors',
       through: 'GeneratorCollectors',
       foreignKey: 'generatorId',
+      // hooks: true,
     });
 
     // assoc.currentCollector = Generator.belongsTo(models.Collector, {
@@ -461,9 +482,15 @@ module.exports = function generator(seq, dataTypes) {
    * currentCollector field and expects the caller to save later.
    */
   Generator.prototype.assignToCollector = function () {
-    if (this.isActive && this.possibleCollectors && this.possibleCollectors.length) {
-      this.possibleCollectors.sort((c1, c2) => c1.name > c2.name);
-      const newColl = this.possibleCollectors.find((c) => c.isRunning() && c.isAlive());
+    /*
+     inst.get('possibleCollectors') would work instead of
+     inst.possibleCollectors because we set collectors in place at api layer
+     using instance.setDataValue('possibleCollectors', ...);
+     */
+    const instCollectors = this.get('possibleCollectors');
+    if (this.isActive && instCollectors && instCollectors.length) {
+      instCollectors.sort((c1, c2) => c1.name > c2.name);
+      const newColl = instCollectors.find((c) => c.isRunning() && c.isAlive());
       this.currentCollector = newColl ? newColl.name : null;
     } else {
       this.currentCollector = null;

@@ -10,7 +10,6 @@
  * api/v1/controllers/collectors.js
  */
 'use strict'; // eslint-disable-line strict
-const featureToggles = require('feature-toggles');
 const Promise = require('bluebird');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
@@ -402,20 +401,37 @@ function startCollector(req, res, next) {
 
     return coll;
   })
-  /* Update or create */
-  .then((coll) => coll ? coll.update(body) : helper.model.create(body))
-  .then((coll) => {
-    collToReturn = coll;
-    /* TODO: change to use currentGenerators once that includes current gens only */
 
-    // return Generator.findAll({ where: { currentCollector: coll.name } });
-    /*
-     * TODO: this actually maps to Generator.possibleCollectors, not currentCollector.
-     * This is necessary for now since currentCollector is not being set yet.
-     * Change to use only current collectors once all the assignment logic is in place.
-     */
-    return coll.getPossibleGenerators();
+  /* Update or create collector. If collector is updated, find active and
+     unassigned generators. For each generator, assign to collector. */
+  .then((coll) => {
+    // Set lastHeartbeat to make collector alive for generators to be assigned
+    body.lastHeartbeat = Date.now();
+    if (coll) {
+      return coll.update(body)
+      .then((updatedColl) => {
+        collToReturn = updatedColl;
+        return Generator.findAll(
+          { where: { currentCollector: null, isActive: true } }
+        );
+      })
+      .then((unassignedGenerators) => Promise.map(unassignedGenerators,
+        (generator) => {
+          generator.assignToCollector();
+          return generator.save();
+        }));
+    }
+
+    return helper.model.create(body)
+    .then((createdColl) => {
+      collToReturn = createdColl;
+      return Promise.resolve();
+    });
   })
+  /* TODO: change to use currentGenerators once that includes current gens only */
+  .then(() => Generator.findAll(
+    { where: { currentCollector: collToReturn.name } })
+  )
   /* Add all the attributes necessary to send back to collector. */
   .then((gens) => Promise.all(gens.map((g) => g.updateForHeartbeat())))
   .then((gens) => {
@@ -448,7 +464,7 @@ function startCollector(req, res, next) {
  * POST /collectors/{key}/stop
  *
  * Change collector status to Stopped. Invalid if the collector's status is
- * Stopped.
+ * Stopped. Reassign corresponding generators.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
@@ -458,14 +474,33 @@ function stopCollector(req, res, next) {
   req.swagger.params.queryBody = {
     value: { status: 'Stopped' },
   };
-  doPatch(req, res, next, helper);
+
+  const resultObj = { reqStartTime: req.timestamp };
+  const requestBody = req.swagger.params.queryBody.value;
+
+  let returnValue;
+
+  u.findByKey(helper, req.swagger.params)
+  .then((o) => u.isWritable(req, o))
+  .then((o) => {
+    u.patchJsonArrayFields(o, requestBody, helper);
+    u.patchArrayFields(o, requestBody, helper);
+
+    return o.update(requestBody);
+  })
+  .then((retVal) => {
+    returnValue = retVal;
+    return retVal.reassignGenerators();
+  })
+  .then(() => u.handleUpdatePromise(resultObj, req, returnValue, helper, res))
+  .catch((err) => u.handleError(next, err, helper.modelName));
 } // stopCollector
 
 /**
  * POST /collectors/{key}/pause
  *
  * Change collector status to Paused. Invalid if the collector's status is not
- * Running.
+ * Running. Reassign corresponding generators.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
@@ -475,7 +510,25 @@ function pauseCollector(req, res, next) {
   req.swagger.params.queryBody = {
     value: { status: 'Paused' },
   };
-  doPatch(req, res, next, helper);
+
+  const resultObj = { reqStartTime: req.timestamp };
+  const requestBody = req.swagger.params.queryBody.value;
+  let returnValue;
+
+  u.findByKey(helper, req.swagger.params)
+  .then((o) => u.isWritable(req, o))
+  .then((o) => {
+    u.patchJsonArrayFields(o, requestBody, helper);
+    u.patchArrayFields(o, requestBody, helper);
+
+    return o.update(requestBody);
+  })
+  .then((retVal) => {
+    returnValue = retVal;
+    return retVal.reassignGenerators();
+  })
+  .then(() => u.handleUpdatePromise(resultObj, req, returnValue, helper, res))
+  .catch((err) => u.handleError(next, err, helper.modelName));
 } // pauseCollector
 
 /**

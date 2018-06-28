@@ -15,6 +15,7 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const sinon = require('sinon');
 const gtUtil = u.gtUtil;
 const path = '/v1/generators';
 const Generator = tu.db.Generator;
@@ -29,9 +30,11 @@ const testStartTime = new Date();
 describe('tests/api/v1/generators/putWithCollector.js >', () => {
   let token;
   let generatorId;
+  let generatorInst;
   let collector1 = { name: 'hello', version: '1.0.0' };
   let collector2 = { name: 'beautiful', version: '1.0.0' };
   let collector3 = { name: 'world', version: '1.0.0' };
+
   const sortedNames = [collector1, collector2, collector3]
     .map((col) => col.name)
     .sort();
@@ -82,17 +85,21 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
   });
 
   beforeEach((done) => {
-    Generator.create(generator)
+    Generator.create(generator) // create generator
     .then((gen) => {
       generatorId = gen.id;
-      return gen.addPossibleCollectors([collector1]);
+      generatorInst = gen;
+
+      // add collector 1 to possible list of collectors of generator
+      return generatorInst.addPossibleCollectors([collector1]);
     })
+    .then(() => generatorInst.reload())
     .then(() => done())
     .catch(done);
   });
 
-  // delete generator after each test
   afterEach(() => tu.forceDelete(tu.db.Generator, testStartTime));
+  after(u.forceDelete);
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -187,6 +194,142 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
       expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
       expect(res.body.errors[0].source).to.equal('Generator');
       return done();
+    });
+  });
+
+  describe('assign to collector >', () => {
+    // generator already created with collector1 as possible collector
+    let clock;
+    const now = Date.now();
+    let collectorAlive1 = {
+      name: 'IamAliveAndRunning1',
+      version: '1.0.0',
+      status: 'Running',
+      lastHeartbeat: now,
+    };
+
+    let collectorAlive2 = {
+      name: 'IamAliveAndRunning2',
+      version: '1.0.0',
+      status: 'Running',
+      lastHeartbeat: now,
+    };
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers(now);
+    });
+
+    before((done) => { // create active generator
+      tu.db.Collector.bulkCreate([collectorAlive1, collectorAlive2])
+      .then((collectors) => {
+        collectorAlive1 = collectors[0];
+        collectorAlive2 = collectors[1];
+        return done();
+      })
+      .catch(done);
+    });
+
+    afterEach(() => clock.restore());
+
+    it('put generator should set currentCollector', (done) => {
+      expect(generatorInst.currentCollector).to.be.equal(null);
+      const requestBody = JSON.parse(JSON.stringify(toPut));
+      requestBody.possibleCollectors = [collector1.name, collectorAlive1.name];
+      requestBody.isActive = true;
+      api.put(`${path}/${generatorId}`)
+      .set('Authorization', token)
+      .send(requestBody)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        const collectors = res.body.possibleCollectors;
+        expect(Array.isArray(collectors)).to.be.true;
+        expect(collectors.length).to.equal(TWO);
+        const collectorNames = collectors.map((collector) => collector.name);
+        expect(collectorNames).to.deep.equal(['hello', 'IamAliveAndRunning1']);
+        expect(res.body.currentCollector).to.equal('IamAliveAndRunning1');
+        return done();
+      });
+    });
+
+    it('put generator, currentCollector exists in updated collector list',
+    (done) => {
+      generatorInst.update({ currentCollector: collectorAlive1.name })
+      .then((updatedGenInst) => {
+        expect(updatedGenInst.currentCollector).to.be.equal('IamAliveAndRunning1');
+        const requestBody = JSON.parse(JSON.stringify(toPut));
+        requestBody.possibleCollectors = [collector2.name, collectorAlive1.name];
+        requestBody.isActive = true;
+        api.put(`${path}/${generatorId}`)
+        .set('Authorization', token)
+        .send(requestBody)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const collectors = res.body.possibleCollectors;
+          expect(Array.isArray(collectors)).to.be.true;
+          expect(collectors.length).to.equal(TWO);
+          const collectorNames = collectors.map((collector) => collector.name);
+          expect(collectorNames).to.deep.equal(['beautiful', 'IamAliveAndRunning1']);
+          expect(res.body.currentCollector).to.equal('IamAliveAndRunning1');
+          return done();
+        });
+      })
+      .catch(done);
+    });
+
+    it('put generator, currentCollector does not exists in updated collector ' +
+      'list, set to null', (done) => {
+      const requestBody = JSON.parse(JSON.stringify(toPut));
+      requestBody.possibleCollectors = [collector2.name, collector3.name];
+      requestBody.isActive = true;
+      api.put(`${path}/${generatorId}`)
+      .set('Authorization', token)
+      .send(requestBody)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        const collectors = res.body.possibleCollectors;
+        expect(Array.isArray(collectors)).to.be.true;
+        expect(collectors.length).to.equal(TWO);
+        const collectorNames = collectors.map((collector) => collector.name);
+        expect(collectorNames).to.deep.equal(['beautiful', 'world']);
+        expect(res.body.currentCollector).to.equal(undefined);
+        return done();
+      });
+    });
+
+    it('put generator, currentCollector does not exist in updated collector ' +
+     'list, set to the alive collector in the list', (done) => {
+      const requestBody = JSON.parse(JSON.stringify(toPut));
+      requestBody.possibleCollectors = [collector2.name, collectorAlive2.name];
+      requestBody.isActive = true;
+      api.put(`${path}/${generatorId}`)
+      .set('Authorization', token)
+      .send(requestBody)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        const collectors = res.body.possibleCollectors;
+        expect(Array.isArray(collectors)).to.be.true;
+        expect(collectors.length).to.equal(TWO);
+        const collectorNames = collectors.map((collector) => collector.name);
+        expect(collectorNames).to.deep.equal(['beautiful', 'IamAliveAndRunning2']);
+        expect(res.body.currentCollector).to.equal('IamAliveAndRunning2');
+        return done();
+      });
     });
   });
 });
