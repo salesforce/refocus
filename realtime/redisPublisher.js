@@ -156,10 +156,11 @@ function publishSampleNoChange(sample) {
       timeout: sample.aspect.timeout,
     }
   };
-  return new Promise((resolve, reject) => {
-    publishObject(s, sampleEvent.nc, ['updatedAt']);
-    resolve(sample);
-  });
+  // return new Promise((resolve, reject) => {
+  //   publishObject(s, sampleEvent.nc, ['updatedAt']);
+  //   resolve(sample);
+  // });
+  Promise.resolve(sample);
 } // publishSampleNoChange
 
 module.exports = {
