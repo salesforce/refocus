@@ -71,9 +71,11 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
  * @returns {Object} - object that was published
  */
 function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
-  const startTime = Date.now();
-  const obj = {};
-  obj[event] = inst;
+  if (!inst || !event) return false;
+
+  const obj = {
+    event: inst,
+  };
 
   // set pub client and channel to perspective unless there are overrides opts
   let pubClient = pubPerspective;
@@ -91,16 +93,13 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
    * to get the object just for update events.
    */
   if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
-    obj[event] = prepareToPublish(inst, changedKeys, ignoreAttributes);
+    const prepared = prepareToPublish(inst, changedKeys, ignoreAttributes);
+    if (!prepared) return false;
+    obj[event] = prepared;
   }
 
-  if (obj[event]) {
-    pubClient.publish(channelName, JSON.stringify(obj));
-    console.log('publishObject', startTime-Date.now());
-    return obj;
-  }
-
-  return false;
+  pubClient.publish(channelName, JSON.stringify(obj));
+  return obj;
 } // publishObject
 
 /**
@@ -118,7 +117,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   if (featureToggles.isFeatureEnabled('publishSampleNoChange')) {
     if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
-      return publishSampleNoChange(sampleInst);
+      return Promise.resolve(publishSampleNoChange(sampleInst));
     }
   }
 
@@ -158,10 +157,8 @@ function publishSampleNoChange(sample) {
       timeout: sample.aspect.timeout,
     }
   };
-  return new Promise((resolve, reject) => {
-    publishObject(s, sampleEvent.nc);
-    return sample;
-  });
+  publishObject(s, sampleEvent.nc);
+  return sample;
 } // publishSampleNoChange
 
 module.exports = {
