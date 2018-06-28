@@ -9,7 +9,7 @@
 /**
  * rooms/utils/page.js
  */
-const Cookies = require('js-cookie');
+
 const u = require('./../../utils');
 
 // ids from view/rooms/index.pug
@@ -79,14 +79,12 @@ module.exports = {
 
   botLayoutIsValid(layout, arr) {
     if (!layout.leftColumn || !layout.middleColumn || !layout.rightColumn) {
-      console.log('first false');
       return false;
     }
 
     for(const param in layout) {
       // If a bot in the layout does not actually exist in the room
       if (layout[param].every(bot => arr.indexOf(bot) === NEG_ONE)) {
-        console.log('second false');
         return false;
       }
     }
@@ -118,7 +116,8 @@ module.exports = {
         botsLayout.rightColumn.push(c.id.replace('-section', ''));
       });
 
-      Cookies.set(`${window.location.pathname}-bots-layout`, botsLayout);
+      u.setCookie(`${window.location.pathname}-bots-layout`,
+        JSON.stringify(botsLayout));
     }
   },
 };

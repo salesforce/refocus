@@ -14,7 +14,6 @@
  */
 
 const AdmZip = require('adm-zip');
-const Cookies = require('js-cookie');
 
 const ZERO = 0;
 const ONE = 1;
@@ -940,7 +939,7 @@ window.onload = () => {
     uPage.setSubtitle(subTitle);
     document.title = subTitle;
     let layoutCookie =
-      Cookies.get(`${window.location.pathname}-bots-layout`);
+      u.getCookie(`${window.location.pathname}-bots-layout`);
     if (layoutCookie) {
       layoutCookie = JSON.parse(layoutCookie);
       if (layoutCookie.leftColumn.length + layoutCookie.middleColumn.length +
@@ -951,7 +950,7 @@ window.onload = () => {
       _botsLayout = room.settings.botsLayout;
     }
 
-    if (uPage.botLayoutIsValid(_botsLayout, room.bots)) {
+    if (_botsLayout && uPage.botLayoutIsValid(_botsLayout, room.bots)) {
       room.bots = _botsLayout.leftColumn.concat(_botsLayout.middleColumn)
         .concat(_botsLayout.rightColumn);
     }

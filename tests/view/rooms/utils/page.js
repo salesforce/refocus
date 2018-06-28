@@ -36,7 +36,9 @@ describe('tests/view/rooms/utils/page.js', () => {
 
   it('fail, incorrect format of Bot Layout obj', () => {
     const botLayout = {
-      leftColumn: ['BOT A', 'BOT B']
+      leftCol: ['BOT A', 'BOT B'],
+      middleCol: [],
+      rightCol: [],
     };
     const botsInRoom = ['BOT A', 'BOT B'];
     expect(utils.botLayoutIsValid(botLayout, botsInRoom)).to.equal(false);
