@@ -332,6 +332,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then(() => u.createGenerator(generator1, userId, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => {
+            // console.log(res);
             u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res);
             expect(res.body.generatorsAdded[0].aspects[0])
               .to.contain.property('name', 'temperature');
