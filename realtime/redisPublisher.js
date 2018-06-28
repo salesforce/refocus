@@ -71,6 +71,7 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
  * @returns {Object} - object that was published
  */
 function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
+  const startTime = Date.now();
   const obj = {};
   obj[event] = inst;
 
@@ -95,6 +96,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
 
   if (obj[event]) {
     pubClient.publish(channelName, JSON.stringify(obj));
+    console.log('publishObject', startTime-Date.now());
     return obj;
   }
 
