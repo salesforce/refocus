@@ -443,8 +443,8 @@ module.exports = function generator(seq, dataTypes) {
    * Assigns the generator to an available collector.
    * If the generator specifies a "collectors" attribute, only collectors on that
    * list may be assigned. Otherwise, any collector may be used.
-   *
-   * @returns {Promise<Generator>}
+   * Note that this doesn't save the change to the db, it only updates the
+   * currentCollector field and expects the caller to save later.
    */
   Generator.prototype.assignToCollector = function () {
     if (this.isActive && this.collectors && this.collectors.length) {
