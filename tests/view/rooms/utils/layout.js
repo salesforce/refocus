@@ -7,13 +7,13 @@
  */
 
 /**
- * tests/view/rooms/utils/page.js
+ * tests/view/rooms/utils/layout.js
  */
 
 const expect = require('chai').expect;
-const utils = require('../../../../view/rooms/utils/page.js');
+const utils = require('../../../../view/rooms/utils/layout.js');
 
-describe('tests/view/rooms/utils/page.js', () => {
+describe('tests/view/rooms/utils/layout.js', () => {
   it('ok, all bots in layout exist in room', () => {
     const botLayout = {
       leftColumn: ['BOT A', 'BOT B'],
@@ -21,7 +21,7 @@ describe('tests/view/rooms/utils/page.js', () => {
       rightColumn: ['BOT D', 'BOT E', 'BOT F'],
     };
     const botsInRoom = ['BOT A', 'BOT B', 'BOT C', 'BOT D', 'BOT E', 'BOT F'];
-    expect(utils.botLayoutIsValid(botLayout, botsInRoom)).to.equal(true);
+    expect(utils.isValidLayout(botLayout, botsInRoom)).to.equal(true);
   });
 
   it('fail, some bots in layout do not exist in room', () => {
@@ -31,7 +31,7 @@ describe('tests/view/rooms/utils/page.js', () => {
       rightColumn: ['BOT D'],
     };
     const botsInRoom = ['BOT A', 'BOT B'];
-    expect(utils.botLayoutIsValid(botLayout, botsInRoom)).to.equal(false);
+    expect(utils.isValidLayout(botLayout, botsInRoom)).to.equal(false);
   });
 
   it('fail, incorrect format of Bot Layout obj', () => {
@@ -41,6 +41,6 @@ describe('tests/view/rooms/utils/page.js', () => {
       rightCol: [],
     };
     const botsInRoom = ['BOT A', 'BOT B'];
-    expect(utils.botLayoutIsValid(botLayout, botsInRoom)).to.equal(false);
+    expect(utils.isValidLayout(botLayout, botsInRoom)).to.equal(false);
   });
 });
