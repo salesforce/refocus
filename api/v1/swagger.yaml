@@ -3327,7 +3327,7 @@ paths:
           in: query
           type: boolean
           description: >-
-            Filter by whether or not the generator is running on a collector.
+            Filter by whether or not the generator is active.
         -
           name: intervalSecs
           in: query
@@ -11633,7 +11633,7 @@ definitions:
           Interval (seconds) between each collection.
       isActive:
         type: boolean
-        description: Whether or not the generator is running on a collector.
+        description: Default false. When set to true, the generator will be assigned to an available collector and regularly send in samples.
       name:
         type: string
         readOnly: true
@@ -11719,7 +11719,7 @@ definitions:
           Interval (seconds) between each collection.
       isActive:
         type: boolean
-        description: Whether or not the generator is running on a collector.
+        description: Default false. When set to true, the generator will be assigned to an available collector and regularly send in samples.
       name:
         type: string
         readOnly: true

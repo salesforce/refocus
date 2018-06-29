@@ -167,6 +167,10 @@ module.exports = function generator(seq, dataTypes) {
       beforeUpdate(inst /* , opts */) {
         const gtName = inst.generatorTemplate.name;
         const gtVersion = inst.generatorTemplate.version;
+        if (inst.changed('isActive')) {
+          inst.assignToCollector();
+        }
+
         if (inst.changed('generatorTemplate') || inst.changed('context')) {
           return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
             .then((gt) => {
@@ -194,7 +198,7 @@ module.exports = function generator(seq, dataTypes) {
       afterCreate(inst /* , opts*/) {
         return Promise.all([
           Promise.resolve().then(() => {
-            if (inst.currentCollector && inst.isActive) {
+            if (inst.currentCollector) {
               const newCollector = inst.currentCollector;
               return hbUtils.trackGeneratorChanges(inst, null, newCollector);
             }
@@ -205,21 +209,11 @@ module.exports = function generator(seq, dataTypes) {
             }
           }),
         ]);
-
-        return inst;
       }, // afterCreate
 
       afterUpdate(inst) {
         let oldCollector = inst.previous('currentCollector');
         let newCollector = inst.get('currentCollector');
-        if (!inst.previous('isActive') && inst.get('isActive')) {
-          oldCollector = null;
-        } else if (inst.previous('isActive') && !inst.get('isActive')) {
-          newCollector = null;
-        } else if (!inst.previous('isActive') && !inst.get('isActive')) {
-          oldCollector = newCollector = null;
-        }
-
         return hbUtils.trackGeneratorChanges(inst, oldCollector, newCollector);
       }, //afterUpdate
     },
@@ -229,6 +223,16 @@ module.exports = function generator(seq, dataTypes) {
             (!this.subjects && !this.subjectQuery)) {
           throw new ValidationError('Only one of ["subjects", ' +
             '"subjectQuery"] is required');
+        }
+      },
+
+      isActiveAndCollectors() {
+        const isActiveSet = this.changed('isActive') && this.isActive;
+        const existingCollectors = this.collectors && this.collectors.length;
+        if (isActiveSet && !existingCollectors) {
+          throw new ValidationError(
+            'isActive can only be turned on if at least one collector is specified.'
+          );
         }
       },
     },
@@ -354,20 +358,23 @@ module.exports = function generator(seq, dataTypes) {
    */
   Generator.createWithCollectors = function (requestBody) {
     let createdGenerator;
-    let collectors; // will be populated with actual collectors
-    return new seq.Promise((resolve, reject) =>
-      sgUtils.validateCollectors(seq, requestBody.collectors)
-      .then((_collectors) => {
-        collectors = _collectors;
-        return Generator.create(requestBody);
-      })
-      .then((_createdGenerator) => {
-        createdGenerator = _createdGenerator;
-        return _createdGenerator.addCollectors(collectors);
-      })
-      .then(() => resolve(createdGenerator.reload()))
-      .catch(reject)
-    );
+    let collectors;
+
+    return Promise.resolve()
+    .then(() => sgUtils.validateCollectors(seq, requestBody.collectors))
+    .then((_collectors) => collectors = _collectors)
+    .then(() => Generator.create(requestBody, { validate: false }))
+    .then((gen) => createdGenerator = gen)
+    .then(() => createdGenerator.addCollectors(collectors))
+    .then(() => createdGenerator.reload())
+    .then(() => {
+      //reset changed and previous, so the validators treat as if newly created
+      Object.keys(createdGenerator.dataValues).forEach((key) => {
+        createdGenerator._changed[key] = true;
+        createdGenerator._previousDataValues[key] = undefined;
+      });
+    })
+    .then(() => createdGenerator.validate());
   };
 
   Generator.findForHeartbeat = function (findOpts) {
@@ -383,24 +390,18 @@ module.exports = function generator(seq, dataTypes) {
   /**
    * 1. validate the collectors field: if succeed, save the collectors in
    *  temp var for attaching to the generator. if fail, abort the operation
-   * 2. update the generator
-   * 3. add the saved collectors (if any)
+   * 2. add the saved collectors (if any)
+   * 3. update the generator
    *
    * @param {Object} requestBody From API
    * @returns {Promise} created generator with collectors (if any)
    */
   Generator.prototype.updateWithCollectors = function (requestBody) {
-    let collectors; // will be populated with actual collectors
-    return new seq.Promise((resolve, reject) =>
-      sgUtils.validateCollectors(seq, requestBody.collectors)
-      .then((_collectors) => { // collectors list in request body
-        collectors = _collectors;
-        return this.update(requestBody);
-      })
-      .then(() => this.addCollectors(collectors))
-      .then(() => resolve(this.reload()))
-      .catch(reject)
-    );
+    return Promise.resolve()
+    .then(() => sgUtils.validateCollectors(seq, requestBody.collectors))
+    .then((collectors) => this.addCollectors(collectors))
+    .then(() => this.update(requestBody))
+    .then(() => this.reload());
   };
 
   Generator.prototype.isWritableBy = function (who) {
@@ -446,22 +447,12 @@ module.exports = function generator(seq, dataTypes) {
    * @returns {Promise<Generator>}
    */
   Generator.prototype.assignToCollector = function () {
-    return Promise.resolve()
-    .then(() => {
-      if (this.collectors && this.collectors.length) {
-        return this.collectors.find((c) => c.isRunning() && c.isAlive());
-      } else {
-        return seq.models.Collector.findAliveCollector();
-      }
-    })
-    .then((newColl) => {
-      if (newColl) {
-        return this.update({ currentCollector: newColl.name });
-      } else {
-        return this;
-      }
-    });
+    if (this.isActive && this.collectors && this.collectors.length) {
+      this.collectors.sort((c1, c2) => c1.name > c2.name);
+      const newColl = this.collectors.find((c) => c.isRunning() && c.isAlive());
+      this.currentCollector = newColl ? newColl.name : null;
+    } else {
+      this.currentCollector = null;
+    }
   };
-
-  return Generator;
 };
