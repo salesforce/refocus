@@ -192,8 +192,6 @@ function getConfig(values, key, value) {
     }
 
     delete config.placeholderText;
-  } else {
-    config.options = arrayFilter(values[key] || [], value);
   }
 
   return config;
@@ -427,7 +425,7 @@ module.exports =  {
   getValuesObject,
   getTagsFromArrays,
   getFilterQuery,
-  arrayFilter, // for testing
+  arrayFilter,
   getConfig,
   getArray,
   getTagsFromResources,
