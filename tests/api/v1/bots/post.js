@@ -39,6 +39,7 @@ describe('tests/api/v1/bots/post.js >', () => {
     api.post(`${path}`)
     .set('Authorization', token)
     .field('name', u.name)
+    .field('nickName', u.nickName)
     .field('url', 'https://www.foo.com')
     .field('version', '1.0.0')
     .attach('ui', 'tests/api/v1/bots/uiBlob')
@@ -57,6 +58,7 @@ describe('tests/api/v1/bots/post.js >', () => {
       expect(res.body.name).to.equal(u.name);
       expect(res.body.ui.name).to.equal('uiBlob');
       expect(res.body.version).to.equal('1.0.0');
+      expect(res.body.nickName).to.equal(u.nickName);
       done();
     });
   });

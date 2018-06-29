@@ -2066,6 +2066,12 @@ paths:
           type: string
           required: true
         -
+          name: nickName
+          in: formData
+          description: The nickname of the bot (Name displayed in the header).
+          type: string
+          required: false
+        -
           name: actions
           in: formData
           description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
@@ -2212,6 +2218,9 @@ paths:
               version:
                 type: string
                 description: The version of the bot. Use Semantic Versioning 2.0.0
+              nickName:
+                type: string
+                description: The nickname of the bot. Displayed in the header of the bot.
               actions:
                 type: array
                 description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
@@ -2275,6 +2284,11 @@ paths:
           name: version
           in: formData
           description: The version of the bot. Use Semantic Versioning 2.0.0
+          type: string
+        -
+          name: nickName
+          in: formData
+          description: The nickname of the bot. Displayed in the header.
           type: string
         -
           name: ui

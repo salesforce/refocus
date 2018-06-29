@@ -75,6 +75,17 @@ describe('tests/db/model/bot/update.js >', () => {
     .catch(done);
   });
 
+  it('ok, bot nickName updated', (done) => {
+    Bot.findOne({ where: { name: u.name } })
+      .then((o) => o.update({ nickName: 'Cool New Name' }))
+      .then(() => Bot.findOne({ where: { name: u.name } }))
+      .then((o) => {
+        expect(o).to.have.property('nickName').to.equal('Cool New Name');
+        done();
+      })
+      .catch(done);
+  });
+
   it('fail, bot url bad', (done) => {
     Bot.findOne({ where: { name: u.name } })
     .then((o) => o.update({ url: 'noURL' }))
