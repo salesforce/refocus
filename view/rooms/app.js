@@ -33,7 +33,7 @@ const confirmationText =
 const AdmZip = require('adm-zip');
 const u = require('../utils');
 const uPage = require('./utils/page');
-const uLayout = require('./utils/layout')
+const uLayout = require('./utils/layout');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
 const urlParameters = window.location.href.includes('?') ?
   window.location.href.split('?')[ONE] : '';
