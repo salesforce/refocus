@@ -33,6 +33,7 @@ describe('tests/db/model/bot/create.js >', () => {
       expect(o).to.have.property('settings');
       expect(o.settings.length).to.equal(1);
       expect(o).to.have.property('version').to.equal('1.0.0');
+      expect(o).to.have.property('nickName').to.equal(u.nickName);
       done();
     })
   .catch(done);

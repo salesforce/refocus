@@ -94,6 +94,12 @@ module.exports = function bot(seq, dataTypes) {
       allowNull: false,
       comment: 'Bot Version. Use Semantic Versioning ^2.0.0',
     },
+    nickName: {
+      type: dataTypes.STRING,
+      allowNull: true,
+      unique: true,
+      comment: 'Displayed in the header of the Bot',
+    },
   }, {
     hooks: {
 

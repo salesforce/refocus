@@ -15,6 +15,7 @@ const fs = require('fs');
 const tu = require('../../../testUtils');
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestBot`;
+const nickName = `${tu.namePrefix}Test Bot`;
 const n2 = n + 'NonActive';
 const mt = path.join(__dirname, './uiBlob');
 const uiBlob = fs.readFileSync(mt);
@@ -24,6 +25,7 @@ const standard = {
   url: 'http://www.bar.com',
   ui: uiBlob,
   active: true,
+  nickName,
   settings: [
     { key: 'key1', helpText: 'help Text 1' },
   ],
@@ -94,6 +96,7 @@ const nonActive = {
 
 module.exports = {
   name: n,
+  nickName,
 
   nameNonActive: n2,
 
