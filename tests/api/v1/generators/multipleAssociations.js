@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/common/sequelizeBug.js
+ * tests/api/v1/common/multipleAssociations.js
  */
 'use strict';
 const tu = require('../../../testUtils');
@@ -20,7 +20,7 @@ const GeneratorTemplate = tu.db.GeneratorTemplate;
 const Joi = require('joi');
 const constants = require('../../../../api/v1/constants');
 
-describe(`tests/api/v1/common/sequelizeBug.js, GET ${'/v1/generators'} >`, () => {
+describe(`tests/api/v1/common/multipleAssociations.js, GET ${'/v1/generators'} >`, () => {
   let conf = {};
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   const generatorOk = u.getGenerator();
@@ -82,9 +82,9 @@ describe(`tests/api/v1/common/sequelizeBug.js, GET ${'/v1/generators'} >`, () =>
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('Sequelize bug', () => {
-    it('find: multiple associations can be specified as' +
-      ' field params', (done) => {
+  describe('Checking multiple associations', () => {
+    it('find multiple associations can be specified as' +
+      ' field params with USER single association', (done) => {
       const fields = ['name', 'user'].toString();
       let path = `${'/v1/generators'}?fields=${fields}`;
       api.get(path)
@@ -100,15 +100,11 @@ describe(`tests/api/v1/common/sequelizeBug.js, GET ${'/v1/generators'} >`, () =>
             });
           });
         })
-        .end(done)
-        .catch((err) => {
-          console.log('ERRRR: ', err);
-          done();
-        });
+        .end(() => done());
     });
 
-    it('find: multiple associations can be specified as' +
-      ' field params', (done) => {
+    it('find multiple associations can be specified as' +
+      ' field params with COLLECTORS single association', (done) => {
       const fields = ['name', 'collectors'].toString();
       let path = `${'/v1/generators'}?fields=${fields}`;
       api.get(path)
@@ -124,15 +120,11 @@ describe(`tests/api/v1/common/sequelizeBug.js, GET ${'/v1/generators'} >`, () =>
             });
           });
         })
-        .end(done)
-        .catch((err) => {
-          console.log('ERRRR: ', err);
-          done();
-        });
+        .end(() => done());
     });
 
-    it('find: multiple associations can be specified as' +
-      ' field params', (done) => {
+    it('find multiple associations can be specified as' +
+      ' field params with COLLECTORS and USER', (done) => {
       const fields = ['name', 'collectors', 'user'].toString();
       let path = `${'/v1/generators'}?fields=${fields}`;
       api.get(path)
@@ -148,15 +140,15 @@ describe(`tests/api/v1/common/sequelizeBug.js, GET ${'/v1/generators'} >`, () =>
             });
           });
         })
-        .end(done)
-        .catch((err) => {
-          console.log('ERRRR: ', err);
-          done();
-        });
+        .end(() => done());
     });
 
-    it('find: multiple associations can be specified as' +
-      ' field params', (done) => {
+    /*
+     * make sure Sequelize generates the same SQL when it has the
+     * opposite association (above test).
+     */
+    it('find multiple associations can be specified as' +
+      ' field params with COLLECTORS and USER', (done) => {
       const fields = ['name', 'user', 'collectors'].toString();
       let path = `${'/v1/generators'}?fields=${fields}`;
       api.get(path)
@@ -172,35 +164,7 @@ describe(`tests/api/v1/common/sequelizeBug.js, GET ${'/v1/generators'} >`, () =>
             });
           });
         })
-        .end(done)
-        .catch((err) => {
-          console.log('ERRRR: ', err);
-          done();
-        });
-    });
-
-    it('find: multiple associations can be specified as' +
-      ' field params', (done) => {
-      const fields = ['name', 'profile'].toString();
-      let path = `${'/v1/generators'}?fields=${fields}`;
-      api.get(path)
-        .set('Authorization', conf.token)
-        .expect(constants.httpStatus.OK)
-        .expect((res) => {
-          expect(res.body).to.be.an('array');
-          res.body.forEach((record) => {
-            associations.forEach((assoc) => {
-              expect(record).to.have.property(assoc);
-              expect(Joi.validate(record[assoc],
-                schema[assoc]).error).to.be.null;
-            });
-          });
-        })
-        .end(done)
-        .catch((err) => {
-          console.log('ERRRR: ', err);
-          done();
-        });
+        .end(() => done());
     });
   });
 });
