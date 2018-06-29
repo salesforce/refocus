@@ -162,7 +162,7 @@ function getConfig(values, key, value) {
 
   if (key === 'subjects') {
     config.placeholderText = 'Enter a subject name';
-    let options = getArray('absolutePath', values[key]);
+    const options = getArray('absolutePath', values[key]);
     config.options = arrayFilter(options, value);
     config.isArray = false;
     config.notOpenOnFocus = true;
@@ -171,7 +171,7 @@ function getConfig(values, key, value) {
     config.customFilterOnKeyUp = findNamePrefixFromAbsolutePath;
   } else if (key === 'lenses') {
     config.placeholderText = 'Select a Lens...';
-    let options = getArray('name', values[key]);
+    const options = getArray('name', values[key]);
     config.options = arrayFilter(options, value);
     config.isArray = false;
   } else if (key.slice(-6) === 'Filter') {
@@ -187,7 +187,7 @@ function getConfig(values, key, value) {
     } else if (key === 'aspectFilter') {
       config.allOptionsLabel = 'All ' +
         convertedText.replace(' Filter', '') + 's';
-      let options = getArray('name', values[key]);
+      const options = getArray('name', values[key]);
       config.options = arrayFilter(values[key], value);
     }
 
