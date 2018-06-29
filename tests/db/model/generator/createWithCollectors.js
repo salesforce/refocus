@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
+require('chai').use(require('chai-as-promised')).should();
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const gtUtil = u.gtUtil;
@@ -141,6 +142,44 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       expect(err.resourceType).to.equal('Collector');
       expect(err.resourceKey).to.deep.equal(localGenerator.collectors);
       done();
+    });
+  });
+
+  describe('isActive validation', () => {
+    it('collectors specified, isActive=false', () => {
+      const gen = u.getGenerator();
+      gen.collectors = [collector1.name, collector2.name];
+      gen.isActive = false;
+
+      return Generator.createWithCollectors(gen)
+        .should.eventually.be.fulfilled;
+    });
+
+    it('collectors specified, isActive=true', () => {
+      const gen = u.getGenerator();
+      gen.collectors = [collector1.name, collector2.name];
+      gen.isActive = true;
+
+      return Generator.createWithCollectors(gen)
+        .should.eventually.be.fulfilled;
+    });
+
+    it('no collectors, isActive=false', () => {
+      const gen = u.getGenerator();
+      gen.isActive = false;
+
+      return Generator.createWithCollectors(gen)
+        .should.eventually.be.fulfilled;
+    });
+
+    it('no collectors, isActive=true', () => {
+      const gen = u.getGenerator();
+      gen.isActive = true;
+
+      return Generator.createWithCollectors(gen)
+        .should.eventually.be.rejectedWith(
+          'isActive can only be turned on if at least one collector is specified.'
+        );
     });
   });
 });
