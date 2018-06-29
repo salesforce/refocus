@@ -140,7 +140,7 @@ function resetColumns() {
 
   // Resetting variable as no bots are being moved
   _movingContent = null;
-  uPage.saveLayoutAsCookie();
+  uPage.getLayoutAndSaveAsCookie();
 }
 
 /**

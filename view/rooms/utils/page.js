@@ -107,7 +107,11 @@ module.exports = {
     return true;
   },
 
-  saveLayoutAsCookie() {
+  /**
+   * Gets the bot layout from the page and returns as an object.
+   * @returns {{leftColumn: Array, middleColumn: Array, rightColumn: Array}}
+   */
+  getBotLayoutFromPage() {
     const leftColumn = document.getElementById('botsLeftColumn');
     const middleColumn = document.getElementById('botsMiddleColumn');
     const rightColumn = document.getElementById('botsRightColumn');
@@ -130,9 +134,15 @@ module.exports = {
       Array.from(rightColumn.children).forEach((c) => {
         botsLayout.rightColumn.push(c.id.replace('-section', ''));
       });
-
-      u.setCookie(`${window.location.pathname}-bots-layout`,
-        JSON.stringify(botsLayout));
     }
+
+    return botsLayout;
+  },
+
+  // Gets bot layout from page and saves the stringified version as a cookie
+  getLayoutAndSaveAsCookie() {
+    const botsLayout = this.getBotLayoutFromPage();
+    u.setCookie(`${window.location.pathname}-bots-layout`,
+      JSON.stringify(botsLayout));
   },
 };
