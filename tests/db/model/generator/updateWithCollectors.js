@@ -136,85 +136,117 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
   });
 
   describe('isActive validation', () => {
-    function doUpdateWithCollectors(changes) {
-      const initialCollectorsValue = changes.collector.initial;
-      const initialIsActiveValue = {
+    function testUpdateWithCollectors(changes) {
+      const initialValues = {
+        collectors: changes.collectors.initial,
         isActive: changes.isActive.initial,
       };
-      const updateValues = {
-        collectors: changes.collector.update,
+      const updates = {
+        collectors: changes.collectors.update,
         isActive: changes.isActive.update,
       };
 
-      Object.keys(updateValues).forEach((key) => {
-        if (updateValues[key] === undefined) delete updateValues[key];
+      Object.keys(updates).forEach((key) => {
+        if (updates[key] === undefined) delete updates[key];
       });
 
-      return Promise.resolve()
+      let expectedCollectors = initialValues.collectors;
+      let expectedIsActive = initialValues.isActive;
+      if (changes.expectSuccess) {
+        if (updates.collectors !== undefined) {
+          expectedCollectors = updates.collectors;
+        }
+
+        if (updates.isActive !== undefined) {
+          expectedIsActive = updates.isActive;
+        }
+      }
+
+      let promise = Promise.resolve()
       .then(() => Generator.findById(generatorDBInstance.id))
-      .then((gen) => gen.update(initialIsActiveValue, { validate: false }))
+      .then((gen) => gen.update(initialValues, { validate: false }))
       .then(() => Generator.findById(generatorDBInstance.id))
-      .then((gen) => gen.setCollectors(initialCollectorsValue))
+      .then((gen) => gen.setCollectors(initialValues.collectors))
       .then(() => Generator.findById(generatorDBInstance.id))
-      .then((gen) => gen.updateWithCollectors(updateValues));
+      .then((gen) => gen.updateWithCollectors(updates));
+
+      if (changes.expectSuccess) {
+        promise = promise.should.eventually.be.fulfilled;
+      } else {
+        promise = promise.should.eventually.be.rejectedWith(
+          'isActive can only be turned on if at least one collector is specified.'
+        );
+      }
+
+      return promise.then(() => Generator.findById(generatorDBInstance.id))
+      .then((gen) => {
+        expect(gen.collectors).to.have.lengthOf(expectedCollectors.length);
+        expect(gen.isActive).to.equal(expectedIsActive);
+      });
     }
 
     it('existing collectors, set isActive', () =>
-      doUpdateWithCollectors({
-        collector: { initial: [collector1], },
+      testUpdateWithCollectors({
+        collectors: { initial: [collector1], },
         isActive: { initial: false, update: true, },
-      }).should.eventually.be.fulfilled
+        expectSuccess: true,
+      })
     );
 
     it('existing collectors, unset isActive', () =>
-      doUpdateWithCollectors({
-        collector: { initial: [collector1], },
+      testUpdateWithCollectors({
+        collectors: { initial: [collector1], },
         isActive: { initial: true, update: false, },
-      }).should.eventually.be.fulfilled
+        expectSuccess: true,
+      })
     );
 
     it('no existing collectors, set isActive', () =>
-      doUpdateWithCollectors({
-        collector: { initial: [], },
+      testUpdateWithCollectors({
+        collectors: { initial: [], },
         isActive: { initial: false, update: true, },
-      }).should.eventually.be.rejectedWith(
-        'isActive can only be turned on if at least one collector is specified.'
-      )
+        expectSuccess: false,
+      })
     );
 
     it('no existing collectors, unset isActive', () =>
-      doUpdateWithCollectors({
-        collector: { initial: [], },
+      testUpdateWithCollectors({
+        collectors: { initial: [], },
         isActive: { initial: true, update: false, },
-      }).should.eventually.be.fulfilled
+        expectSuccess: true,
+      })
     );
 
     it('isActive=false, set collectors', () =>
-      doUpdateWithCollectors({
+      testUpdateWithCollectors({
         isActive: { initial: false },
-        collector: { initial: [], update: [collector1.name] },
-      }).should.eventually.be.fulfilled
+        collectors: { initial: [], update: [collector1.name] },
+        expectSuccess: true,
+      })
     );
 
     it('isActive=true, set collectors', () =>
-      doUpdateWithCollectors({
+      testUpdateWithCollectors({
         isActive: { initial: true },
-        collector: { initial: [], update: [collector1.name] },
-      }).should.eventually.be.fulfilled
+        collectors: { initial: [], update: [collector1.name] },
+        expectSuccess: true,
+      })
     );
 
     it('set collectors, set isActive', () =>
-      doUpdateWithCollectors({
-        collector: { initial: [], update: [collector1.name] },
+      testUpdateWithCollectors({
+        collectors: { initial: [], update: [collector1.name] },
         isActive: { initial: false, update: true, },
-      }).should.eventually.be.fulfilled
+        expectSuccess: true,
+      })
     );
 
     it('set collectors, unset isActive', () =>
-      doUpdateWithCollectors({
-        collector: { initial: [], update: [collector1.name] },
+      testUpdateWithCollectors({
+        collectors: { initial: [], update: [collector1.name] },
         isActive: { initial: true, update: false, },
-      }).should.eventually.be.fulfilled
+        expectSuccess: true,
+      })
     );
 
   });

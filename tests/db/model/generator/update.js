@@ -323,12 +323,12 @@ describe('tests/db/model/generator/update.js >', () => {
 
   describe('isActive validation', () => {
     function doUpdate(changes) {
-      const initialCollectorsValue = changes.collector.initial;
+      const initialCollectorsValue = changes.collectors.initial;
       const initialIsActiveValue = {
         isActive: changes.isActive.initial,
       };
       const updateValues = {
-        collectors: changes.collector.update,
+        collectors: changes.collectors.update,
         isActive: changes.isActive.update,
       };
 
@@ -349,21 +349,21 @@ describe('tests/db/model/generator/update.js >', () => {
 
     it('existing collectors, set isActive', () =>
       doUpdate({
-        collector: { initial: [collectorObj1], },
+        collectors: { initial: [collectorObj1], },
         isActive: { initial: false, update: true, },
       }).should.eventually.be.fulfilled
     );
 
     it('existing collectors, unset isActive', () =>
       doUpdate({
-        collector: { initial: [collectorObj1], },
+        collectors: { initial: [collectorObj1], },
         isActive: { initial: true, update: false, },
       }).should.eventually.be.fulfilled
     );
 
     it('no existing collectors, set isActive', () =>
       doUpdate({
-        collector: { initial: [], },
+        collectors: { initial: [], },
         isActive: { initial: false, update: true, },
       }).should.eventually.be.rejectedWith(
         'isActive can only be turned on if at least one collector is specified.'
@@ -372,7 +372,7 @@ describe('tests/db/model/generator/update.js >', () => {
 
     it('no existing collectors, unset isActive', () =>
       doUpdate({
-        collector: { initial: [], },
+        collectors: { initial: [], },
         isActive: { initial: true, update: false, },
       }).should.eventually.be.fulfilled
     );
@@ -380,28 +380,28 @@ describe('tests/db/model/generator/update.js >', () => {
     it('isActive=false, set collectors', () =>
       doUpdate({
         isActive: { initial: false },
-        collector: { initial: [], update: [collectorObj1] },
+        collectors: { initial: [], update: [collectorObj1] },
       }).should.eventually.be.fulfilled
     );
 
     it('isActive=false, unset collectors', () =>
       doUpdate({
         isActive: { initial: false },
-        collector: { initial: [collectorObj1], update: [] },
+        collectors: { initial: [collectorObj1], update: [] },
       }).should.eventually.be.fulfilled
     );
 
     it('isActive=true, set collectors', () =>
       doUpdate({
         isActive: { initial: true },
-        collector: { initial: [], update: [collectorObj1] },
+        collectors: { initial: [], update: [collectorObj1] },
       }).should.eventually.be.fulfilled
     );
 
     it('isActive=true, unset collectors', () =>
       doUpdate({
         isActive: { initial: true },
-        collector: { initial: [collectorObj1], update: [] },
+        collectors: { initial: [collectorObj1], update: [] },
       }).should.eventually.be.fulfilled
     );
   });

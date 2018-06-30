@@ -172,14 +172,23 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
         .should.eventually.be.fulfilled;
     });
 
-    it('no collectors, isActive=true', () => {
+    it('no collectors, isActive=true (validation fails)', () => {
       const gen = u.getGenerator();
       gen.isActive = true;
 
       return Generator.createWithCollectors(gen)
-        .should.eventually.be.rejectedWith(
-          'isActive can only be turned on if at least one collector is specified.'
-        );
+      .should.eventually.be.rejectedWith(
+        'isActive can only be turned on if at least one collector is specified.'
+      )
+
+      // make sure that when validation fails the generator is not created and
+      // the collectors association is not setup
+      .then(() => Generator.findOne({ where: { name: gen.name } }))
+      .should.eventually.not.exist
+      .then(() => tu.db.GeneratorCollectors.findAll(
+        { where: { collectorId: collector1.id } }
+      ))
+      .should.eventually.be.empty;
     });
   });
 });

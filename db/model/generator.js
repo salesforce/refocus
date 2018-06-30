@@ -363,18 +363,12 @@ module.exports = function generator(seq, dataTypes) {
     return Promise.resolve()
     .then(() => sgUtils.validateCollectors(seq, requestBody.collectors))
     .then((_collectors) => collectors = _collectors)
-    .then(() => Generator.create(requestBody, { validate: false }))
+    .then(() => createdGenerator = Generator.build(requestBody))
+    .then(() => createdGenerator.collectors = collectors) // mock for validation
+    .then(() => createdGenerator.save())
     .then((gen) => createdGenerator = gen)
     .then(() => createdGenerator.addCollectors(collectors))
-    .then(() => createdGenerator.reload())
-    .then(() => {
-      //reset changed and previous, so the validators treat as if newly created
-      Object.keys(createdGenerator.dataValues).forEach((key) => {
-        createdGenerator._changed[key] = true;
-        createdGenerator._previousDataValues[key] = undefined;
-      });
-    })
-    .then(() => createdGenerator.validate());
+    .then(() => createdGenerator.reload());
   };
 
   Generator.findForHeartbeat = function (findOpts) {
