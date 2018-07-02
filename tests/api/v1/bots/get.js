@@ -139,7 +139,7 @@ describe('tests/api/v1/bots/get.js >', () => {
       }
 
       expect(res.body.name).to.equal(u.name);
-      expect(res.body.nickName).to.equal(u.nickName)
+      expect(res.body.nickName).to.equal(u.nickName);
       expect(res.body.ui.data.length).to.equal(uiBlob.length);
       done();
     });
