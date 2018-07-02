@@ -157,8 +157,11 @@ function publishSampleNoChange(sample) {
       timeout: sample.aspect.timeout,
     }
   };
-  publishObject(s, sampleEvent.nc);
-  return sample;
+  return Promise.resolve(true)
+  .then(() {
+    publishObject(s, sampleEvent.nc);
+    return sample;
+  });
 } // publishSampleNoChange
 
 module.exports = {
