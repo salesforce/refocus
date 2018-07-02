@@ -73,9 +73,8 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
 function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   if (!inst || !event) return false;
 
-  const obj = {
-    event: inst,
-  };
+  const obj = {};
+  obj[event] = inst;
 
   // set pub client and channel to perspective unless there are overrides opts
   let pubClient = pubPerspective;
