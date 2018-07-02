@@ -759,9 +759,9 @@ function setupSocketIOClient(bots) {
     elem.className = 'slds-notify slds-notify_toast slds-theme_offline show';
     elem.innerHTML = '<div class="snackContent">You have ' +
       'lost connection with Refocus, so bot data and bot actions ' +
-      'maybe unreliable. Please save any unfinished work and ' +
-      '<a href="javascript:window.location.reload(true)">' +
-      'click here to reconnect</a></div>';
+      'may be unreliable. Please save any unfinished work and ' +
+      'click <a href="javascript:window.location.reload(true)">' +
+      'reconnect</a> to continue</div>';
     const divs = document.getElementsByTagName('div');
     for (let i = divs.length; i;) {
       const circle = divs[--i];
