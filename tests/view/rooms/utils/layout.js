@@ -118,12 +118,3 @@ describe('tests/view/rooms/utils/layout.js', () => {
     });
   });
 });
-
-
-
-
-
-
-
-
-
