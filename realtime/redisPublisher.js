@@ -158,7 +158,7 @@ function publishSampleNoChange(sample) {
     }
   };
   return Promise.resolve(true)
-  .then(() {
+  .then(() => {
     publishObject(s, sampleEvent.nc);
     return sample;
   });
