@@ -42,3 +42,6 @@ dump.rdb
 
 # Remove codecoverage directory
 .coverage
+
+# Ignore IntelliJ IDEA developers configs
+.idea/
