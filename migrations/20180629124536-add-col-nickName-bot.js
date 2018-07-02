@@ -23,7 +23,6 @@ module.exports = {
             return qi.addColumn(TBL, 'nickName', {
               type: Sequelize.STRING,
               allowNull: true,
-              unique: true,
             });
           }
 

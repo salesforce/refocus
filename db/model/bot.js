@@ -97,7 +97,6 @@ module.exports = function bot(seq, dataTypes) {
     nickName: {
       type: dataTypes.STRING,
       allowNull: true,
-      unique: true,
       comment: 'Displayed in the header of the Bot',
     },
   }, {
