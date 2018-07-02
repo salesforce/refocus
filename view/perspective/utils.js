@@ -99,20 +99,6 @@ function convertCamelCase(string) {
 }
 
 /**
- * Given array of objects, returns array without
- * the input elements
- *
- * @param {Array} arr The array to filter from
- * @param {String} removeThis The elem to remove from array.
- * Multiple elements may be removed
- * get new array from
- * @returns {Array} The array of strings or primitives
- */
-function filteredArray(arr, removeThis) {
-  return arr.filter((elem) => elem && elem !== removeThis);
-}
-
-/**
  * Returns array of objects with tags
  * @param {Array} array The array of reosurces to get tags from.
  * @returns {Object} array of tags
@@ -132,24 +118,20 @@ function getTagsFromResources(array) {
 }
 
 /**
- * Return array of items that are from one array and
- * not in another
+ * Return all items from array1 that are not in array2
  *
- * @param {Array} options Return a subset of this
- * @param {Array} value Array of data to exclude
- * @returns {Array} Contains items from options
+ * @param {Array} array1 Array to filter
+ * @param {Array} exclude item(s) to exclude from return value
+ * @returns {Array} array of items only present in array1
  */
-function getOptions(options, value) {
-  let leftovers = []; // populate from options
-  if (Array.isArray(value)) {
-    for (let i = options.length - 1; i >= 0; i--) {
-      if (value.indexOf(options[i]) < 0) {
-        leftovers.push(options[i]);
-      }
-    }
+function arrayFilter(array1, exclude = []) {
+  // convenience check so that function can be called with
+  // a single item to exclude
+  if (!Array.isArray(exclude)) {
+    exclude = [exclude];
   }
-
-  return leftovers;
+  const excludeSet = new Set(exclude);
+  return array1.filter((item) => !excludeSet.has(item));
 }
 
 function findNamePrefixFromAbsolutePath(options, searchText, callback) {
@@ -172,17 +154,16 @@ function findNamePrefixFromAbsolutePath(options, searchText, callback) {
  */
 function getConfig(values, key, value) {
   const ZERO = 0;
-  const options = getOptions(values[key] || [], value);
   const convertedText = convertCamelCase(key);
   let config = {
     title: key,
-    options,
+    options: [],
   };
 
   if (key === 'subjects') {
     config.placeholderText = 'Enter a subject name';
-    let options = getArray('absolutePath', values[key]);
-    config.options = filteredArray(options, value);
+    const options = getArray('absolutePath', values[key]);
+    config.options = arrayFilter(options, value);
     config.isArray = false;
     config.notOpenOnFocus = true;
 
@@ -190,8 +171,8 @@ function getConfig(values, key, value) {
     config.customFilterOnKeyUp = findNamePrefixFromAbsolutePath;
   } else if (key === 'lenses') {
     config.placeholderText = 'Select a Lens...';
-    let options = getArray('name', values[key]);
-    config.options = filteredArray(options, value);
+    const options = getArray('name', values[key]);
+    config.options = arrayFilter(options, value);
     config.isArray = false;
   } else if (key.slice(-6) === 'Filter') {
     // if key ends with Filter
@@ -202,11 +183,12 @@ function getConfig(values, key, value) {
     if (key === 'statusFilter') {
       config.allOptionsLabel = 'All ' +
         convertedText.replace(' Filter', '') + 'es';
+      config.options = arrayFilter(values[key] || [], value);
     } else if (key === 'aspectFilter') {
       config.allOptionsLabel = 'All ' +
         convertedText.replace(' Filter', '') + 's';
-      let options = getArray('name', values[key]);
-      config.options = filteredArray(values[key], value);
+      const options = getArray('name', values[key]);
+      config.options = arrayFilter(values[key], value);
     }
 
     delete config.placeholderText;
@@ -443,8 +425,7 @@ module.exports =  {
   getValuesObject,
   getTagsFromArrays,
   getFilterQuery,
-  getOptions, // for testing
-  filteredArray,
+  arrayFilter,
   getConfig,
   getArray,
   getTagsFromResources,

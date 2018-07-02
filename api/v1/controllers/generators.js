@@ -86,7 +86,7 @@ function validateGeneratorAspectsPermissions(aspects, req) {
       const error = results[i].error;
       if (error) {
         if (error.name === 'ForbiddenError' &&
-         error.message === 'Resource not writable for provided token') {
+         error.message === 'Insufficient Privileges') {
           aspInvalidPerm.push(results[i].aspectName);
         } else {
           // aspect name added to all errors already
@@ -97,12 +97,9 @@ function validateGeneratorAspectsPermissions(aspects, req) {
     }
 
     if (aspInvalidPerm.length > 0) {
-      return Promise.reject(
-        new apiErrors.ValidationError(
-          'User does not have permission to upsert samples for the ' +
-          'following aspects:' + aspInvalidPerm
-        )
-      );
+      return Promise.reject(new apiErrors.ForbiddenError({
+        explanation: 'Insufficient Privileges',
+      }));
     }
 
     return Promise.resolve();
@@ -156,7 +153,7 @@ module.exports = {
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       u.patchArrayFields(o, requestBody, helper);
-      return o.updateWithCollectors(requestBody, u.whereClauseForNameInArr);
+      return o.updateWithCollectors(requestBody);
     })
     .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
     .catch((err) => u.handleError(next, err, helper.modelName));
@@ -180,7 +177,7 @@ module.exports = {
     toPost.createdBy = req.user.id;
     validateGeneratorAspectsPermissions(toPost.aspects, req)
     .then(() =>
-      helper.model.createWithCollectors(toPost, u.whereClauseForNameInArr))
+      helper.model.createWithCollectors(toPost))
     .then((o) => o.reload())
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -220,8 +217,7 @@ module.exports = {
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       instance = o;
-      return helper.model.validateCollectors(
-        toPut.collectors, u.whereClauseForNameInArr);
+      return helper.model.validateCollectors(toPut.collectors);
     })
     .then((_collectors) => {
       collectors = _collectors;

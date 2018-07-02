@@ -2314,6 +2314,46 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+
+  /bots/{key}/heartbeat:
+    x-swagger-router-controller: bots
+    post:
+      security:
+        - jwt: []
+      summary: Send heartbeat
+      tags: [ bots ]
+      description: >-
+        Send heartbeat.
+      operationId: heartbeat
+      parameters:
+        -
+          name: key
+          in: path
+          description: Key/Name of bot.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          required: true
+          schema:
+            type: object
+            description: >-
+              Heartbeat from the refocus.
+            properties:
+              timestamp:
+                type: integer
+      responses:
+        200:
+          description: Success.
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+
+  # ---------------------------------------------------------------------------
   /collectors:
     x-swagger-router-controller: collectors
     get:
@@ -9919,6 +9959,78 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
 
+  # ---------------------------------------------------------------------------
+  /subjects/delete/bulk:
+    x-swagger-router-controller: subjects
+    post:
+      security:
+        - jwt: []
+      summary: Bulk subject delete
+      tags: [ subjects ]
+      description: >-
+        Executes asynchronous bulk subject deletion.
+      operationId: deleteSubjects
+      produces:
+        - text/plain; charset=utf-8
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >
+              Array of strings where each string is a subject id or absolutePath.
+      responses:
+        200:
+          description: >-
+            Success, returns OK
+          schema:
+            $ref: "#/definitions/BulkSubjectDeleteResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /subjects/delete/bulk/{key}/status:
+    x-swagger-router-controller: subjects
+    get:
+      security:
+        - jwt: []
+      summary: Bulk subject delete job status
+      tags: [ subjects ]
+      description: >-
+        Retrieve the job status (and any errors) for the specified bulk subject delete job.
+      operationId: getSubjectBulkDeleteStatus
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The job id
+          required: true
+          type: integer
+      responses:
+        200:
+          description: >-
+            Success.
+          schema:
+            $ref: "#/definitions/GetBulkSubjectDeleteStatusResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
 # =============================================================================
 definitions:
 
@@ -11872,6 +11984,45 @@ definitions:
       botId:
         type: string
         description: UUID of the specified bot in that room
+
+  BulkSubjectDeleteResponse:
+    type: object
+    description: >
+      Status of bulk subject delete request.
+    properties:
+      status:
+        type: string
+        enum:
+          - OK
+        readOnly: true
+        description: >
+          Status of the operation.
+      jobId:
+        type: integer
+        readOnly: true
+        description: >
+          Optionally a jobId is returned with the response when the bulk subject
+          delete request is enqueued as a job for the workers to process it
+          asynchronously. The returned jobId can then be used to check the status of the bulk subject delete request.
+
+  GetBulkSubjectDeleteStatusResponse:
+    type: object
+    description: >
+      Status of the bulk subject delete request.
+    properties:
+      status:
+        type: string
+        readOnly: true
+        maxLength: 254
+        description: >
+          Status.
+      errors:
+        type: array
+        readOnly: true
+        description: >
+          An array of errors, if any errors were encountered while attempting to bulk delete subjects.
+        items:
+          type: object
 
 # =============================================================================
 parameters:

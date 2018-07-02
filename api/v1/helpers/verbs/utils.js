@@ -21,6 +21,7 @@ const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
 const redisCache = require('../../../../cache/redisCache').client.cache;
 const Op = require('sequelize').Op;
+const md5 = require('md5');
 
 /**
  * @param {Object} o Sequelize instance
@@ -274,7 +275,7 @@ function isWritable(req, modelInst) {
     if (req.user) {
       modelInst.isWritableBy(req.user.name)
       .then((ok) => ok ? resolve(modelInst) : reject(new apiErrors
-        .ForbiddenError('Resource not writable for provided token')))
+        .ForbiddenError('Insufficient Privileges')))
       .catch(reject);
     } else {
       /*
@@ -284,7 +285,7 @@ function isWritable(req, modelInst) {
        */
       modelInst.isWritableBy()
       .then((ok) => ok ? resolve(modelInst) :
-        reject(new apiErrors.ForbiddenError('Resource is write protected'))
+        reject(new apiErrors.ForbiddenError('Insufficient Privileges'))
       )
       .catch(reject);
     }
@@ -724,8 +725,7 @@ function handleError(next, err, modelName) {
 }
 
 /**
- * Attaches the resource type to the error and passes it on to the next
- * handler.
+ * Handles forbidden errors.
  *
  * @param {Function} next - The next middleware function in the stack
  * @param {String} modelName - The DB model name, used to disambiguate field
@@ -733,7 +733,7 @@ function handleError(next, err, modelName) {
  */
 function forbidden(next, modelName) {
   const err = new apiErrors.ForbiddenError({
-    explanation: 'Forbidden.',
+    explanation: 'Insufficient Privileges',
   });
   handleError(next, err, modelName);
 } // forbidden
@@ -792,9 +792,24 @@ function responsify(rec, props, method) {
   return o;
 } // responsify
 
+/**
+ * Hashes input string with the md5 algorithm and prefixes the hash
+ * with the resource type we are storing (i.e. perspective, subject, etc.)
+ *
+ * @param {String} resource - type of resource that is being cached
+ * @param {String} url - url string including query params
+ *
+ * @returns {String} hashed url prefixed with resource
+ */
+function getHash(resource, url) {
+  return (resource + md5(url));
+} // getHash
+
 // ----------------------------------------------------------------------------
 
 module.exports = {
+
+  getHash,
 
   sortArrayObjectsByField,
 

@@ -183,7 +183,7 @@ describe('tests/db/model/collector/find.js >', () => {
   });
 
   it('scope = running', (done) => {
-    Collector.scope('running').findAll()
+    Collector.scope('defaultScope', 'running').findAll()
     .then((collectors) => {
       expect(collectors).to.have.lengthOf(2);
       expect(collectors[0])
@@ -195,49 +195,5 @@ describe('tests/db/model/collector/find.js >', () => {
       return done();
     })
     .catch(done);
-  });
-
-  describe('missedHeartbeat >', () => {
-    it('some over threshold', (done) => {
-      const threshold = 3000;
-      const fakeNow = new Date('2018-05-22T14:51:07');
-      const fakeMillis = fakeNow.getTime();
-      Collector.missedHeartbeat(threshold, fakeNow)
-      .then((colls) => {
-        expect(colls).to.have.lengthOf(1);
-        colls.forEach((c) => {
-          expect(fakeMillis - new Date(c.lastHeartbeat).getTime())
-            .to.be.greaterThan(threshold);
-        });
-      })
-      .then(() => done())
-      .catch(done);
-    });
-
-    it('all over threshold', (done) => {
-      const threshold = 1000;
-      const fakeNow = new Date('2018-05-22T14:51:07');
-      const fakeMillis = fakeNow.getTime();
-      Collector.missedHeartbeat(threshold, fakeNow)
-      .then((colls) => {
-        expect(colls).to.have.lengthOf(2);
-        colls.forEach((c) => {
-          expect(fakeMillis - new Date(c.lastHeartbeat).getTime())
-            .to.be.greaterThan(threshold);
-        });
-      })
-      .then(() => done())
-      .catch(done);
-    });
-
-    it('none over threshold', (done) => {
-      const threshold = 10000;
-      const fakeNow = new Date('2018-05-22T14:51:07');
-      const fakeMillis = fakeNow.getTime();
-      Collector.missedHeartbeat(threshold, fakeNow)
-      .then((colls) => expect(colls).to.have.lengthOf(0))
-      .then(() => done())
-      .catch(done);
-    });
   });
 });

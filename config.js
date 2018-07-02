@@ -43,6 +43,7 @@ const corsRoutes = pe.CORS_ROUTES ?
 const DEFAULT_BULK_UPSERT_JOB_CONCURRENCY = 1;
 const DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY = 1;
 const DEFAULT_BULK_CREATE_AUDIT_EVENT_JOB_CONCURRENCY = 1;
+const DEFAULT_BULK_DELETE_SUBJECTS_JOB_CONCURRENCY = 1;
 
 // By default, allow all IP's
 const ipWhitelist = pe.IP_WHITELIST || '[[0.0.0.0,255.255.255.255]]';
@@ -72,6 +73,9 @@ const expressLimiterExpire2 = pe.EXPRESS_LIMITER_EXPIRE_2;
 const DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS = 120000; // 2min
 
 const botEventLimit = pe.BOT_EVENT_LIMIT || 100;
+
+const deactivateRoomsInterval = +pe.DEACTIVATE_ROOMS_INTERVAL || 300000; // 5min
+const minRoomDeactivationAge = 120; // 2 hours
 
 /*
  * name of the environment variable containing the read-only
@@ -242,6 +246,9 @@ module.exports = {
   getBulkCreateAuditEventJobConcurrency:
     pe.BULK_CREATE_AUDIT_EVENT_JOB_CONCURRENCY ||
       DEFAULT_BULK_CREATE_AUDIT_EVENT_JOB_CONCURRENCY,
+  getBulkDeleteSubjectsJobConcurrency:
+    pe.BULK_DELETE_SUBJECTS_JOB_CONCURRENCY ||
+      DEFAULT_BULK_DELETE_SUBJECTS_JOB_CONCURRENCY,
   checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
     DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
   getSamplesWildcardCacheInvalidation:
@@ -263,6 +270,8 @@ module.exports = {
   expressLimiterTotal2,
   expressLimiterExpire2,
   botEventLimit,
+  deactivateRoomsInterval,
+  minRoomDeactivationAge,
   kueStatsInactiveWarning: pe.KUESTATS_INACTIVE_WARNING,
   newRelicKey,
   nodeEnv,

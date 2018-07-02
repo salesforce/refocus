@@ -17,7 +17,7 @@ const helper = require('../helpers/nouns/users');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const Profile = require('../helpers/nouns/profiles').model;
-
+const featureToggles = require('feature-toggles');
 const resourceName = 'register';
 
 module.exports = {
@@ -30,6 +30,13 @@ module.exports = {
    *
    */
   registerUser(req, res, next) {
+    if (featureToggles.isFeatureEnabled('rejectLocalUserRegistration')) {
+      const forbidden = new apiErrors.ForbiddenError({
+        explanation: 'New user registration is not permitted.',
+      });
+      return u.handleError(next, forbidden, resourceName);
+    }
+
     const resultObj = { reqStartTime: req.timestamp };
     configuredPassport.authenticate('local-signup', (err, user) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;

@@ -164,7 +164,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .end(done);
       });
 
-      it('valid user token', (done) => {
+      it('valid user token but needs collector token', (done) => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .set('Authorization', userToken)
         .send({ timestamp: Date.now() })
@@ -905,14 +905,11 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
     describe('added generator >', () => {
       const initialFeatureState = featureToggles
         .isFeatureEnabled('returnUser');
-      before(() => {
-        tu.toggleOverride('returnUser', true);
-      });
-      after(() => tu.toggleOverride('returnUser',
-        initialFeatureState));
+      before(() => tu.toggleOverride('returnUser', true));
+      after(() => tu.toggleOverride('returnUser', initialFeatureState));
 
       // setup and create a new generator with the createdBy field
-      it('contains the user token', (done) => {
+      it('contains the user', (done) => {
         const gtPath = '/v1/generatorTemplates';
         const sgtCopy = JSON.parse(JSON.stringify(sgt));
         sgtCopy.name = 'iAmNew';

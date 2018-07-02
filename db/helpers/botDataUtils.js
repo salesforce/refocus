@@ -14,6 +14,7 @@
 'use strict'; // eslint-disable-line strict
 
 const _ = require('lodash');
+const serialize = require('serialize-javascript');
 const Op = require('sequelize').Op;
 const ZERO = 0;
 const ONE = 1;
@@ -27,7 +28,7 @@ const TWO = 2;
  */
 function isJson(item) {
   let itemParse;
-  itemParse = typeof item === 'string' ? item : JSON.stringify(item);
+  itemParse = typeof item === 'string' ? item : serialize(item);
 
   try {
     itemParse = JSON.parse(itemParse);
@@ -58,7 +59,7 @@ function combineValue(originalValue, newValue) {
 
   // if both values are JSON strings then extend the original JSON strings
   if ((isJson(originalValue)) && (isJson(newValue))) {
-    output = JSON.stringify(
+    output = serialize(
       _.extend(JSON.parse(originalValue), JSON.parse(newValue))
     );
   }
@@ -105,11 +106,36 @@ function combineValue(originalValue, newValue) {
  */
 function replaceValue(startingString, replaceString, instance) {
   let outputValue = startingString;
+  let replacementVal;
   const replaceField = replaceString.replace('${', '')
     .replace('}', '').split('.');
   if (replaceField.length > TWO) {
-    outputValue = outputValue.replace(replaceString,
-      JSON.parse(instance.value)[replaceField[TWO]]);
+    try {
+      replacementVal = JSON.parse(instance.value)[replaceField[TWO]];
+    } catch (e) {
+      return false;
+    }
+
+    if (isJson(outputValue)) { // Output value is a serialized string
+      let outputValueObj;
+      try {
+        outputValueObj = JSON.parse(outputValue);
+      } catch (e) {
+        return false;
+      }
+
+      for (const property in outputValueObj) {
+        if (outputValueObj.hasOwnProperty(property) &&
+          outputValueObj[property].includes(replaceString)) {
+          outputValueObj[property] =
+            outputValueObj[property].replace(replaceString, replacementVal);
+        }
+      }
+
+      outputValue = serialize(outputValueObj);
+    } else { // Output value is just a string
+      outputValue = outputValue.replace(replaceString, replacementVal);
+    }
   } else {
     outputValue = outputValue
       .replace(replaceString, instance.value);
@@ -198,7 +224,7 @@ function updateValues(seq, instance) {
           let syncValue = '';
           Object.keys(context[syncBot]).forEach((botValueName) => {
             syncValue = isJson(context[syncBot][botValueName]) ?
-              JSON.stringify(context[syncBot][botValueName]) :
+              serialize(context[syncBot][botValueName]) :
               context[syncBot][botValueName];
             const replaceBlocks = syncValue.match(/\${(.*?)}/g);
 

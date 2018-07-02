@@ -32,6 +32,7 @@ const queueStatsActivityLogs =
   require('./scheduledJobs/queueStatsActivityLogs');
 const sampleTimeoutJob = require('./scheduledJobs/sampleTimeoutJob');
 const jobCleanup = require('./scheduledJobs/jobCleanup');
+const deactivateRooms = require('./scheduledJobs/deactivateRooms');
 
 /*
  * Add all the scheduled work here.
@@ -59,6 +60,10 @@ if (featureToggles.isFeatureEnabled('enableQueueStatsActivityLogs')) {
 // If enablePubStatsLogs is true then write log
 if (featureToggles.isFeatureEnabled('enablePubStatsLogs')) {
   setInterval(pubStatsLogs.execute, conf.pubStatsLogsIntervalMillis);
+}
+
+if (featureToggles.isFeatureEnabled('autoDeactivateRooms')) {
+  setInterval(deactivateRooms.execute, conf.deactivateRoomsInterval);
 }
 
 // Clean up completed jobs
