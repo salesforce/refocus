@@ -75,12 +75,12 @@ describe('tests/db/model/bot/update.js >', () => {
     .catch(done);
   });
 
-  it('ok, bot nickName updated', (done) => {
+  it('ok, bot displayName updated', (done) => {
     Bot.findOne({ where: { name: u.name } })
-      .then((o) => o.update({ nickName: 'Cool New Name' }))
+      .then((o) => o.update({ displayName: 'Cool New Name' }))
       .then(() => Bot.findOne({ where: { name: u.name } }))
       .then((o) => {
-        expect(o).to.have.property('nickName').to.equal('Cool New Name');
+        expect(o).to.have.property('displayName').to.equal('Cool New Name');
         done();
       })
       .catch(done);

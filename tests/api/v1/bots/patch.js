@@ -76,18 +76,18 @@ describe('tests/api/v1/bots/patch.js >', () => {
     });
   });
 
-  it('Pass, patch bot nickName', (done) => {
-    const newNickName = 'Cool New Nickname';
+  it('Pass, patch bot displayName', (done) => {
+    const newDisplayName = 'Cool New Nickname';
     api.patch(`${path}/${testBot.id}`)
       .set('Authorization', token)
-      .send({ nickName: newNickName })
+      .send({ displayName: newDisplayName })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
 
-        expect(res.body.nickName).to.equal(newNickName);
+        expect(res.body.displayName).to.equal(newDisplayName);
         done();
       });
   });

@@ -7,7 +7,7 @@
  */
 
 /**
- * migrations/20180223211017-collector-lastHeartbeat.js
+ * migrations/20180630124536-add-col-displayName-bot.js
  */
 'use strict'; // eslint-disable-line strict
 const TBL = 'Bots';
@@ -19,8 +19,8 @@ module.exports = {
       () => qi.describeTable(TBL)
         .then((attributes) => attr = attributes)
         .then(() => {
-          if (!attr.hasOwnProperty('nickName')) {
-            return qi.addColumn(TBL, 'nickName', {
+          if (!attr.hasOwnProperty('displayName')) {
+            return qi.addColumn(TBL, 'displayName', {
               type: Sequelize.STRING,
               allowNull: true,
             });
@@ -33,6 +33,6 @@ module.exports = {
 
   down(qi) {
     return qi.sequelize.transaction(() =>
-      qi.removeColumn(TBL, 'nickName'));
+      qi.removeColumn(TBL, 'displayName'));
   },
 };

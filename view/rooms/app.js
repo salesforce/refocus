@@ -307,8 +307,8 @@ function createMinimizeButton(bot) {
  * @returns {DOM} section - Header section
  */
 function createHeader(bot) {
-  const botName = bot.nickName && bot.nickName.length ?
-    bot.nickName : bot.name;
+  const botName = bot.displayName && bot.displayName.length ?
+    bot.displayName : bot.name;
   const section = document.createElement('div');
   section.className = 'slds-section slds-is-open';
 
