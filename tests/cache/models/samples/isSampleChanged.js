@@ -44,7 +44,7 @@ const fromRedis = {
   status: 'Invalid',
 };
 
-describe.only('tests/cache/models/samples/isSampleChanged.js >', () => {
+describe('tests/cache/models/samples/isSampleChanged.js >', () => {
   it('no changes', () => {
     expect(isSampleChanged(fromRequest, fromRedis)).to.be.false;
   });

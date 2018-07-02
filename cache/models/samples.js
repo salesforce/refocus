@@ -156,11 +156,13 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
  * @returns {Boolean} true if any sample attributes are being modified
  */
 function isSampleChanged(newSample, oldSample) {
-  const delta = Object.keys(newSample)
-    .filter((key) => key !== 'name')
-    .filter((key) =>
-      !oldSample.hasOwnProperty(key) || newSample[key] !== oldSample[key]);
-  return delta.length > 0;
+  function isKeyNewOrChanged(key) {
+    return key !== 'name' &&
+      (!oldSample.hasOwnProperty(key) || newSample[key] !== oldSample[key]);
+  } // isKeyNewOrChanged
+
+  // Use "some" because it stops evaluating as soon as it hits a truthy element
+  return Object.keys(newSample).some(isKeyNewOrChanged);
 } // isSampleChanged
 
 /**
