@@ -14,10 +14,10 @@
 module.exports = {
   api: {
     activity: 'api',
-    clusterProcessId: 'None',
     dbTime: '0ms',
     ipAddress: 'None',
     method: 'None', // one of HTTP verbs
+    process: 'None',
     recordCount: 0,
     requestBytes: 0,
     request_id: 'None',
@@ -32,7 +32,6 @@ module.exports = {
     description: 'None',
     jobId: 'None',
     jobType: 'None',
-    pid: 'None',
     totalTime: '0ms',
   },
   kueStats: {
@@ -92,6 +91,7 @@ module.exports = {
     ipAddress: 'None',
     jobId: 'None',
     jobType: 'None',
+    process: 'None',
     queueTime: 'None',
     queueResponseTime: 'None',
     recordCount: 0,

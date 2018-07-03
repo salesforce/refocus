@@ -173,8 +173,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
     app.use((req, res, next) => {
       req.timestamp = Date.now();
       if (process.env.DYNO) req.dyno = process.env.DYNO;
-      req.clusterProcessId = (req.dyno ? req.dyno + ':' : '') +
-        clusterProcessId;
+      req.process = (req.dyno ? req.dyno + ':' : '') + clusterProcessId;
       next();
     });
 

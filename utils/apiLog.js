@@ -99,7 +99,7 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
 
     // create api activity log object
     const logObject = {
-      clusterProcessId: req.clusterProcessId,
+      process: req.process,
       ipAddress: activityLogUtil.getIPAddrFromReq(req),
       requestBytes: getSize(req.body),
       uri: req.url,
