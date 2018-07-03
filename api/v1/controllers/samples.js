@@ -373,6 +373,8 @@ module.exports = {
    * indicating merely that the bulk upsert request has been received.
    */
   bulkUpsertSample(req, res, next) {
+    console.log('entered sample controller bulkUpsertSample ' +
+      `clusterProcessId=${req.clusterProcessId}`);
     const resultObj = { reqStartTime: req.timestamp };
     const reqStartTime = Date.now();
     const value = req.swagger.params.queryBody.value;

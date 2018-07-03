@@ -14,6 +14,7 @@
 module.exports = {
   api: {
     activity: 'api',
+    clusterProcessId: 'None',
     dbTime: '0ms',
     ipAddress: 'None',
     method: 'None', // one of HTTP verbs
