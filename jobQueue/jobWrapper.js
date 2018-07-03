@@ -179,14 +179,14 @@ function calculateJobPriority(prioritize, deprioritize, req) {
 function createPromisifiedJob(jobName, data, req) {
   const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
     conf.deprioritizeJobsFrom, req);
-  if (featureToggles.isFeatureEnabled('instrumentKue')) {
-    console.log('[KJI] Entered ' + // eslint-disable-line no-console
-      `jobWrapper.js createPromisifiedJob: jobName=${jobName} ` +
-      `jobPriority=${jobPriority}`);
-  }
 
   return new Promise((resolve, reject) => {
     const job = jobQueue.create(jobName, data);
+    if (featureToggles.isFeatureEnabled('instrumentKue')) {
+      console.log('[KJI] created ' +
+        `name=${jobName} priority=${jobPriority} id=${jobId}`);
+    }
+
     job.ttl(TIME_TO_LIVE)
     .priority(jobPriority)
     .save((err) => {

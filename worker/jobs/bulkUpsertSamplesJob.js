@@ -34,7 +34,7 @@ module.exports = (job, done) => {
   const errors = [];
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg =
-      `[KJI] Entered bulkUpsertSamplesJob.js: job.id=${job.id} ` +
+      `[KJI] jobType=bulkUpsertSamplesJob jobId=${job.id} ` +
       `sampleCount=${samples.length}`;
     console.log(msg); // eslint-disable-line no-console
   }
