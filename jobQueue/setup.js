@@ -19,7 +19,6 @@ const featureToggles = require('feature-toggles');
 const urlParser = require('url');
 const kue = require('kue');
 const redisOptions = {
-  jobEvents: false,
   redis: conf.redis.instanceUrl.queue,
 };
 const redisInfo = urlParser.parse(redisOptions.redis, true);
