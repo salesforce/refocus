@@ -758,7 +758,7 @@ function setupSocketIOClient(bots) {
     elem.id = 'snackbar';
     elem.className = 'slds-notify slds-notify_toast slds-theme_offline show';
     elem.innerHTML = '<div class="snackContent">You have ' +
-      'lost connection with Refocus, so bot data and bot actions ' +
+      'lost connection with Refocus so bot data and bot actions ' +
       'may be unreliable. Please save any unfinished work and ' +
       'click <a href="javascript:window.location.reload(true)">' +
       'reconnect</a> to continue</div>';
