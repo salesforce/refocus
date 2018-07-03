@@ -12,6 +12,7 @@
  * When page is loaded we take all the bots queried and processed
  * to have their UI appended to the page.
  */
+const NEG_ONE = -1;
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -56,6 +57,7 @@ let _roomName;
 let _isActive;
 let _movingContent;
 let _botsLayout;
+let firstLoad = true;
 
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
@@ -342,6 +344,7 @@ function createHeader(bot) {
     );
   }
   circle.className = 'slds-float_right';
+  circle.id = 'status-' + bot.name;
 
   title.appendChild(createMinimizeButton(bot));
   title.appendChild(text);
@@ -677,19 +680,16 @@ function setupSocketIOClient(bots) {
   // Once connected to refocus display bots
   socket.on('connect', () => {
     debugMessage('Socket Connected');
-    userEnterRoom();
+    if (firstLoad) {
+      userEnterRoom();
 
-    // If disconnected delete old bots
-    bots.forEach((bot) => {
-      if (document.getElementById(bot.body.name + '-section')) {
-        document.getElementById(bot.body.name + '-section').remove();
-      }
-    });
+      // Add bots to page
+      bots.forEach((bot, i) => {
+        displayBot(bot.body, i);
+      });
+    }
 
-    // Add bots to page
-    bots.forEach((bot, i) => {
-      displayBot(bot.body, i);
-    });
+    firstLoad = false;
   });
 
   // Room Setting Updated
@@ -756,6 +756,26 @@ function setupSocketIOClient(bots) {
 
   socket.on('disconnect', () => {
     debugMessage('Socket Disconnected');
+    const elem = document.createElement('div');
+    elem.id = 'snackbar';
+    elem.className = 'slds-notify slds-notify_toast slds-theme_offline show';
+    elem.innerHTML = '<div class="snackContent">You have ' +
+      'lost connection with Refocus so bot data and bot actions ' +
+      'may be unreliable. Please save any unfinished work and ' +
+      'click <a href="javascript:window.location.reload(true)">' +
+      'reconnect</a> to continue</div>';
+    const divs = document.getElementsByTagName('div');
+    for (let i = divs.length; i;) {
+      const circle = divs[--i];
+      if (circle.id.indexOf('status-') > NEG_ONE) {
+        circle.setAttribute(
+          'style',
+          'background:#ffb75d;' +
+            'width:8px;height:8px;border-radius:50%;margin:5px;'
+        );
+      }
+    }
+    document.body.appendChild(elem);
     confirmUserExit();
   });
 } // setupSocketIOClient
