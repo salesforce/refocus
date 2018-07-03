@@ -184,7 +184,7 @@ function createPromisifiedJob(jobName, data, req) {
     const job = jobQueue.create(jobName, data);
     if (featureToggles.isFeatureEnabled('instrumentKue')) {
       console.log('[KJI] created ' +
-        `name=${jobName} priority=${jobPriority} id=${jobId}`);
+        `name=${jobName} priority=${jobPriority} id=${job.id}`);
     }
 
     job.ttl(TIME_TO_LIVE)
