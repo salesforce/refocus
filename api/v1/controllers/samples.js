@@ -401,7 +401,6 @@ module.exports = {
           .createPromisifiedJob(jobType.BULKUPSERTSAMPLES,
             wrappedBulkUpsertData, req);
         return jobPromise.then((job) => {
-          console.log('samples controller...', job);
           // set the job id in the response object before it is returned
           body.jobId = job.id;
           u.logAPI(req, resultObj, body, value.length);
