@@ -182,11 +182,6 @@ function createPromisifiedJob(jobName, data, req) {
 
   return new Promise((resolve, reject) => {
     const job = jobQueue.create(jobName, data);
-    if (featureToggles.isFeatureEnabled('instrumentKue')) {
-      console.log('[KJI] created ' +
-        `name=${jobName} priority=${jobPriority} id=${job.id}`);
-    }
-
     job.ttl(TIME_TO_LIVE)
     .priority(jobPriority)
     .save((err) => {
@@ -197,6 +192,11 @@ function createPromisifiedJob(jobName, data, req) {
       }
 
       logJobOnComplete(req, job);
+
+      if (featureToggles.isFeatureEnabled('instrumentKue')) {
+        console.log('[KJI] created ' +
+          `name=${jobName} priority=${jobPriority} id=${job.id}`);
+      }
       return resolve(job);
     });
   });
