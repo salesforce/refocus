@@ -71,10 +71,15 @@ function doFindResponse(reqResNext, props, opts, resultObj) {
   .then((retval) => {
     u.sortArrayObjectsByField(props, retval);
 
+    // Merge props and opt fields to exclude
+    let fieldsToExclude = opts.fieldsToExclude ? opts.fieldsToExclude : [];
+    fieldsToExclude = props.fieldsToExclude ? fieldsToExclude.fieldsToExclude
+      .concat(props.fieldsToExclude) : fieldsToExclude;
+
     // loop through remove values to delete property
-    if (props.fieldsToExclude) {
+    if (fieldsToExclude.length > 0) {
       for (let i = retval.length - 1; i >= 0; i--) {
-        u.removeFieldsFromResponse(props.fieldsToExclude, retval[i]);
+        u.removeFieldsFromResponse(fieldsToExclude, retval[i]);
       }
     }
 

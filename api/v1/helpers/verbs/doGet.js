@@ -37,6 +37,8 @@ function doGet(req, res, next, props) {
   const fields = reqParams.fields ? reqParams.fields.value : null;
   const scopes = props.getScopes ? props.getScopes : [];
 
+  const opts = u.buildFieldList(reqParams, props.model);
+
   // only cache requests with no params
   if (props.cacheEnabled && !fields) {
     const cacheKey = reqParams.key.value;
@@ -44,42 +46,48 @@ function doGet(req, res, next, props) {
     redisCache.get(cacheKey, (cacheErr, reply) => {
       if (cacheErr || !reply) {
         // if err or no reply, get from db and set redis cache
-        u.findByKey(props, req.swagger.params, scopes)
-        .then((o) => {
+        u.findByKey(props, reqParams, scopes)
+        .then((returnedObject) => {
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          u.logAPI(req, resultObj, o);
-          res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
+          u.logAPI(req, resultObj, returnedObject);
 
           // cache the object by cacheKey. Store the key-value pair in cache
           // with an expiry of 1 minute (60s)
-          const strObj = JSON.stringify(o);
-          redisCache.setex(cacheKey, cacheExpiry, strObj);
+          const objectCacheFormatted = JSON.stringify(returnedObject);
+          redisCache.setex(cacheKey, cacheExpiry, objectCacheFormatted);
+
+          u.removeFieldsFromResponse(opts.fieldsToExclude, returnedObject);
+          res.status(httpStatus.OK).json(
+            u.responsify(returnedObject, props, req.method)
+          );
         })
         .catch((err) => u.handleError(next, err, props.modelName));
       } else {
         // get from cache
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        const dbObj = JSON.parse(reply);
-
-        // dbObj is a sequelize obj
-        u.logAPI(req, resultObj, dbObj);
-        res.status(httpStatus.OK).json(u.responsify(dbObj, props, req.method));
+        const sequelizeObject = JSON.parse(reply);
+        u.logAPI(req, resultObj, sequelizeObject);
+        res.status(httpStatus.OK).json(
+          u.responsify(sequelizeObject, props, req.method)
+        );
       }
     });
   } else {
     let getPromise;
     if (props.modelName === 'Sample') {
-      getPromise = redisModelSample.getSample(req.swagger.params);
+      getPromise = redisModelSample.getSample(reqParams);
     } else {
-      getPromise = u.findByKey(props, req.swagger.params, scopes);
+      getPromise = u.findByKey(props, reqParams, scopes);
     }
 
     getPromise.then((o) => {
       const returnObj = o.get ? o.get() : o;
+      u.removeFieldsFromResponse(opts.fieldsToExclude, returnObj);
       u.sortArrayObjectsByField(props, returnObj);
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, returnObj);
-      res.status(httpStatus.OK).json(u.responsify(returnObj, props, req.method));
+      res.status(httpStatus.OK).json(u.responsify(returnObj,
+        props, req.method));
     })
     .catch((err) => u.handleError(next, err, props.modelName));
   }

@@ -61,10 +61,12 @@ function getWriter(req, res, next, props) {
 function getWriters(req, res, next, props) {
   const resultObj = { reqStartTime: req.timestamp };
   const params = req.swagger.params;
+  const opts = u.buildFieldList(params, props.model);
   u.findAssociatedInstances(props, params, props.belongsToManyAssoc.users, {})
   .then((o) => {
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
     const retval = u.responsify(o, props, req.method);
+    u.removeFieldsFromResponse(opts.fieldsToExclude, retval);
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
     u.logAPI(req, resultObj, retval);
     res.status(httpStatus.OK).json(retval);
   })
