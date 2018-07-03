@@ -106,7 +106,8 @@ function testAssociations(path, associations, joiSchema, conf) {
       .expect((res) => {
         expect(res.body).to.be.an('object');
         expect(res.body).to.have.keys('id', 'name', assoc, 'apiLinks');
-        expect(Joi.validate(res.body[assoc], joiSchema[assoc]).error).to.be.null;
+        expect(Joi.validate(res.body[assoc],
+          joiSchema[assoc]).error).to.be.null;
       })
       .end(done);
     });
