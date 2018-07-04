@@ -49,7 +49,6 @@ function doGet(req, res, next, props) {
         u.findByKey(props, reqParams, scopes)
         .then((returnedObject) => {
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          u.logAPI(req, resultObj, returnedObject);
 
           // cache the object by cacheKey. Store the key-value pair in cache
           // with an expiry of 1 minute (60s)
@@ -57,6 +56,7 @@ function doGet(req, res, next, props) {
           redisCache.setex(cacheKey, cacheExpiry, objectCacheFormatted);
 
           u.removeFieldsFromResponse(opts.fieldsToExclude, returnedObject);
+          u.logAPI(req, resultObj, returnedObject);
           res.status(httpStatus.OK).json(
             u.responsify(returnedObject, props, req.method)
           );
@@ -82,9 +82,10 @@ function doGet(req, res, next, props) {
 
     getPromise.then((o) => {
       const returnObj = o.get ? o.get() : o;
-      u.removeFieldsFromResponse(opts.fieldsToExclude, returnObj);
-      u.sortArrayObjectsByField(props, returnObj);
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+      u.sortArrayObjectsByField(props, returnObj);
+      u.removeFieldsFromResponse(opts.fieldsToExclude, returnObj);
       u.logAPI(req, resultObj, returnObj);
       res.status(httpStatus.OK).json(u.responsify(returnObj,
         props, req.method));

@@ -260,22 +260,17 @@ function buildFieldList(params, model) {
       opts.attributes.push('id');
     }
 
-    /*
-     * Includes all model's FK for an eventual outer join.
-     */
+    /* Includes all model's FK for an eventual outer join. */
     if (model) {
       opts.fieldsToExclude = [];
-
       const keys = Object.keys(model.attributes);
       keys.forEach((key) => {
         if (model.attributes && model.attributes[key].references) {
           if (opts.attributes.indexOf(key) === NOT_FOUND) {
             opts.attributes.push(key);
           }
-          /*
-           * Provides FKs list to remove before sending
-           * back to the response when required.
-           */
+
+          /* Provides FKs list to be removed when required. */
           opts.fieldsToExclude.push(key);
         }
       });

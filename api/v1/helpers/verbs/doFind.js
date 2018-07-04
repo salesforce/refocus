@@ -72,9 +72,8 @@ function doFindResponse(reqResNext, props, opts, resultObj) {
     u.sortArrayObjectsByField(props, retval);
 
     // Merge props and opt fields to exclude
-    let fieldsToExclude = opts.fieldsToExclude ? opts.fieldsToExclude : [];
-    fieldsToExclude = props.fieldsToExclude ? fieldsToExclude.fieldsToExclude
-      .concat(props.fieldsToExclude) : fieldsToExclude;
+    const fieldsToExclude = [].concat(opts.fieldsToExclude || [],
+      props.fieldsToExclude || []);
 
     // loop through remove values to delete property
     if (fieldsToExclude.length > 0) {
