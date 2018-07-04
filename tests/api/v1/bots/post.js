@@ -101,4 +101,24 @@ describe('tests/api/v1/bots/post.js >', () => {
       done();
     });
   });
+
+  it('Fail, Bot displayName is too long', (done) => {
+    const longName = 'L'.repeat(61);
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .field('name', u.name)
+    .field('displayName', longName)
+    .field('url', 'https://www.foo.com')
+    .field('version', '1.0.0')
+    .attach('ui', 'tests/api/v1/bots/uiBlob')
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].message).to.contain('too long');
+      done();
+    });
+  });
 });

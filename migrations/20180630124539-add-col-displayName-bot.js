@@ -21,7 +21,7 @@ module.exports = {
         .then(() => {
           if (!attr.hasOwnProperty('displayName')) {
             return qi.addColumn(TBL, 'displayName', {
-              type: Sequelize.STRING,
+              type: Sequelize.STRING(60),
               allowNull: true,
             });
           }

@@ -2068,8 +2068,9 @@ paths:
         -
           name: displayName
           in: formData
-          description: The display name of the bot (Name displayed in the header).
+          description: The name displayed in the bot header.
           type: string
+          maxLength: 60
           required: false
         -
           name: actions
@@ -2220,7 +2221,8 @@ paths:
                 description: The version of the bot. Use Semantic Versioning 2.0.0
               displayName:
                 type: string
-                description: The display name of the bot. Displayed in the header of the bot.
+                maxLength: 60
+                description: The name displayed in the bot header.
               actions:
                 type: array
                 description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
@@ -2288,8 +2290,9 @@ paths:
         -
           name: displayName
           in: formData
-          description: The display name of the bot. Displayed in the header.
+          description: The name displayed in the bot header.
           type: string
+          maxLength: 60
         -
           name: ui
           description: The zipped HTML and Javascript needed to run the UI of the bot

@@ -14,6 +14,7 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Bot = tu.db.Bot;
+const constants = require('../../../../db/constants');
 const invalidValue = '^thisValueisAlwaysInvalid#';
 
 describe('tests/db/model/bot/create.js >', () => {
@@ -271,6 +272,18 @@ describe('tests/db/model/bot/create.js >', () => {
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
       expect(err.message.toLowerCase()).to.contain('version cannot be null');
+      done();
+    })
+  .catch(done);
+  });
+
+  it('fail, bot displayName too long', (done) => {
+    let bot = u.getStandard();
+    bot.displayName = 'Name'.repeat(constants.fieldlen.normalName);
+    Bot.create(bot)
+    .then((res) => done(tu.valError))
+    .catch((err) => {
+      expect(err.message).to.contain('value too long');
       done();
     })
   .catch(done);
