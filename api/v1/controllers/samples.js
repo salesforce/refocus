@@ -400,13 +400,18 @@ module.exports = {
         const jobPromise = jobWrapper
           .createPromisifiedJob(jobType.BULKUPSERTSAMPLES,
             wrappedBulkUpsertData, req);
-        return jobPromise.then((job) => {
-          // set the job id in the response object before it is returned
-          body.jobId = job.id;
-          u.logAPI(req, resultObj, body, value.length);
-          return res.status(httpStatus.OK).json(body);
-        })
-        .catch((err) => u.handleError(next, err, helper.modelName));
+
+        // return jobPromise.then((job) => {
+        //   // set the job id in the response object before it is returned
+        //   body.jobId = job.id;
+        //   u.logAPI(req, resultObj, body, value.length);
+        //   return res.status(httpStatus.OK).json(body);
+        // })
+        // .catch((err) => u.handleError(next, err, helper.modelName));
+
+        body.jobId = 0;
+        u.logAPI(req, resultObj, body, value.length);
+        return res.status(httpStatus.OK).json(body);
       } else {
         /*
          * Send the upserted sample to the client by publishing it to the redis
