@@ -10,6 +10,7 @@
  * cache/models/samples.js
  */
 'use strict'; // eslint-disable-line strict
+const featureToggles = require('feature-toggles');
 const logInvalidHmsetValues = require('../../utils/common')
   .logInvalidHmsetValues;
 const helper = require('../../api/v1/helpers/nouns/samples');
@@ -383,7 +384,13 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
 
     return cleanAddAspectToSample(updatedSamp, aspectObj);
   })
-  .then((updatedSamp) => cleanAddSubjectToSample(updatedSamp, subject))
+  .then((updatedSamp) => {
+    if (featureToggles.isFeatureEnabled('preAttachSubject')) {
+      return cleanAddSubjectToSample(updatedSamp, subject);
+    }
+
+    return updatedSamp;
+  })
   .catch((err) => {
     if (isBulk) {
       return err;
@@ -969,4 +976,7 @@ module.exports = {
 
     return Promise.all(promises);
   }, // bulkUpsertByName
+
+  cleanAddSubjectToSample, // export for testing only
+  cleanAddAspectToSample, // export for testing only
 };

@@ -16,21 +16,7 @@ const rtUtils = require('./utils');
 const initPerspectiveEvent = 'refocus.internal.realtime.perspective.namespace.initialize';
 const initBotEvent = 'refocus.internal.realtime.bot.namespace.initialize';
 
-let tracker = {};
-setInterval(() => {
-  Object.keys(tracker).forEach((key) => {
-    console.log(`emitted:${key}:${tracker[key]}`);
-    tracker[key] = 0;
-  });
-}, 60000);
-
 module.exports = (io, key, obj) => {
-  if (tracker.hasOwnProperty(key)) {
-    tracker[key]++;
-  } else {
-    tracker[key] = 1;
-  }
-
   // newObjectAsString contains { key: {new: obj }}
   let newObjectAsString = rtUtils.getNewObjAsString(key, obj);
 
