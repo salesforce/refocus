@@ -373,8 +373,10 @@ module.exports = {
    * indicating merely that the bulk upsert request has been received.
    */
   bulkUpsertSample(req, res, next) {
+    console.log('Entered bulkUpsertSample', req.request_id,
+      Date.now - req.timestamp);
     const resultObj = { reqStartTime: req.timestamp };
-    const reqStartTime = Date.now();
+    const reqStartTime = req.timestamp;
     const value = req.swagger.params.queryBody.value;
     const body = { status: 'OK' };
     const readOnlyFields = helper.readOnlyFields.filter((field) =>
@@ -389,6 +391,8 @@ module.exports = {
      * with status and body
      */
     function bulkUpsert(user) {
+      console.log('Entered bulkUpsert', req.request_id,
+        Date.now - req.timestamp);
       if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
@@ -397,16 +401,19 @@ module.exports = {
         wrappedBulkUpsertData.user = user;
         wrappedBulkUpsertData.reqStartTime = reqStartTime;
         wrappedBulkUpsertData.readOnlyFields = readOnlyFields;
-        const ta = Date.now();
         const jobPromise = jobWrapper
           .createPromisifiedJob(jobType.BULKUPSERTSAMPLES,
             wrappedBulkUpsertData, req);
+        console.log('kick off create job', req.request_id,
+          Date.now() - req.timestamp);
         return jobPromise.then((job) => {
-          console.log('job creation time = ', ta - Date.now());
+          console.log('Got job id', req.request_id, Date.now() - req.timestamp);
 
           // set the job id in the response object before it is returned
           body.jobId = job.id;
           u.logAPI(req, resultObj, body, value.length);
+          console.log('returning from api', req.request_id,
+            Date.now() - req.timestamp);
           return res.status(httpStatus.OK).json(body);
         })
         .catch((err) => u.handleError(next, err, helper.modelName));
