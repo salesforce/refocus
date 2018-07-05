@@ -83,9 +83,7 @@ module.exports = function (req, res, next) {
             };
 
             // Add "request_id" if header is set by heroku.
-            if (req.headers && req.headers['x-request-id']) {
-              logObject.request_id = req.headers['x-request-id'];
-            }
+            if (req.request_id) logObject.request_id = req.request_id;
 
             activityLogUtil.printActivityLogString(logObject, 'limiter');
           }
