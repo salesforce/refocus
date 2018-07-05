@@ -373,7 +373,7 @@ module.exports = {
    * indicating merely that the bulk upsert request has been received.
    */
   bulkUpsertSample(req, res, next) {
-    console.log(`request_id=${req.request_id} step=1 elapsed=${(Date.now() - req.timestamp) || 0}`);
+    console.log(`entered=bulkUpsertSample request_id=${req.request_id} elapsed=${(Date.now() - req.timestamp) || 0}`);
     const resultObj = { reqStartTime: req.timestamp };
     const reqStartTime = req.timestamp;
     const value = req.swagger.params.queryBody.value;
@@ -390,7 +390,6 @@ module.exports = {
      * with status and body
      */
     function bulkUpsert(user) {
-      console.log(`request_id=${req.request_id} step=2 elapsed=${(Date.now() - req.timestamp) || 0}`);
       if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
@@ -402,14 +401,10 @@ module.exports = {
         const jobPromise = jobWrapper
           .createPromisifiedJob(jobType.BULKUPSERTSAMPLES,
             wrappedBulkUpsertData, req);
-        console.log(`request_id=${req.request_id} step=3 elapsed=${(Date.now() - req.timestamp) || 0}`);
         return jobPromise.then((job) => {
-          console.log(`request_id=${req.request_id} step=4 elapsed=${(Date.now() - req.timestamp) || 0} job=${job.id}`);
-
           // set the job id in the response object before it is returned
           body.jobId = job.id;
           u.logAPI(req, resultObj, body, value.length);
-          console.log(`request_id=${req.request_id} step=5 elapsed=${(Date.now() - req.timestamp) || 0} job=${job.id}`);
           return res.status(httpStatus.OK).json(body);
         })
         .catch((err) => u.handleError(next, err, helper.modelName));
