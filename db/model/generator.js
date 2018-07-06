@@ -404,7 +404,7 @@ module.exports = function generator(seq, dataTypes) {
       })
       .then(() => this.addPossibleCollectors(collectors))
       .then(() => resolve(this.reload()))
-      .catch(reject)
+      .catch(reject);
     });
   };
 

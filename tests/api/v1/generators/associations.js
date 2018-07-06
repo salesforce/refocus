@@ -52,8 +52,6 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
       generatorInfo.id = gen.id;
       return gen.addPossibleCollectors([collector1]);
     })
-    // .then(() => generatorInfo.getPossibleCollectors())
-    // .then((collectors) => { console.log(collectors) })
     .then(() => done())
     .catch(done);
   });
