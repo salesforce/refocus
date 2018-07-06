@@ -316,6 +316,7 @@ module.exports = function generator(seq, dataTypes) {
     Generator.addScope('collectors', {
       include: [
         {
+          duplicating: false,
           association: assoc.collectors,
           attributes: [
             'id',
