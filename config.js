@@ -60,6 +60,10 @@ const DEFAULT_CACHE_EXPIRY_IN_SECS = 60;
 const CACHE_EXPIRY_IN_SECS = pe.CACHE_EXPIRY_IN_SECS ||
   DEFAULT_CACHE_EXPIRY_IN_SECS;
 
+// Check for missed collector heartbeat every 50 seconds if not specified in
+// env var
+const DEFAULT_MISSED_COLLECTOR_HEARTBEAT_CHECK_INTERVAL_MILLIS = 50000;
+
 // request limiter settings
 const expressLimiterPath = configUtil.csvToArray(pe.EXPRESS_LIMITER_PATH);
 const expressLimiterMethod = configUtil.csvToArray(pe.EXPRESS_LIMITER_METHOD);
@@ -254,6 +258,9 @@ module.exports = {
   getSamplesWildcardCacheInvalidation:
     pe.GET_SAMPLES_WILDCARD_CACHE_INVALIDATION ||
     DEFAULT_GET_SAMPLES_WILDCARD_CACHE_INVALIDATION,
+  missedCollectorHeartbeatCheckIntervalMillis:
+    pe.MISSED_COLLECTOR_HEARTBEAT_CHECK_INTERVAL_MILLIS ||
+      DEFAULT_MISSED_COLLECTOR_HEARTBEAT_CHECK_INTERVAL_MILLIS,
   CACHE_EXPIRY_IN_SECS,
   JOB_QUEUE_TTL_SECONDS_ASYNC,
   JOB_QUEUE_TTL_SECONDS_SYNC,

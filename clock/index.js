@@ -33,6 +33,8 @@ const queueStatsActivityLogs =
 const sampleTimeoutJob = require('./scheduledJobs/sampleTimeoutJob');
 const jobCleanup = require('./scheduledJobs/jobCleanup');
 const deactivateRooms = require('./scheduledJobs/deactivateRooms');
+const checkMissedHeartbeatJob =
+  require('./scheduledJobs/checkMissedHeartbeatJob');
 
 /*
  * Add all the scheduled work here.
@@ -69,3 +71,7 @@ setInterval(jobCleanup.enqueue, conf.JOB_REMOVAL_INTERVAL);
 
 // Reset the job id counter
 setInterval(jobCleanup.resetCounter, conf.JOB_COUNTER_RESET_INTERVAL);
+
+// Check missed collector heartbeats
+setInterval(checkMissedHeartbeatJob.enqueue,
+  conf.missedCollectorHeartbeatCheckIntervalMillis);
