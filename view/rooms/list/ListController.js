@@ -27,7 +27,6 @@ class ListController extends React.Component {
       tableHeaders,
       tableRows,
     } = this.props;
-    tableRows.sort((a, b) => moment(b.updatedAt) - moment(a.updatedAt));
 
     return (
       <div>

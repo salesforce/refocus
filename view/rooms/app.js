@@ -12,6 +12,7 @@
  * When page is loaded we take all the bots queried and processed
  * to have their UI appended to the page.
  */
+const NEG_ONE = -1;
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -33,6 +34,7 @@ const confirmationText =
 const AdmZip = require('adm-zip');
 const u = require('../utils');
 const uPage = require('./utils/page');
+const uLayout = require('./utils/layout');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
 const urlParameters = window.location.href.includes('?') ?
   window.location.href.split('?')[ONE] : '';
@@ -55,6 +57,7 @@ let _roomName;
 let _isActive;
 let _movingContent;
 let _botsLayout;
+let firstLoad = true;
 
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
@@ -140,6 +143,7 @@ function resetColumns() {
 
   // Resetting variable as no bots are being moved
   _movingContent = null;
+  uLayout.getLayoutAndSaveAsCookie();
 }
 
 /**
@@ -307,6 +311,8 @@ function createMinimizeButton(bot) {
  * @returns {DOM} section - Header section
  */
 function createHeader(bot) {
+  const botName = bot.displayName && bot.displayName.length ?
+    bot.displayName : bot.name;
   const section = document.createElement('div');
   section.className = 'slds-section slds-is-open';
 
@@ -324,7 +330,7 @@ function createHeader(bot) {
   text.id = 'title-header';
   text.className =
     'slds-section__title ';
-  text.innerHTML = bot.name;
+  text.innerHTML = botName;
   text.style.cursor = 'move';
 
   const circle = document.createElement('div');
@@ -340,6 +346,7 @@ function createHeader(bot) {
     );
   }
   circle.className = 'slds-float_right';
+  circle.id = 'status-' + bot.name;
 
   title.appendChild(createMinimizeButton(bot));
   title.appendChild(text);
@@ -675,19 +682,16 @@ function setupSocketIOClient(bots) {
   // Once connected to refocus display bots
   socket.on('connect', () => {
     debugMessage('Socket Connected');
-    userEnterRoom();
+    if (firstLoad) {
+      userEnterRoom();
 
-    // If disconnected delete old bots
-    bots.forEach((bot) => {
-      if (document.getElementById(bot.body.name + '-section')) {
-        document.getElementById(bot.body.name + '-section').remove();
-      }
-    });
+      // Add bots to page
+      bots.forEach((bot, i) => {
+        displayBot(bot.body, i);
+      });
+    }
 
-    // Add bots to page
-    bots.forEach((bot, i) => {
-      displayBot(bot.body, i);
-    });
+    firstLoad = false;
   });
 
   // Room Setting Updated
@@ -754,6 +758,26 @@ function setupSocketIOClient(bots) {
 
   socket.on('disconnect', () => {
     debugMessage('Socket Disconnected');
+    const elem = document.createElement('div');
+    elem.id = 'snackbar';
+    elem.className = 'slds-notify slds-notify_toast slds-theme_offline show';
+    elem.innerHTML = '<div class="snackContent">You have ' +
+      'lost connection with Refocus so bot data and bot actions ' +
+      'may be unreliable. Please save any unfinished work and ' +
+      'click <a href="javascript:window.location.reload(true)">' +
+      'reconnect</a> to continue</div>';
+    const divs = document.getElementsByTagName('div');
+    for (let i = divs.length; i;) {
+      const circle = divs[--i];
+      if (circle.id.indexOf('status-') > NEG_ONE) {
+        circle.setAttribute(
+          'style',
+          'background:#ffb75d;' +
+            'width:8px;height:8px;border-radius:50%;margin:5px;'
+        );
+      }
+    }
+    document.body.appendChild(elem);
     confirmUserExit();
   });
 } // setupSocketIOClient
@@ -935,8 +959,18 @@ window.onload = () => {
     const subTitle = `${_roomName} - ${res.body.name}`;
     uPage.setSubtitle(subTitle);
     document.title = subTitle;
-
-    if (room.settings && room.settings.botsLayout) {
+    let layoutCookie =
+      u.getCookie(`${window.location.pathname}-bots-layout`);
+    if (layoutCookie) {
+      layoutCookie = JSON.parse(layoutCookie);
+      // Checking if the layout that came from the cookie is valid
+      if (uLayout.isValidLayout(layoutCookie, room.bots)) {
+        _botsLayout = layoutCookie;
+        // Reordering bots so they will be in the correct layout
+        room.bots = _botsLayout.leftColumn.concat(_botsLayout.middleColumn)
+          .concat(_botsLayout.rightColumn);
+      }
+    } else if (room.settings && room.settings.botsLayout) {
       _botsLayout = room.settings.botsLayout;
     }
 

@@ -39,6 +39,7 @@ describe('tests/api/v1/bots/post.js >', () => {
     api.post(`${path}`)
     .set('Authorization', token)
     .field('name', u.name)
+    .field('displayName', u.displayName)
     .field('url', 'https://www.foo.com')
     .field('version', '1.0.0')
     .attach('ui', 'tests/api/v1/bots/uiBlob')
@@ -57,6 +58,7 @@ describe('tests/api/v1/bots/post.js >', () => {
       expect(res.body.name).to.equal(u.name);
       expect(res.body.ui.name).to.equal('uiBlob');
       expect(res.body.version).to.equal('1.0.0');
+      expect(res.body.displayName).to.equal(u.displayName);
       done();
     });
   });
@@ -96,6 +98,26 @@ describe('tests/api/v1/bots/post.js >', () => {
 
       expect(res.body.errors[ZERO].type)
       .to.contain(tu.valErrorName);
+      done();
+    });
+  });
+
+  it('Fail, Bot displayName is too long', (done) => {
+    const longName = 'L'.repeat(61);
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .field('name', u.name)
+    .field('displayName', longName)
+    .field('url', 'https://www.foo.com')
+    .field('version', '1.0.0')
+    .attach('ui', 'tests/api/v1/bots/uiBlob')
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].message).to.contain('too long');
       done();
     });
   });
