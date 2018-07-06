@@ -260,7 +260,12 @@ function buildFieldList(params, model) {
       opts.attributes.push('id');
     }
 
-    /* Includes all model's FK for an eventual outer join. */
+    /*
+      Includes all model's FK for an eventual outer join.
+      This is a workaround when it selects the attributes before
+      doing the join for the association, which
+      causes an error when the foreign key is not included in the fields.
+    */
     if (model) {
       opts.fieldsToExclude = [];
       const keys = Object.keys(model.attributes);
