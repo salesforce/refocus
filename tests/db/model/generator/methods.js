@@ -76,7 +76,7 @@ describe('tests/db/model/generator/methods.js >', () => {
     it('collectors specified, first choice available', () =>
       Promise.resolve()
       .then(() => Generator.findById(gen1.id))
-      .then((g) => g.updateWithCollectors({ collectors: [coll2.name, coll3.name] }))
+      .then((g) => g.updateWithCollectors({ possibleCollectors: [coll2.name, coll3.name] }))
 
       .then(() => Generator.findById(gen1.id))
       .then((g) => g.assignToCollector())
@@ -92,7 +92,7 @@ describe('tests/db/model/generator/methods.js >', () => {
       )
       .spread((coll2, gen1) => Promise.join(
         coll2.update({ lastHeartbeat: 0 }),
-        gen1.updateWithCollectors({ collectors: [coll2.name, coll3.name] }),
+        gen1.updateWithCollectors({ possibleCollectors: [coll2.name, coll3.name] }),
       ))
 
       .then(() => Generator.findById(gen1.id))
@@ -109,7 +109,7 @@ describe('tests/db/model/generator/methods.js >', () => {
       )
       .spread((coll2, gen1) => Promise.join(
         coll2.update({ lastHeartbeat: 0 }),
-        gen1.updateWithCollectors({ collectors: [coll2.name] }),
+        gen1.updateWithCollectors({ possibleCollectors: [coll2.name] }),
       ))
 
       .then(() => Generator.findById(gen1.id))

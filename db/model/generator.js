@@ -135,13 +135,13 @@ module.exports = function generator(seq, dataTypes) {
       type: dataTypes.JSON,
       allowNull: true,
     },
-    currentCollector: {
-      type: dataTypes.STRING(constants.fieldlen.normalName),
-      allowNull: true,
-      validate: {
-        is: constants.nameRegex,
-      },
-    },
+    // currentCollector: {
+    //   type: dataTypes.STRING(constants.fieldlen.normalName),
+    //   allowNull: true,
+    //   validate: {
+    //     is: constants.nameRegex,
+    //   },
+    // },
   }, {
     hooks: {
 
@@ -263,10 +263,15 @@ module.exports = function generator(seq, dataTypes) {
       as: 'user',
     });
 
-    assoc.collectors = Generator.belongsToMany(models.Collector, {
-      as: 'collectors',
+    assoc.possibleCollectors = Generator.belongsToMany(models.Collector, {
+      as: 'possibleCollectors',
       through: 'GeneratorCollectors',
       foreignKey: 'generatorId',
+    });
+
+    assoc.currentCollector = Generator.belongsTo(models.Collector, {
+      as: 'currentCollector',
+      foreignKey: 'collectorId',
     });
 
     assoc.writers = Generator.belongsToMany(models.User, {
@@ -286,7 +291,7 @@ module.exports = function generator(seq, dataTypes) {
           attributes: ['name', 'email', 'fullName'],
         },
         {
-          association: assoc.collectors,
+          association: assoc.possibleCollectors,
           attributes: [
             'id',
             'name',
@@ -313,10 +318,10 @@ module.exports = function generator(seq, dataTypes) {
       ],
     });
 
-    Generator.addScope('collectors', {
+    Generator.addScope('possibleCollectors', {
       include: [
         {
-          association: assoc.collectors,
+          association: assoc.possibleCollectors,
           attributes: [
             'id',
             'name',
@@ -356,14 +361,14 @@ module.exports = function generator(seq, dataTypes) {
     let createdGenerator;
     let collectors; // will be populated with actual collectors
     return new seq.Promise((resolve, reject) =>
-      sgUtils.validateCollectors(seq, requestBody.collectors)
+      sgUtils.validateCollectors(seq, requestBody.possibleCollectors)
       .then((_collectors) => {
         collectors = _collectors;
         return Generator.create(requestBody);
       })
       .then((_createdGenerator) => {
         createdGenerator = _createdGenerator;
-        return _createdGenerator.addCollectors(collectors);
+        return _createdGenerator.addPossibleCollectors(collectors);
       })
       .then(() => resolve(createdGenerator.reload()))
       .catch(reject)
@@ -391,16 +396,16 @@ module.exports = function generator(seq, dataTypes) {
    */
   Generator.prototype.updateWithCollectors = function (requestBody) {
     let collectors; // will be populated with actual collectors
-    return new seq.Promise((resolve, reject) =>
-      sgUtils.validateCollectors(seq, requestBody.collectors)
+    return new seq.Promise((resolve, reject) => {
+      sgUtils.validateCollectors(seq, requestBody.possibleCollectors)
       .then((_collectors) => { // collectors list in request body
         collectors = _collectors;
         return this.update(requestBody);
       })
-      .then(() => this.addCollectors(collectors))
+      .then(() => this.addPossibleCollectors(collectors))
       .then(() => resolve(this.reload()))
       .catch(reject)
-    );
+    });
   };
 
   Generator.prototype.isWritableBy = function (who) {
@@ -448,8 +453,8 @@ module.exports = function generator(seq, dataTypes) {
   Generator.prototype.assignToCollector = function () {
     return Promise.resolve()
     .then(() => {
-      if (this.collectors && this.collectors.length) {
-        return this.collectors.find((c) => c.isRunning() && c.isAlive());
+      if (this.possibleCollectors && this.possibleCollectors.length) {
+        return this.possibleCollectors.find((c) => c.isRunning() && c.isAlive());
       } else {
         return seq.models.Collector.findAliveCollector();
       }

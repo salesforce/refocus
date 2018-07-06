@@ -56,7 +56,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
     Generator.create(generator)
     .then((o) => {
       generatorDBInstance = o;
-      return o.addCollectors([collector1]);
+      return o.addPossibleCollectors([collector1]);
     })
     .then(() => done())
     .catch(done);
@@ -74,8 +74,8 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
       expect(o.name).to.equal('New_Name');
 
       // check collector is still there
-      expect(Array.isArray(o.collectors)).to.be.true;
-      expect(o.collectors.length).to.equal(ONE);
+      expect(Array.isArray(o.possibleCollectors)).to.be.true;
+      expect(o.possibleCollectors.length).to.equal(ONE);
       done();
     })
     .catch(done);
@@ -83,10 +83,10 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
 
   it('ok: update to a collector that is already attached to the generator', (done) => {
     generatorDBInstance
-    .updateWithCollectors({ collectors: [collector1.name] })
+    .updateWithCollectors({ possibleCollectors: [collector1.name] })
     .then((o) => {
-      expect(Array.isArray(o.collectors)).to.be.true;
-      expect(o.collectors.length).to.equal(ONE);
+      expect(Array.isArray(o.possibleCollectors)).to.be.true;
+      expect(o.possibleCollectors.length).to.equal(ONE);
       done();
     })
     .catch(done);
@@ -94,11 +94,11 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
 
   it('ok: update to add new collectors', (done) => {
     generatorDBInstance
-    .updateWithCollectors({ collectors: [collector2.name, collector3.name] })
+    .updateWithCollectors({ possibleCollectors: [collector2.name, collector3.name] })
     .then((o) => {
-      expect(Array.isArray(o.collectors)).to.be.true;
-      expect(o.collectors.length).to.equal(THREE);
-      const collectorNames = o.collectors.map((collector) => collector.name);
+      expect(Array.isArray(o.possibleCollectors)).to.be.true;
+      expect(o.possibleCollectors.length).to.equal(THREE);
+      const collectorNames = o.possibleCollectors.map((collector) => collector.name);
       expect(collectorNames).to.contain(collector1.name);
       expect(collectorNames).to.contain(collector2.name);
       expect(collectorNames).to.contain(collector3.name);
@@ -109,7 +109,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
 
   it('400 error with duplicate collectors in request body', (done) => {
     const _collectors = [collector1.name, collector1.name];
-    generatorDBInstance.updateWithCollectors({ collectors: _collectors, })
+    generatorDBInstance.updateWithCollectors({ possibleCollectors: _collectors, })
     .then((o) => done(new Error('Expected DuplicateCollectorError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
@@ -123,7 +123,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
   it('404 error for request body with an existing and a ' +
     'non-existant collector', (done) => {
     const _collectors = [collector1.name, 'iDontExist'];
-    generatorDBInstance.updateWithCollectors({ collectors: _collectors, })
+    generatorDBInstance.updateWithCollectors({ possibleCollectors: _collectors, })
     .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.NOT_FOUND_STATUS_CODE);

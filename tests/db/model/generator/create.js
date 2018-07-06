@@ -65,7 +65,7 @@ describe('tests/db/model/generator/create.js >', () => {
       expect(o.generatorTemplate.name).to.equal('refocus-ok-template');
       expect(o.generatorTemplate.version).to.equal('1.0.0');
       expect(typeof o.getWriters).to.equal('function');
-      expect(typeof o.getCollectors).to.equal('function');
+      expect(typeof o.getPossibleCollectors).to.equal('function');
       done();
     })
     .catch(done);
@@ -359,7 +359,7 @@ describe('tests/db/model/generator/create.js >', () => {
         expect(o.generatorTemplate.name).to.equal('gtWithEncryption');
         expect(o.generatorTemplate.version).to.equal('1.0.0');
         expect(typeof o.getWriters).to.equal('function');
-        expect(typeof o.getCollectors).to.equal('function');
+        expect(typeof o.getPossibleCollectors).to.equal('function');
         return cryptUtils
           .decryptSGContextValues(GlobalConfig, o, gtWithEncryption);
       })

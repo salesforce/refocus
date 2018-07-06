@@ -59,11 +59,11 @@ describe('tests/db/model/generator/update.js >', () => {
     })
     .then(() => Collector.create(collectorObj1))
     .then((c) => {
-      generatorDBInstance.addCollector(c.id);
+      generatorDBInstance.addPossibleCollector(c.id);
       return Collector.create(collectorObj2);
     })
     .then((c) => {
-      generatorDBInstance.addCollector(c.id);
+      generatorDBInstance.addPossibleCollector(c.id);
       done();
     }).catch(done);
   });
@@ -188,7 +188,7 @@ describe('tests/db/model/generator/update.js >', () => {
 
   it('ok, generators should have the associated collectors', (done) => {
     Generator.findById(generatorDBInstance.id)
-    .then((o) => o.getCollectors())
+    .then((o) => o.getPossibleCollectors())
     .then((collectors) => {
       expect(collectors.length).to.equal(2);
       expect(collectors[0].name).to.contain('collector');

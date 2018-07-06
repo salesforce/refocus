@@ -45,13 +45,15 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
     .then(() => Generator.create(generatorOk))
     .then((gen) => {
       generatorOk.id = gen.id;
-      return gen.addCollectors([collector1]);
+      return gen.addPossibleCollectors([collector1]);
     })
     .then(() => Generator.create(generatorInfo))
     .then((gen) => {
       generatorInfo.id = gen.id;
-      return gen.addCollectors([collector1]);
+      return gen.addPossibleCollectors([collector1]);
     })
+    // .then(() => generatorInfo.getPossibleCollectors())
+    // .then((collectors) => { console.log(collectors) })
     .then(() => done())
     .catch(done);
   });
@@ -60,7 +62,7 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['user', 'collectors'];
+  const associations = ['user', 'possibleCollectors'];
   const schema = {
     user: Joi.object().keys({
       name: Joi.string().required(),
@@ -70,7 +72,7 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
         name: Joi.string().required(),
       }).required(),
     }),
-    collectors: Joi.array().length(1).items(
+    possibleCollectors: Joi.array().length(1).items(
       Joi.object().keys({
         id: Joi.string().required(),
         name: Joi.string().required(),

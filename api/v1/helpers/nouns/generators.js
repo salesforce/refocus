@@ -35,7 +35,7 @@ module.exports = {
   tagFilterName: 'tags',
   fieldScopeMap: {
     user: 'user',
-    collectors: 'collectors',
+    possibleCollectors: 'possibleCollectors',
   },
 
   /*
@@ -43,7 +43,7 @@ module.exports = {
    * defines the field that will be used for comparision
    */
   sortArrayObjects: {
-    collectors: 'name',
+    possibleCollectors: 'name',
   },
   readOnlyFields: ['id', 'isDeleted', 'currentCollector'],
 
