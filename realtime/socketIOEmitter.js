@@ -29,7 +29,6 @@ module.exports = (io, key, obj) => {
     rtUtils.initializeBotNamespace(obj, io);
   }
 
-  let n = 0;
   for (const nsp in io.nsps) {
     // Send events only if namespace connections > 0
     if (nsp && Object.keys(nsp).length &&
