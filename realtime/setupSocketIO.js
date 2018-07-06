@@ -59,23 +59,20 @@ function getUserFromSession(sid, redisStore) {
  *  server-side object with the namespace initialized.
  */
 function setupNamespace(io) {
-  return new Promise((resolve, reject) => {
-    perspective.findAll()
-    .then((objArr) => {
-      if (objArr) {
-        objArr.forEach((o) => rtUtils.initializePerspectiveNamespace(o, io));
-      }
-    })
-    .then(() => room.findAll()
-      .then((rooms) => {
-        if (rooms) {
-          rooms.forEach((r) => rtUtils.initializeBotNamespace(r.toJSON(), io));
-          resolve(io);
-        }
-      })
-    )
-    .catch(reject);
+  const p = perspective.findAll().then((objArr) => {
+    if (objArr) {
+      objArr.slice(0, 50).forEach((o) =>
+        rtUtils.initializePerspectiveNamespace(o, io));
+    }
   });
+  const r = room.findAll().then((rooms) => {
+    if (rooms) {
+      rooms.slice(0, 50).forEach((r) =>
+        rtUtils.initializeBotNamespace(r.toJSON(), io));
+    }
+  });
+  return Promise.all([p, r])
+  .catch((err) => console.error('setupSocketIO.setupNamespace error', err));
 } // setupNamespace
 
 /**
