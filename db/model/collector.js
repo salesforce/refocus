@@ -192,16 +192,16 @@ module.exports = function collector(seq, dataTypes) {
 
     // This field is not currently needed by collector, but table already exists
     // because generator needs to access its possible collectors.
-    assoc.possibleGenerators = Collector.belongsToMany(models.Generator, {
-      as: 'possibleGenerators',
+    assoc.currentGenerators = Collector.belongsToMany(models.Generator, {
+      as: 'currentGenerators',
       through: 'GeneratorCollectors',
       foreignKey: 'collectorId',
     });
 
-    assoc.currentGenerators = Collector.hasMany(models.Generator, {
-      as: 'currentGenerators',
-      foreignKey: 'collectorId',
-    });
+    // assoc.currentGenerators = Collector.hasMany(models.Generator, {
+    //   as: 'currentGenerators',
+    //   foreignKey: 'collectorId',
+    // });
 
     assoc.createdBy = Collector.belongsTo(models.User, {
       foreignKey: 'createdBy',

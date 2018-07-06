@@ -135,13 +135,13 @@ module.exports = function generator(seq, dataTypes) {
       type: dataTypes.JSON,
       allowNull: true,
     },
-    // currentCollector: {
-    //   type: dataTypes.STRING(constants.fieldlen.normalName),
-    //   allowNull: true,
-    //   validate: {
-    //     is: constants.nameRegex,
-    //   },
-    // },
+    currentCollector: {
+      type: dataTypes.STRING(constants.fieldlen.normalName),
+      allowNull: true,
+      validate: {
+        is: constants.nameRegex,
+      },
+    },
   }, {
     hooks: {
 
@@ -269,10 +269,10 @@ module.exports = function generator(seq, dataTypes) {
       foreignKey: 'generatorId',
     });
 
-    assoc.currentCollector = Generator.belongsTo(models.Collector, {
-      as: 'currentCollector',
-      foreignKey: 'collectorId',
-    });
+    // assoc.currentCollector = Generator.belongsTo(models.Collector, {
+    //   as: 'currentCollector',
+    //   foreignKey: 'collectorId',
+    // });
 
     assoc.writers = Generator.belongsToMany(models.User, {
       as: 'writers',
