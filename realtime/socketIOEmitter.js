@@ -29,8 +29,9 @@ module.exports = (io, key, obj) => {
     rtUtils.initializeBotNamespace(obj, io);
   }
 
-  console.log('SOCKET.IO NAMESPACES', io.nsps);
+  let n = 0;
   for (const nsp in io.nsps) {
+    console.log(`nsp-${++n} = ${nsp}`);
     // Send events only if namespace connections > 0
     if (nsp && Object.keys(nsp).length &&
      rtUtils.shouldIEmitThisObj(nsp, obj)) {
