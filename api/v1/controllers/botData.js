@@ -118,6 +118,7 @@ module.exports = {
           queryBody.botId = o.dataValues.id;
           req.swagger.params.queryBody.value.botId = o.dataValues.id;
         }
+
         BotData.bdExists(queryBody)
         .then((bd) => {
           if (bd) {
