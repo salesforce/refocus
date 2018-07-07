@@ -330,7 +330,7 @@ describe('tests/cache/sampleStore.js >', () => {
         isPublished: false,
         name: '___NorthAmerica-limitTest8-even',
         relatedLinks: [{ name: 'a', url: 'b.com' }],
-        tags: ["foo", "bar"],
+        tags: ['foo', 'bar'],
         sortBy: '_1',
         createdAt: 'Fri Jul 06 2018 15:19:28 GMT-0700 (PDT)',
         updatedAt: 'Fri Jul 06 2018 15:19:28 GMT-0700 (PDT)',
