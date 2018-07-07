@@ -387,7 +387,6 @@ describe('tests/api/v1/generators/post.js >', () => {
       .then(() => validateGeneratorAspectsPermissions(aspects, req))
       .then(() => done(new Error('expecting ForbiddenError')))
       .catch((err) => {
-        console.log('HOW DID I GET HERE???', err);
         expect(err.name).to.be.equal('ForbiddenError');
         expect(err.explanation).to.be.equal('Insufficient Privileges');
         done();

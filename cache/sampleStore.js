@@ -104,14 +104,23 @@ function arrayObjsStringsToJson(obj, arrObjfields) {
 function convertSubjectStrings(subject) {
   // convert the strings into numbers
   subject.childCount = parseInt(subject.childCount, 10) || 0;
-  subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10);
+  subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10) || 0;
 
   // convert strings into booleans
-  subject.isPublished = JSON.parse(subject.isPublished);
+  subject.isPublished = JSON.parse(subject.isPublished) || true;
 
   // convert strings into arrays
-  subject.tags = JSON.parse(subject.tags);
-  subject.relatedLinks = JSON.parse(subject.relatedLinks);
+  try {
+    subject.tags = JSON.parse(subject.tags);
+  } catch (err) {
+    subject.tags = [];
+  }
+
+  try {
+    subject.relatedLinks = JSON.parse(subject.relatedLinks);
+  } catch (err) {
+    subject.relatedLinks = [];
+  }
 }
 
 /**

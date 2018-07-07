@@ -121,10 +121,7 @@ function logJobOnComplete(req, job) {
      * update the log object. Add "request_id" if header is set by heroku.
      */
     if (req) {
-      if (req.headers && req.headers['x-request-id']) {
-        logObject.request_id = req.headers['x-request-id'];
-      }
-
+      if (req.request_id) logObject.request_id = req.request_id;
       logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
 
       /*

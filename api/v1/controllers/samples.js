@@ -19,7 +19,7 @@ const doDelete = require('../helpers/verbs/doDelete');
 const doGet = require('../helpers/verbs/doGet');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
-const redisModelSample = require('../../../cache/models/samples');
+const sampleModel = require('../../../cache/models/samples');
 const utils = require('./utils');
 const publisher = u.publisher;
 const realtimeEvents = u.realtimeEvents;
@@ -44,7 +44,7 @@ const logger = require('winston');
  * @param {Integer} cacheExpiry -  Cache expiry time
  */
 function doFindSample(req, res, next, resultObj, cacheKey, cacheExpiry) {
-  redisModelSample.findSamples(req, res)
+  sampleModel.findSamples(req, res)
   .then((response) => {
     /*
      * Record the "dbTime" (time spent retrieving the records from the sample
@@ -206,7 +206,7 @@ module.exports = {
     }
 
     const userName = req.user ? req.user.name : undefined;
-    redisModelSample.patchSample(req.swagger.params, userName)
+    sampleModel.patchSample(req.swagger.params, userName)
     .then((retVal) =>
       u.handleUpdatePromise(resultObj, req, retVal, helper, res))
     .catch((err) => { // e.g. the sample is write protected
@@ -234,7 +234,7 @@ module.exports = {
     const toPost = reqParams.queryBody.value;
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     u.checkDuplicateRLinks(toPost.relatedLinks);
-    redisModelSample.postSample(toPost, req.user)
+    sampleModel.postSample(toPost, req.user)
     .then((sample) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       publisher.publishSample(sample, helper.associatedModels.subject,
@@ -273,7 +273,7 @@ module.exports = {
     }
 
     const userName = req.user ? req.user.name : undefined;
-    redisModelSample.putSample(req.swagger.params, userName)
+    sampleModel.putSample(req.swagger.params, userName)
     .then((retVal) =>
       u.handleUpdatePromise(resultObj, req, retVal, helper, res))
     .catch((err) => {
@@ -324,7 +324,7 @@ module.exports = {
       }
 
       const upsertSamplePromise =
-        redisModelSample.upsertSample(sampleQueryBody, user);
+        sampleModel.upsertSample(sampleQueryBody, user);
       return upsertSamplePromise
       .then((samp) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -373,8 +373,9 @@ module.exports = {
    * indicating merely that the bulk upsert request has been received.
    */
   bulkUpsertSample(req, res, next) {
+    console.log(`entered=bulkUpsertSample request_id=${req.request_id} elapsed=${(Date.now() - req.timestamp) || 0}`);
     const resultObj = { reqStartTime: req.timestamp };
-    const reqStartTime = Date.now();
+    const reqStartTime = req.timestamp;
     const value = req.swagger.params.queryBody.value;
     const body = { status: 'OK' };
     const readOnlyFields = helper.readOnlyFields.filter((field) =>
@@ -408,8 +409,6 @@ module.exports = {
         })
         .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
-        const sampleModel = redisModelSample;
-
         /*
          * Send the upserted sample to the client by publishing it to the redis
          * channel
@@ -445,7 +444,7 @@ module.exports = {
     const params = req.swagger.params;
     const userName = req.user ? req.user.name : undefined;
     const delRlinksPromise =
-      redisModelSample.deleteSampleRelatedLinks(params, userName);
+      sampleModel.deleteSampleRelatedLinks(params, userName);
 
     delRlinksPromise.then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;

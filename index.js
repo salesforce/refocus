@@ -173,6 +173,12 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
     app.use((req, res, next) => {
       req.timestamp = Date.now();
       req.clusterProcessId = clusterProcessId;
+
+      // Add "request_id" if header is set by host system, e.g. heroku.
+      if (req.headers && req.headers['x-request-id']) {
+        req.request_id = req.headers['x-request-id'];
+      }
+
       next();
     });
 
