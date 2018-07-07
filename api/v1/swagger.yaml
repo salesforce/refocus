@@ -11512,7 +11512,7 @@ definitions:
       name:
         type: "string"
         description: "Should be unique."
-      currentGenerators:
+      possibleGenerators:
         readOnly: true
         type: "array"
         items:
@@ -12042,7 +12042,7 @@ parameters:
         - id
         - status
         - registered
-        - currentGenerators
+        - possibleGenerators
         - lastHeartbeat
         - lastModifiedAt
         - createdBy

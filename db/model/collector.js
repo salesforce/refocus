@@ -192,8 +192,8 @@ module.exports = function collector(seq, dataTypes) {
 
     // This field is not currently needed by collector, but table already exists
     // because generator needs to access its possible collectors.
-    assoc.currentGenerators = Collector.belongsToMany(models.Generator, {
-      as: 'currentGenerators',
+    assoc.possibleGenerators = Collector.belongsToMany(models.Generator, {
+      as: 'possibleGenerators',
       through: 'GeneratorCollectors',
       foreignKey: 'collectorId',
     });
@@ -259,7 +259,7 @@ module.exports = function collector(seq, dataTypes) {
    * @returns {Promise<Array<Generator>>}
    */
   Collector.prototype.reassignGenerators = function () {
-    /* TODO: change to use currentGenerators once that includes current gens only */
+    /* TODO: change to use possibleGenerators once that includes current gens only */
     return seq.models.Generator.findAll({ where: { currentCollector: this.name } })
     .then((gens) => Promise.all(gens.map((g) => g.assignToCollector())));
   };

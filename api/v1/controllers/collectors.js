@@ -406,7 +406,7 @@ function startCollector(req, res, next) {
   .then((coll) => coll ? coll.update(body) : helper.model.create(body))
   .then((coll) => {
     collToReturn = coll;
-    /* TODO: change to use currentGenerators once that includes current gens only */
+    /* TODO: change to use possibleGenerators once that includes current gens only */
 
     // return Generator.findAll({ where: { currentCollector: coll.name } });
     /*
@@ -414,7 +414,7 @@ function startCollector(req, res, next) {
      * This is necessary for now since currentCollector is not being set yet.
      * Change to use only current collectors once all the assignment logic is in place.
      */
-    return coll.getCurrentGenerators();
+    return coll.getPossibleGenerators();
   })
   /* Add all the attributes necessary to send back to collector. */
   .then((gens) => Promise.all(gens.map((g) => g.updateForHeartbeat())))
