@@ -80,10 +80,7 @@ describe('tests/api/v1/generators/post.js >', () => {
     .send(g)
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
-      if (err) {
-        console.log(err);
-        return done(err);
-      }
+      if (err) return done(err);
 
       expect(res.body.apiLinks).to.be.an('Array');
       expect(res.body.name).to.include(g.name);
@@ -387,7 +384,6 @@ describe('tests/api/v1/generators/post.js >', () => {
       .then(() => validateGeneratorAspectsPermissions(aspects, req))
       .then(() => done(new Error('expecting ForbiddenError')))
       .catch((err) => {
-        console.log('HOW DID I GET HERE???', err);
         expect(err.name).to.be.equal('ForbiddenError');
         expect(err.explanation).to.be.equal('Insufficient Privileges');
         done();
