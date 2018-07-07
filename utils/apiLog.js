@@ -105,10 +105,8 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
       method: req.method,
     };
 
-    // Add "request_id" if header is set by heroku.
-    if (req.headers && req.headers['x-request-id']) {
-      logObject.request_id = req.headers['x-request-id'];
-    }
+    // Add "request_id" if header is available
+    if (req.request_id) logObject.request_id = req.request_id;
 
     /**
      * we already set UserName and TokenName in req headers when verifying
