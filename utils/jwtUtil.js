@@ -254,7 +254,7 @@ function verifyUserToken(payload, req, cb) {
     // No need to check the token record if this is the default UI token.
     if (p.username === p.tokenname) return cb();
 
-    return Token.findOne({
+    return Token.scope('verify').findOne({
       where: {
         name: p.tokenname,
         createdBy: req.user.id,

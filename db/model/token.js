@@ -94,6 +94,10 @@ module.exports = function token(seq, dataTypes) {
         },
       ],
     });
+
+    Token.addScope('verify', {
+      attributes: ['isRevoked'],
+    });
   };
 
   /**
