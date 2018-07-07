@@ -18,7 +18,7 @@ import Dropdown from '../admin/components/common/Dropdown';
 import ControlledInput from '../admin/components/common/ControlledInput';
 import ErrorRender from '../admin/components/common/ErrorRender';
 import RadioGroup from '../admin/components/common/RadioGroup';
-import { filteredArray, getConfig } from './utils';
+import { arrayFilter, getConfig } from './utils';
 
 const ZERO = 0;
 
@@ -221,7 +221,7 @@ class CreatePerspective extends React.Component {
       if (valueInState) {
 
         // remove pill from array of pills
-        newState[dropdownTitle] = filteredArray(valueInState, labelContent);
+        newState[dropdownTitle] = arrayFilter(valueInState, labelContent);
         styleObj.marginTop -= this.props.BLOCK_SIZE;
       } else {
 
@@ -284,7 +284,7 @@ class CreatePerspective extends React.Component {
     }
 
     // remove selected option from available options in dropdown
-    const arr = filteredArray(config.options || [], valueToAppend);
+    const arr = arrayFilter(config.options || [], valueToAppend);
 
     // order options alphabetically
     config.options = arr.sort();

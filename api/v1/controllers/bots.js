@@ -197,7 +197,7 @@ module.exports = {
     u.findByKey(helper, req.swagger.params)
     .then((o) => {
       o.set('lastHeartbeat', timestamp);
-      res.status(httpStatus.OK);
+      res.status(httpStatus.OK).json();
       return o.save();
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
