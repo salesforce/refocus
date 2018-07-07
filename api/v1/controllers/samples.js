@@ -201,10 +201,7 @@ module.exports = {
     const resultObj = { reqStartTime: req.timestamp };
     const requestBody = req.swagger.params.queryBody.value;
     const rLinks = requestBody.relatedLinks;
-    if (rLinks) {
-      u.checkDuplicateRLinks(rLinks);
-    }
-
+    if (rLinks) u.checkDuplicateRLinks(rLinks);
     const userName = req.user ? req.user.name : undefined;
     sampleModel.patchSample(req.swagger.params, userName)
     .then((retVal) =>
@@ -268,10 +265,7 @@ module.exports = {
     const resultObj = { reqStartTime: req.timestamp };
     const toPut = req.swagger.params.queryBody.value;
     const rLinks = toPut.relatedLinks;
-    if (rLinks) {
-      u.checkDuplicateRLinks(rLinks);
-    }
-
+    if (rLinks) u.checkDuplicateRLinks(rLinks);
     const userName = req.user ? req.user.name : undefined;
     sampleModel.putSample(req.swagger.params, userName)
     .then((retVal) =>
@@ -407,8 +401,6 @@ module.exports = {
         })
         .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
-        const sampleModel = sampleModel;
-
         /*
          * Send the upserted sample to the client by publishing it to the redis
          * channel
