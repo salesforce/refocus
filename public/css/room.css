@@ -45,3 +45,32 @@
     opacity: 0;
   }
 }
+
+#snackbar {
+  visibility: hidden;
+  position: fixed;
+  z-index: 10000;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0px;
+}
+
+#snackContent {
+  text-align: center;
+}
+
+#snackbar.show {
+  visibility: visible;
+  -webkit-animation: fadein 0.5s;
+  animation: fadein 0.5s;
+}
+
+@-webkit-keyframes fadein {
+  from {top: 0; opacity: 0;} 
+  to {top:15px; opacity: 1;}
+}
+
+@keyframes fadein {
+  from {top: 0; opacity: 0;}
+  to {top: 15px; opacity: 1;}
+}

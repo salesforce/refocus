@@ -18,6 +18,7 @@ const fs = require('fs');
 const path = require('path');
 const uiBlob = fs.readFileSync(path.join(__dirname, './uiBlob'));
 const uiBlob2 = fs.readFileSync(path.join(__dirname, './uiBlob2'));
+const constants = require('../../../../db/constants');
 
 describe('tests/db/model/bot/update.js >', () => {
   beforeEach((done) => {
@@ -75,6 +76,17 @@ describe('tests/db/model/bot/update.js >', () => {
     .catch(done);
   });
 
+  it('ok, bot displayName updated', (done) => {
+    Bot.findOne({ where: { name: u.name } })
+      .then((o) => o.update({ displayName: 'Cool New Name' }))
+      .then(() => Bot.findOne({ where: { name: u.name } }))
+      .then((o) => {
+        expect(o).to.have.property('displayName').to.equal('Cool New Name');
+        done();
+      })
+      .catch(done);
+  });
+
   it('fail, bot url bad', (done) => {
     Bot.findOne({ where: { name: u.name } })
     .then((o) => o.update({ url: 'noURL' }))
@@ -82,6 +94,19 @@ describe('tests/db/model/bot/update.js >', () => {
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
       expect(err.message.toLowerCase()).to.contain('validation error');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('fail, bot displayName too long', (done) => {
+    const newDisplayName = 'Name'.repeat(constants.fieldlen.normalName);
+    Bot.findOne({ where: { name: u.name } })
+    .then((o) => o.update({ displayName: newDisplayName }))
+    .then(() => Bot.findOne({ where: { name: u.name } }))
+    .catch((err) => {
+      expect(err.name).to.equal(tu.dbErrorName);
+      expect(err.message.toLowerCase()).to.contain('value too long');
       done();
     })
     .catch(done);
