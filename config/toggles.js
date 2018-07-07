@@ -143,6 +143,13 @@ const longTermToggles = {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const shortTermToggles = {
+  /*
+   * Stop making special call to db/redis to attach the subject for real-time
+   * publishing after sample upsert--just use the subject we already got from
+   * redis at the beginning of the upsertOneSample operation.
+   */
+  preAttachSubject: environmentVariableTrue(pe, 'PRE_ATTACH_SUBJECT'),
+
   // get subject and aspect for realtime from database
   attachSubAspFromDB: environmentVariableTrue(pe,
     'ATTACH_SUB_ASP_FROM_DB'),
@@ -177,12 +184,9 @@ const shortTermToggles = {
 
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
   requireHelpEmailOrHelpUrl: environmentVariableTrue(
-    pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'
-  ),
+    pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
 
-  autoDeactivateRooms: environmentVariableTrue(
-    pe, 'AUTO_DEACTIVATE_ROOMS'
-  ),
+  autoDeactivateRooms: environmentVariableTrue(pe, 'AUTO_DEACTIVATE_ROOMS'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
