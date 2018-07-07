@@ -73,6 +73,7 @@ const client = {
   realtimeLogging: redis.createClient(rconf.instanceUrl.realtimeLogging,
    opts),
   sampleStore: redis.createClient(rconf.instanceUrl.sampleStore, opts),
+  subjectCache: redis.createClient(rconf.instanceUrl.subjectCache, opts),
   subPerspective,
   subBot,
 };

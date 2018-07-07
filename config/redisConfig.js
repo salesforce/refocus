@@ -75,6 +75,12 @@ module.exports = {
       pe[pe.REDIS_SAMPLE_STORE] : PRIMARY_REDIS,
 
     /*
+     * subjectCache is an active cache for subjects.
+     */
+    subjectCache: pe.REDIS_SUBJECT_CACHE && pe[pe.REDIS_SUBJECT_CACHE] ?
+      pe[pe.REDIS_SUBJECT_CACHE] : PRIMARY_REDIS,
+
+    /*
      * Active browser sessions.
      */
     session: pe.REDIS_SESSION && pe[pe.REDIS_SESSION] ?

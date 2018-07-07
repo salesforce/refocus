@@ -355,10 +355,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     return cleanAddAspectToSample(updatedSamp, aspectObj);
   })
   .catch((err) => {
-    if (isBulk) {
-      return err;
-    }
-
+    if (isBulk) return err;
     throw err;
   });
 } // upsertOneSample
