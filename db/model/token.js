@@ -95,9 +95,14 @@ module.exports = function token(seq, dataTypes) {
       ],
     });
 
-    Token.addScope('verify', {
-      attributes: ['isRevoked'],
-    });
+    Token.addScope('notRevoked', (name, createdBy) => ({
+      where: {
+        name,
+        createdBy,
+        isRevoked: 0,
+      },
+      attributes: ['id'],
+    }));
   };
 
   /**
