@@ -29,7 +29,7 @@ module.exports = {
     let s2;
     let s3;
     tu.toggleOverride(sampleStore.constants.featureName, true);
-    Aspect.create({
+    return Aspect.create({
       isPublished: true,
       name: `${tu.namePrefix}Aspect1`,
       timeout: '30s',
@@ -100,7 +100,7 @@ module.exports = {
   },
 
   forceDeleteAspSampSubj(done) {
-    tu.forceDelete(tu.db.Sample, testStartTime)
+    return tu.forceDelete(tu.db.Sample, testStartTime)
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     .then(done())
@@ -108,20 +108,20 @@ module.exports = {
   },
 
   forceDeleteUserAndProf(done) {
-    tu.forceDelete(tu.db.Profile, testStartTime)
+    return tu.forceDelete(tu.db.Profile, testStartTime)
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => done())
     .catch(done);
   },
 
   flushRedis(done) {
-    rcli.flushallAsync()
+    return rcli.flushallAsync()
     .then(() => done())
     .catch(done);
   },
 
   forceDelete(done) {
-    Promise.join(
+    return Promise.join(
       rcli.flushallAsync(),
       tu.forceDelete(tu.db.Sample, testStartTime)
         .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
