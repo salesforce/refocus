@@ -406,7 +406,7 @@ function startCollector(req, res, next) {
   .then((coll) => coll ? coll.update(body) : helper.model.create(body))
   .then((coll) => {
     collToReturn = coll;
-    /* TODO: change to use possibleGenerators once that includes current gens only */
+    /* TODO: change to use currentGenerators once that includes current gens only */
 
     // return Generator.findAll({ where: { currentCollector: coll.name } });
     /*
