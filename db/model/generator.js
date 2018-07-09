@@ -316,6 +316,21 @@ module.exports = function generator(seq, dataTypes) {
     Generator.addScope('collectors', {
       include: [
         {
+
+          /*
+            According to Sequelize team when limits are set, they enforce the
+            usage of sub-queries, however, when Generator has multiple
+            associations (ie.: Collectors and User) the sub-query does not
+            expose foreign keys (Generator.createdBy).
+
+            Sequelize by default will try to create subQuery even when there is
+            no subQuery configured because the duplication flag is true by
+            default.
+
+            So, flagging duplication=false makes Sequelize avoid cartesian
+            product not generating sub-queries (further check in:
+            /sequelize/model.js, line 441).
+          */
           duplicating: false,
           association: assoc.collectors,
           attributes: [
