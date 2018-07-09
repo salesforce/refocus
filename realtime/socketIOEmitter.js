@@ -29,8 +29,10 @@ module.exports = (io, key, obj) => {
     rtUtils.initializeBotNamespace(obj, io);
   }
 
+  console.log(io);
+  console.log(io.nsps);
+
   for (const nsp in io.nsps) {
-    console.log(JSON.stringify(nsp));
     // Send events only if namespace connections > 0
     if (nsp && Object.keys(nsp).length &&
     rtUtils.shouldIEmitThisObj(nsp, obj)) {
