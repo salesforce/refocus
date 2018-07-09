@@ -221,13 +221,7 @@ function verifyUserToken(payload, req, cb) {
     return Token.scope({ method: ['notRevoked', p.tokenname, req.user.id] })
     .findOne()
     .then((found) => {
-      if (!found) {
-        const err = new apiErrors.ForbiddenError({
-          explanation: 'Token is missing, invalid or revoked--please ' +
-            'contact your Refocus administrator.',
-        });
-        throw err;
-      }
+      if (!found) throw new apiErrors.ForbiddenError();
     })
     .then(() => cb());
   });

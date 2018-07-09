@@ -27,6 +27,7 @@ describe('tests/api/v1/userTokens/revokeRestore.js, ' +
   const tname = `${tu.namePrefix}Voldemort`;
   let userId;
   let unameToken = '';
+  let voldemortToken = '';
 
   before((done) => {
     // create user __test@refocus.com
@@ -48,7 +49,10 @@ describe('tests/api/v1/userTokens/revokeRestore.js, ' +
       api.post(tokenPath)
       .set('Authorization', unameToken)
       .send({ name: tname })
-      .end(done);
+      .end((err2, res2) => {
+        voldemortToken = res2.body.token;
+        return done();
+      });
     });
   });
 
@@ -109,6 +113,30 @@ describe('tests/api/v1/userTokens/revokeRestore.js, ' +
       .send({})
       .expect(constants.httpStatus.BAD_REQUEST)
       .end(done);
+    });
+  });
+
+  it('try to use a revoked token', (done) => {
+    api.post(`${path}/${uname}/tokens/${tname}/revoke`)
+    .set('Authorization', predefinedAdminUserToken)
+    .send({})
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).to.have.property('name', tname);
+      expect(res.body.isRevoked > '0').to.be.true;
+      api.get(path)
+      .set('Authorization', voldemortToken)
+      .send({})
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err2, res2) => {
+        expect(res2.body.errors[0])
+          .to.have.property('description', 'Authentication Failed');
+        return done();
+      });
     });
   });
 
