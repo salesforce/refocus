@@ -30,8 +30,7 @@ module.exports = (io, key, obj) => {
   }
 
   for (const nsp in io.nsps) {
-    console.log(`nsp=${nsp}`);
-    console.log('nsp keys:', Object.keys(nsp));
+    console.log(JSON.stringify(nsp));
     // Send events only if namespace connections > 0
     if (nsp && Object.keys(nsp).length &&
     rtUtils.shouldIEmitThisObj(nsp, obj)) {
