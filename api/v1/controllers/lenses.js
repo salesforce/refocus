@@ -287,7 +287,10 @@ module.exports = {
           extraAttributes = ['lensLibrary'];
         }
 
-        u.findByKey(helper, req.swagger.params, extraAttributes)
+        const params = req.swagger.params;
+        const opts = u.buildFieldList(params, helper.model);
+
+        u.findByKey(helper, params, extraAttributes)
         .then((o) => {
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
           if (o.isPublished === false) {
@@ -300,6 +303,7 @@ module.exports = {
           return responsify(o, helper, req.method);
         })
         .then((responseObj) => {
+          u.removeFieldsFromResponse(opts.fieldsToExclude, responseObj);
           u.logAPI(req, resultObj, responseObj);
           res.status(httpStatus.OK).json(responseObj);
 

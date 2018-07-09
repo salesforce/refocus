@@ -267,6 +267,7 @@ module.exports = {
       sampleStore.convertSubjectStrings(subject);
       logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
       prepareFields(subject, opts, req);
+      utils.removeFieldsFromResponse(opts.fieldsToExclude, subject);
 
       const result = sampleStore.arrayObjsStringsToJson(
         subject, constants.fieldsToStringify.subject
@@ -311,8 +312,10 @@ module.exports = {
     .then((subjects) => {
       logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
       subjects.forEach(sampleStore.convertSubjectStrings);
-      const filteredSubjects = modelUtils.applyFiltersOnResourceObjs(subjects, opts);
+      const filteredSubjects = modelUtils
+        .applyFiltersOnResourceObjs(subjects, opts);
       filteredSubjects.forEach((subject) => {
+        utils.removeFieldsFromResponse(opts.fieldsToExclude, subject);
         prepareFields(subject, opts, req);
         response.push(subject); // add subject to response
       });

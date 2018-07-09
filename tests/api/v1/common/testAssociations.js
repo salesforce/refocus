@@ -106,23 +106,17 @@ function testAssociations(path, associations, joiSchema, conf) {
       .expect((res) => {
         expect(res.body).to.be.an('object');
         expect(res.body).to.have.keys('id', 'name', assoc, 'apiLinks');
-        expect(Joi.validate(res.body[assoc], joiSchema[assoc]).error).to.be.null;
+        expect(Joi.validate(res.body[assoc],
+          joiSchema[assoc]).error).to.be.null;
       })
       .end(done);
     });
   });
 
-  /*
-   * These tests fail because of a bug in sequelize.
-   * It doesn't properly handle multiple associations when a limit is applied:
-   * It selects the attributes before doing the join for the association, which
-   * causes an error when the foreign key is not included in the fields.
-   * I think it was fixed in https://github.com/sequelize/sequelize/pull/9188
-   * Skipping until we upgrade Sequelize...
-   */
-  describe.skip('sequelize bug', () => {
+  describe('Checking multiple associations', () => {
     if (associations.length > 1) {
-      it('find: multiple associations can be specified as field params', (done) => {
+      it('find: multiple associations can be specified ' +
+        'as field params', (done) => {
         const fields = ['name', ...associations].toString();
         api.get(`${path}?fields=${fields}`)
         .set('Authorization', token)
@@ -132,14 +126,16 @@ function testAssociations(path, associations, joiSchema, conf) {
           res.body.forEach((record) => {
             associations.forEach((assoc) => {
               expect(record).to.have.property(assoc);
-              expect(Joi.validate(record[assoc], joiSchema[assoc]).error).to.be.null;
+              expect(Joi.validate(record[assoc],
+                  joiSchema[assoc]).error).to.be.null;
             });
           });
         })
         .end(done);
       });
 
-      it('get by key: multiple associations can be specified as field params', (done) => {
+      it('get by key: multiple associations can be specified as' +
+        ' field params', (done) => {
         const fields = ['name', ...associations].toString();
         api.get(`${path}/${recordId}?fields=${fields}`)
         .set('Authorization', token)
@@ -147,7 +143,8 @@ function testAssociations(path, associations, joiSchema, conf) {
         .expect((res) => {
           associations.forEach((assoc) => {
             expect(res.body).to.have.property(assoc);
-            expect(Joi.validate(res.body[assoc], joiSchema[assoc]).error).to.be.null;
+            expect(Joi.validate(res.body[assoc],
+                joiSchema[assoc]).error).to.be.null;
           });
         })
         .end(done);

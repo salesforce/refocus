@@ -122,8 +122,10 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
  * @param {Object} The input object without the keys in fieldsArr
  */
 function removeFieldsFromResponse(fieldsToExclude, responseObj) {
-  for (let i = fieldsToExclude.length - 1; i >= 0; i--) {
-    delete responseObj[fieldsToExclude[i]];
+  if (fieldsToExclude) {
+    for (let i = fieldsToExclude.length - 1; i >= 0; i--) {
+      delete responseObj[fieldsToExclude[i]];
+    }
   }
 } // removeFieldsFromResponse
 
@@ -238,19 +240,45 @@ function handleAssociations(reqObj, inst, props, method) {
 } // handleAssociations
 
 /**
- * Generates sequelize options object with all the appropriate attributes
+ * Generates Sequelize options object with all the appropriate attributes
  * (fields) and includes, and taking virtual fields into account as well.
- * Always include the "id" field even if it was not explicitly requested.
+ * Include always:
+ *  The "id" field even if it was not explicitly requested.
+ *  All table foreign keys to avoid multiple association nested queries
+ *  failures.
  *
  * @param {Object} params - The request parameters
- * @returns {Object} - Sequelize options
+ * @param {Object} model - The helpers/nouns DB model
+ * @returns {Object} - option containing either attributes to be used
+ *  in Sequelize and foreign keys to be removed when send back to the client.
  */
-function buildFieldList(params) {
+function buildFieldList(params, model) {
   const opts = {};
   if (params.fields && params.fields.value) {
     opts.attributes = params.fields.value;
     if (!opts.attributes.includes('id')) {
       opts.attributes.push('id');
+    }
+
+    /*
+      Includes all model's FK for an eventual outer join.
+      This is a workaround when it selects the attributes before
+      doing the join for the association, which
+      causes an error when the foreign key is not included in the fields.
+    */
+    if (model) {
+      opts.fieldsToExclude = [];
+      const keys = Object.keys(model.attributes);
+      keys.forEach((key) => {
+        if (model.attributes && model.attributes[key].references) {
+          if (opts.attributes.indexOf(key) === NOT_FOUND) {
+            opts.attributes.push(key);
+          }
+
+          /* Provides FKs list to be removed when required. */
+          opts.fieldsToExclude.push(key);
+        }
+      });
     }
   }
 
@@ -637,14 +665,15 @@ function cleanAndStripNulls(obj) {
  */
 function findByKey(props, params, extraAttributes) {
   const key = params.key.value;
-  const opts = buildFieldList(params);
+  const opts = buildFieldList(params, props.model);
   const keyClause = {};
   keyClause[Op.iLike] = key;
   opts.where = {};
   opts.where[props.nameFinder || 'name'] = keyClause;
 
   let attrArr = opts.attributes;
-  if (extraAttributes && Array.isArray(extraAttributes) && extraAttributes.length) {
+  if (extraAttributes && Array.isArray(extraAttributes) &&
+    extraAttributes.length) {
     if (attrArr) {
       attrArr.push(...extraAttributes);
     } else {

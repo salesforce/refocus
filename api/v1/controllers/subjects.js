@@ -274,16 +274,20 @@ module.exports = {
 
     const resultObj = {
       reqStartTime: Date.now(),
-      params: params,
+      params,
     };
 
-    if (featureToggles.isFeatureEnabled('enableWorkerProcess')
-    && featureToggles.isFeatureEnabled('enqueueHierarchy')) {
+    const opts = u.buildFieldList(params, helper.model);
+
+    if (featureToggles.isFeatureEnabled('enableWorkerProcess') &&
+      featureToggles.isFeatureEnabled('enqueueHierarchy')) {
       jobWrapper.createJob(jobType.GET_HIERARCHY, resultObj, req)
       .ttl(WORKER_TTL)
       .on('complete', (resultObj) => {
-        u.logAPI(req, resultObj, resultObj.retval);
-        res.status(httpStatus.OK).json(resultObj.retval);
+        const subject = resultObj.retval;
+        u.removeFieldsFromResponse(opts.fieldsToExclude, subject);
+        u.logAPI(req, resultObj, subject);
+        res.status(httpStatus.OK).json(subject);
       })
       .on('failed', (errString) => {
         let parsedErr;
@@ -294,9 +298,9 @@ module.exports = {
         }
 
         let newErr;
-        if (parsedErr) { //errString contains a serialized error object.
-
-          //create a new error object of the correct type
+        if (parsedErr) {
+          // errString contains a serialized error object.
+          // create a new error object of the correct type
           if (apiErrors[parsedErr.name]) {
             newErr = new apiErrors[parsedErr.name]();
           } else if (global[parsedErr.name]) {
@@ -305,15 +309,14 @@ module.exports = {
             newErr = new Error();
           }
 
-          //copy props to new error
+          // copy props to new error
           Object.keys(parsedErr).forEach((prop) => {
-            if (!newErr.hasOwnProperty(prop)
-            || Object.getOwnPropertyDescriptor(newErr, prop).writable) {
+            if (!newErr.hasOwnProperty(prop) ||
+              Object.getOwnPropertyDescriptor(newErr, prop).writable) {
               newErr[prop] = parsedErr[prop];
             }
           });
-
-        } else { //errString contains an error message.
+        } else {
           if (errString === 'TTL exceeded') {
             newErr = new apiErrors.WorkerTimeoutError();
           } else {
@@ -326,8 +329,10 @@ module.exports = {
     } else {
       doGetHierarchy(resultObj)
       .then((resultObj) => {
-        u.logAPI(req, resultObj, resultObj.retval);
-        res.status(httpStatus.OK).json(resultObj.retval);
+        const subject = resultObj.retval;
+        u.removeFieldsFromResponse(opts.fieldsToExclude, subject);
+        u.logAPI(req, resultObj, subject);
+        res.status(httpStatus.OK).json(subject);
       })
       .catch((err) => {
         u.handleError(next, err, helper.modelName);
