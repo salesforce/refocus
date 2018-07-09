@@ -245,12 +245,24 @@ function handleAssociations(reqObj, inst, props, method) {
  * @param {Object} params - The request parameters
  * @returns {Object} - Sequelize options
  */
-function buildFieldList(params) {
+function buildFieldList(params, props) {
   const opts = {};
   if (params.fields && params.fields.value) {
     opts.attributes = params.fields.value;
     if (!opts.attributes.includes('id')) {
       opts.attributes.push('id');
+    }
+
+    if (props && props.model) {
+      /*
+       * Includes all model's FK for an eventual outer join.
+       */
+      const keys = Object.keys(props.model.attributes);
+      keys.forEach((key) => {
+        if (props.model.attributes && props.model.attributes[key].references) {
+          opts.attributes.push(key);
+        }
+      });
     }
   }
 
@@ -637,7 +649,7 @@ function cleanAndStripNulls(obj) {
  */
 function findByKey(props, params, extraAttributes) {
   const key = params.key.value;
-  const opts = buildFieldList(params);
+  const opts = buildFieldList(params, props);
   const keyClause = {};
   keyClause[Op.iLike] = key;
   opts.where = {};
