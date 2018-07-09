@@ -248,7 +248,7 @@ module.exports = function collector(seq, dataTypes) {
    * @returns {Promise<Array<Generator>>}
    */
   Collector.prototype.reassignGenerators = function () {
-    /* TODO: change to use possibleGenerators once that includes current gens only */
+    /* TODO: change to use currentGenerators once that includes current gens only */
     return seq.models.Generator.findAll({ where: { currentCollector: this.name } })
     .map((g) => {
       g.assignToCollector();
