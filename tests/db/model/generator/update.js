@@ -11,8 +11,10 @@
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
+require('chai').use(require('chai-as-promised')).should();
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const sinon = require('sinon');
 const gtUtil = u.gtUtil;
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
@@ -20,6 +22,7 @@ const GeneratorTemplate = tu.db.GeneratorTemplate;
 const GlobalConfig = tu.db.GlobalConfig;
 const cryptUtils = require('../../../../utils/cryptUtils');
 const constants = require('../../../../db/constants');
+const collectorStatuses = require('../../../../db/constants').collectorStatuses;
 
 describe('tests/db/model/generator/update.js >', () => {
   const generator = u.getGenerator();
@@ -38,11 +41,11 @@ describe('tests/db/model/generator/update.js >', () => {
 
   let generatorDBInstance;
   let sgtDBInstance;
-  const collectorObj1 = {
+  let collectorObj1 = {
     name: 'collector1',
     version: '1.0.0',
   };
-  const collectorObj2 = {
+  let collectorObj2 = {
     name: 'collector2',
     version: '1.0.0',
   };
@@ -59,10 +62,12 @@ describe('tests/db/model/generator/update.js >', () => {
     })
     .then(() => Collector.create(collectorObj1))
     .then((c) => {
+      collectorObj1 = c;
       generatorDBInstance.addPossibleCollector(c.id);
       return Collector.create(collectorObj2);
     })
     .then((c) => {
+      collectorObj2 = c;
       generatorDBInstance.addPossibleCollector(c.id);
       done();
     }).catch(done);
@@ -281,6 +286,124 @@ describe('tests/db/model/generator/update.js >', () => {
       expect(err.name).to.contain('SampleGeneratorContextEncryptionError');
       done();
     });
+  });
+
+  describe('changing isActive reassigns collector', () => {
+    let clock;
+    let now = Date.now();
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers(now);
+      return collectorObj1.update({
+        lastHeartbeat: now,
+        status: collectorStatuses.Running,
+      });
+    });
+
+    afterEach(() => clock.restore());
+
+    it('turning on isActive assigns to a collector', () => {
+      const gen = generatorDBInstance;
+      return gen.reload()
+      .then(() => gen.update({ isActive: false }, { validate: false, hooks: false }))
+      .then(() => expect(gen.currentCollector).to.equal(null))
+      .then(() => gen.update({ isActive: true }))
+      .then(() => expect(gen.currentCollector).to.equal(collectorObj1.name));
+    });
+
+    it('turning off isActive unassigns the generator', () => {
+      const gen = generatorDBInstance;
+      return gen.reload()
+      .then(() => gen.update({ isActive: true }, { validate: false, hooks: false }))
+      .then(() => expect(gen.currentCollector).to.equal(collectorObj1.name))
+      .then(() => gen.update({ isActive: false }))
+      .then(() => expect(gen.currentCollector).to.equal(null));
+    });
+  });
+
+  describe('isActive validation', () => {
+    function doUpdate(changes) {
+      const initialCollectorsValue = changes.collectors.initial;
+      const initialIsActiveValue = {
+        isActive: changes.isActive.initial,
+      };
+      const updateValues = {
+        collectors: changes.collectors.update,
+        isActive: changes.isActive.update,
+      };
+
+      return Promise.resolve()
+      .then(() => Generator.findById(generatorDBInstance.id))
+      .then((gen) => gen.update(initialIsActiveValue, { validate: false }))
+      .then(() => Generator.findById(generatorDBInstance.id))
+      .then((gen) => gen.setCollectors(initialCollectorsValue))
+      .then(() => Generator.findById(generatorDBInstance.id))
+      .then((gen) => {
+        if (updateValues.isActive !== undefined) {
+          return gen.update({ isActive: updateValues.isActive });
+        } else if (updateValues.collectors !== undefined) {
+          return gen.setCollectors(updateValues.collectors);
+        }
+      });
+    }
+
+    it('existing collectors, set isActive', () =>
+      doUpdate({
+        collectors: { initial: [collectorObj1], },
+        isActive: { initial: false, update: true, },
+      }).should.eventually.be.fulfilled
+    );
+
+    it('existing collectors, unset isActive', () =>
+      doUpdate({
+        collectors: { initial: [collectorObj1], },
+        isActive: { initial: true, update: false, },
+      }).should.eventually.be.fulfilled
+    );
+
+    it('no existing collectors, set isActive', () =>
+      doUpdate({
+        collectors: { initial: [], },
+        isActive: { initial: false, update: true, },
+      }).should.eventually.be.rejectedWith(
+        'isActive can only be turned on if at least one collector is specified.'
+      )
+    );
+
+    it('no existing collectors, unset isActive', () =>
+      doUpdate({
+        collectors: { initial: [], },
+        isActive: { initial: true, update: false, },
+      }).should.eventually.be.fulfilled
+    );
+
+    it('isActive=false, set collectors', () =>
+      doUpdate({
+        isActive: { initial: false },
+        collectors: { initial: [], update: [collectorObj1] },
+      }).should.eventually.be.fulfilled
+    );
+
+    it('isActive=false, unset collectors', () =>
+      doUpdate({
+        isActive: { initial: false },
+        collectors: { initial: [collectorObj1], update: [] },
+      }).should.eventually.be.fulfilled
+    );
+
+    it('isActive=true, set collectors', () =>
+      doUpdate({
+        isActive: { initial: true },
+        collectors: { initial: [], update: [collectorObj1] },
+      }).should.eventually.be.fulfilled
+    );
+
+    it('isActive=true, unset collectors', () =>
+      doUpdate({
+        isActive: { initial: true },
+        collectors: { initial: [collectorObj1], update: [] },
+      }).should.eventually.be.fulfilled
+    );
   });
 
   describe('with GlobalConfig for SG/SGT added', () => {

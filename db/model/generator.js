@@ -167,6 +167,10 @@ module.exports = function generator(seq, dataTypes) {
       beforeUpdate(inst /* , opts */) {
         const gtName = inst.generatorTemplate.name;
         const gtVersion = inst.generatorTemplate.version;
+        if (inst.changed('isActive')) {
+          inst.assignToCollector();
+        }
+
         if (inst.changed('generatorTemplate') || inst.changed('context')) {
           return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
             .then((gt) => {
@@ -194,7 +198,7 @@ module.exports = function generator(seq, dataTypes) {
       afterCreate(inst /* , opts*/) {
         return Promise.all([
           Promise.resolve().then(() => {
-            if (inst.currentCollector && inst.isActive) {
+            if (inst.currentCollector) {
               const newCollector = inst.currentCollector;
               return hbUtils.trackGeneratorChanges(inst, null, newCollector);
             }
@@ -205,21 +209,11 @@ module.exports = function generator(seq, dataTypes) {
             }
           }),
         ]);
-
-        return inst;
       }, // afterCreate
 
       afterUpdate(inst) {
         let oldCollector = inst.previous('currentCollector');
         let newCollector = inst.get('currentCollector');
-        if (!inst.previous('isActive') && inst.get('isActive')) {
-          oldCollector = null;
-        } else if (inst.previous('isActive') && !inst.get('isActive')) {
-          newCollector = null;
-        } else if (!inst.previous('isActive') && !inst.get('isActive')) {
-          oldCollector = newCollector = null;
-        }
-
         return hbUtils.trackGeneratorChanges(inst, oldCollector, newCollector);
       }, //afterUpdate
     },
@@ -229,6 +223,16 @@ module.exports = function generator(seq, dataTypes) {
             (!this.subjects && !this.subjectQuery)) {
           throw new ValidationError('Only one of ["subjects", ' +
             '"subjectQuery"] is required');
+        }
+      },
+
+      isActiveAndCollectors() {
+        const isActiveSet = this.changed('isActive') && this.isActive;
+        const existingCollectors = this.collectors && this.collectors.length;
+        if (isActiveSet && !existingCollectors) {
+          throw new ValidationError(
+            'isActive can only be turned on if at least one collector is specified.'
+          );
         }
       },
     },
@@ -321,6 +325,21 @@ module.exports = function generator(seq, dataTypes) {
     Generator.addScope('possibleCollectors', {
       include: [
         {
+          /*
+            According to Sequelize team when limits are set, they enforce the
+            usage of sub-queries, however, when Generator has multiple
+            associations (ie.: Collectors and User) the sub-query does not
+            expose foreign keys (Generator.createdBy).
+
+            Sequelize by default will try to create subQuery even when there is
+            no subQuery configured because the duplication flag is true by
+            default.
+
+            So, flagging duplication=false makes Sequelize avoid cartesian
+            product not generating sub-queries (further check in:
+            /sequelize/model.js, line 441).
+          */
+          duplicating: false,
           association: assoc.possibleCollectors,
           attributes: [
             'id',
@@ -359,20 +378,17 @@ module.exports = function generator(seq, dataTypes) {
    */
   Generator.createWithCollectors = function (requestBody) {
     let createdGenerator;
-    let collectors; // will be populated with actual collectors
-    return new seq.Promise((resolve, reject) =>
-      sgUtils.validateCollectors(seq, requestBody.possibleCollectors)
-      .then((_collectors) => {
-        collectors = _collectors;
-        return Generator.create(requestBody);
-      })
-      .then((_createdGenerator) => {
-        createdGenerator = _createdGenerator;
-        return _createdGenerator.addPossibleCollectors(collectors);
-      })
-      .then(() => resolve(createdGenerator.reload()))
-      .catch(reject)
-    );
+    let collectors;
+
+    return Promise.resolve()
+    .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
+    .then((_collectors) => collectors = _collectors)
+    .then(() => createdGenerator = Generator.build(requestBody))
+    .then(() => createdGenerator.possibleCollectors = collectors) // mock for validation
+    .then(() => createdGenerator.save())
+    .then((gen) => createdGenerator = gen)
+    .then(() => createdGenerator.addPossibleCollectors(collectors))
+    .then(() => createdGenerator.reload());
   };
 
   Generator.findForHeartbeat = function (findOpts) {
@@ -388,24 +404,18 @@ module.exports = function generator(seq, dataTypes) {
   /**
    * 1. validate the collectors field: if succeed, save the collectors in
    *  temp var for attaching to the generator. if fail, abort the operation
-   * 2. update the generator
-   * 3. add the saved collectors (if any)
+   * 2. add the saved collectors (if any)
+   * 3. update the generator
    *
    * @param {Object} requestBody From API
    * @returns {Promise} created generator with collectors (if any)
    */
   Generator.prototype.updateWithCollectors = function (requestBody) {
-    let collectors; // will be populated with actual collectors
-    return new seq.Promise((resolve, reject) => {
-      sgUtils.validateCollectors(seq, requestBody.possibleCollectors)
-      .then((_collectors) => { // collectors list in request body
-        collectors = _collectors;
-        return this.update(requestBody);
-      })
-      .then(() => this.addPossibleCollectors(collectors))
-      .then(() => resolve(this.reload()))
-      .catch(reject);
-    });
+    return Promise.resolve()
+    .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
+    .then((collectors) => this.addPossibleCollectors(collectors))
+    .then(() => this.update(requestBody))
+    .then(() => this.reload());
   };
 
   Generator.prototype.isWritableBy = function (who) {
@@ -447,26 +457,16 @@ module.exports = function generator(seq, dataTypes) {
    * Assigns the generator to an available collector.
    * If the generator specifies a "collectors" attribute, only collectors on that
    * list may be assigned. Otherwise, any collector may be used.
-   *
-   * @returns {Promise<Generator>}
+   * Note that this doesn't save the change to the db, it only updates the
+   * currentCollector field and expects the caller to save later.
    */
   Generator.prototype.assignToCollector = function () {
-    return Promise.resolve()
-    .then(() => {
-      if (this.possibleCollectors && this.possibleCollectors.length) {
-        return this.possibleCollectors.find((c) => c.isRunning() && c.isAlive());
-      } else {
-        return seq.models.Collector.findAliveCollector();
-      }
-    })
-    .then((newColl) => {
-      if (newColl) {
-        return this.update({ currentCollector: newColl.name });
-      } else {
-        return this;
-      }
-    });
+    if (this.isActive && this.possibleCollectors && this.possibleCollectors.length) {
+      this.possibleCollectors.sort((c1, c2) => c1.name > c2.name);
+      const newColl = this.possibleCollectors.find((c) => c.isRunning() && c.isAlive());
+      this.currentCollector = newColl ? newColl.name : null;
+    } else {
+      this.currentCollector = null;
+    }
   };
-
-  return Generator;
 };
