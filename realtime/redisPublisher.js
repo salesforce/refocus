@@ -154,7 +154,7 @@ function publishSampleNoChange(sample) {
        * getting real-time events
        */
       timeout: sample.aspectTimeout,
-    }
+    },
   };
   return Promise.resolve(true)
   .then(() => {

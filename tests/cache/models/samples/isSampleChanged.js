@@ -26,9 +26,6 @@ const fromRequest = {
   aspectId: '04f875b7-1b51-4820-8b25-6bf238b6597c',
 };
 
-/*
- * Note that 
- */
 const fromRedis = {
   name: 'california.sanfrancisco|temperature',
   user: '{"name":"jane@doe.com","email":"jane@doe.com","profile":{"name":"RefocusUser"}}',
