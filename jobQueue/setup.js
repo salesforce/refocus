@@ -47,6 +47,7 @@ module.exports = {
     JOB_CLEANUP: 1,
     PERSIST_SAMPLE_STORE: 1,
     SAMPLE_TIMEOUT: 1,
+    CHECK_MISSED_HEARTBEAT: 1,
   },
   jobQueue,
   jobType: {

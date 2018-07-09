@@ -32,6 +32,7 @@ const sampleTimeoutJob = require('./jobs/sampleTimeoutJob');
 const persistSampleStoreJob = require('./jobs/persistSampleStoreJob');
 const createAuditEventJob = require('./jobs/createAuditEventsJob');
 const bulkDeleteSubjectsJob = require('./jobs/bulkDeleteSubjectsJob');
+const checkMissedHeartbeatJob = require('./jobs/checkMissedHeartbeatJob');
 
 const workerStarted = 'Worker Process Started';
 logger.info(workerStarted);
@@ -50,3 +51,5 @@ jobQueue.process(jobType.BULK_CREATE_AUDIT_EVENTS,
   jobConcurrency.BULK_CREATE_AUDIT_EVENTS, createAuditEventJob);
 jobQueue.process(jobType.BULK_DELETE_SUBJECTS,
   jobConcurrency.BULK_DELETE_SUBJECTS, bulkDeleteSubjectsJob);
+jobQueue.process(jobType.CHECK_MISSED_HEARTBEAT,
+  jobConcurrency.CHECK_MISSED_HEARTBEAT, checkMissedHeartbeatJob);
