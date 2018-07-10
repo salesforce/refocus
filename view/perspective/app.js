@@ -133,6 +133,9 @@ function handleEvent(eventData, eventTypeName) {
   } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_DEL) {
     const sample = j[eventTypeName];
     updateDeletedTimeoutValues(sample.aspect.timeout);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_NC) {
+    const sample = j[eventTypeName];
+    updateTimeoutValues(sample.aspect.timeout);
   }
 } // handleEvent
 
@@ -192,6 +195,9 @@ function setupSocketIOClient(persBody) {
   });
   socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
     handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
+  });
+  socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
+    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
   });
 } // setupSocketIOClient
 
