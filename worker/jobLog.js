@@ -17,10 +17,10 @@ module.exports = (startTime, job, description) => {
     const jobLog = {
       jobId: job.id,
       jobType: job.type,
-      pid: process.pid,
+      process: process.env.DYNO || process.pid,
       totalTime: `${Date.now() - startTime}ms`,
     };
-    if (description) jobLog.description = description;
+    if (description) jobLog.description = `"${description}"`;
     activityLogUtil.printActivityLogString(jobLog, 'job');
   }
 };
