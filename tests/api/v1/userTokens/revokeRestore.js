@@ -20,7 +20,7 @@ const expect = require('chai').expect;
 const registerPath = '/v1/register';
 const tokenPath = '/v1/tokens';
 
-describe('tests/api/v1/userTokens/revokeRestore.js, ' +
+describe.only('tests/api/v1/userTokens/revokeRestore.js, ' +
 `POST ${path}/U/tokens/T/[revoke|restore] >`, () => {
   const predefinedAdminUserToken = tu.createAdminToken();
   const uname = `${tu.namePrefix}test@refocus.com`;
@@ -116,30 +116,6 @@ describe('tests/api/v1/userTokens/revokeRestore.js, ' +
     });
   });
 
-  it('try to use a revoked token', (done) => {
-    api.post(`${path}/${uname}/tokens/${tname}/revoke`)
-    .set('Authorization', predefinedAdminUserToken)
-    .send({})
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body).to.have.property('name', tname);
-      expect(res.body.isRevoked > '0').to.be.true;
-      api.get(path)
-      .set('Authorization', voldemortToken)
-      .send({})
-      .expect(constants.httpStatus.FORBIDDEN)
-      .end((err2, res2) => {
-        expect(res2.body.errors[0])
-          .to.have.property('description', 'Authentication Failed');
-        return done();
-      });
-    });
-  });
-
   it('admin user, token to be restored not found', (done) => {
     api.post(`${path}/${uname}/tokens/foo/restore`)
     .set('Authorization', predefinedAdminUserToken)
@@ -167,6 +143,45 @@ describe('tests/api/v1/userTokens/revokeRestore.js, ' +
 
       expect(res.body.errors[0].type).to.be.equal('ResourceNotFoundError');
       done();
+    });
+  });
+
+  describe('revoked >', () => {
+    let tokenNameForTokenToBeRevoked = 'TokenNameForTokenToBeRevoked';
+    let tokenToBeRevoked = '';
+
+    before((done) => {
+      api.post(tokenPath)
+      .set('Authorization', unameToken)
+      .send({ name: tokenNameForTokenToBeRevoked })
+      .end((err, res) => {
+        tokenToBeRevoked = res.body.token;
+
+        api.post(`${path}/${uname}/tokens/${tokenNameForTokenToBeRevoked}/revoke`)
+        .set('Authorization', predefinedAdminUserToken)
+        .send({})
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          return done();
+        });
+      });
+    });
+
+    it('try to use a revoked token', (done) => {
+      /* note: this token was revoked in the 'admin user, ok' test */
+      api.get(path)
+      .set('Authorization', voldemortToken)
+      .send({})
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err2, res2) => {
+        expect(res2.body.errors[0])
+          .to.have.property('description', 'Authentication Failed');
+        return done();
+      });
     });
   });
 });
