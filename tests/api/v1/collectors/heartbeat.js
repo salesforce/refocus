@@ -305,7 +305,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
 
         it('create with collector that doesnt exist', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector4, 404))
+          .then(() => u.createGenerator(generator1, userId, collector4))
           .then(() => u.startCollector(collector4, collectorTokens, userToken))
           .then(() => u.sendHeartbeat(collector4, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 },
@@ -316,7 +316,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         it('update with collector that doesnt exist', (done) => {
           Promise.resolve()
           .then(() => u.createGenerator(generator1, userId, null))
-          .then(() => u.updateGenerator(generator1, userToken, collector4, 404))
+          .then(() => u.updateGenerator(generator1, userToken, collector4))
           .then(() => u.startCollector(collector4, collectorTokens, userToken))
           .then(() => u.sendHeartbeat(collector4, collectorTokens))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 },
@@ -385,72 +385,6 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then(done).catch(done);
         });
 
-      });
-
-      describe('isActive', () => {
-        it('false - no change', (done) => {
-          Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1, false))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => {
-            u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res);
-          })
-          .then(done).catch(done);
-        });
-
-        it('true - added', (done) => {
-          Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1, true))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => {
-            u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res);
-          })
-          .then(done).catch(done);
-        });
-
-        it('false -> false: no change', (done) => {
-          Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1, false))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.updateGenerator(generator1, userToken, null, false))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 },
-            res))
-          .then(done).catch(done);
-        });
-
-        it('false -> true: added', (done) => {
-          Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1, false))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.updateGenerator(generator1, userToken, null, true))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 },
-            res))
-          .then(done).catch(done);
-        });
-
-        it('true -> false: deleted', (done) => {
-          Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1, true))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.updateGenerator(generator1, userToken, null, false))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 },
-            res))
-          .then(done).catch(done);
-        });
-
-        it('true -> true: updated', (done) => {
-          Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1, true))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.updateGenerator(generator1, userToken, null, true))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 },
-            res))
-          .then(done).catch(done);
-        });
       });
 
       describe('basic changes to multiple generators >', () => {
