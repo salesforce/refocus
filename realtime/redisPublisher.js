@@ -124,7 +124,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
   } else {
     prom = rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel);
   }
-  
+
   return prom.then((sample) => {
     if (sample) {
       publishObject(sample, eventType);
