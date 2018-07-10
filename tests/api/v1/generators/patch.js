@@ -113,14 +113,11 @@ describe('tests/api/v1/generators/patch.js >', () => {
     .end(done);
   });
 
-  it('switch isActive from false to true', (done) => {
+  it('error, switch isActive from false to true with no collectors', (done) => {
     api.patch(`${path}/${i}`)
     .set('Authorization', token)
     .send({ isActive: true })
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.isActive).to.equal(true);
-    })
+    .expect(constants.httpStatus.BAD_REQUEST)
     .end(done);
   });
 

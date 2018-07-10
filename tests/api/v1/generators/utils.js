@@ -18,7 +18,6 @@ const Aspect = tu.db.Aspect;
 const GENERATOR_SIMPLE = {
   name: 'refocus-ok-generator',
   description: 'Collect status data',
-  isActive: true,
   tags: [
     'status',
     'STATUS',

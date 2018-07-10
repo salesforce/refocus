@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
+require('chai').use(require('chai-as-promised')).should();
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const gtUtil = u.gtUtil;
@@ -132,5 +133,121 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
       expect(err.resourceKey).to.deep.equal(_collectors);
       done();
     });
+  });
+
+  describe('isActive validation', () => {
+    function testUpdateWithCollectors(changes) {
+      const initialValues = {
+        collectors: changes.collectors.initial,
+        isActive: changes.isActive.initial,
+      };
+      const updates = {
+        collectors: changes.collectors.update,
+        isActive: changes.isActive.update,
+      };
+
+      Object.keys(updates).forEach((key) => {
+        if (updates[key] === undefined) delete updates[key];
+      });
+
+      let expectedCollectors = initialValues.collectors;
+      let expectedIsActive = initialValues.isActive;
+      if (changes.expectSuccess) {
+        if (updates.collectors !== undefined) {
+          expectedCollectors = updates.collectors;
+        }
+
+        if (updates.isActive !== undefined) {
+          expectedIsActive = updates.isActive;
+        }
+      }
+
+      let promise = Promise.resolve()
+      .then(() => Generator.findById(generatorDBInstance.id))
+      .then((gen) => gen.update(initialValues, { validate: false }))
+      .then(() => Generator.findById(generatorDBInstance.id))
+      .then((gen) => gen.setCollectors(initialValues.collectors))
+      .then(() => Generator.findById(generatorDBInstance.id))
+      .then((gen) => gen.updateWithCollectors(updates));
+
+      if (changes.expectSuccess) {
+        promise = promise.should.eventually.be.fulfilled;
+      } else {
+        promise = promise.should.eventually.be.rejectedWith(
+          'isActive can only be turned on if at least one collector is specified.'
+        );
+      }
+
+      return promise.then(() => Generator.findById(generatorDBInstance.id))
+      .then((gen) => {
+        expect(gen.collectors).to.have.lengthOf(expectedCollectors.length);
+        expect(gen.isActive).to.equal(expectedIsActive);
+      });
+    }
+
+    it('existing collectors, set isActive', () =>
+      testUpdateWithCollectors({
+        collectors: { initial: [collector1], },
+        isActive: { initial: false, update: true, },
+        expectSuccess: true,
+      })
+    );
+
+    it('existing collectors, unset isActive', () =>
+      testUpdateWithCollectors({
+        collectors: { initial: [collector1], },
+        isActive: { initial: true, update: false, },
+        expectSuccess: true,
+      })
+    );
+
+    it('no existing collectors, set isActive', () =>
+      testUpdateWithCollectors({
+        collectors: { initial: [], },
+        isActive: { initial: false, update: true, },
+        expectSuccess: false,
+      })
+    );
+
+    it('no existing collectors, unset isActive', () =>
+      testUpdateWithCollectors({
+        collectors: { initial: [], },
+        isActive: { initial: true, update: false, },
+        expectSuccess: true,
+      })
+    );
+
+    it('isActive=false, set collectors', () =>
+      testUpdateWithCollectors({
+        isActive: { initial: false },
+        collectors: { initial: [], update: [collector1.name] },
+        expectSuccess: true,
+      })
+    );
+
+    it('isActive=true, set collectors', () =>
+      testUpdateWithCollectors({
+        isActive: { initial: true },
+        collectors: { initial: [], update: [collector1.name] },
+        expectSuccess: true,
+      })
+    );
+
+    it('set collectors, set isActive', () =>
+      testUpdateWithCollectors({
+        collectors: { initial: [], update: [collector1.name] },
+        isActive: { initial: false, update: true, },
+        expectSuccess: true,
+      })
+    );
+
+    it('set collectors, unset isActive', () =>
+      testUpdateWithCollectors({
+        collectors: { initial: [], update: [collector1.name] },
+        isActive: { initial: true, update: false, },
+        expectSuccess: true,
+      })
+    );
+
   });
 });
