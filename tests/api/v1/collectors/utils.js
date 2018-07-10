@@ -90,12 +90,9 @@ function getCollector(userToken, collector) {
   .endAsync();
 }
 
-function createGenerator(gen, userId, collector, isActive) {
+function createGenerator(gen, userId, collector) {
   gen = JSON.parse(JSON.stringify(gen));
   gen.createdBy = userId;
-  if (isActive !== undefined) {
-    gen.isActive = isActive;
-  }
 
   if (collector) {
     gen.currentCollector = collector.name;
@@ -106,12 +103,9 @@ function createGenerator(gen, userId, collector, isActive) {
   return Generator.create(gen);
 }
 
-function updateGenerator(gen, userToken, collector, isActive) {
+function updateGenerator(gen, userToken, collector) {
   gen = JSON.parse(JSON.stringify(gen));
   const updateData = { description: 'UPDATED' };
-  if (isActive !== undefined) {
-    updateData.isActive = isActive;
-  }
 
   if (collector) {
     updateData.currentCollector = collector.name;
