@@ -100,9 +100,10 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
     // create api activity log object
     const logObject = {
       ipAddress: activityLogUtil.getIPAddrFromReq(req),
+      method: req.method,
+      process: req.process,
       requestBytes: getSize(req.body),
       uri: req.url,
-      method: req.method,
     };
 
     // Add "request_id" if header is available
