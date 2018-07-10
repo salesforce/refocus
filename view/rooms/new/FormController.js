@@ -108,7 +108,6 @@ class FormController extends React.Component {
     const result = this.state.types.filter((rt) =>
       rt.id === event.target.value
     );
-
     this.setState({
       type: event.target.value,
       settings: result[FIRST_ENTRY].settings,
