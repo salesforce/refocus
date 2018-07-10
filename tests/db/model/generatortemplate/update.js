@@ -189,7 +189,7 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
       GeneratorTemplate.bulkCreate([gt1, gt2])
       .then((gtscreated) => {
         gtid = gtscreated[0].id;
-        return Generator.create(g);
+        return Generator.create(g, { validate: false });
       })
       .then(() => GeneratorTemplate.findById(gtid))
       .then((gt) => gt.update({ isPublished: false }))
@@ -219,7 +219,7 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
       GeneratorTemplate.bulkCreate([gt1, gt2])
       .then((gtscreated) => {
         gtid = gtscreated[0].id;
-        return Generator.create(g);
+        return Generator.create(g, { validate: false });
       })
       .then(() => GeneratorTemplate.findById(gtid))
       .then((gt) => gt.update({ isPublished: false }))
@@ -249,7 +249,7 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
       GeneratorTemplate.bulkCreate([gt1, gt2])
       .then((gtscreated) => {
         gtid = gtscreated[0].id;
-        return Generator.create(g);
+        return Generator.create(g, { validate: false });
       })
       .then(() => GeneratorTemplate.findById(gtid))
       .then((gt) => gt.update({ isPublished: false }))
