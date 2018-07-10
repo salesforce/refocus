@@ -2066,6 +2066,13 @@ paths:
           type: string
           required: true
         -
+          name: displayName
+          in: formData
+          description: The name displayed in the bot header.
+          type: string
+          maxLength: 60
+          required: false
+        -
           name: actions
           in: formData
           description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
@@ -2212,6 +2219,10 @@ paths:
               version:
                 type: string
                 description: The version of the bot. Use Semantic Versioning 2.0.0
+              displayName:
+                type: string
+                maxLength: 60
+                description: The name displayed in the bot header.
               actions:
                 type: array
                 description: Array of objects that contain the name of actions a bot can take and an array of parameters needed for that action
@@ -2276,6 +2287,12 @@ paths:
           in: formData
           description: The version of the bot. Use Semantic Versioning 2.0.0
           type: string
+        -
+          name: displayName
+          in: formData
+          description: The name displayed in the bot header.
+          type: string
+          maxLength: 60
         -
           name: ui
           description: The zipped HTML and Javascript needed to run the UI of the bot
@@ -3327,7 +3344,7 @@ paths:
           in: query
           type: boolean
           description: >-
-            Filter by whether or not the generator is running on a collector.
+            Filter by whether or not the generator is active.
         -
           name: intervalSecs
           in: query
@@ -11705,7 +11722,7 @@ definitions:
           Interval (seconds) between each collection.
       isActive:
         type: boolean
-        description: Whether or not the generator is running on a collector.
+        description: Default false. When set to true, the generator will be assigned to an available collector and regularly send in samples.
       name:
         type: string
         readOnly: true
@@ -11791,7 +11808,7 @@ definitions:
           Interval (seconds) between each collection.
       isActive:
         type: boolean
-        description: Whether or not the generator is running on a collector.
+        description: Default false. When set to true, the generator will be assigned to an available collector and regularly send in samples.
       name:
         type: string
         readOnly: true

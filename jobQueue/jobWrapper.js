@@ -118,13 +118,10 @@ function logJobOnComplete(req, job) {
 
     /*
      * If req object is defined; extract the user name, token and ipaddress and
-     * update the log object. Add "request_id" if header is set by heroku.
+     * update the log object. Add "request_id" if available.
      */
     if (req) {
-      if (req.headers && req.headers['x-request-id']) {
-        logObject.request_id = req.headers['x-request-id'];
-      }
-
+      if (req.request_id) logObject.request_id = req.request_id;
       logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
 
       /*
@@ -133,6 +130,7 @@ function logJobOnComplete(req, job) {
        */
       logObject.user = req.headers.UserName;
       logObject.token = req.headers.TokenName;
+      logObject.process = req.process;
     }
 
     // continue to update and print logObject on job completion.
