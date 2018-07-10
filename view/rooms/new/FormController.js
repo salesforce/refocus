@@ -42,10 +42,10 @@ class FormController extends React.Component {
     this.setSettings = this.setSettings.bind(this);
     this.fixJson = this.fixJson.bind(this);
     this.setBots = this.setBots.bind(this);
-    this.getTypes();
+    this.getAvailableRoomTypes();
   }
 
-  getTypes(){
+  getAvailableRoomTypes(){
     const req = request.get('/v1/roomTypes');
     req
       .end((error, res) => {
@@ -110,8 +110,6 @@ class FormController extends React.Component {
     );
     this.setState({
       type: event.target.value,
-      active: result[FIRST_ENTRY].active,
-      externalId: result[FIRST_ENTRY].externalId,
       settings: result[FIRST_ENTRY].settings,
       bots: result[FIRST_ENTRY].bots,
       JSONsettings:
