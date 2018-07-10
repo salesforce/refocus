@@ -9,11 +9,10 @@
 /**
  * ./realtime/socketIOEmitter.js
  */
-
 'use strict'; // eslint-disable-line strict
-
 const rtUtils = require('./utils');
-const initPerspectiveEvent = 'refocus.internal.realtime.perspective.namespace.initialize';
+const initPerspectiveEvent =
+  'refocus.internal.realtime.perspective.namespace.initialize';
 const initBotEvent = 'refocus.internal.realtime.bot.namespace.initialize';
 
 module.exports = (io, key, obj) => {
@@ -29,16 +28,35 @@ module.exports = (io, key, obj) => {
     rtUtils.initializeBotNamespace(obj, io);
   }
 
-  for (const nsp in io.nsps) {
-    // Send events only if namespace connections > 0
-    if (nsp && Object.keys(nsp).length &&
-     rtUtils.shouldIEmitThisObj(nsp, obj)) {
-      if (obj.pubOpts) {
-        delete obj.pubOpts;
-        newObjectAsString = rtUtils.getNewObjAsString(key, obj);
-      }
+  /*
+   * Socket.io does not expose any API to retrieve list of all the namespaces
+   * which have been initialized. We use `Object.keys(io.nsps)` here, which
+   * gives us an array of all the namespace names, where each namespace name
+   * is a string which encodes the perspective/room filters neeeded to match
+   * this real-time event to the perspectives/rooms to which it should be
+   * emitted.
+   */
+  Object.keys(io.nsps).forEach((n) => {
+    const namespace = io.of(n); // Load the namespace from socket.io
 
-      io.of(nsp).emit(key, newObjectAsString);
+    /*
+     * Emit this event only if *this* namespace in *this* process has one or
+     * more connected clients, e.g. at least one user has this perspective or
+     * room open in a browser.
+     *
+     * Ref. https://socket.io/docs/server-api/#namespace-connected.
+     */
+    const connections = Object.keys(namespace.connected);
+    if (connections.length > 0) {
+      /* Check the perspective/room filters before emitting. */
+      if (rtUtils.shouldIEmitThisObj(nsp, obj)) {
+        if (obj.pubOpts) {
+          delete obj.pubOpts;
+          newObjectAsString = rtUtils.getNewObjAsString(key, obj);
+        }
+
+        namespace.emit(key, newObjectAsString);
+      }
     }
-  }
+  });
 };
