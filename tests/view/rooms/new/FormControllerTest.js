@@ -49,7 +49,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
       name: 'test',
       roomType: '',
       active: true,
-      externalId: '',
+      externalId: null,
       settings: {},
       bots: [],
     };
