@@ -303,4 +303,76 @@ describe('tests/cache/sampleStore.js >', () => {
       }).catch(done);
     });
   });
+
+  describe('convertSubjectStrings >', () => {
+    it('ok', (done) => {
+      const subj = {
+        absolutePath: '___NorthAmerica-limitTest8-even',
+        childCount: '0',
+        description: 'continent',
+        id: 'f4d73b66-eed4-47f8-8006-98fa3c63f9fd',
+        isDeleted: '0',
+        isPublished: 'false',
+        name: '___NorthAmerica-limitTest8-even',
+        relatedLinks: '[{ "name": "a", "url": "b.com" }]',
+        tags: '["foo", "bar"]',
+        sortBy: '_1',
+        createdAt: 'Fri Jul 06 2018 15:19:28 GMT-0700 (PDT)',
+        updatedAt: 'Fri Jul 06 2018 15:19:28 GMT-0700 (PDT)',
+        hierarchyLevel: '1',
+      };
+      expect(sampleStore.convertSubjectStrings(subj)).to.deep.equal({
+        absolutePath: '___NorthAmerica-limitTest8-even',
+        childCount: 0,
+        description: 'continent',
+        id: 'f4d73b66-eed4-47f8-8006-98fa3c63f9fd',
+        isDeleted: '0',
+        isPublished: false,
+        name: '___NorthAmerica-limitTest8-even',
+        relatedLinks: [{ name: 'a', url: 'b.com' }],
+        tags: ['foo', 'bar'],
+        sortBy: '_1',
+        createdAt: 'Fri Jul 06 2018 15:19:28 GMT-0700 (PDT)',
+        updatedAt: 'Fri Jul 06 2018 15:19:28 GMT-0700 (PDT)',
+        hierarchyLevel: 1,
+      });
+      done();
+    });
+
+    it('use 0 if parseInt fails', (done) => {
+      expect(sampleStore.convertSubjectStrings({ childCount: 'ABC' }))
+      .to.deep.equal({
+        hierarchyLevel: 0,
+        childCount: 0,
+        isPublished: true,
+        relatedLinks: [],
+        tags: [],
+      });
+      done();
+    });
+
+    it('use true if JSON.parse fails for isPublished', (done) => {
+      expect(sampleStore.convertSubjectStrings({}))
+      .to.deep.equal({
+        hierarchyLevel: 0,
+        childCount: 0,
+        isPublished: true,
+        relatedLinks: [],
+        tags: [],
+      });
+      done();
+    });
+
+    it('use empty array if JSON.parse fails for tags/relatedLinks', (done) => {
+      expect(sampleStore.convertSubjectStrings({}))
+      .to.deep.equal({
+        hierarchyLevel: 0,
+        childCount: 0,
+        isPublished: true,
+        relatedLinks: [],
+        tags: [],
+      });
+      done();
+    });
+  });
 });
