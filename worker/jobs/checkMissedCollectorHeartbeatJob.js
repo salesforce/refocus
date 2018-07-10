@@ -7,19 +7,19 @@
  */
 
 /**
- * /worker/jobs/checkMissedHeartbeatJob.js
+ * /worker/jobs/checkMissedCollectorHeartbeatJob.js
  */
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
 const scheduledJob =
-  require('../../clock/scheduledJobs/checkMissedHeartbeatJob');
+  require('../../clock/scheduledJobs/checkMissedCollectorHeartbeatJob');
 const activityLogUtil = require('../../utils/activityLog');
 const ZERO = 0;
 const jobLog = require('../jobLog');
 
 module.exports = (job, done) => {
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
-    const msg = '[KJI] Entered checkMissedHeartbeatJob.js';
+    const msg = '[KJI] Entered checkMissedCollectorHeartbeatJob.js';
     console.log(msg); // eslint-disable-line no-console
   }
 
@@ -52,7 +52,7 @@ module.exports = (job, done) => {
   })
   .catch((err) => {
     logger.error(
-      'Caught error from /worker/jobs/checkMissedHeartbeatJob:', err
+      'Caught error from /worker/jobs/checkMissedCollectorHeartbeatJob:', err
     );
     jobLog(jobStartTime, job, err.message || '');
     return done(err);

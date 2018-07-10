@@ -7,12 +7,12 @@
  */
 
 /**
- * tests/clock/checkMissedHeartbeatJob.js
+ * tests/clock/checkMissedCollectorHeartbeatJob.js
  */
 const expect = require('chai').expect;
-const j = require('../../clock/scheduledJobs/checkMissedHeartbeatJob');
+const j = require('../../clock/scheduledJobs/checkMissedCollectorHeartbeatJob');
 
-describe('tests/clock/checkMissedHeartbeatJob.js >', () => {
+describe('tests/clock/checkMissedCollectorHeartbeatJob.js >', () => {
   it('ok', (done) => {
     j.execute()
     .then((resp) => {

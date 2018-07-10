@@ -7,7 +7,7 @@
  */
 
 /**
- * clock/scheduledJobs/checkMissedHeartbeatJob.js
+ * clock/scheduledJobs/checkMissedCollectorHeartbeatJob.js
  *
  * Executes the checkMissedHeartbeat process. If worker process is enabled,
  * enqueues a job, otherwise just executes work directly in this process.
@@ -29,7 +29,7 @@ module.exports = {
       const jobWrapper = require('../../jobQueue/jobWrapper');
       const jobType = require('../../jobQueue/setup').jobType;
       const j = jobWrapper.createJob(
-        jobType.CHECK_MISSED_HEARTBEAT, { reqStartTime: Date.now() }
+        jobType.CHECK_MISSED_COLLECTOR_HEARTBEAT, { reqStartTime: Date.now() }
       );
       return Promise.resolve(true);
     }
