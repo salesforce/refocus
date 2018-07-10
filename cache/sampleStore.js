@@ -1,4 +1,3 @@
-
 /**
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -97,22 +96,38 @@ function arrayObjsStringsToJson(obj, arrObjfields) {
 } // arrayObjsStringsToJson
 
 /**
- * Convert subject fields to the correct type
+ * Convert subject fields to the correct type. Performs update in place.
  *
  * @param {Object} subject
+ * @returns {Object} the modified subject
  */
 function convertSubjectStrings(subject) {
   // convert the strings into numbers
   subject.childCount = parseInt(subject.childCount, 10) || 0;
-  subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10);
+  subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10) || 0;
 
   // convert strings into booleans
-  subject.isPublished = JSON.parse(subject.isPublished);
+  try {
+    subject.isPublished = JSON.parse(subject.isPublished);
+  } catch (err) {
+    subject.isPublished = true;
+  }
 
   // convert strings into arrays
-  subject.tags = JSON.parse(subject.tags);
-  subject.relatedLinks = JSON.parse(subject.relatedLinks);
-}
+  try {
+    subject.tags = JSON.parse(subject.tags);
+  } catch (err) {
+    subject.tags = [];
+  }
+
+  try {
+    subject.relatedLinks = JSON.parse(subject.relatedLinks);
+  } catch (err) {
+    subject.relatedLinks = [];
+  }
+
+  return subject;
+} // convertSubjectStrings
 
 /**
  * Convert aspect fields to the correct type
