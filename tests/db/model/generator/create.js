@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
+require('chai').use(require('chai-as-promised')).should();
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const gtUtil = u.gtUtil;
@@ -376,6 +377,26 @@ describe('tests/db/model/generator/create.js >', () => {
         done();
       })
       .catch(done);
+    });
+  });
+
+  describe('isActive validation', () => {
+    it('isActive=false, no collectors', () => {
+      const gen = u.getGenerator();
+      gen.name += 'isActive1';
+      gen.isActive = false;
+      return Generator.create(gen)
+        .should.eventually.be.fulfilled;
+    });
+
+    it('isActive=true, no collectors', () => {
+      const gen = u.getGenerator();
+      gen.name += 'isActive2';
+      gen.isActive = true;
+      return Generator.create(gen)
+        .should.eventually.be.rejectedWith(
+          'isActive can only be turned on if at least one collector is specified.'
+        );
     });
   });
 
