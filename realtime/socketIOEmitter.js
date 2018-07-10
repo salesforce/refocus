@@ -29,7 +29,7 @@ module.exports = (io, key, obj) => {
   }
 
   /*
-   * Socket.io does not expose any API to retrieve list of all the namespaces 
+   * Socket.io does not expose any API to retrieve list of all the namespaces
    * which have been initialized. We use `Object.keys(io.nsps)` here, which
    * gives us an array of all the namespace names, where each namespace name
    * is a string which encodes the perspective/room filters neeeded to match
