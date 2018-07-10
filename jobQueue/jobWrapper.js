@@ -130,6 +130,7 @@ function logJobOnComplete(req, job) {
        */
       logObject.user = req.headers.UserName;
       logObject.token = req.headers.TokenName;
+      logObject.process = req.process;
     }
 
     // continue to update and print logObject on job completion.
