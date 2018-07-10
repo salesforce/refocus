@@ -47,7 +47,7 @@ function getPathVariables(addr){
 
   const paramType = qdata.roomType || '';
   const paramActive = qdata.active !== 'false';
-  const paramExternalId = qdata.externalId || '';
+  const paramExternalId = qdata.externalId || null;
   let paramSettings;
   try {
     paramSettings = qdata.settings ? JSON.parse(qdata.settings) : {};
@@ -109,9 +109,7 @@ window.onload = () => {
     formContainer
   );
   if (paramaters.name &&
-    paramaters.roomType &&
-    paramaters.active &&
-    paramaters.externalId) {
+    paramaters.roomType) {
     createRoom(paramaters);
   } else {
     uPage.removeSpinner();
