@@ -30,9 +30,10 @@ module.exports = (io, key, obj) => {
   }
 
   for (const nsp in io.nsps) {
-    // Send events only if namespace connections > 0
-    if (nsp && Object.keys(nsp).length &&
-     rtUtils.shouldIEmitThisObj(nsp, obj)) {
+    // Emit events only if namespace has connections
+    const hasConnections = Object.keys(io.of(nsp).connected).length > 0;
+
+    if (nsp && hasConnections && rtUtils.shouldIEmitThisObj(nsp, obj)) {
       if (obj.pubOpts) {
         delete obj.pubOpts;
         newObjectAsString = rtUtils.getNewObjAsString(key, obj);
