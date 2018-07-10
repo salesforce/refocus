@@ -45,6 +45,7 @@ class FormController extends React.Component {
     this.getTypes();
   }
 
+  // Gets the room types that are available for use
   getTypes(){
     const req = request.get('/v1/roomTypes');
     req
@@ -76,6 +77,7 @@ class FormController extends React.Component {
       });
   }
 
+  // Tries to create a room based on current form.
   createRoom(){
     const req = request.post('/v1/rooms');
     const obj = {
@@ -110,8 +112,6 @@ class FormController extends React.Component {
     );
     this.setState({
       type: event.target.value,
-      active: result[FIRST_ENTRY].active,
-      externalId: result[FIRST_ENTRY].externalId,
       settings: result[FIRST_ENTRY].settings,
       bots: result[FIRST_ENTRY].bots,
       JSONsettings:

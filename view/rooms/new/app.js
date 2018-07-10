@@ -47,7 +47,7 @@ function getPathVariables(addr){
 
   const paramType = qdata.roomType || '';
   const paramActive = qdata.active !== 'false';
-  const paramExternalId = qdata.externalId || '';
+  const paramExternalId = qdata.externalId || null;
   let paramSettings;
   try {
     paramSettings = qdata.settings ? JSON.parse(qdata.settings) : {};
