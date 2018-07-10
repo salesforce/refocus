@@ -58,5 +58,5 @@ module.exports = (io, key, obj) => {
         namespace.emit(key, newObjectAsString);
       }
     }
-  })
+  });
 };
