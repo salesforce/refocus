@@ -20,7 +20,7 @@ const expect = require('chai').expect;
 const registerPath = '/v1/register';
 const tokenPath = '/v1/tokens';
 
-describe.only('tests/api/v1/userTokens/revokeRestore.js, ' +
+describe('tests/api/v1/userTokens/revokeRestore.js, ' +
 `POST ${path}/U/tokens/T/[revoke|restore] >`, () => {
   const predefinedAdminUserToken = tu.createAdminToken();
   const uname = `${tu.namePrefix}test@refocus.com`;
