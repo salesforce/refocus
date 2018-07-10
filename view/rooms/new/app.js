@@ -109,9 +109,7 @@ window.onload = () => {
     formContainer
   );
   if (paramaters.name &&
-    paramaters.roomType &&
-    paramaters.active &&
-    paramaters.externalId) {
+    paramaters.roomType) {
     createRoom(paramaters);
   } else {
     uPage.removeSpinner();
