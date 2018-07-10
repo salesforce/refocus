@@ -42,11 +42,10 @@ class FormController extends React.Component {
     this.setSettings = this.setSettings.bind(this);
     this.fixJson = this.fixJson.bind(this);
     this.setBots = this.setBots.bind(this);
-    this.getTypes();
+    this.getAvailableRoomTypes();
   }
 
-  // Gets the room types that are available for use
-  getTypes(){
+  getAvailableRoomTypes(){
     const req = request.get('/v1/roomTypes');
     req
       .end((error, res) => {
@@ -77,7 +76,6 @@ class FormController extends React.Component {
       });
   }
 
-  // Tries to create a room based on current form.
   createRoom(){
     const req = request.post('/v1/rooms');
     const obj = {
