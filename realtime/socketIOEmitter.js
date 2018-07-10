@@ -9,11 +9,10 @@
 /**
  * ./realtime/socketIOEmitter.js
  */
-
 'use strict'; // eslint-disable-line strict
-
 const rtUtils = require('./utils');
-const initPerspectiveEvent = 'refocus.internal.realtime.perspective.namespace.initialize';
+const initPerspectiveEvent =
+  'refocus.internal.realtime.perspective.namespace.initialize';
 const initBotEvent = 'refocus.internal.realtime.bot.namespace.initialize';
 
 module.exports = (io, key, obj) => {
@@ -29,16 +28,32 @@ module.exports = (io, key, obj) => {
     rtUtils.initializeBotNamespace(obj, io);
   }
 
+  // Iterate over all the initialized namespaces.
   for (const nsp in io.nsps) {
-    // Send events only if namespace connections > 0
-    if (nsp && Object.keys(nsp).length &&
-     rtUtils.shouldIEmitThisObj(nsp, obj)) {
+    if (!nsp) break;
+
+    // Load the namespace from socket.io.
+    const namespace = io.of(nsp);
+    if (!namespace) break;
+
+    /*
+     * Emit events only if the namespace for *this* process has connected
+     * clients, i.e. a perspective or room actively waiting for real-time
+     * events.
+     *
+     * Ref. https://socket.io/docs/server-api/#namespace-connected.
+     */
+    const connections = Object.keys(namespace.connected);
+    if (connections.length < 1) break;
+
+    // Check the perspective/room filters before emitting.
+    if (rtUtils.shouldIEmitThisObj(nsp, obj)) {
       if (obj.pubOpts) {
         delete obj.pubOpts;
         newObjectAsString = rtUtils.getNewObjAsString(key, obj);
       }
 
-      io.of(nsp).emit(key, newObjectAsString);
+      namespace.emit(key, newObjectAsString);
     }
   }
 };
