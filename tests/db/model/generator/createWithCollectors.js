@@ -148,7 +148,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   describe('isActive validation', () => {
     it('collectors specified, isActive=false', () => {
       const gen = u.getGenerator();
-      gen.collectors = [collector1.name, collector2.name];
+      gen.possibleCollectors = [collector1.name, collector2.name];
       gen.isActive = false;
 
       return Generator.createWithCollectors(gen)
@@ -157,7 +157,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
 
     it('collectors specified, isActive=true', () => {
       const gen = u.getGenerator();
-      gen.collectors = [collector1.name, collector2.name];
+      gen.possibleCollectors = [collector1.name, collector2.name];
       gen.isActive = true;
 
       return Generator.createWithCollectors(gen)

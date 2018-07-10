@@ -228,7 +228,7 @@ module.exports = function generator(seq, dataTypes) {
 
       isActiveAndCollectors() {
         const isActiveSet = this.changed('isActive') && this.isActive;
-        const existingCollectors = this.collectors && this.collectors.length;
+        const existingCollectors = this.possibleCollectors && this.possibleCollectors.length;
         if (isActiveSet && !existingCollectors) {
           throw new ValidationError(
             'isActive can only be turned on if at least one collector is specified.'

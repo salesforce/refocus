@@ -140,7 +140,7 @@ describe('tests/db/model/generator/methods.js >', () => {
         coll2.update({ lastHeartbeat: 0 }),
         gen1.updateWithCollectors({
           isActive: true,
-          collectors: [coll2.name],
+          possibleCollectors: [coll2.name],
         }),
       ))
       .spread((coll2, gen1) => gen1.update({
@@ -160,7 +160,7 @@ describe('tests/db/model/generator/methods.js >', () => {
       .then(() => Generator.findById(gen1.id))
       .then((g) => g.updateWithCollectors({
         isActive: false,
-        collectors: [coll2.name, coll3.name],
+        possibleCollectors: [coll2.name, coll3.name],
       }))
 
       .then(() => Generator.findById(gen1.id))
@@ -176,7 +176,7 @@ describe('tests/db/model/generator/methods.js >', () => {
       .then(() => Generator.findById(gen1.id))
       .then((g) => g.updateWithCollectors({
         isActive: false,
-        collectors: [coll2.name, coll3.name],
+        possibleCollectors: [coll2.name, coll3.name],
       }))
       .then((g) => g.update({
         currentCollector: coll3.name,

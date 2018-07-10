@@ -55,9 +55,9 @@ describe('tests/db/model/collector/methods.js >', () => {
   generator2.currentCollector = collector2.name;
   generator3.currentCollector = collector3.name;
 
-  generator1.collectors = [collector1.name, collector2.name, collector3.name];
-  generator2.collectors = [collector1.name, collector2.name, collector3.name];
-  generator3.collectors = [collector1.name, collector2.name, collector3.name];
+  generator1.possibleCollectors = [collector1.name, collector2.name, collector3.name];
+  generator2.possibleCollectors = [collector1.name, collector2.name, collector3.name];
+  generator3.possibleCollectors = [collector1.name, collector2.name, collector3.name];
 
   generator1.isActive = true;
   generator2.isActive = true;

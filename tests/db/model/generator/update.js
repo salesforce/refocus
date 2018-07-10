@@ -323,12 +323,12 @@ describe('tests/db/model/generator/update.js >', () => {
 
   describe('isActive validation', () => {
     function doUpdate(changes) {
-      const initialCollectorsValue = changes.collectors.initial;
+      const initialCollectorsValue = changes.possibleCollectors.initial;
       const initialIsActiveValue = {
         isActive: changes.isActive.initial,
       };
       const updateValues = {
-        collectors: changes.collectors.update,
+        possibleCollectors: changes.possibleCollectors.update,
         isActive: changes.isActive.update,
       };
 
@@ -336,34 +336,34 @@ describe('tests/db/model/generator/update.js >', () => {
       .then(() => Generator.findById(generatorDBInstance.id))
       .then((gen) => gen.update(initialIsActiveValue, { validate: false }))
       .then(() => Generator.findById(generatorDBInstance.id))
-      .then((gen) => gen.setCollectors(initialCollectorsValue))
+      .then((gen) => gen.setPossibleCollectors(initialCollectorsValue))
       .then(() => Generator.findById(generatorDBInstance.id))
       .then((gen) => {
         if (updateValues.isActive !== undefined) {
           return gen.update({ isActive: updateValues.isActive });
-        } else if (updateValues.collectors !== undefined) {
-          return gen.setCollectors(updateValues.collectors);
+        } else if (updateValues.possibleCollectors !== undefined) {
+          return gen.setPossibleCollectors(updateValues.possibleCollectors);
         }
       });
     }
 
     it('existing collectors, set isActive', () =>
       doUpdate({
-        collectors: { initial: [collectorObj1], },
+        possibleCollectors: { initial: [collectorObj1], },
         isActive: { initial: false, update: true, },
       }).should.eventually.be.fulfilled
     );
 
     it('existing collectors, unset isActive', () =>
       doUpdate({
-        collectors: { initial: [collectorObj1], },
+        possibleCollectors: { initial: [collectorObj1], },
         isActive: { initial: true, update: false, },
       }).should.eventually.be.fulfilled
     );
 
     it('no existing collectors, set isActive', () =>
       doUpdate({
-        collectors: { initial: [], },
+        possibleCollectors: { initial: [], },
         isActive: { initial: false, update: true, },
       }).should.eventually.be.rejectedWith(
         'isActive can only be turned on if at least one collector is specified.'
@@ -372,7 +372,7 @@ describe('tests/db/model/generator/update.js >', () => {
 
     it('no existing collectors, unset isActive', () =>
       doUpdate({
-        collectors: { initial: [], },
+        possibleCollectors: { initial: [], },
         isActive: { initial: true, update: false, },
       }).should.eventually.be.fulfilled
     );
@@ -380,28 +380,28 @@ describe('tests/db/model/generator/update.js >', () => {
     it('isActive=false, set collectors', () =>
       doUpdate({
         isActive: { initial: false },
-        collectors: { initial: [], update: [collectorObj1] },
+        possibleCollectors: { initial: [], update: [collectorObj1] },
       }).should.eventually.be.fulfilled
     );
 
     it('isActive=false, unset collectors', () =>
       doUpdate({
         isActive: { initial: false },
-        collectors: { initial: [collectorObj1], update: [] },
+        possibleCollectors: { initial: [collectorObj1], update: [] },
       }).should.eventually.be.fulfilled
     );
 
     it('isActive=true, set collectors', () =>
       doUpdate({
         isActive: { initial: true },
-        collectors: { initial: [], update: [collectorObj1] },
+        possibleCollectors: { initial: [], update: [collectorObj1] },
       }).should.eventually.be.fulfilled
     );
 
     it('isActive=true, unset collectors', () =>
       doUpdate({
         isActive: { initial: true },
-        collectors: { initial: [collectorObj1], update: [] },
+        possibleCollectors: { initial: [collectorObj1], update: [] },
       }).should.eventually.be.fulfilled
     );
   });
