@@ -36,6 +36,7 @@ module.exports = (io, key, obj) => {
    * this real-time event to the perspectives/rooms to which it should be
    * emitted.
    */
+  console.log('io.nsps', Object.keys(io.nsps).length);
   Object.keys(io.nsps).forEach((n) => {
     const namespace = io.of(n); // Load the namespace from socket.io
 
@@ -48,7 +49,7 @@ module.exports = (io, key, obj) => {
      */
     const connections = Object.keys(namespace.connected);
     if (connections.length > 0) {
-      console.log('n, connections', n, connections);
+      console.log(`namespace ${n} has ${connections.length} connections`);
       /* Check the perspective/room filters before emitting. */
       if (rtUtils.shouldIEmitThisObj(n, obj)) {
         console.log('emit!');

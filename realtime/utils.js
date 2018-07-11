@@ -248,7 +248,9 @@ function shouldIEmitThisObj(nspString, obj) {
   const nspComponents = nspString.split(constants.filterSeperator);
   const absPathNsp = nspComponents[constants.asbPathIndex];
   const absolutePathObj = '/' + obj.absolutePath;
-
+  console.log('nspComponents', nspComponents);
+  console.log('absPathNsp', absPathNsp);
+  console.log('absolutePathObj', absolutePathObj);
   if ((absolutePathObj).startsWith(absPathNsp)) {
     return perspectiveEmit(nspComponents, obj);
   } else if (absPathNsp === botAbsolutePath) {
