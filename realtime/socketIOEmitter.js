@@ -49,7 +49,7 @@ module.exports = (io, key, obj) => {
     const connections = Object.keys(namespace.connected);
     if (connections.length > 0) {
       /* Check the perspective/room filters before emitting. */
-      if (rtUtils.shouldIEmitThisObj(nsp, obj)) {
+      if (rtUtils.shouldIEmitThisObj(n, obj)) {
         if (obj.pubOpts) {
           delete obj.pubOpts;
           newObjectAsString = rtUtils.getNewObjAsString(key, obj);
