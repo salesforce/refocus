@@ -46,8 +46,8 @@ module.exports = (io, key, obj) => {
      *
      * Ref. https://socket.io/docs/server-api/#namespace-connected.
      */
-    const connections = Object.keys(namespace.connected);
-    if (connections.length > 0) {
+    // const connections = Object.keys(namespace.connected);
+    // if (connections.length > 0) {
       /* Check the perspective/room filters before emitting. */
       if (rtUtils.shouldIEmitThisObj(n, obj)) {
         if (obj.pubOpts) {
@@ -57,6 +57,6 @@ module.exports = (io, key, obj) => {
 
         namespace.emit(key, newObjectAsString);
       }
-    }
+    // }
   });
 };
