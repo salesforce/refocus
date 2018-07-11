@@ -44,7 +44,7 @@ module.exports = (io) => {
       const key = Object.keys(mssgObj)[0];
       const parsedObj = rtUtils.parseObject(mssgObj[key], key);
       let { pubOpts } = parsedObj;
-      // Deleting pubOpts before passing to the emitter
+      // Deleting pubOpts from parsedObj before passing it to the emitter
       delete parsedObj.pubOpts;
 
       if (featureToggles.isFeatureEnabled('enablePubStatsLogs')) {
