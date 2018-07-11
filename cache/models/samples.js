@@ -382,6 +382,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       updatedSamp.name = subject.absolutePath + '|' + aspectObj.name;
     }
 
+    updatedSamp.absolutePath = subject.absolutePath;
     return cleanAddAspectToSample(updatedSamp, aspectObj);
   })
   .then((updatedSamp) => {
