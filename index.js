@@ -179,6 +179,16 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
         req.request_id = req.headers['x-request-id'];
       }
 
+      /*
+       * Add dyno and/or clusterProcessId to request--helpful to have when
+       * logging. "process.env.DYNO" is only available when deployed to heroku,
+       * so ignore if it's not available. "clusterProcessId" represents the
+       * cluster worker id if the process is started from throng (it is zero if
+       * the process is not started from throng).
+       */
+      if (process.env.DYNO) req.dyno = process.env.DYNO;
+      req.process = (req.dyno ? req.dyno + ':' : '') + clusterProcessId;
+
       next();
     });
 
