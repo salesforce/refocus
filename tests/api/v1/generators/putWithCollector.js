@@ -85,7 +85,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
     Generator.create(generator)
     .then((gen) => {
       generatorId = gen.id;
-      return gen.addCollectors([collector1]);
+      return gen.addPossibleCollectors([collector1]);
     })
     .then(() => done())
     .catch(done);
@@ -106,16 +106,16 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
         return done(err);
       }
 
-      const { name, collectors } = res.body;
+      const { name, possibleCollectors } = res.body;
       expect(name).to.equal(toPut.name);
-      expect(collectors.length).to.equal(ZERO);
+      expect(possibleCollectors.length).to.equal(ZERO);
       return done();
     });
   });
 
   it('ok: replace collector with more collectors', (done) => {
     const withCollectors = JSON.parse(JSON.stringify(toPut));
-    withCollectors.collectors = [collector1.name, collector2.name, collector3.name];
+    withCollectors.possibleCollectors = [collector1.name, collector2.name, collector3.name];
     api.put(`${path}/${generatorId}`)
     .set('Authorization', token)
     .send(withCollectors)
@@ -125,10 +125,10 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
         return done(err);
       }
 
-      const { collectors } = res.body;
-      expect(Array.isArray(collectors)).to.be.true;
-      expect(collectors.length).to.equal(THREE);
-      const collectorNames = collectors.map((collector) => collector.name);
+      const { possibleCollectors } = res.body;
+      expect(Array.isArray(possibleCollectors)).to.be.true;
+      expect(possibleCollectors.length).to.equal(THREE);
+      const collectorNames = possibleCollectors.map((collector) => collector.name);
       expect(collectorNames).to.deep.equal(sortedNames);
       return done();
     });
@@ -136,7 +136,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
 
   it('ok: attach identical collector does alter collector', (done) => {
     const withCollectors = JSON.parse(JSON.stringify(toPut));
-    withCollectors.collectors = [collector1.name];
+    withCollectors.possibleCollectors = [collector1.name];
     api.put(`${path}/${generatorId}`)
     .set('Authorization', token)
     .send(withCollectors)
@@ -146,16 +146,16 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
         return done(err);
       }
 
-      const { collectors } = res.body;
-      expect(collectors.length).to.equal(ONE);
-      expect(collectors[ZERO].name).to.equal(collector1.name);
+      const { possibleCollectors } = res.body;
+      expect(possibleCollectors.length).to.equal(ONE);
+      expect(possibleCollectors[ZERO].name).to.equal(collector1.name);
       return done();
     });
   });
 
   it('400 error with duplicate collectors in request body', (done) => {
     const requestBody = JSON.parse(JSON.stringify(toPut));
-    requestBody.collectors = [collector1.name, collector1.name];
+    requestBody.possibleCollectors = [collector1.name, collector1.name];
     api.put(`${path}/${generatorId}`)
     .set('Authorization', token)
     .send(requestBody)
@@ -174,7 +174,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
   it('404 error for request body with an existing and a ' +
     'non-existant collector', (done) => {
     const requestBody = JSON.parse(JSON.stringify(toPut));
-    requestBody.collectors = [collector1.name, 'iDontExist'];
+    requestBody.possibleCollectors = [collector1.name, 'iDontExist'];
     api.put(`${path}/${generatorId}`)
     .set('Authorization', token)
     .send(requestBody)
