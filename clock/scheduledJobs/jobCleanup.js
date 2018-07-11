@@ -57,10 +57,10 @@ function execute(batchSize, delay) {
       jobResultData.errors = errorJobCount;
       jobResultData.removed = removedJobCount;
       jobResultData.skipped = skippedJobCount;
-      activityLogUtil.updateActivityLogParams(jobResultData, {
-        jobStartTime,
-        jobEndTime,
-      });
+      // activityLogUtil.updateActivityLogParams(jobResultData, {
+      //   jobStartTime,
+      //   jobEndTime,
+      // });
     }
   });
 
