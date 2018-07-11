@@ -48,17 +48,15 @@ module.exports = (io, key, obj) => {
      */
     const connections = Object.keys(namespace.connected);
     if (connections.length > 0) {
-      console.log(`namespace ${n} has ${connections.length} connections`);
       /* Check the perspective/room filters before emitting. */
       if (rtUtils.shouldIEmitThisObj(n, obj)) {
-        console.log('emit!');
         if (obj.pubOpts) {
           delete obj.pubOpts;
           newObjectAsString = rtUtils.getNewObjAsString(key, obj);
         }
 
         namespace.emit(key, newObjectAsString);
-      } else { console.log('DO NOT EMIT'); }
+      }
     }
   });
 };
