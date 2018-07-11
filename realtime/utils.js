@@ -248,7 +248,7 @@ function shouldIEmitThisObj(nspString, obj) {
   const nspComponents = nspString.split(constants.filterSeperator);
   const absPathNsp = nspComponents[constants.asbPathIndex];
   const absolutePathObj = '/' + obj.absolutePath;
-
+  console.log('shouldIEmitThisObj', absolutePathObj, absPathNsp);
   if ((absolutePathObj).startsWith(absPathNsp)) {
     return perspectiveEmit(nspComponents, obj);
   }
