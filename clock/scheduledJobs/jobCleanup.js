@@ -35,7 +35,6 @@ function execute(batchSize, delay) {
   let removedJobCount = 0;
   let skippedJobCount = 0;
   let errorJobCount = 0;
-  let realIterations = 0;
   const jobStartTime = Date.now();
 
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
@@ -81,7 +80,6 @@ function execute(batchSize, delay) {
     // delete n jobs
     .then((jobs) =>
       Promise.all(jobs.map((job) => {
-        realIterations++;
         if (delay > 0 && now - job.updated_at < delay) {
           return 'skipped';
         } else {
