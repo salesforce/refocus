@@ -18,6 +18,7 @@ const initBotEvent = 'refocus.internal.realtime.bot.namespace.initialize';
 module.exports = (io, key, obj) => {
   // newObjectAsString contains { key: {new: obj }}
   let newObjectAsString = rtUtils.getNewObjAsString(key, obj);
+  console.log('./realtime/socketIOEmitter.js', 'newObjectAsString', newObjectAsString);
 
   // Initialize namespace when perspective initialize namespace event is sent
   if (key.startsWith(initPerspectiveEvent)) {
@@ -37,6 +38,7 @@ module.exports = (io, key, obj) => {
    * emitted.
    */
   Object.keys(io.nsps).forEach((n) => {
+    console.log('./realtime/socketIOEmitter.js', 'io.nsps', n);
     const namespace = io.of(n); // Load the namespace from socket.io
 
     /*
@@ -48,8 +50,10 @@ module.exports = (io, key, obj) => {
      */
     const connections = Object.keys(namespace.connected);
     if (connections.length > 0) {
+      console.log('./realtime/socketIOEmitter.js', 'connections?', connections);
       /* Check the perspective/room filters before emitting. */
       if (rtUtils.shouldIEmitThisObj(n, obj)) {
+        console.log('./realtime/socketIOEmitter.js', 'emit');
         if (obj.pubOpts) {
           delete obj.pubOpts;
           newObjectAsString = rtUtils.getNewObjAsString(key, obj);
