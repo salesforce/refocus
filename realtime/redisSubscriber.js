@@ -51,7 +51,6 @@ module.exports = (io) => {
         trackPublishKey(key);
       }
 
-
       /*
        * pass on the message received through the redis subscriber to the socket
        * io emitter to send data to the browser clients.
