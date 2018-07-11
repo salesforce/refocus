@@ -19,6 +19,7 @@ const jobWrapper = require('../../jobQueue/jobWrapper');
 const conf = require('../../config');
 kue.Job.rangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
 kue.Job.prototype.removeAsync = Promise.promisify(kue.Job.prototype.remove);
+const activityLogUtil = require('../../utils/activityLog');
 
 /**
  * Execute the call to clean up completed jobs.
@@ -33,6 +34,9 @@ function execute(batchSize, delay) {
   let now;
   let removedJobCount = 0;
   let skippedJobCount = 0;
+  let errorJobCount = 0;
+  let realIterations = 0;
+  const jobStartTime = Date.now();
 
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     console.log('[KJI] Ready to remove completed jobs');
@@ -42,6 +46,22 @@ function execute(batchSize, delay) {
   .then(() => {
     if (featureToggles.isFeatureEnabled('instrumentKue')) {
       console.log(`[KJI] Removed ${removedJobCount} jobs`);
+    }
+
+    if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
+      const jobEndTime = Date.now();
+      const jobResultData = {};
+      const iterations = skippedJobCount + removedJobCount - errorJobCount;
+
+      jobResultData.activity = 'jobCleanup';
+      jobResultData.iterations = iterations;
+      jobResultData.errors = errorJobCount;
+      jobResultData.removed = removedJobCount;
+      jobResultData.skipped = skippedJobCount;
+      activityLogUtil.updateActivityLogParams(jobResultData, {
+        jobStartTime,
+        jobEndTime,
+      });
     }
   });
 
@@ -61,14 +81,16 @@ function execute(batchSize, delay) {
     // delete n jobs
     .then((jobs) =>
       Promise.all(jobs.map((job) => {
+        realIterations++;
         if (delay > 0 && now - job.updated_at < delay) {
           return 'skipped';
         } else {
           return job.removeAsync()
-          .catch((err) => {
-            console.log(`Error removing job ${job.id}`, err);
-            return Promise.reject(err);
-          });
+            .catch((err) => {
+              errorJobCount++;
+              console.log(`Error removing job ${job.id}`, err);
+              return Promise.reject(err);
+            });
         }
       }))
     )
@@ -92,7 +114,6 @@ function execute(batchSize, delay) {
       }
     });
   }
-
 } // execute
 
 /**

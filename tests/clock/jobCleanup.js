@@ -27,6 +27,7 @@ jobQueue.completeAsync = Promise.promisify(jobQueue.complete);
 describe('tests/clock/jobCleanup.js >', () => {
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
+    tu.toggleOverride('enableWorkerActivityLogs', true);
     jobQueue.process('TEST', 100, testJob);
     done();
   });
@@ -40,6 +41,7 @@ describe('tests/clock/jobCleanup.js >', () => {
 
   after((done) => {
     tu.toggleOverride('enableWorkerProcess', false);
+    tu.toggleOverride('enableWorkerActivityLogs', false);
     jobCleanup.execute(100, 0).then(done).catch(done);
   });
 
