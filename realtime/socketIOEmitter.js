@@ -36,7 +36,6 @@ module.exports = (io, key, obj) => {
    * this real-time event to the perspectives/rooms to which it should be
    * emitted.
    */
-  console.log('io.nsps', Object.keys(io.nsps).length);
   Object.keys(io.nsps).forEach((n) => {
     const namespace = io.of(n); // Load the namespace from socket.io
 

@@ -114,6 +114,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  * @returns {Promise} - which resolves to a sample object
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
+  console.log('publishSample', event, JSON.stringify(sampleInst));
   const eventType = event || getSampleEventType(sampleInst);
   let prom;
 
@@ -128,6 +129,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
   }
 
   return prom.then((sample) => {
+    console.log('publishSample after promise', event, JSON.stringify(sample));
     if (sample) {
       publishObject(sample, eventType);
       return sample;
