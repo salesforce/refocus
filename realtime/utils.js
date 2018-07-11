@@ -118,6 +118,7 @@ function isPresent(filterValueSet, objValueArr) {
  * otherwise.
  */
 function applyFilter(filterString, objValues) {
+  console.log('applyFilter', filterString, objValues);
   const objValueArr = [];
   if (objValues && Array.isArray(objValues)) {
     objValues.forEach((obj) => {
@@ -187,17 +188,20 @@ function applyFilter(filterString, objValues) {
  */
 function perspectiveEmit(nspComponents, obj) {
   console.log('perspectiveEmit-obj', obj);
-  console.log('perspectiveEmit-nspComponents', nspComponents);
   const aspectFilter = nspComponents[constants.aspectFilterIndex];
   const subjectTagFilter = nspComponents[constants.subjectTagFilterIndex];
   const aspectTagFilter = nspComponents[constants.aspectTagFilterIndex];
   const statusFilter = nspComponents[constants.statusFilterIndex];
+  console.log('aspectFilter', aspectFilter);
+  console.log('subjectTagFilter', subjectTagFilter);
+  console.log('aspectTagFilter', aspectTagFilter);
+  console.log('statusFilter', statusFilter);
 
   /*
    * When none of the filters are set, the nspComponent just has the
    * subjectAbsolutePath in it, so we do not have to check for the filter
    * conditions and we just need to return true.
-  */
+   */
   if (nspComponents.length < 2) {
     return true;
   }
