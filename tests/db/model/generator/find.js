@@ -68,13 +68,13 @@ describe('tests/db/model/generator/find.js >', () => {
       return Collector.create(collectorObj1);
     })
     .then((c) => {
-      generatorDBInstance.addCollector(c.id);
-      g2DBInstance.addCollector(c.id);
+      generatorDBInstance.addPossibleCollector(c.id);
+      g2DBInstance.addPossibleCollector(c.id);
       return Collector.create(collectorObj2);
     })
     .then((c) => {
-      generatorDBInstance.addCollector(c.id);
-      g2DBInstance.addCollector(c.id);
+      generatorDBInstance.addPossibleCollector(c.id);
+      g2DBInstance.addPossibleCollector(c.id);
       done();
     })
     .catch(done);

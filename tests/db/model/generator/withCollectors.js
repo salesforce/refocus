@@ -51,7 +51,7 @@ describe('tests/db/model/generator/withCollectors.js >', () => {
       tu.db.Collector.create({ name: 'snow', version: '1.0.0' })
       .then((_collector) => {
         collector = _collector;
-        return createdGenerator.addCollectors([collector]);
+        return createdGenerator.addPossibleCollectors([collector]);
       })
       .then(() => Generator
         .findOne({ where: { name: generator.name } }))
@@ -70,11 +70,11 @@ describe('tests/db/model/generator/withCollectors.js >', () => {
     });
 
     it('ok, create with one collectors field', () => {
-      expect(relodedGenerator.collectors.length).to.equal(ONE);
+      expect(relodedGenerator.possibleCollectors.length).to.equal(ONE);
     });
 
     it('get collector returns one collector', (done) => {
-      relodedGenerator.getCollectors()
+      relodedGenerator.getPossibleCollectors()
       .then((collectors) => {
         expect(collectors.length).to.equal(ONE);
         expect(collectors[ZERO].name).to.equal(collector.name);
@@ -97,7 +97,7 @@ describe('tests/db/model/generator/withCollectors.js >', () => {
       .then((collectors) => {
         collector1 = collectors[ZERO];
         collector2 = collectors[ONE];
-        return createdGenerator.addCollectors([collector1, collector2]);
+        return createdGenerator.addPossibleCollectors([collector1, collector2]);
       })
       .then(() => Generator
         .findOne({ where: { name: generator.name } }))
@@ -112,11 +112,11 @@ describe('tests/db/model/generator/withCollectors.js >', () => {
     after(u.forceDeleteCollector);
 
     it('ok, create with two collectors field', () => {
-      expect(relodedGenerator.collectors.length).to.equal(TWO);
+      expect(relodedGenerator.possibleCollectors.length).to.equal(TWO);
     });
 
     it('get collector returns two collector', (done) => {
-      relodedGenerator.getCollectors()
+      relodedGenerator.getPossibleCollectors()
       .then((collectors) => {
         expect(collectors.length).to.equal(TWO);
         expect(collectors[ZERO].name).to.equal(collector1.name);
