@@ -186,6 +186,8 @@ function applyFilter(filterString, objValues) {
  * identified by this namespace string.
  */
 function perspectiveEmit(nspComponents, obj) {
+  console.log('perspectiveEmit-obj', obj);
+  console.log('perspectiveEmit-nspComponents', nspComponents);
   const aspectFilter = nspComponents[constants.aspectFilterIndex];
   const subjectTagFilter = nspComponents[constants.subjectTagFilterIndex];
   const aspectTagFilter = nspComponents[constants.aspectTagFilterIndex];
@@ -250,6 +252,7 @@ function shouldIEmitThisObj(nspString, obj) {
   const absolutePathObj = '/' + obj.absolutePath;
   console.log('shouldIEmitThisObj', absolutePathObj, absPathNsp);
   if ((absolutePathObj).startsWith(absPathNsp)) {
+    console.log('shouldIEmitThisObj-continue on to perspectiveEmit');
     return perspectiveEmit(nspComponents, obj);
   }
 
