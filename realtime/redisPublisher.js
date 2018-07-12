@@ -128,6 +128,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
   return prom.then((sample) => {
     if (sample) {
       sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
+      console.log(`publishSample ${JSON.stringify(sample)}`,)
       publishObject(sample, eventType);
       return sample;
     }
