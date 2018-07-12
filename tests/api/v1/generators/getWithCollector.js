@@ -73,12 +73,12 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
     })
     .then((gen) => {
       genWithOneCollector.id = gen.id;
-      return gen.addCollectors([collector1]);
+      return gen.addPossibleCollectors([collector1]);
     })
     .then(() => Generator.create(genWithThreeCollectors))
     .then((gen) => {
       genWithThreeCollectors.id = gen.id;
-      return gen.addCollectors([collector1, collector2, collector3]);
+      return gen.addPossibleCollectors([collector1, collector2, collector3]);
     })
     .then(() => done())
     .catch(done);
@@ -100,16 +100,16 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
 
       const firstGenerator = res.body[ZERO];
       expect(res.body).to.have.lengthOf(THREE);
-      expect(firstGenerator.collectors.length).to.equal(THREE);
+      expect(firstGenerator.possibleCollectors.length).to.equal(THREE);
 
-      const collectorNames = firstGenerator.collectors.map((collector) =>
+      const collectorNames = firstGenerator.possibleCollectors.map((collector) =>
         collector.name);
       expect(collectorNames).to.deep.equal(sortedNames);
       expect(firstGenerator.id).to.not.equal(undefined);
-      expect(res.body[ONE].collectors.length).to.equal(ONE);
-      expect(res.body[ONE].collectors[ZERO].name).to.equal(collector1.name);
+      expect(res.body[ONE].possibleCollectors.length).to.equal(ONE);
+      expect(res.body[ONE].possibleCollectors[ZERO].name).to.equal(collector1.name);
       expect(res.body[ONE].id).to.not.equal(undefined);
-      expect(res.body[TWO].collectors.length).to.equal(ZERO);
+      expect(res.body[TWO].possibleCollectors.length).to.equal(ZERO);
       expect(res.body[TWO].id).to.not.equal(undefined);
       return done();
     });
@@ -124,8 +124,8 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
         return done(err);
       }
 
-      expect(res.body.collectors.length).to.equal(THREE);
-      const collectorNames = res.body.collectors.map((collector) =>
+      expect(res.body.possibleCollectors.length).to.equal(THREE);
+      const collectorNames = res.body.possibleCollectors.map((collector) =>
         collector.name);
       expect(collectorNames).to.deep.equal(sortedNames);
       return done();

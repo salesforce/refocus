@@ -63,7 +63,7 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
     Generator.create(generator)
     .then((gen) => {
       generatorId = gen.id;
-      return gen.addCollectors([collector1]);
+      return gen.addPossibleCollectors([collector1]);
     })
     .then(() => done())
     .catch(done);
@@ -85,10 +85,10 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
         return done(err);
       }
 
-      const { name, collectors } = res.body;
+      const { name, possibleCollectors } = res.body;
       expect(name).to.equal(_name);
-      expect(collectors.length).to.equal(ONE);
-      expect(collectors[ZERO].name).to.equal(collector1.name);
+      expect(possibleCollectors.length).to.equal(ONE);
+      expect(possibleCollectors[ZERO].name).to.equal(collector1.name);
       done();
     });
   });
@@ -96,17 +96,17 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
   it('ok: PATCH to add new collectors', (done) => {
     api.patch(`${path}/${generatorId}`)
     .set('Authorization', token)
-    .send({ collectors: [collector2.name, collector3.name] })
+    .send({ possibleCollectors: [collector2.name, collector3.name] })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);
       }
 
-      const { collectors } = res.body;
-      expect(Array.isArray(collectors)).to.be.true;
-      expect(collectors.length).to.equal(THREE);
-      const collectorNames = collectors.map((collector) => collector.name);
+      const { possibleCollectors } = res.body;
+      expect(Array.isArray(possibleCollectors)).to.be.true;
+      expect(possibleCollectors.length).to.equal(THREE);
+      const collectorNames = possibleCollectors.map((collector) => collector.name);
       expect(collectorNames).to.deep.equal(sortedNames);
       done();
     });
@@ -115,16 +115,16 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
   it('ok: PATCH to a collector that is already attached to the generator', (done) => {
     api.patch(`${path}/${generatorId}`)
     .set('Authorization', token)
-    .send({ collectors: [collector1.name] })
+    .send({ possibleCollectors: [collector1.name] })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);
       }
 
-      const { collectors } = res.body;
-      expect(collectors.length).to.equal(ONE);
-      expect(collectors[ZERO].name).to.equal(collector1.name);
+      const { possibleCollectors } = res.body;
+      expect(possibleCollectors.length).to.equal(ONE);
+      expect(possibleCollectors[ZERO].name).to.equal(collector1.name);
       done();
     });
   });
@@ -133,7 +133,7 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
     const _collectors = [collector1.name, collector1.name];
     api.patch(`${path}/${generatorId}`)
     .set('Authorization', token)
-    .send({ collectors: _collectors })
+    .send({ possibleCollectors: _collectors })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
@@ -151,7 +151,7 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
     const _collectors = [collector1.name, 'iDontExist'];
     api.patch(`${path}/${generatorId}`)
     .set('Authorization', token)
-    .send({ collectors: _collectors })
+    .send({ possibleCollectors: _collectors })
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err, res) => {
       if (err) {

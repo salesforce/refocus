@@ -3466,7 +3466,7 @@ paths:
                 minLength: 7
                 maxLength: 4096
                 description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-              collectors:
+              possibleCollectors:
                  description: List of collectors this Sample Generator should try to use.
                  type: array
                  items:
@@ -11529,7 +11529,7 @@ definitions:
       name:
         type: "string"
         description: "Should be unique."
-      currentGenerators:
+      possibleGenerators:
         readOnly: true
         type: "array"
         items:
@@ -11733,7 +11733,7 @@ definitions:
         minLength: 7
         maxLength: 4096
         description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-      collectors:
+      possibleCollectors:
         description: List of collectors this Sample Generator should try to use.
         type: array
         items:
@@ -11819,7 +11819,7 @@ definitions:
         minLength: 7
         maxLength: 4096
         description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-      collectors:
+      possibleCollectors:
         description: List of collectors this Sample Generator should try to use.
         type: array
         items:
@@ -12059,7 +12059,7 @@ parameters:
         - id
         - status
         - registered
-        - currentGenerators
+        - possibleGenerators
         - lastHeartbeat
         - lastModifiedAt
         - createdBy
@@ -12166,7 +12166,7 @@ parameters:
         - updatedAt
         - currentCollector
         - user
-        - collectors
+        - possibleCollectors
 
   GeneratorTemplateFieldsParam:
     name: fields

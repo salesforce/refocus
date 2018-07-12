@@ -217,7 +217,7 @@ module.exports = {
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       instance = o;
-      return helper.model.validateCollectors(toPut.collectors);
+      return helper.model.validateCollectors(toPut.possibleCollectors);
     })
     .then((_collectors) => {
       collectors = _collectors;
@@ -225,7 +225,7 @@ module.exports = {
     })
     .then((_updatedInstance) => {
       instance = _updatedInstance;
-      return instance.setCollectors(collectors);
+      return instance.setPossibleCollectors(collectors);
     }) // need reload instance to attach associations
     .then(() => instance.reload())
     .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
