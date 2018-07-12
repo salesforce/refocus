@@ -32,7 +32,6 @@ const sampleType = redisOps.sampleType;
 const commonUtils = require('../../utils/common');
 const sampleNameSeparator = '|';
 const logger = require('winston');
-const featureToggles = require('feature-toggles');
 
 const sampFields = {
   PROVIDER: 'provider',
@@ -426,6 +425,11 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     return cleanAddAspectToSample(updatedSamp, aspectObj);
   })
   .then((updatedSamp) => {
+    if (featureToggles.isFeatureEnabled('publishSampleNoChange') &&
+    updatedSamp.hasOwnProperty(noChange) && updatedSamp.noChange === true) {
+      return updatedSamp;
+    }
+
     if (featureToggles.isFeatureEnabled('preAttachSubject')) {
       return cleanAddSubjectToSample(updatedSamp, subject);
     }
