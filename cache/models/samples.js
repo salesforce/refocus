@@ -414,10 +414,20 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       if (noChange) {
         updatedSamp.noChange = true;
         updatedSamp.absolutePath = subject.absolutePath;
-        updatedSamp.subjectTags = subject.tags || [];
         updatedSamp.aspectName = aspectObj.name;
         updatedSamp.aspectTags = aspectObj.tags || [];
         updatedSamp.aspectTimeout = aspectObj.timeout;
+
+        if (Array.isArray(subject.tags)) {
+          updatedSamp.subjectTags = subject.tags;  
+        } else {
+          try {
+            updatedSamp.subjectTags = JSON.parse(subject.tags);
+          } catch (err) {
+            updatedSamp.subjectTags = [];
+          }
+        }
+
         return updatedSamp; // skip cleanAdd...
       }
     }
