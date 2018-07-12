@@ -102,6 +102,8 @@ function arrayObjsStringsToJson(obj, arrObjfields) {
  * @returns {Object} the modified subject
  */
 function convertSubjectStrings(subject) {
+  console.log('convertSubjectStrings', subject);
+
   // convert the strings into numbers
   subject.childCount = parseInt(subject.childCount, 10) || 0;
   subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10) || 0;
@@ -126,6 +128,7 @@ function convertSubjectStrings(subject) {
     subject.relatedLinks = [];
   }
 
+  console.log('convertSubjectStrings returning', subject);
   return subject;
 } // convertSubjectStrings
 
