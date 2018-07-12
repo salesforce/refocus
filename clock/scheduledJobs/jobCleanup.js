@@ -62,14 +62,10 @@ function execute(batchSize, delay) {
     });
 
   function deleteNextNJobs(n) {
-    if (n === 0) {
-      return Promise.resolve();
-    }
+    if (n === 0) return Promise.resolve();
     const from = skippedJobCount;
     const to = skippedJobCount + n - 1;
-    if (!now) {
-      now = Date.now();
-    }
+    if (!now) now = Date.now();
 
     // get n jobs
     return kue.Job.rangeByStateAsync('complete', from, to, 'asc')
