@@ -36,7 +36,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
       name: '',
       roomType: '',
       active: true,
-      externalId: '',
+      externalId: null,
       settings: {},
       bots: [],
     };
@@ -49,7 +49,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
       name: 'test',
       roomType: '',
       active: true,
-      externalId: '',
+      externalId: null,
       settings: {},
       bots: [],
     };
@@ -64,7 +64,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
       name: 'test',
       roomType: '',
       active: true,
-      externalId: '',
+      externalId: null,
       settings: {},
       bots: [],
     };
@@ -78,7 +78,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
       name: '',
       roomType: 'roomTypeId',
       active: true,
-      externalId: '',
+      externalId: null,
       settings: {},
       bots: [],
     };
@@ -92,7 +92,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
       name: '',
       roomType: '',
       active: false,
-      externalId: '',
+      externalId: null,
       settings: {},
       bots: [],
     };
@@ -120,7 +120,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
       name: '',
       roomType: '',
       active: true,
-      externalId: '',
+      externalId: null,
       settings: { test: 'test' },
       bots: [],
     };
@@ -134,7 +134,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
       name: '',
       roomType: '',
       active: true,
-      externalId: '',
+      externalId: null,
       settings: {},
       bots: [],
     };
@@ -148,7 +148,7 @@ describe('tests/view/rooms/new/FormController.js, Create Room =>', () => {
       name: '',
       roomType: '',
       active: true,
-      externalId: '',
+      externalId: null,
       settings: {},
       bots: ['Bot1', 'Bot2'],
     };
