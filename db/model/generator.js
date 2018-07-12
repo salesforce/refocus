@@ -161,29 +161,29 @@ module.exports = function generator(seq, dataTypes) {
               .catch(() => {
                 throw new dbErrors.SampleGeneratorContextEncryptionError();
               });
-          });
+          })
+          .then(() => inst.assignToCollector());
       }, // beforeCreate
 
       beforeUpdate(inst /* , opts */) {
         const gtName = inst.generatorTemplate.name;
         const gtVersion = inst.generatorTemplate.version;
 
-        /*
-         inst.get('possibleCollectors') would work instead of
-         inst.possibleCollectors because we set collectors in place at api layer
-         using instance.setDataValue('possibleCollectors', ...);
-         */
-        // console.log(inst);
-        let isCurrentCollectorIncluded = false;
-        if (inst.get('possibleCollectors')) {
-          isCurrentCollectorIncluded = inst.get('possibleCollectors').some(
-            (coll) => coll.name === inst.currentCollector
-          );
+        if (inst.changed('isActive')) {
+          inst.assignToCollector();
         }
 
-        if (inst.changed('isActive') ||
-         (inst.changed('possibleCollectors') && !isCurrentCollectorIncluded)) {
-          inst.assignToCollector();
+        /* If possibleCollectors are changed and this generator current
+         collector is not included in the changed possibleCollectors, then
+         assign this generator to another collector */
+        if (inst.possibleCollectors && inst.changed('possibleCollectors')) {
+          const isCurrentCollectorIncluded = inst.possibleCollectors.some(
+            (coll) => coll.name === inst.currentCollector
+          );
+
+          if (!isCurrentCollectorIncluded) {
+            inst.assignToCollector();
+          }
         }
 
         if (inst.changed('generatorTemplate') || inst.changed('context')) {
@@ -211,7 +211,6 @@ module.exports = function generator(seq, dataTypes) {
       }, // beforeDestroy
 
       afterCreate(inst /* , opts*/) {
-        // inst.assignToCollector();
         return Promise.all([
           Promise.resolve().then(() => {
             if (inst.currentCollector) {
@@ -224,17 +223,13 @@ module.exports = function generator(seq, dataTypes) {
               return inst.addWriter(inst.createdBy);
             }
           }),
-          // inst.save(),
         ]);
       }, // afterCreate
 
       afterUpdate(inst) {
         const oldCollector = inst.previous('currentCollector');
         const newCollector = inst.get('currentCollector');
-
-        return Promise.all([
-          hbUtils.trackGeneratorChanges(inst, oldCollector, newCollector),
-        ]);
+        return hbUtils.trackGeneratorChanges(inst, oldCollector, newCollector);
       }, //afterUpdate
     },
     validate: {
@@ -291,7 +286,6 @@ module.exports = function generator(seq, dataTypes) {
       as: 'possibleCollectors',
       through: 'GeneratorCollectors',
       foreignKey: 'generatorId',
-      // hooks: true,
     });
 
     // assoc.currentCollector = Generator.belongsTo(models.Collector, {
@@ -482,15 +476,10 @@ module.exports = function generator(seq, dataTypes) {
    * currentCollector field and expects the caller to save later.
    */
   Generator.prototype.assignToCollector = function () {
-    /*
-     inst.get('possibleCollectors') would work instead of
-     inst.possibleCollectors because we set collectors in place at api layer
-     using instance.setDataValue('possibleCollectors', ...);
-     */
-    const instCollectors = this.get('possibleCollectors');
-    if (this.isActive && instCollectors && instCollectors.length) {
-      instCollectors.sort((c1, c2) => c1.name > c2.name);
-      const newColl = instCollectors.find((c) => c.isRunning() && c.isAlive());
+    const possibleCollectors = this.possibleCollectors;
+    if (this.isActive && possibleCollectors && possibleCollectors.length) {
+      possibleCollectors.sort((c1, c2) => c1.name > c2.name);
+      const newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive());
       this.currentCollector = newColl ? newColl.name : null;
     } else {
       this.currentCollector = null;
