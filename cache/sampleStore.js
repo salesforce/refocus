@@ -119,7 +119,7 @@ function convertSubjectStrings(subject) {
       subject.tags =  JSON.parse(subject.tags);
     } catch (err) {
       subject.tags = [];
-    }    
+    }
   }
 
   if (!Array.isArray(subject.relatedLinks)) {
