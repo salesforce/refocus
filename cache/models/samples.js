@@ -10,7 +10,6 @@
  * cache/models/samples.js
  */
 'use strict'; // eslint-disable-line strict
-const debug = require('debug')('refocus:cache:models:samples');
 const featureToggles = require('feature-toggles');
 const logInvalidHmsetValues = require('../../utils/common')
   .logInvalidHmsetValues;
@@ -162,8 +161,7 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
  * @returns {Object} - Sample object with subject attached
  */
 function cleanAddSubjectToSample(sampleObj, subjectObj) {
-  debug('cleanAddSubjectToSample sampleObj %o subjectObj %o', sampleObj,
-    subjectObj);
+  console.log(`cleanAddSubjectToSample sampleObj ${sampleObj} subjectObj ${subjectObj}`);
   let sampleRes = {};
   sampleRes = sampleStore.arrayObjsStringsToJson(sampleObj,
     constants.fieldsToStringify.sample);
@@ -175,7 +173,7 @@ function cleanAddSubjectToSample(sampleObj, subjectObj) {
     sampleRes.subject = subject;
   }
 
-  debug('cleanAddSubjectToSample returning %o', sampleRes);
+  console.log(`cleanAddSubjectToSample returning ${sampleRes}`);
   return sampleRes;
 } // cleanAddSubjectToSample
 
