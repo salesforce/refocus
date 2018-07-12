@@ -23,25 +23,34 @@ const kue = require('kue');
 const originalRangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
 jobQueue.completeCountAsync = Promise.promisify(jobQueue.completeCount);
 jobQueue.completeAsync = Promise.promisify(jobQueue.complete);
+const sinon = require('sinon');
+const activityLogUtil = require('../../utils/activityLog');
 
 describe('tests/clock/jobCleanup.js >', () => {
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
-    tu.toggleOverride('enableWorkerActivityLogs', true);
+    tu.toggleOverride('enableJobCleanupActivityLogs', true);
     jobQueue.process('TEST', 100, testJob);
     done();
   });
 
   beforeEach((done) => {
+    sinon.spy(activityLogUtil, 'printActivityLogString');
+
     jobCleanup.execute(100, 0)
     .then(jobCleanup.resetCounter())
     .then(done)
     .catch(done);
   });
 
+  afterEach((done) => {
+    activityLogUtil.printActivityLogString.restore();
+    done();
+  });
+
   after((done) => {
     tu.toggleOverride('enableWorkerProcess', false);
-    tu.toggleOverride('enableWorkerActivityLogs', false);
+    tu.toggleOverride('enableJobCleanupActivityLogs', false);
     jobCleanup.execute(100, 0).then(done).catch(done);
   });
 
@@ -101,7 +110,12 @@ describe('tests/clock/jobCleanup.js >', () => {
       expectNJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        expect(activityLogUtil.printActivityLogString.calledOnce)
+          .to.equal(true);
+        done();
+      })
+      .catch(done);
     });
 
     it('jobs: 1, batchSize: 10', (done) => {
@@ -112,7 +126,12 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        expect(activityLogUtil.printActivityLogString.calledOnce)
+          .to.equal(true);
+        done();
+      })
+      .catch(done);
     });
 
     it('jobs: 5, batchSize: 10', (done) => {
@@ -120,10 +139,15 @@ describe('tests/clock/jobCleanup.js >', () => {
       const batchSize = 10;
 
       runJobs(jobCount)
-      .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(batchSize, delay))
-      .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+        .then(() => expectNJobs(jobCount))
+        .then(() => jobCleanup.execute(batchSize, delay))
+        .then(() => expectNJobs(expectedCount))
+        .then(() => {
+          expect(activityLogUtil.printActivityLogString.calledOnce)
+            .to.equal(true);
+          done();
+        })
+        .catch(done);
     });
 
     it('jobs: 22, batchSize: 5', (done) => {
@@ -134,7 +158,12 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        expect(activityLogUtil.printActivityLogString.calledOnce)
+          .to.equal(true);
+        done();
+      })
+      .catch(done);
     });
 
     it('jobs: 19, batchSize: 5', (done) => {
@@ -145,7 +174,12 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        expect(activityLogUtil.printActivityLogString.calledOnce)
+          .to.equal(true);
+        done();
+      })
+      .catch(done);
     });
 
     it('jobs: 100, batchSize: 5', (done) => {
@@ -156,7 +190,12 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        expect(activityLogUtil.printActivityLogString.calledOnce)
+          .to.equal(true);
+        done();
+      })
+      .catch(done);
     });
 
     it('jobs: 100, batchSize: 1', (done) => {
@@ -167,21 +206,30 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        expect(activityLogUtil.printActivityLogString.calledOnce)
+          .to.equal(true);
+        done();
+      })
+      .catch(done);
     });
 
     it('batchSize: 0 (none removed)', (done) => {
       const jobCount = 5;
       const batchSize = 0;
-      const expectedCount = 5;
+      const expectedCountWhenNoneRemoved = 5;
 
       runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
-      .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => expectNJobs(expectedCountWhenNoneRemoved))
+      .then(() => {
+        expect(activityLogUtil.printActivityLogString.calledOnce)
+          .to.equal(false);
+        done();
+      })
+      .catch(done);
     });
-
   });
 
   describe('delay - staggered >', () => {
@@ -198,7 +246,13 @@ describe('tests/clock/jobCleanup.js >', () => {
       runJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        // when delay applied log called twice.
+        expect(activityLogUtil.printActivityLogString.calledTwice)
+          .to.equal(true);
+        done();
+      })
+      .catch(done);
     });
 
     it('skip 15', (done) => {
@@ -209,9 +263,14 @@ describe('tests/clock/jobCleanup.js >', () => {
       runJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        // when delay applied log called twice.
+        expect(activityLogUtil.printActivityLogString.calledTwice)
+          .to.equal(true);
+        done();
+      })
+      .catch(done);
     });
-
   });
 
   describe('delay - non-contiguous >', () => {
@@ -228,7 +287,13 @@ describe('tests/clock/jobCleanup.js >', () => {
       runJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        // when delay applied log called twice.
+        expect(activityLogUtil.printActivityLogString.calledTwice)
+          .to.equal(true);
+        done();
+      })
+      .catch(done);
     });
 
     it('skip 1/4', (done) => {
@@ -240,7 +305,13 @@ describe('tests/clock/jobCleanup.js >', () => {
       runJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        // when delay applied log called twice.
+        expect(activityLogUtil.printActivityLogString.calledTwice)
+          .to.equal(true);
+        done();
+      })
+      .catch(done);
     });
   });
 
@@ -278,7 +349,6 @@ describe('tests/clock/jobCleanup.js >', () => {
       })
       .catch(done);
     });
-
   });
 
   it('id counter reset', (done) => {
@@ -297,5 +367,4 @@ describe('tests/clock/jobCleanup.js >', () => {
     .then((ids) => { expect(ids[0]).to.equal(1); })
     .then(done).catch(done);
   });
-
 });
