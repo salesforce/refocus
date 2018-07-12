@@ -244,6 +244,8 @@ function botEmit(nspComponents, obj) {
   * identified by this namespace string.
   */
 function shouldIEmitThisObj(nspString, obj) {
+  console.log('shouldIEmitThisObj', nspString, obj);
+
   // extract all the components that makes up a namespace.
   const nspComponents = nspString.split(constants.filterSeperator);
   const absPathNsp = nspComponents[constants.asbPathIndex];
