@@ -419,7 +419,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
         updatedSamp.aspectTimeout = aspectObj.timeout;
 
         if (Array.isArray(subject.tags)) {
-          updatedSamp.subjectTags = subject.tags;  
+          updatedSamp.subjectTags = subject.tags;
         } else {
           try {
             updatedSamp.subjectTags = JSON.parse(subject.tags);
