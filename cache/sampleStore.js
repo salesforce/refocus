@@ -116,16 +116,20 @@ function convertSubjectStrings(subject) {
   }
 
   // convert strings into arrays
-  try {
-    subject.tags = JSON.parse(subject.tags);
-  } catch (err) {
-    subject.tags = [];
+  if (!Array.isArray(subject.tags)) {
+    try {
+      subject.tags =  JSON.parse(subject.tags);
+    } catch (err) {
+      subject.tags = [];
+    }    
   }
 
-  try {
-    subject.relatedLinks = JSON.parse(subject.relatedLinks);
-  } catch (err) {
-    subject.relatedLinks = [];
+  if (!Array.isArray(subject.relatedLinks)) {
+    try {
+      subject.relatedLinks = JSON.parse(subject.relatedLinks);
+    } catch (err) {
+      subject.relatedLinks = [];
+    }
   }
 
   console.log('convertSubjectStrings returning', subject);
