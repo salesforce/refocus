@@ -59,10 +59,10 @@ const embeddedAspectFields = [
   'valueType', 'relatedLinks', 'tags', 'rank',
 ];
 const embeddedSubjectFields = [
-  'absolutePath', 'createdAt', 'createdBy', 'description', 'helpEmail',
-  'helpUrl', 'hierarchyLevel', 'id', 'isPublished', 'name',
-  'parentAbsolutePath', 'parentId', 'relatedLinks', 'sortBy', 'tags',
-  'updatedAt',
+  'absolutePath', 'childCount', 'createdAt', 'createdBy', 'description',
+  'geolocation', 'helpEmail', 'helpUrl', 'hierarchyLevel', 'id',
+  'isPublished', 'name', 'parentAbsolutePath', 'parentId', 'relatedLinks',
+  'sortBy', 'tags', 'updatedAt',
 ];
 
 const ZERO = 0;
