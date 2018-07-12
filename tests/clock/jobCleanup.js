@@ -36,7 +36,6 @@ describe('tests/clock/jobCleanup.js >', () => {
 
   beforeEach((done) => {
     sinon.spy(activityLogUtil, 'printActivityLogString');
-
     jobCleanup.execute(100, 0)
     .then(jobCleanup.resetCounter())
     .then(done)
