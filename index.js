@@ -137,6 +137,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
     });
   } else {
     httpServer.listen(PORT, () => {
+      app.emit('app_started');
       console.log(listening, PORT); // eslint-disable-line no-console
     });
   }
