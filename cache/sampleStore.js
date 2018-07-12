@@ -102,6 +102,8 @@ function arrayObjsStringsToJson(obj, arrObjfields) {
  * @returns {Object} the modified subject
  */
 function convertSubjectStrings(subject) {
+  console.log('convertSubjectStrings', subject);
+
   // convert the strings into numbers
   subject.childCount = parseInt(subject.childCount, 10) || 0;
   subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10) || 0;
@@ -114,18 +116,23 @@ function convertSubjectStrings(subject) {
   }
 
   // convert strings into arrays
-  try {
-    subject.tags = JSON.parse(subject.tags);
-  } catch (err) {
-    subject.tags = [];
+  if (!Array.isArray(subject.tags)) {
+    try {
+      subject.tags =  JSON.parse(subject.tags);
+    } catch (err) {
+      subject.tags = [];
+    }    
   }
 
-  try {
-    subject.relatedLinks = JSON.parse(subject.relatedLinks);
-  } catch (err) {
-    subject.relatedLinks = [];
+  if (!Array.isArray(subject.relatedLinks)) {
+    try {
+      subject.relatedLinks = JSON.parse(subject.relatedLinks);
+    } catch (err) {
+      subject.relatedLinks = [];
+    }
   }
 
+  console.log('convertSubjectStrings returning', subject);
   return subject;
 } // convertSubjectStrings
 

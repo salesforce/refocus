@@ -59,10 +59,10 @@ const embeddedAspectFields = [
   'valueType', 'relatedLinks', 'tags', 'rank',
 ];
 const embeddedSubjectFields = [
-  'absolutePath', 'createdAt', 'createdBy', 'description', 'helpEmail',
-  'helpUrl', 'hierarchyLevel', 'id', 'isPublished', 'name',
-  'parentAbsolutePath', 'parentId', 'relatedLinks', 'sortBy', 'tags',
-  'updatedAt',
+  'absolutePath', 'childCount', 'createdAt', 'createdBy', 'description', 
+  'geolocation', 'helpEmail', 'helpUrl', 'hierarchyLevel', 'id', 'imageUrl',
+  'isPublished', 'name', 'parentAbsolutePath', 'parentId', 'relatedLinks',
+  'sortBy', 'tags', 'updatedAt',
 ];
 
 const ZERO = 0;
@@ -161,6 +161,7 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
  * @returns {Object} - Sample object with subject attached
  */
 function cleanAddSubjectToSample(sampleObj, subjectObj) {
+  console.log(`cleanAddSubjectToSample sampleObj ${JSON.stringify(sampleObj)} subjectObj ${JSON.stringify(subjectObj)}`);
   let sampleRes = {};
   sampleRes = sampleStore.arrayObjsStringsToJson(sampleObj,
     constants.fieldsToStringify.sample);
@@ -172,6 +173,7 @@ function cleanAddSubjectToSample(sampleObj, subjectObj) {
     sampleRes.subject = subject;
   }
 
+  console.log(`cleanAddSubjectToSample returning ${JSON.stringify(sampleRes)}`);
   return sampleRes;
 } // cleanAddSubjectToSample
 
