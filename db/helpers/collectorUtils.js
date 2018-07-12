@@ -82,8 +82,26 @@ function validateVersion(version) {
   }
 }
 
+/**
+ * Find unassigned generators and assign them.
+ * @param {Object} seq - Sequelize object
+ * @returns {Promise} - Resolves to array of assigned generator db objects
+ */
+function findAndAssignGenerators(seq) {
+  return seq.models.Generator.findAll(
+    { where: { currentCollector: null, isActive: true } }
+  )
+  .then((unassignedGenerators) =>
+    Promise.all(unassignedGenerators.map((g) => {
+      g.assignToCollector();
+      return g.save();
+    })
+  ));
+}
+
 module.exports = {
   validateOsInfo,
   validateProcessInfo,
   validateVersion,
+  findAndAssignGenerators,
 }; // exports

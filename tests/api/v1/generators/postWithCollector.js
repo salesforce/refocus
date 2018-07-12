@@ -193,8 +193,8 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
     it('posting generator should set currentCollector', (done) => {
       const localGenerator = JSON.parse(JSON.stringify(generator));
       localGenerator.possibleCollectors = [
-        collector1.name,
-        collector4.name,
+        collector1.name, // not alive
+        collector4.name, // alive
       ];
       localGenerator.isActive = true; // will make localGenerator active
       api.post(path)

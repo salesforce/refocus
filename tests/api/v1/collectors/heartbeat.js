@@ -332,7 +332,6 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then(() => u.createGenerator(generator1, userId, collector1))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => {
-            // console.log(res);
             u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res);
             expect(res.body.generatorsAdded[0].aspects[0])
               .to.contain.property('name', 'temperature');
@@ -385,7 +384,6 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
-
       });
 
       describe('basic changes to multiple generators >', () => {
@@ -807,7 +805,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           const reencryptedSG = res.body.generatorsAdded[0];
           expect(reencryptedSG).to.not.equal(undefined);
           expect(reencryptedSG.context.secretInformation)
-          .to.not.equal(encryptedSG.secretInformation);
+          .to.not.equal(encryptedSG.context.secretInformation);
           expect(reencryptedSG.context.otherNonSecretInformation)
           .equal(otherNonSecretInformation);
 

@@ -90,16 +90,25 @@ function getCollector(userToken, collector) {
   .endAsync();
 }
 
+/**
+ * Assigns the passed in collector to generator and creates the generator
+ * @param  {Object} gen - Generator object
+ * @param  {uuid} userId - User id
+ * @param  {Object} collector - Collector object
+ * @return {Promise} - Resolves to created generator
+ */
 function createGenerator(gen, userId, collector) {
   gen = JSON.parse(JSON.stringify(gen));
   gen.createdBy = userId;
 
   if (collector) {
+    gen.isActive = true;
+    gen.possibleCollectors = [collector.name];
     gen.currentCollector = collector.name;
-  } else {
-    gen.currentCollector = undefined;
+    return Generator.createWithCollectors(gen);
   }
 
+  gen.currentCollector = undefined;
   return Generator.create(gen);
 }
 

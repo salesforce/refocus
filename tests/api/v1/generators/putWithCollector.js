@@ -219,7 +219,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
       clock = sinon.useFakeTimers(now);
     });
 
-    before((done) => { // create active generator
+    before((done) => { // create alive collectors
       tu.db.Collector.bulkCreate([collectorAlive1, collectorAlive2])
       .then((collectors) => {
         collectorAlive1 = collectors[0];
@@ -231,7 +231,8 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
 
     afterEach(() => clock.restore());
 
-    it('put generator should set currentCollector', (done) => {
+    it('unassigned generator, put generator with possible collectors should ' +
+      'set currentCollector if alive collector is available', (done) => {
       expect(generatorInst.currentCollector).to.be.equal(null);
       const requestBody = JSON.parse(JSON.stringify(toPut));
       requestBody.possibleCollectors = [collector1.name, collectorAlive1.name];
@@ -255,13 +256,52 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
       });
     });
 
-    it('put generator, currentCollector exists in updated collector list',
-    (done) => {
+    it('already assigned generator, put generator should not change ' +
+      'currentCollector if currentCollector exists in updated collector list',
+      (done) => {
+        generatorInst.update({ currentCollector: collectorAlive1.name })
+        .then((updatedGenInst) => {
+          expect(updatedGenInst.currentCollector)
+            .to.be.equal('IamAliveAndRunning1');
+          const requestBody = JSON.parse(JSON.stringify(toPut));
+          requestBody.possibleCollectors =
+            [collector2.name, collectorAlive1.name];
+          requestBody.isActive = true;
+
+          api.put(`${path}/${generatorId}`)
+          .set('Authorization', token)
+          .send(requestBody)
+          .expect(constants.httpStatus.OK)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            const collectors = res.body.possibleCollectors;
+            expect(Array.isArray(collectors)).to.be.true;
+            expect(collectors.length).to.equal(TWO);
+            const collectorNames = collectors.map(
+              (collector) => collector.name
+            );
+            expect(collectorNames).to.deep.equal(
+              ['beautiful', 'IamAliveAndRunning1']
+            );
+            expect(res.body.currentCollector).to.equal('IamAliveAndRunning1');
+            return done();
+          });
+        })
+        .catch(done);
+      });
+
+    it('already assigned generator, put generator should set ' +
+      'currentCollector to null if currentCollector does not exist in ' +
+      'updated collector list', (done) => {
       generatorInst.update({ currentCollector: collectorAlive1.name })
       .then((updatedGenInst) => {
-        expect(updatedGenInst.currentCollector).to.be.equal('IamAliveAndRunning1');
+        expect(updatedGenInst.currentCollector)
+          .to.be.equal('IamAliveAndRunning1');
         const requestBody = JSON.parse(JSON.stringify(toPut));
-        requestBody.possibleCollectors = [collector2.name, collectorAlive1.name];
+        requestBody.possibleCollectors = [collector2.name, collector3.name];
         requestBody.isActive = true;
         api.put(`${path}/${generatorId}`)
         .set('Authorization', token)
@@ -276,59 +316,43 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
           expect(Array.isArray(collectors)).to.be.true;
           expect(collectors.length).to.equal(TWO);
           const collectorNames = collectors.map((collector) => collector.name);
-          expect(collectorNames).to.deep.equal(['beautiful', 'IamAliveAndRunning1']);
-          expect(res.body.currentCollector).to.equal('IamAliveAndRunning1');
+          expect(collectorNames).to.deep.equal(['beautiful', 'world']);
+          expect(res.body.currentCollector).to.equal(undefined);
           return done();
         });
-      })
-      .catch(done);
-    });
-
-    it('put generator, currentCollector does not exists in updated collector ' +
-      'list, set to null', (done) => {
-      const requestBody = JSON.parse(JSON.stringify(toPut));
-      requestBody.possibleCollectors = [collector2.name, collector3.name];
-      requestBody.isActive = true;
-      api.put(`${path}/${generatorId}`)
-      .set('Authorization', token)
-      .send(requestBody)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        const collectors = res.body.possibleCollectors;
-        expect(Array.isArray(collectors)).to.be.true;
-        expect(collectors.length).to.equal(TWO);
-        const collectorNames = collectors.map((collector) => collector.name);
-        expect(collectorNames).to.deep.equal(['beautiful', 'world']);
-        expect(res.body.currentCollector).to.equal(undefined);
-        return done();
       });
     });
 
-    it('put generator, currentCollector does not exist in updated collector ' +
-     'list, set to the alive collector in the list', (done) => {
-      const requestBody = JSON.parse(JSON.stringify(toPut));
-      requestBody.possibleCollectors = [collector2.name, collectorAlive2.name];
-      requestBody.isActive = true;
-      api.put(`${path}/${generatorId}`)
-      .set('Authorization', token)
-      .send(requestBody)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+    it('already assigned generator, put generator should set ' +
+      'currentCollector to another alive collector if currentCollector ' +
+      'does not exist in updated collector list', (done) => {
+      generatorInst.update({ currentCollector: collectorAlive1.name })
+      .then((updatedGenInst) => {
+        expect(updatedGenInst.currentCollector)
+          .to.be.equal('IamAliveAndRunning1');
+        const requestBody = JSON.parse(JSON.stringify(toPut));
+        requestBody.possibleCollectors =
+           [collector2.name, collectorAlive2.name];
+        requestBody.isActive = true;
+        api.put(`${path}/${generatorId}`)
+        .set('Authorization', token)
+        .send(requestBody)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
 
-        const collectors = res.body.possibleCollectors;
-        expect(Array.isArray(collectors)).to.be.true;
-        expect(collectors.length).to.equal(TWO);
-        const collectorNames = collectors.map((collector) => collector.name);
-        expect(collectorNames).to.deep.equal(['beautiful', 'IamAliveAndRunning2']);
-        expect(res.body.currentCollector).to.equal('IamAliveAndRunning2');
-        return done();
+          const collectors = res.body.possibleCollectors;
+          expect(Array.isArray(collectors)).to.be.true;
+          expect(collectors.length).to.equal(TWO);
+          const collectorNames = collectors.map((collector) => collector.name);
+          expect(collectorNames).to.deep.equal(
+            ['beautiful', 'IamAliveAndRunning2']
+          );
+          expect(res.body.currentCollector).to.equal('IamAliveAndRunning2');
+          return done();
+        });
       });
     });
   });
