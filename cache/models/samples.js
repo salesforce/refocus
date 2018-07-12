@@ -60,7 +60,7 @@ const embeddedAspectFields = [
 ];
 const embeddedSubjectFields = [
   'absolutePath', 'childCount', 'createdAt', 'createdBy', 'description', 
-  'geolocation', 'helpEmail', 'helpUrl', 'hierarchyLevel', 'id', 'imageUrl',
+  'geolocation', 'helpEmail', 'helpUrl', 'hierarchyLevel', 'id',
   'isPublished', 'name', 'parentAbsolutePath', 'parentId', 'relatedLinks',
   'sortBy', 'tags', 'updatedAt',
 ];
