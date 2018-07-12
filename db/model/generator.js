@@ -228,7 +228,7 @@ module.exports = function generator(seq, dataTypes) {
 
       isActiveAndCollectors() {
         const isActiveSet = this.changed('isActive') && this.isActive;
-        const existingCollectors = this.collectors && this.collectors.length;
+        const existingCollectors = this.possibleCollectors && this.possibleCollectors.length;
         if (isActiveSet && !existingCollectors) {
           throw new ValidationError(
             'isActive can only be turned on if at least one collector is specified.'
@@ -267,11 +267,16 @@ module.exports = function generator(seq, dataTypes) {
       as: 'user',
     });
 
-    assoc.collectors = Generator.belongsToMany(models.Collector, {
-      as: 'collectors',
+    assoc.possibleCollectors = Generator.belongsToMany(models.Collector, {
+      as: 'possibleCollectors',
       through: 'GeneratorCollectors',
       foreignKey: 'generatorId',
     });
+
+    // assoc.currentCollector = Generator.belongsTo(models.Collector, {
+    //   as: 'currentCollector',
+    //   foreignKey: 'collectorId',
+    // });
 
     assoc.writers = Generator.belongsToMany(models.User, {
       as: 'writers',
@@ -290,7 +295,7 @@ module.exports = function generator(seq, dataTypes) {
           attributes: ['name', 'email', 'fullName'],
         },
         {
-          association: assoc.collectors,
+          association: assoc.possibleCollectors,
           attributes: [
             'id',
             'name',
@@ -317,10 +322,9 @@ module.exports = function generator(seq, dataTypes) {
       ],
     });
 
-    Generator.addScope('collectors', {
+    Generator.addScope('possibleCollectors', {
       include: [
         {
-
           /*
             According to Sequelize team when limits are set, they enforce the
             usage of sub-queries, however, when Generator has multiple
@@ -336,7 +340,7 @@ module.exports = function generator(seq, dataTypes) {
             /sequelize/model.js, line 441).
           */
           duplicating: false,
-          association: assoc.collectors,
+          association: assoc.possibleCollectors,
           attributes: [
             'id',
             'name',
@@ -377,13 +381,13 @@ module.exports = function generator(seq, dataTypes) {
     let collectors;
 
     return Promise.resolve()
-    .then(() => sgUtils.validateCollectors(seq, requestBody.collectors))
+    .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
     .then((_collectors) => collectors = _collectors)
     .then(() => createdGenerator = Generator.build(requestBody))
-    .then(() => createdGenerator.collectors = collectors) // mock for validation
+    .then(() => createdGenerator.possibleCollectors = collectors) // mock for validation
     .then(() => createdGenerator.save())
     .then((gen) => createdGenerator = gen)
-    .then(() => createdGenerator.addCollectors(collectors))
+    .then(() => createdGenerator.addPossibleCollectors(collectors))
     .then(() => createdGenerator.reload());
   };
 
@@ -408,8 +412,8 @@ module.exports = function generator(seq, dataTypes) {
    */
   Generator.prototype.updateWithCollectors = function (requestBody) {
     return Promise.resolve()
-    .then(() => sgUtils.validateCollectors(seq, requestBody.collectors))
-    .then((collectors) => this.addCollectors(collectors))
+    .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
+    .then((collectors) => this.addPossibleCollectors(collectors))
     .then(() => this.update(requestBody))
     .then(() => this.reload());
   };
@@ -457,9 +461,9 @@ module.exports = function generator(seq, dataTypes) {
    * currentCollector field and expects the caller to save later.
    */
   Generator.prototype.assignToCollector = function () {
-    if (this.isActive && this.collectors && this.collectors.length) {
-      this.collectors.sort((c1, c2) => c1.name > c2.name);
-      const newColl = this.collectors.find((c) => c.isRunning() && c.isAlive());
+    if (this.isActive && this.possibleCollectors && this.possibleCollectors.length) {
+      this.possibleCollectors.sort((c1, c2) => c1.name > c2.name);
+      const newColl = this.possibleCollectors.find((c) => c.isRunning() && c.isAlive());
       this.currentCollector = newColl ? newColl.name : null;
     } else {
       this.currentCollector = null;
