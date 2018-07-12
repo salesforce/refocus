@@ -161,7 +161,7 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
  * @returns {Object} - Sample object with subject attached
  */
 function cleanAddSubjectToSample(sampleObj, subjectObj) {
-  console.log(`cleanAddSubjectToSample sampleObj ${sampleObj} subjectObj ${subjectObj}`);
+  console.log(`cleanAddSubjectToSample sampleObj ${JSON.stringify(sampleObj)} subjectObj ${JSON.stringify(subjectObj)}`);
   let sampleRes = {};
   sampleRes = sampleStore.arrayObjsStringsToJson(sampleObj,
     constants.fieldsToStringify.sample);
@@ -173,7 +173,7 @@ function cleanAddSubjectToSample(sampleObj, subjectObj) {
     sampleRes.subject = subject;
   }
 
-  console.log(`cleanAddSubjectToSample returning ${sampleRes}`);
+  console.log(`cleanAddSubjectToSample returning ${JSON.stringify(sampleRes)}`);
   return sampleRes;
 } // cleanAddSubjectToSample
 
