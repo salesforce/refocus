@@ -46,8 +46,10 @@ module.exports = {
   limiter: {
     activity: 'limiter',
     ipAddress: 'None',
-    limit: '0/0', //limit that was hit: 500/60000 means they hit 500 requests in 60 seconds
-    method: 'None', //one of HTTP verbs
+
+    // limit that was hit: 500/60000 means they hit 500 requests in 60 seconds
+    limit: '0/0',
+    method: 'None', // one of HTTP verbs
     requestBytes: 0,
     request_id: 'None',
     responseBytes: 0,
@@ -101,5 +103,13 @@ module.exports = {
     totalTime: 'None',
     user: 'None',
     workTime: 'None',
+  },
+  jobCleanup: {
+    activity: 'jobCleanup',
+    iterations: 0,
+    errors: 0,
+    removed: 0,
+    skipped: 0,
+    totalTime: '0ms',
   },
 };
