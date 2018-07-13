@@ -10,6 +10,7 @@
  * cache/models/samples.js
  */
 'use strict'; // eslint-disable-line strict
+const featureToggles = require('feature-toggles');
 const logInvalidHmsetValues = require('../../utils/common')
   .logInvalidHmsetValues;
 const helper = require('../../api/v1/helpers/nouns/samples');
@@ -57,6 +58,12 @@ const embeddedAspectFields = [
   'id', 'description', 'isPublished', 'helpEmail', 'helpUrl', 'name', 'timeout',
   'criticalRange', 'warningRange', 'infoRange', 'okRange', 'valueLabel',
   'valueType', 'relatedLinks', 'tags', 'rank',
+];
+const embeddedSubjectFields = [
+  'absolutePath', 'childCount', 'createdAt', 'createdBy', 'description',
+  'geolocation', 'helpEmail', 'helpUrl', 'hierarchyLevel', 'id',
+  'isPublished', 'name', 'parentAbsolutePath', 'parentId', 'relatedLinks',
+  'sortBy', 'tags', 'updatedAt',
 ];
 
 const ZERO = 0;
@@ -164,6 +171,29 @@ function isSampleChanged(newSample, oldSample) {
   // Use "some" because it stops evaluating as soon as it hits a truthy element
   return Object.keys(newSample).some(isKeyNewOrChanged);
 } // isSampleChanged
+
+/**
+ * Convert array strings to Json for sample and subject, then attach subject to
+ * sample.
+ *
+ * @param  {Object} sampleObj - Sample object from redis
+ * @param  {Object} subjectObj - Subject object from redis
+ * @returns {Object} - Sample object with subject attached
+ */
+function cleanAddSubjectToSample(sampleObj, subjectObj) {
+  let sampleRes = {};
+  sampleRes = sampleStore.arrayObjsStringsToJson(sampleObj,
+    constants.fieldsToStringify.sample);
+  const subject = sampleStore.arrayObjsStringsToJson(subjectObj,
+    constants.fieldsToStringify.subject);
+  if (subject) {
+    modelUtils.cleanQueryBodyObj(subject, embeddedSubjectFields);
+    sampleStore.convertSubjectStrings(subject);
+    sampleRes.subject = subject;
+  }
+
+  return sampleRes;
+} // cleanAddSubjectToSample
 
 /**
  * Create properties array with fields to update/create. Value is empty string
@@ -390,6 +420,13 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     }
 
     return cleanAddAspectToSample(updatedSamp, aspectObj);
+  })
+  .then((updatedSamp) => {
+    if (featureToggles.isFeatureEnabled('preAttachSubject')) {
+      return cleanAddSubjectToSample(updatedSamp, subject);
+    }
+
+    return updatedSamp;
   })
   .catch((err) => {
     if (isBulk) {
@@ -978,4 +1015,7 @@ module.exports = {
 
     return Promise.all(promises);
   }, // bulkUpsertByName
+
+  cleanAddSubjectToSample, // export for testing only
+  cleanAddAspectToSample, // export for testing only
 };

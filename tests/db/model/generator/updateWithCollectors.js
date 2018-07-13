@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
+require('chai').use(require('chai-as-promised')).should();
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const gtUtil = u.gtUtil;
@@ -56,7 +57,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
     Generator.create(generator)
     .then((o) => {
       generatorDBInstance = o;
-      return o.addCollectors([collector1]);
+      return o.addPossibleCollectors([collector1]);
     })
     .then(() => done())
     .catch(done);
@@ -74,8 +75,8 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
       expect(o.name).to.equal('New_Name');
 
       // check collector is still there
-      expect(Array.isArray(o.collectors)).to.be.true;
-      expect(o.collectors.length).to.equal(ONE);
+      expect(Array.isArray(o.possibleCollectors)).to.be.true;
+      expect(o.possibleCollectors.length).to.equal(ONE);
       done();
     })
     .catch(done);
@@ -83,10 +84,10 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
 
   it('ok: update to a collector that is already attached to the generator', (done) => {
     generatorDBInstance
-    .updateWithCollectors({ collectors: [collector1.name] })
+    .updateWithCollectors({ possibleCollectors: [collector1.name] })
     .then((o) => {
-      expect(Array.isArray(o.collectors)).to.be.true;
-      expect(o.collectors.length).to.equal(ONE);
+      expect(Array.isArray(o.possibleCollectors)).to.be.true;
+      expect(o.possibleCollectors.length).to.equal(ONE);
       done();
     })
     .catch(done);
@@ -94,11 +95,11 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
 
   it('ok: update to add new collectors', (done) => {
     generatorDBInstance
-    .updateWithCollectors({ collectors: [collector2.name, collector3.name] })
+    .updateWithCollectors({ possibleCollectors: [collector2.name, collector3.name] })
     .then((o) => {
-      expect(Array.isArray(o.collectors)).to.be.true;
-      expect(o.collectors.length).to.equal(THREE);
-      const collectorNames = o.collectors.map((collector) => collector.name);
+      expect(Array.isArray(o.possibleCollectors)).to.be.true;
+      expect(o.possibleCollectors.length).to.equal(THREE);
+      const collectorNames = o.possibleCollectors.map((collector) => collector.name);
       expect(collectorNames).to.contain(collector1.name);
       expect(collectorNames).to.contain(collector2.name);
       expect(collectorNames).to.contain(collector3.name);
@@ -109,7 +110,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
 
   it('400 error with duplicate collectors in request body', (done) => {
     const _collectors = [collector1.name, collector1.name];
-    generatorDBInstance.updateWithCollectors({ collectors: _collectors, })
+    generatorDBInstance.updateWithCollectors({ possibleCollectors: _collectors, })
     .then((o) => done(new Error('Expected DuplicateCollectorError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
@@ -123,7 +124,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
   it('404 error for request body with an existing and a ' +
     'non-existant collector', (done) => {
     const _collectors = [collector1.name, 'iDontExist'];
-    generatorDBInstance.updateWithCollectors({ collectors: _collectors, })
+    generatorDBInstance.updateWithCollectors({ possibleCollectors: _collectors, })
     .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.NOT_FOUND_STATUS_CODE);
@@ -132,5 +133,121 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
       expect(err.resourceKey).to.deep.equal(_collectors);
       done();
     });
+  });
+
+  describe('isActive validation', () => {
+    function testUpdateWithCollectors(changes) {
+      const initialValues = {
+        possibleCollectors: changes.possibleCollectors.initial,
+        isActive: changes.isActive.initial,
+      };
+      const updates = {
+        possibleCollectors: changes.possibleCollectors.update,
+        isActive: changes.isActive.update,
+      };
+
+      Object.keys(updates).forEach((key) => {
+        if (updates[key] === undefined) delete updates[key];
+      });
+
+      let expectedCollectors = initialValues.possibleCollectors;
+      let expectedIsActive = initialValues.isActive;
+      if (changes.expectSuccess) {
+        if (updates.possibleCollectors !== undefined) {
+          expectedCollectors = updates.possibleCollectors;
+        }
+
+        if (updates.isActive !== undefined) {
+          expectedIsActive = updates.isActive;
+        }
+      }
+
+      let promise = Promise.resolve()
+      .then(() => Generator.findById(generatorDBInstance.id))
+      .then((gen) => gen.update(initialValues, { validate: false }))
+      .then(() => Generator.findById(generatorDBInstance.id))
+      .then((gen) => gen.setPossibleCollectors(initialValues.possibleCollectors))
+      .then(() => Generator.findById(generatorDBInstance.id))
+      .then((gen) => gen.updateWithCollectors(updates));
+
+      if (changes.expectSuccess) {
+        promise = promise.should.eventually.be.fulfilled;
+      } else {
+        promise = promise.should.eventually.be.rejectedWith(
+          'isActive can only be turned on if at least one collector is specified.'
+        );
+      }
+
+      return promise.then(() => Generator.findById(generatorDBInstance.id))
+      .then((gen) => {
+        expect(gen.possibleCollectors).to.have.lengthOf(expectedCollectors.length);
+        expect(gen.isActive).to.equal(expectedIsActive);
+      });
+    }
+
+    it('existing collectors, set isActive', () =>
+      testUpdateWithCollectors({
+        possibleCollectors: { initial: [collector1], },
+        isActive: { initial: false, update: true, },
+        expectSuccess: true,
+      })
+    );
+
+    it('existing collectors, unset isActive', () =>
+      testUpdateWithCollectors({
+        possibleCollectors: { initial: [collector1], },
+        isActive: { initial: true, update: false, },
+        expectSuccess: true,
+      })
+    );
+
+    it('no existing collectors, set isActive', () =>
+      testUpdateWithCollectors({
+        possibleCollectors: { initial: [], },
+        isActive: { initial: false, update: true, },
+        expectSuccess: false,
+      })
+    );
+
+    it('no existing collectors, unset isActive', () =>
+      testUpdateWithCollectors({
+        possibleCollectors: { initial: [], },
+        isActive: { initial: true, update: false, },
+        expectSuccess: true,
+      })
+    );
+
+    it('isActive=false, set collectors', () =>
+      testUpdateWithCollectors({
+        isActive: { initial: false },
+        possibleCollectors: { initial: [], update: [collector1.name] },
+        expectSuccess: true,
+      })
+    );
+
+    it('isActive=true, set collectors', () =>
+      testUpdateWithCollectors({
+        isActive: { initial: true },
+        possibleCollectors: { initial: [], update: [collector1.name] },
+        expectSuccess: true,
+      })
+    );
+
+    it('set collectors, set isActive', () =>
+      testUpdateWithCollectors({
+        possibleCollectors: { initial: [], update: [collector1.name] },
+        isActive: { initial: false, update: true, },
+        expectSuccess: true,
+      })
+    );
+
+    it('set collectors, unset isActive', () =>
+      testUpdateWithCollectors({
+        possibleCollectors: { initial: [], update: [collector1.name] },
+        isActive: { initial: true, update: false, },
+        expectSuccess: true,
+      })
+    );
+
   });
 });

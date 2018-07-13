@@ -99,42 +99,6 @@ function handleInvalidToken(cb) {
 }
 
 /**
- * Verify jwt token. If verify successful, also check the token record in the
- * db (exists AND is not revoked) and load the user record from the db and add
- * to the request. (Skip the token record check if the token is the default UI
- * token.)
- *
- * @param {object} t - The Token object from the db
- * @returns {boolean} true if ok, otherwise throws error
- */
-function checkTokenRecord(t) {
-  if (t && t.isRevoked === '0') {
-    return true;
-  }
-
-  if (!t) {
-    const err = new apiErrors.ForbiddenError({
-      explanation: 'Missing token for the specified user. ' +
-        'Please contact your Refocus administrator.',
-    });
-    throw err;
-  }
-
-  if (t.isRevoked !== '0') {
-    const err = new apiErrors.ForbiddenError({
-      explanation: 'Token was revoked. Please contact your ' +
-        'Refocus administrator.',
-    });
-    throw err;
-  }
-
-  const err = new apiErrors.ForbiddenError({
-    explanation: 'Invalid Token.',
-  });
-  throw err;
-} // checkTokenRecord
-
-/**
  * Function to verify if a collector token is valid or not, i.e. does the token
  * name match an actual collector name.
  *
@@ -254,13 +218,11 @@ function verifyUserToken(payload, req, cb) {
     // No need to check the token record if this is the default UI token.
     if (p.username === p.tokenname) return cb();
 
-    return Token.findOne({
-      where: {
-        name: p.tokenname,
-        createdBy: req.user.id,
-      },
+    return Token.scope({ method: ['notRevoked', p.tokenname, req.user.id] })
+    .findOne()
+    .then((found) => {
+      if (!found) throw new apiErrors.ForbiddenError();
     })
-    .then(checkTokenRecord)
     .then(() => cb());
   });
 } // verifyUserToken

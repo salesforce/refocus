@@ -32,6 +32,7 @@ module.exports = {
     description: 'None',
     jobId: 'None',
     jobType: 'None',
+    process: 'None',
     totalTime: '0ms',
   },
   kueStats: {

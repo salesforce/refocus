@@ -48,15 +48,15 @@ describe('tests/db/model/generator/methods.js >', () => {
   };
 
   beforeEach(() =>
-    Promise.join(
-      GeneratorTemplate.create(gt1),
+    GeneratorTemplate.create(gt1)
+    .then((_gt1) => gt1.id = _gt1.id)
+    .then(() => Promise.join(
       Generator.create(gen1),
       Collector.create(coll1),
       Collector.create(coll2),
       Collector.create(coll3),
-    )
-    .spread((_gt1, _gen1, _coll1, _coll2, _coll3) => {
-      gt1.id = _gt1.id;
+    ))
+    .spread((_gen1, _coll1, _coll2, _coll3) => {
       gen1.id = _gen1.id;
       coll1.id = _coll1.id;
       coll2.id = _coll2.id;
@@ -76,13 +76,17 @@ describe('tests/db/model/generator/methods.js >', () => {
     it('collectors specified, first choice available', () =>
       Promise.resolve()
       .then(() => Generator.findById(gen1.id))
-      .then((g) => g.updateWithCollectors({ collectors: [coll2.name, coll3.name] }))
+      .then((g) => g.updateWithCollectors({
+        isActive: true,
+        possibleCollectors: [coll2.name, coll3.name],
+      }))
 
       .then(() => Generator.findById(gen1.id))
-      .then((g) => g.assignToCollector())
-
-      .then(() => Generator.findById(gen1.id))
-      .then((gen1) => expect(gen1.currentCollector).to.equal(coll2.name))
+      .then((g) => {
+        expect(g.currentCollector).to.equal(null);
+        g.assignToCollector();
+        expect(g.currentCollector).to.equal(coll2.name);
+      })
     );
 
     it('collectors specified, first choice unavailable', () =>
@@ -92,72 +96,122 @@ describe('tests/db/model/generator/methods.js >', () => {
       )
       .spread((coll2, gen1) => Promise.join(
         coll2.update({ lastHeartbeat: 0 }),
-        gen1.updateWithCollectors({ collectors: [coll2.name, coll3.name] }),
+        gen1.updateWithCollectors({
+          isActive: true,
+          possibleCollectors: [coll2.name, coll3.name],
+        })
       ))
 
       .then(() => Generator.findById(gen1.id))
-      .then((gen1) => gen1.assignToCollector())
-
-      .then(() => Generator.findById(gen1.id))
-      .then((gen1) => expect(gen1.currentCollector).to.equal(coll3.name))
+      .then((g) => {
+        expect(g.currentCollector).to.equal(null);
+        g.assignToCollector();
+        expect(g.currentCollector).to.equal(coll3.name);
+      })
     );
 
-    it('collectors specified, none available (not changed)', () =>
+    it('collectors specified, none available (not assigned)', () =>
       Promise.join(
         Collector.findById(coll2.id),
         Generator.findById(gen1.id),
       )
       .spread((coll2, gen1) => Promise.join(
         coll2.update({ lastHeartbeat: 0 }),
-        gen1.updateWithCollectors({ collectors: [coll2.name] }),
+        gen1.updateWithCollectors({
+          isActive: true,
+          possibleCollectors: [coll2.name],
+        })
       ))
 
       .then(() => Generator.findById(gen1.id))
-      .then((gen1) => gen1.assignToCollector())
-
-      .then(() => Generator.findById(gen1.id))
-      .then((gen1) => expect(gen1.currentCollector).to.equal(null))
+      .then((g) => {
+        expect(g.currentCollector).to.equal(null);
+        g.assignToCollector();
+        expect(g.currentCollector).to.equal(null);
+      })
     );
 
-    it('collectors not specified, first collector available', () =>
-      Promise.resolve()
-      .then(() => Generator.findById(gen1.id))
-      .then((g) => g.assignToCollector())
-      .then(() => Generator.findById(gen1.id))
-      .then((gen1) => expect(gen1.currentCollector).to.equal(coll1.name))
-    );
-
-    it('collectors not specified, first collector unavailable', () =>
-      Promise.resolve()
-      .then(() => Collector.findById(coll1.id))
-      .then((c) => c.update({ status: collectorStatuses.Stopped }))
-
-      .then(() => Generator.findById(gen1.id))
-      .then((g) => g.assignToCollector())
-
-      .then(() => Generator.findById(gen1.id))
-      .then((gen1) => expect(gen1.currentCollector).to.equal(coll2.name))
-    );
-
-    it('collectors not specified, none available (not changed)', () =>
+    it('collectors specified, none available (unassigned)', () =>
       Promise.join(
-        Collector.findById(coll1.id),
         Collector.findById(coll2.id),
-        Collector.findById(coll3.id),
         Generator.findById(gen1.id),
       )
-      .spread((coll1, coll2, coll3, gen1) => Promise.join([
-        coll1.update({ status: collectorStatuses.Stopped }),
+      .spread((coll2, gen1) => Promise.join(
         coll2.update({ lastHeartbeat: 0 }),
-        coll3.update({ lastHeartbeat: 0 }),
-        gen1.update({ currentCollector: coll3.name }),
-      ]))
+        gen1.updateWithCollectors({
+          isActive: true,
+          possibleCollectors: [coll2.name],
+        }),
+      ))
+      .spread((coll2, gen1) => gen1.update({
+        currentCollector: coll3.name,
+      }))
 
       .then(() => Generator.findById(gen1.id))
-      .then((g) => g.assignToCollector())
-
-      .then(() => Generator.findById(gen1.id))
-      .then((gen1) => expect(gen1.currentCollector).to.equal(coll3.name))
+      .then((g) => {
+        expect(g.currentCollector).to.equal(coll3.name);
+        g.assignToCollector();
+        expect(g.currentCollector).to.equal(null);
+      })
     );
+
+    it('collectors specified, isActive=false', () =>
+      Promise.resolve()
+      .then(() => Generator.findById(gen1.id))
+      .then((g) => g.updateWithCollectors({
+        isActive: false,
+        possibleCollectors: [coll2.name, coll3.name],
+      }))
+
+      .then(() => Generator.findById(gen1.id))
+      .then((g) => {
+        expect(g.currentCollector).to.equal(null);
+        g.assignToCollector();
+        expect(g.currentCollector).to.equal(null);
+      })
+    );
+
+    it('collectors specified, isActive=false (unassigned)', () =>
+      Promise.resolve()
+      .then(() => Generator.findById(gen1.id))
+      .then((g) => g.updateWithCollectors({
+        isActive: false,
+        possibleCollectors: [coll2.name, coll3.name],
+      }))
+      .then((g) => g.update({
+        currentCollector: coll3.name,
+      }))
+
+      .then(() => Generator.findById(gen1.id))
+      .then((g) => {
+        expect(g.currentCollector).to.equal(coll3.name);
+        g.assignToCollector();
+        expect(g.currentCollector).to.equal(null);
+      })
+    );
+
+    it('collectors not specified (not assigned)', () =>
+      Promise.resolve()
+      .then(() => Generator.findById(gen1.id))
+      .then((g) => {
+        expect(g.currentCollector).to.equal(null);
+        g.assignToCollector();
+        expect(g.currentCollector).to.equal(null);
+      })
+    );
+
+    it('collectors not specified (unassigned)', () =>
+      Promise.resolve()
+      .then(() => Generator.findById(gen1.id))
+      .then((g) => g.update({ currentCollector: coll3.name }))
+
+      .then(() => Generator.findById(gen1.id))
+      .then((g) => {
+        expect(g.currentCollector).to.equal(coll3.name);
+        g.assignToCollector();
+        expect(g.currentCollector).to.equal(null);
+      })
+    );
+
   });
 });

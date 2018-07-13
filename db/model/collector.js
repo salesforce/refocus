@@ -162,17 +162,6 @@ module.exports = function collector(seq, dataTypes) {
   }; // missedHeartbeat
 
   /**
-   * Returns a single running collector where the time since the last
-   * heartbeat is within the latency tolerance.
-   *
-   * @returns {Collector}
-   */
-  Collector.findAliveCollector = function () {
-    return Collector.scope('defaultScope', 'running').findAll()
-    .then((colls) => colls.find((c) => c.isAlive()));
-  }; // findAliveCollector
-
-  /**
    * Checks for collectors that have missed their heartbeat. Updates their status
    * and reassigns all affected generators.
    *
@@ -189,11 +178,19 @@ module.exports = function collector(seq, dataTypes) {
   }; // checkMissedHeartbeat
 
   Collector.postImport = function (models) {
-    assoc.currentGenerators = Collector.belongsToMany(models.Generator, {
-      as: 'currentGenerators',
+
+    // This field is not currently needed by collector, but table already exists
+    // because generator needs to access its possible collectors.
+    assoc.possibleGenerators = Collector.belongsToMany(models.Generator, {
+      as: 'possibleGenerators',
       through: 'GeneratorCollectors',
       foreignKey: 'collectorId',
     });
+
+    // assoc.currentGenerators = Collector.hasMany(models.Generator, {
+    //   as: 'currentGenerators',
+    //   foreignKey: 'collectorId',
+    // });
 
     assoc.createdBy = Collector.belongsTo(models.User, {
       foreignKey: 'createdBy',
@@ -253,7 +250,10 @@ module.exports = function collector(seq, dataTypes) {
   Collector.prototype.reassignGenerators = function () {
     /* TODO: change to use currentGenerators once that includes current gens only */
     return seq.models.Generator.findAll({ where: { currentCollector: this.name } })
-    .then((gens) => Promise.all(gens.map((g) => g.assignToCollector())));
+    .map((g) => {
+      g.assignToCollector();
+      return g.save();
+    });
   };
 
   Collector.prototype.isWritableBy = function (who) {

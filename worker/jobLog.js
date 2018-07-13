@@ -17,6 +17,7 @@ module.exports = (startTime, job, description) => {
     const jobLog = {
       jobId: job.id,
       jobType: job.type,
+      process: process.env.DYNO || process.pid,
       totalTime: `${Date.now() - startTime}ms`,
     };
     if (description) jobLog.description = `"${description}"`;

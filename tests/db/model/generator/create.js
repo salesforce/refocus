@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
+require('chai').use(require('chai-as-promised')).should();
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const gtUtil = u.gtUtil;
@@ -65,7 +66,7 @@ describe('tests/db/model/generator/create.js >', () => {
       expect(o.generatorTemplate.name).to.equal('refocus-ok-template');
       expect(o.generatorTemplate.version).to.equal('1.0.0');
       expect(typeof o.getWriters).to.equal('function');
-      expect(typeof o.getCollectors).to.equal('function');
+      expect(typeof o.getPossibleCollectors).to.equal('function');
       done();
     })
     .catch(done);
@@ -359,7 +360,7 @@ describe('tests/db/model/generator/create.js >', () => {
         expect(o.generatorTemplate.name).to.equal('gtWithEncryption');
         expect(o.generatorTemplate.version).to.equal('1.0.0');
         expect(typeof o.getWriters).to.equal('function');
-        expect(typeof o.getCollectors).to.equal('function');
+        expect(typeof o.getPossibleCollectors).to.equal('function');
         return cryptUtils
           .decryptSGContextValues(GlobalConfig, o, gtWithEncryption);
       })
@@ -376,6 +377,26 @@ describe('tests/db/model/generator/create.js >', () => {
         done();
       })
       .catch(done);
+    });
+  });
+
+  describe('isActive validation', () => {
+    it('isActive=false, no collectors', () => {
+      const gen = u.getGenerator();
+      gen.name += 'isActive1';
+      gen.isActive = false;
+      return Generator.create(gen)
+        .should.eventually.be.fulfilled;
+    });
+
+    it('isActive=true, no collectors', () => {
+      const gen = u.getGenerator();
+      gen.name += 'isActive2';
+      gen.isActive = true;
+      return Generator.create(gen)
+        .should.eventually.be.rejectedWith(
+          'isActive can only be turned on if at least one collector is specified.'
+        );
     });
   });
 

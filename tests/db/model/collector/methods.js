@@ -55,6 +55,14 @@ describe('tests/db/model/collector/methods.js >', () => {
   generator2.currentCollector = collector2.name;
   generator3.currentCollector = collector3.name;
 
+  generator1.possibleCollectors = [collector1.name, collector2.name, collector3.name];
+  generator2.possibleCollectors = [collector1.name, collector2.name, collector3.name];
+  generator3.possibleCollectors = [collector1.name, collector2.name, collector3.name];
+
+  generator1.isActive = true;
+  generator2.isActive = true;
+  generator3.isActive = true;
+
   beforeEach(() => Promise.join(
     Collector.create(collector1),
     Collector.create(collector2),
@@ -97,46 +105,17 @@ describe('tests/db/model/collector/methods.js >', () => {
       });
     });
 
-    describe('findAliveCollector >', () => {
-      it('some over threshold', () => {
-        const threshold = 3000;
-        const fakeNow = new Date('2018-05-22T14:51:07');
-        clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
-
-        return Collector.findAliveCollector()
-        .should.eventually.have.property('name', collector3.name);
-      });
-
-      it('all over threshold', () => {
-        const threshold = 1000;
-        const fakeNow = new Date('2018-05-22T14:51:07');
-        clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
-
-        return Collector.findAliveCollector()
-        .should.eventually.not.exist;
-      });
-
-      it('none over threshold', () => {
-        const threshold = 10000;
-        const fakeNow = new Date('2018-05-22T14:51:07');
-        clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
-
-        return Collector.findAliveCollector()
-        .should.eventually.have.property('name', collector2.name);
-      });
-    });
-
     describe('checkMissedHeartbeat >', () => {
 
-      beforeEach(() => Promise.join(
-        GeneratorTemplate.upsert(generatorTemplate),
-        Generator.upsert(generator1),
-        Generator.upsert(generator2),
-        Generator.upsert(generator3),
-      ));
+      beforeEach(() =>
+        GeneratorTemplate.create(generatorTemplate)
+        .then((gt1) => generatorTemplate.id = gt1.id)
+        .then(() => Promise.join(
+          Generator.createWithCollectors(generator1),
+          Generator.createWithCollectors(generator2),
+          Generator.createWithCollectors(generator3),
+        ))
+      );
 
       afterEach(u.forceDelete);
 
@@ -220,12 +199,15 @@ describe('tests/db/model/collector/methods.js >', () => {
     });
 
     describe('reassignGenerators >', () => {
-      before(() => Promise.join(
-        GeneratorTemplate.upsert(generatorTemplate),
-        Generator.upsert(generator1),
-        Generator.upsert(generator2),
-        Generator.upsert(generator3),
-      ));
+      beforeEach(() =>
+        GeneratorTemplate.create(generatorTemplate)
+        .then((gt1) => generatorTemplate.id = gt1.id)
+        .then(() => Promise.join(
+          Generator.createWithCollectors(generator1),
+          Generator.createWithCollectors(generator2),
+          Generator.createWithCollectors(generator3),
+        ))
+      );
 
       afterEach(u.forceDelete);
 

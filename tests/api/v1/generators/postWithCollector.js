@@ -62,7 +62,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
 
   it('simple post returns collectors field', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
-    localGenerator.collectors = [
+    localGenerator.possibleCollectors = [
       collector1.name,
       collector2.name,
       collector3.name,
@@ -76,8 +76,8 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
         return done(err);
       }
 
-      expect(res.body.collectors.length).to.equal(THREE);
-      const collectorNames = res.body.collectors.map((collector) =>
+      expect(res.body.possibleCollectors.length).to.equal(THREE);
+      const collectorNames = res.body.possibleCollectors.map((collector) =>
         collector.name);
       expect(collectorNames).to.deep.equal(sortedNames);
       return done();
@@ -88,7 +88,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
     'array sorted', (done) => {
     const _generator = JSON.parse(JSON.stringify(generator));
     _generator.name = 'generatorForPosting';
-    _generator.collectors = [
+    _generator.possibleCollectors = [
       collector1.name,
       collector2.name,
       collector3.name,
@@ -108,15 +108,15 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
 
         expect(res.body).to.have.lengthOf(TWO);
         const firstGenerator = res.body[ZERO];
-        expect(firstGenerator.collectors.length).to.equal(THREE);
-        let collectorNames = firstGenerator.collectors.map((collector) =>
+        expect(firstGenerator.possibleCollectors.length).to.equal(THREE);
+        let collectorNames = firstGenerator.possibleCollectors.map((collector) =>
           collector.name);
         expect(collectorNames).to.deep.equal(sortedNames);
         expect(firstGenerator.id).to.not.equal(undefined);
         const secondGenerator = res.body[ONE];
-        expect(secondGenerator.collectors.length).to.equal(THREE);
+        expect(secondGenerator.possibleCollectors.length).to.equal(THREE);
 
-        collectorNames = secondGenerator.collectors.map((collector) =>
+        collectorNames = secondGenerator.possibleCollectors.map((collector) =>
           collector.name);
         expect(collectorNames).to.deep.equal(sortedNames);
         expect(secondGenerator.id).to.not.equal(undefined);
@@ -128,7 +128,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
   it('404 error for request body with an non-existant collector',
     (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
-    localGenerator.collectors = ['iDontExist'];
+    localGenerator.possibleCollectors = ['iDontExist'];
     api.post(path)
     .set('Authorization', token)
     .send(localGenerator)
@@ -147,7 +147,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
   it('404 error for request body with an existing and a non-existant collector',
     (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
-    localGenerator.collectors = [collector1.name, 'iDontExist'];
+    localGenerator.possibleCollectors = [collector1.name, 'iDontExist'];
     api.post(path)
     .set('Authorization', token)
     .send(localGenerator)
