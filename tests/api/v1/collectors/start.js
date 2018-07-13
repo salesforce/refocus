@@ -72,7 +72,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
       generator2 = generators[1];
       return Collector.create(u.getCollectorToCreate());
     })
-    .then((c) => c.addCurrentGenerators([generator1, generator2]))
+    .then((c) => c.addPossibleGenerators([generator1, generator2]))
     .then(() => done())
     .catch(done);
   });
@@ -103,9 +103,9 @@ describe('tests/api/v1/collectors/start.js >', () => {
           gen.name === generator2.name)[0];
         expect(sg1.id).to.include(generator1.id);
         expect(sg1.GeneratorCollectors).to.equal(undefined);
-        expect(sg1.collectors).to.equal(undefined);
+        expect(sg1.possibleCollectors).to.equal(undefined);
         expect(sg2.GeneratorCollectors).to.equal(undefined);
-        expect(sg2.collectors).to.equal(undefined);
+        expect(sg2.possibleCollectors).to.equal(undefined);
         expect(res.body.generatorsAdded[0].aspects[0])
           .to.contain.property('name', 'temperature');
         return done();
@@ -242,4 +242,3 @@ describe('tests/api/v1/collectors/start.js >', () => {
     });
   });
 });
-

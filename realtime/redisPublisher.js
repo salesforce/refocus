@@ -104,18 +104,28 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  * The sample object needs to be attached its subject object and it also needs
  * a absolutePath field added to it before the sample is published to the redis
  * channel.
+ *
  * @param  {Object} sampleInst - The sample instance to be published
  * @param  {Model} subjectModel - The subject model to get the related
- * subject instance
+ *  subject instance
  * @param  {String} event  - Type of the event that is being published
  * @param  {Model} aspectModel  - The aspect model to get the related
- * aspect instance
+ *  aspect instance
  * @returns {Promise} - which resolves to a sample object
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   const eventType = event || getSampleEventType(sampleInst);
-  return rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel)
-  .then((sample) => {
+  let prom;
+
+  // No need to attachAspectSubject if subject and aspect are already attached
+  if (sampleInst.hasOwnProperty('subject') &&
+  sampleInst.hasOwnProperty('aspect')) {
+    prom = Promise.resolve(sampleInst);
+  } else {
+    prom = rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel);
+  }
+
+  return prom.then((sample) => {
     if (sample) {
       publishObject(sample, eventType);
       return sample;

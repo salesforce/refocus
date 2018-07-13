@@ -410,11 +410,11 @@ function startCollector(req, res, next) {
 
     // return Generator.findAll({ where: { currentCollector: coll.name } });
     /*
-     * TODO: this actually maps to Generator.collectors, not currentCollector.
+     * TODO: this actually maps to Generator.possibleCollectors, not currentCollector.
      * This is necessary for now since currentCollector is not being set yet.
      * Change to use only current collectors once all the assignment logic is in place.
      */
-    return coll.getCurrentGenerators();
+    return coll.getPossibleGenerators();
   })
   /* Add all the attributes necessary to send back to collector. */
   .then((gens) => Promise.all(gens.map((g) => g.updateForHeartbeat())))
@@ -424,7 +424,7 @@ function startCollector(req, res, next) {
       g.token = jwtUtil.createToken(g.name, g.user.name,
         { IsGenerator: true });
       delete g.GeneratorCollectors;
-      delete g.collectors;
+      delete g.possibleCollectors;
       return g;
     });
 

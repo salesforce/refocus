@@ -23,6 +23,7 @@ const eventType = {
   INTRNL_SMPL_ADD: 'refocus.internal.realtime.sample.add',
   INTRNL_SMPL_DEL: 'refocus.internal.realtime.sample.remove',
   INTRNL_SMPL_UPD: 'refocus.internal.realtime.sample.update',
+  INTRNL_SMPL_NC: 'refocus.internal.realtime.sample.nochange',
   LENS_CHANGE: 'refocus.lens.realtime.change',
 };
 
@@ -44,6 +45,8 @@ function enqueueEvent(eventName, eventData) {
     queue.push({ 'sample.remove': eventData });
   } else if (eventName === eventType.INTRNL_SMPL_UPD) {
     queue.push({ 'sample.update': eventData });
+  } else if (eventName === eventType.INTRNL_SMPL_NC) {
+    queue.push({ 'sample.nochange': eventData });
   }
 }
 

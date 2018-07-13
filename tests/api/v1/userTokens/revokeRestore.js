@@ -27,6 +27,7 @@ describe('tests/api/v1/userTokens/revokeRestore.js, ' +
   const tname = `${tu.namePrefix}Voldemort`;
   let userId;
   let unameToken = '';
+  let voldemortToken = '';
 
   before((done) => {
     // create user __test@refocus.com
@@ -48,7 +49,10 @@ describe('tests/api/v1/userTokens/revokeRestore.js, ' +
       api.post(tokenPath)
       .set('Authorization', unameToken)
       .send({ name: tname })
-      .end(done);
+      .end((err2, res2) => {
+        voldemortToken = res2.body.token;
+        return done();
+      });
     });
   });
 
@@ -139,6 +143,45 @@ describe('tests/api/v1/userTokens/revokeRestore.js, ' +
 
       expect(res.body.errors[0].type).to.be.equal('ResourceNotFoundError');
       done();
+    });
+  });
+
+  describe('revoked >', () => {
+    let tokenNameForTokenToBeRevoked = 'TokenNameForTokenToBeRevoked';
+    let tokenToBeRevoked = '';
+
+    before((done) => {
+      api.post(tokenPath)
+      .set('Authorization', unameToken)
+      .send({ name: tokenNameForTokenToBeRevoked })
+      .end((err, res) => {
+        tokenToBeRevoked = res.body.token;
+
+        api.post(`${path}/${uname}/tokens/${tokenNameForTokenToBeRevoked}/revoke`)
+        .set('Authorization', predefinedAdminUserToken)
+        .send({})
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          return done();
+        });
+      });
+    });
+
+    it('try to use a revoked token', (done) => {
+      /* note: this token was revoked in the 'admin user, ok' test */
+      api.get(path)
+      .set('Authorization', voldemortToken)
+      .send({})
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err2, res2) => {
+        expect(res2.body.errors[0])
+          .to.have.property('description', 'Authentication Failed');
+        return done();
+      });
     });
   });
 });
