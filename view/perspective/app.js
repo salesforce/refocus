@@ -111,6 +111,7 @@ function handleError(err) {
  */
 function handleEvent(eventData, eventTypeName) {
   const j = JSON.parse(eventData);
+
   if (DEBUG_REALTIME) {
     console.log({ // eslint-disable-line no-console
       handleEventTimestamp: new Date(),
@@ -130,6 +131,9 @@ function handleEvent(eventData, eventTypeName) {
   } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_UPD) {
     const newSample = j[eventTypeName].new;
     updateTimeoutValues(newSample.aspect.timeout);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_NC) {
+    const sample = j[eventTypeName];
+    updateTimeoutValues(sample.aspect.timeout);
   } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_DEL) {
     const sample = j[eventTypeName];
     updateDeletedTimeoutValues(sample.aspect.timeout);

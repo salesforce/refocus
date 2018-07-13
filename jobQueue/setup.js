@@ -31,12 +31,6 @@ const jobQueue = kue.createQueue(redisOptions);
 jobQueue.on('error', (err) => {
   console.error('Kue Error!', err); // eslint-disable-line no-console
 });
-if (featureToggles.isFeatureEnabled('instrumentKue')) {
-  jobQueue.on('job enqueue', (id, type) => {
-    console.log('[KJI] enqueued: ' + // eslint-disable-line no-console
-      'id=%s type=%s', id, type);
-  });
-}
 
 module.exports = {
   jobConcurrency: {

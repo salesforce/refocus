@@ -177,11 +177,6 @@ function calculateJobPriority(prioritize, deprioritize, req) {
 function createPromisifiedJob(jobName, data, req) {
   const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
     conf.deprioritizeJobsFrom, req);
-  if (featureToggles.isFeatureEnabled('instrumentKue')) {
-    console.log('[KJI] Entered ' + // eslint-disable-line no-console
-      `jobWrapper.js createPromisifiedJob: jobName=${jobName} ` +
-      `jobPriority=${jobPriority}`);
-  }
 
   return new Promise((resolve, reject) => {
     const job = jobQueue.create(jobName, data);
@@ -195,6 +190,11 @@ function createPromisifiedJob(jobName, data, req) {
       }
 
       logJobOnComplete(req, job);
+
+      if (featureToggles.isFeatureEnabled('instrumentKue')) {
+        console.log('[KJI] created ' +
+          `name=${jobName} priority=${jobPriority} id=${job.id}`);
+      }
       return resolve(job);
     });
   });
