@@ -606,6 +606,10 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         const nc = {
           name: testEvents[key].name,
           updatedAt: testEvents[key].updatedAt,
+          aspect: {
+            name: testEvents[key].aspect.name,
+            timeout: testEvents[key].aspect.timeout,
+          },
         };
         expect(obj[key]).to.deep.equal(nc);
       });
