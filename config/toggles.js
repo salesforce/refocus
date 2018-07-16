@@ -97,7 +97,7 @@ const longTermToggles = {
   enableWorkerActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'worker'),
   enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
-    'jobCleanUp'),
+    'jobCleanup'),
 
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),

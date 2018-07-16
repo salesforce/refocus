@@ -21,11 +21,6 @@ module.exports = (job, done) => {
   const reqStartTime = job.data.reqStartTime;
   const dbStartTime = Date.now();
 
-  if (featureToggles.isFeatureEnabled('instrumentKue')) {
-    const msg = `[KJI] Ready to remove completed jobs job.id=${job.id} `;
-    console.log(msg); // eslint-disable-line no-console
-  }
-
   scheduledJob.execute(conf.JOB_REMOVAL_BATCH_SIZE, conf.JOB_REMOVAL_DELAY)
   .then(() => {
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {

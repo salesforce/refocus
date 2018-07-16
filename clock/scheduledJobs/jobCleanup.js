@@ -101,9 +101,7 @@ function execute(batchSize, delay) {
 
       // get and delete next n jobs
       .then((results) => {
-        if (results.length < n) {
-          return Promise.resolve();
-        }
+        if (results.length < n) return Promise.resolve();
 
         return deleteNextNJobs(n);
       });
