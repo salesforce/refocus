@@ -83,11 +83,12 @@ module.exports = {
     ipAddress: 'None',
     perspective: 'None',
     token: 'None',
-    totalTime: 'None',
+    totalTime: '0ms',
     user: 'None',
   sigterm: {
     activity: 'sigterm',
-    status: '',
+    status: 'None',
+    totalTime: '0ms',
   },
   unauthorized: {
     activity: 'unauthorized',
