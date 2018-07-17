@@ -83,6 +83,8 @@ const longTermToggles = {
   // Activity logging
   enableApiActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'api'),
   enableJobActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'job'),
+  enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'jobCleanup'),
   enableKueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'kueStats'),
   enableLimiterActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
@@ -92,12 +94,12 @@ const longTermToggles = {
     'queueStats'),
   enableRealtimeActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'realtime'),
+  enableSigtermActivityLog: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'sigterm'),
   enableUnauthorizedActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'unauthorized'),
   enableWorkerActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'worker'),
-  enableSigtermActivityLog: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
-    'sigterm'),
 
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
@@ -173,8 +175,7 @@ const shortTermToggles = {
     'ENABLE_CACHE_PERSPECTIVE'),
 
   // Enable IOREDIS instead of node redis
-  enableIORedis: environmentVariableTrue(pe,
-    'ENABLE_IOREDIS'),
+  enableIORedis: environmentVariableTrue(pe, 'ENABLE_IOREDIS'),
 
   // Enable using worker dyno for hierarchy queries
   enqueueHierarchy: environmentVariableTrue(pe, 'ENQUEUE_HIERARCHY'),
