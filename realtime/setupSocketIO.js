@@ -60,9 +60,9 @@ function getUserFromSession(sid, redisStore) {
  */
 function setupNamespace(io) {
   const perspPromise = perspective.scope('namespace').findAll()
-  .map((p) => rtUtils.initializePerspectiveNamespace(p, io));
+    .map((p) => rtUtils.initializePerspectiveNamespace(p, io));
   const roomPromise = room.scope('namespace').findAll()
-  .map((r) => rtUtils.initializeBotNamespace(r, io));
+    .map((r) => rtUtils.initializeBotNamespace(r, io));
   return Promise.all([perspPromise, roomPromise]);
 } // setupNamespace
 

@@ -235,6 +235,14 @@ module.exports = function perspective(seq, dataTypes) {
           'statusFilterType',
           'statusFilter',
         ],
+        exclude: [
+          'isDeleted',
+          'createdAt',
+          'updatedAt',
+          'deletedAt',
+          'createdBy',
+          'lensId',
+        ],
       },
       where: {
         isDeleted: 0,

@@ -184,6 +184,14 @@ module.exports = function room(seq, dataTypes) {
         'id',
         'name',
       ],
+      exclude: [
+        'externalId',
+        'settings',
+        'active',
+        'bots',
+        'createdAt',
+        'updatedAt',
+      ],
     },
     where: {
       active: true,
