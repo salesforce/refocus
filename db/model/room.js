@@ -123,7 +123,7 @@ module.exports = function room(seq, dataTypes) {
       },
 
       afterUpdate(instance /* , opts */) {
-        if (instance.changed('settings')) {
+        if (instance.changed('settings') || instance.changed('name')) {
           if (instance.active) {
             return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
               null, null, pubOpts);
