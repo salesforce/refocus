@@ -186,6 +186,13 @@ const shortTermToggles = {
   publishSampleInPromiseChain: environmentVariableTrue(pe,
     'PUBLISH_SAMPLE_IN_PROMISE_CHAIN'),
 
+  /*
+   * Use new 'refocus.internal.realtime.sample.nochange' events if sample did
+   * not change.
+   */
+  publishSampleNoChange: environmentVariableTrue(pe,
+    'PUBLISH_SAMPLE_NO_CHANGE'),
+
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
