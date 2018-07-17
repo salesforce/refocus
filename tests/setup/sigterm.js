@@ -20,6 +20,7 @@ const jobQueue = require('../../jobQueue/setup').jobQueue;
 require('../../index');
 
 describe('SIGTERM Signal handling', () => {
+
   beforeEach(() => {
     tu.toggleOverride('enableSigtermActivityLog', true);
     sinon.spy(activityLogUtil, 'printActivityLogString');
@@ -27,7 +28,7 @@ describe('SIGTERM Signal handling', () => {
     sinon.spy(process, 'exit');
   });
 
-  afterEach((done) => {
+  afterEach(() => {
     activityLogUtil.printActivityLogString.restore();
     jobQueue.shutdown.restore();
     process.exit.restore();
