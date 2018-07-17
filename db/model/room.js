@@ -178,6 +178,19 @@ module.exports = function room(seq, dataTypes) {
     });
   };
 
+  Room.addScope('namespace', {
+    attributes: {
+      include: [
+        'id',
+        'name',
+      ],
+    },
+    where: {
+      active: true,
+      isDeleted: 0,
+    },
+  });
+
   return Room;
 };
 
