@@ -176,28 +176,14 @@ module.exports = function room(seq, dataTypes) {
       through: 'RoomWriters',
       foreignKey: 'roomId',
     });
+    Room.addScope('namespace', {
+      attributes: ['id', 'name'],
+      where: {
+        active: true,
+        isDeleted: 0,
+      },
+    });
   };
-
-  Room.addScope('namespace', {
-    attributes: {
-      include: [
-        'id',
-        'name',
-      ],
-      exclude: [
-        'externalId',
-        'settings',
-        'active',
-        'bots',
-        'createdAt',
-        'updatedAt',
-      ],
-    },
-    where: {
-      active: true,
-      isDeleted: 0,
-    },
-  });
 
   return Room;
 };
