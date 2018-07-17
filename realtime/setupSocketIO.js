@@ -13,6 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const perspective = require('../db/index').Perspective;
+const Op = require('sequelize').Op;
 const room = require('../db/index').Room;
 const toggle = require('feature-toggles');
 const rtUtils = require('./utils');
@@ -51,31 +52,21 @@ function getUserFromSession(sid, redisStore) {
 } // getUserFromSession
 
 /**
- * Fetches all the perspectives and calls initializeNamespace to initialize
- * a socketIO namespace for each one.
+ * Fetches all active rooms and calls initializeNamespace to initialize a
+ * socketIO namespace for each one.
  *
  * @param {Socket.io} io - The socket.io server-side object.
- * @returns {Promise} - Returns a promise that resolves to the socket.io
- *  server-side object with the namespace initialized.
+ * @returns {Promise} - Returns a promise that resolves to true
  */
 function setupNamespace(io) {
-  return new Promise((resolve, reject) => {
-    perspective.findAll()
-    .then((objArr) => {
-      if (objArr) {
-        objArr.forEach((o) => rtUtils.initializePerspectiveNamespace(o, io));
-      }
-    })
-    .then(() => room.findAll()
-      .then((rooms) => {
-        if (rooms) {
-          rooms.forEach((r) => rtUtils.initializeBotNamespace(r.toJSON(), io));
-          resolve(io);
-        }
-      })
-    )
-    .catch(reject);
-  });
+  return room.findAll()
+  .then((rooms) => {
+    if (rooms) {
+      rooms.forEach((r) => rtUtils.initializeBotNamespace(r.toJSON(), io));
+    }
+  })
+  .then(() => true)
+  .catch((err) => console.error('setupNamespace', err));
 } // setupNamespace
 
 /**
@@ -187,7 +178,16 @@ function init(io, redisStore) {
             }); // redisClient.get
           }); // on disconnect
         } // if logEnabled
+
+        return socket.handshake.query.p; // perspective name
       })
+      .then((p) => perspective.scope('namespace')
+        .findOne({ where: {
+          name: { [Op.iLike]: p },
+          isDeleted: 0,
+        },
+      }))
+      .then((p) => rtUtils.initializePerspectiveNamespace(p, io))
       .catch((err) => {
         // no realtime events :(
         // console.log('[WSDEBUG] caught error', err);

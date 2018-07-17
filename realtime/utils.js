@@ -268,6 +268,7 @@ function shouldIEmitThisObj(nspString, obj, pubOpts) {
  * statusFilterType=statusFilter.
  * NOTE: It looks like socketIO is not able to send data over namespace
  * containing ',' and a combination of '&|' characters.
+ *
  * @param  {Instance} inst - Perspective object
  * @returns {String} - namespace string.
  */
@@ -280,15 +281,15 @@ function getPerspectiveNamespaceString(inst) {
   for (let i = 0; i < filters.length; i++) {
     if (inst[filters[i]] && inst[filters[i]].length) {
       namespace += constants.filterSeperator + inst[filters[i] + 'Type'] +
-              constants.fieldTypeFieldSeparator +
-              inst[filters[i]].join(constants.valuesSeparator);
+        constants.fieldTypeFieldSeparator +
+        inst[filters[i]].join(constants.valuesSeparator);
     } else {
       namespace += constants.filterSeperator + inst[filters[i] + 'Type'];
     }
   }
 
   return namespace;
-}
+} // getPerspectiveNamespaceString
 
 /**
  * When passed a room object, it returns a namespace string based on the
