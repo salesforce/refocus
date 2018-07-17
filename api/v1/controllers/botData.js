@@ -20,6 +20,7 @@ const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doDelete = require('../helpers/verbs/doDelete');
 const u = require('../../../utils/common');
+const v = require('../helpers/verbs/utils');
 const bdUtils = require('../../../db/helpers/botDataUtils');
 const Op = require('sequelize').Op;
 
@@ -105,17 +106,46 @@ module.exports = {
    */
   upsertBotData(req, res, next) {
     const queryBody = req.swagger.params.queryBody.value;
-    BotData.bdExists(queryBody)
-    .then((bd) => {
-      if (bd) {
-        req.swagger.params.key = { value: bd.id };
-        req.swagger.params.queryBody.value.value =
-          bdUtils.combineValue(bd.value, queryBody.value);
-        doPatch(req, res, next, helper);
-      } else {
-        doPost(req, res, next, helper);
-      }
-    });
+    const botId = queryBody.botId;
+    if (botId && !u.looksLikeId(botId)) {
+      Bot.findOne({
+        where: {
+          name: { [Op.iLike]: botId },
+        },
+      })
+      .then((o) => {
+        if (o) {
+          queryBody.botId = o.dataValues.id;
+          req.swagger.params.queryBody.value.botId = o.dataValues.id;
+        }
+
+        BotData.bdExists(queryBody)
+        .then((bd) => {
+          if (bd) {
+            req.swagger.params.key = { value: bd.id };
+            req.swagger.params.queryBody.value.value =
+              bdUtils.combineValue(bd.value, queryBody.value);
+            doPatch(req, res, next, helper);
+          } else {
+            doPost(req, res, next, helper);
+          }
+        })
+        .catch((err) => v.handleError(next, err, helper.modelName));
+      });
+    } else {
+      BotData.bdExists(queryBody)
+      .then((bd) => {
+        if (bd) {
+          req.swagger.params.key = { value: bd.id };
+          req.swagger.params.queryBody.value.value =
+            bdUtils.combineValue(bd.value, queryBody.value);
+          doPatch(req, res, next, helper);
+        } else {
+          doPost(req, res, next, helper);
+        }
+      })
+      .catch((err) => v.handleError(next, err, helper.modelName));
+    }
   },
 
   /**
