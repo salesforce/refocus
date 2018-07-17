@@ -308,6 +308,16 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   // create app routes
   require('./view/loadView').loadView(app, passportModule, '/v1');
 
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received, gracefully shutting down. \n' +
+      'Closing http server...');
+    server.close(() => { // Stop http server and stop accepting new requests
+      console.log('Http server closed');
+      console.log('Bye!');
+      process.exit(0);
+    });
+  });
+
   module.exports = { app, passportModule };
 } // start
 

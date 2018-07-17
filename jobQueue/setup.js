@@ -21,6 +21,7 @@ const kue = require('kue');
 const redisOptions = {
   redis: conf.redis.instanceUrl.queue,
 };
+
 const redisInfo = urlParser.parse(redisOptions.redis, true);
 if (redisInfo.protocol !== PROTOCOL_PREFIX) {
   redisOptions.redis = 'redis:' + redisOptions.redis;
@@ -31,6 +32,7 @@ const jobQueue = kue.createQueue(redisOptions);
 jobQueue.on('error', (err) => {
   console.error('Kue Error!', err); // eslint-disable-line no-console
 });
+
 if (featureToggles.isFeatureEnabled('instrumentKue')) {
   jobQueue.on('job enqueue', (id, type) => {
     console.log('[KJI] enqueued: ' + // eslint-disable-line no-console
