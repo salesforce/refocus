@@ -231,15 +231,16 @@ function perspectiveEmit(nspComponents, obj) {
  * variable happens here. The nspComponents are decoded to various filters and the
  * filters are compared with the obj to decide whether this object should be
  * emitted over the namespace identified by the nspComponents variable
- * @param  {String} nspComponents - array of namespace strings for filtering
- * @param  {Object} obj - Object that is to be emitted to the client
+ * @param {String} nspComponents - array of namespace strings for filtering
+ * @param {Object} obj - Object that is to be emitted to the client
+ * @param {Object} pubOpts - Options for client and channel to publish with.
  * @returns {Boolean} - true if this obj is to be emitted over this namespace
  * identified by this namespace string.
  */
-function botEmit(nspComponents, obj) {
-  if (obj.pubOpts) {
-    const objFilter = nspComponents[obj.pubOpts.filterIndex];
-    return applyFilter(objFilter, obj[obj.pubOpts.filterField]);
+function botEmit(nspComponents, obj, pubOpts) {
+  if (pubOpts) {
+    const objFilter = nspComponents[pubOpts.filterIndex];
+    return applyFilter(objFilter, obj[pubOpts.filterField]);
   }
 
   return false;
@@ -248,13 +249,14 @@ function botEmit(nspComponents, obj) {
 /**
   * Splits up the nspString into its components and decides if it is a bot
   * or a perspective that needs to be emitted
-  * @param  {String} nspString - A namespace string, that identifies a
+  * @param {String} nspString - A namespace string, that identifies a
   * socketio namespace
-  * @param  {Object} obj - Object that is to be emitted to the client
+  * @param {Object} obj - Object that is to be emitted to the client
+  * @param {Object} pubOpts - Options for client and channel to publish with.
   * @returns {Boolean} - true if this obj is to be emitted over this namespace
   * identified by this namespace string.
   */
-function shouldIEmitThisObj(nspString, obj) {
+function shouldIEmitThisObj(nspString, obj, pubOpts) {
   // extract all the components that makes up a namespace.
   const nspComponents = nspString.split(constants.filterSeperator);
   const absPathNsp = nspComponents[constants.asbPathIndex];
@@ -263,7 +265,7 @@ function shouldIEmitThisObj(nspString, obj) {
   if ((absolutePathObj).startsWith(absPathNsp)) {
     return perspectiveEmit(nspComponents, obj);
   } else if (absPathNsp === botAbsolutePath) {
-    return botEmit(nspComponents, obj);
+    return botEmit(nspComponents, obj, pubOpts);
   }
 
   return false;

@@ -130,6 +130,13 @@ module.exports = function room(seq, dataTypes) {
           }
         }
 
+        if (instance.changed('active')) {
+          if (instance.active) {
+            return realTime.publishObject(instance.toJSON(), roomEventNames.add,
+              null, null, pubOpts);
+          }
+        }
+
         return seq.Promise.resolve();
       }, // hooks.afterUpdate
 
