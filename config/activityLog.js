@@ -85,6 +85,7 @@ module.exports = {
     token: 'None',
     totalTime: '0ms',
     user: 'None',
+  },
   sigterm: {
     activity: 'sigterm',
     status: 'None',
