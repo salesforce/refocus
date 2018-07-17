@@ -74,6 +74,7 @@ module.exports = {
       add: 'refocus.internal.realtime.sample.add',
       upd: 'refocus.internal.realtime.sample.update',
       del: 'refocus.internal.realtime.sample.remove',
+      nc: 'refocus.internal.realtime.sample.nochange',
     },
 
     perspective: {
