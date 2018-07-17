@@ -181,7 +181,8 @@ function init(io, redisStore) {
 
         return socket.handshake.query.p; // perspective name
       })
-      .then((p) => perspective.findOne({ where: { name: { [Op.iLike]: p } } }))
+      .then((p) => perspective.scope('namespace')
+        .findOne({ where: { name: { [Op.iLike]: p } } }))
       .then((p) => rtUtils.initializePerspectiveNamespace(p, io))
       .catch((err) => {
         // no realtime events :(
