@@ -45,9 +45,11 @@ function isThisSubject(obj) {
  * Transforms and returns the stringified object.
  * If the key, i.e. the event type, ends with "update", then return the
  * stringified object with the specified key as the property and the given
- * object as the value of a "new" property. Otherwise return the stringified
- * object with the specified key as the property name and the given object as
- * the value.
+ * object as the value of a "new" property.
+ * If the key is the sample "no change" event, then the sample object to be
+ * emitted should only have name and updatedAt attributes.
+ * Otherwise, return the stringified object with the specified key as the
+ * property name and the given object as the value.
  *
  * @param {String} key - The key of the returned object, i.e. the event type.
  * @param {Object} obj - The object to return.
@@ -58,6 +60,15 @@ function getNewObjAsString(key, obj) {
   const wrappedObj = {};
   if (key.endsWith('update')) {
     wrappedObj[key] = { new: obj };
+  } else if (key === constants.events.sample.nc) {
+    wrappedObj[key] = {
+      name: obj.name,
+      updatedAt: obj.updatedAt,
+      aspect: {
+        name: obj.aspect.name,
+        timeout: obj.aspect.timeout, // needed by lens
+      },
+    };
   } else {
     wrappedObj[key] = obj;
   }
