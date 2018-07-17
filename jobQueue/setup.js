@@ -18,9 +18,16 @@ const conf = require('../config');
 const featureToggles = require('feature-toggles');
 const urlParser = require('url');
 const kue = require('kue');
+const activityLogUtil = require('../utils/activityLog');
+
 const redisOptions = {
   redis: conf.redis.instanceUrl.queue,
 };
+
+const express = require('express');
+const server = require('http').Server(express());
+const SHUTDOWN_TIMEOUT = 5000;
+const SUCCESSFUL_EXIT = 0;
 
 const redisInfo = urlParser.parse(redisOptions.redis, true);
 if (redisInfo.protocol !== PROTOCOL_PREFIX) {
@@ -28,6 +35,24 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
 }
 
 const jobQueue = kue.createQueue(redisOptions);
+
+process.on('SIGTERM', () => {
+  const start = Date.now();
+  server.close(() => { // Stop http server and stop accepting any new request.
+    jobQueue.shutdown(SHUTDOWN_TIMEOUT, (err) => {
+      if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
+        const status = `Job queue shutdown: ${err || 'OK'}`;
+        const logWrapper = {
+          status,
+          totalTime: `${Date.now() - start}ms`,
+        };
+        activityLogUtil.printActivityLogString(logWrapper, 'sigterm');
+      }
+
+      process.exit(SUCCESSFUL_EXIT);
+    });
+  });
+});
 
 jobQueue.on('error', (err) => {
   console.error('Kue Error!', err); // eslint-disable-line no-console

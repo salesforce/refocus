@@ -102,4 +102,9 @@ module.exports = {
     user: 'None',
     workTime: 'None',
   },
+  sigterm: {
+    activity: 'sigterm',
+    status: '',
+    totalTime: '0ms',
+  },
 };

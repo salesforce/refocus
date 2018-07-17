@@ -10,56 +10,54 @@
  * tests/setup/sigterm.js
  */
 'use strict'; // eslint-disable-line strict
+const tu = require('../testUtils');
 const sinon = require('sinon');
-const supertest = require('supertest');
-const app = supertest(require('../../index').app);
-const server = require('http').Server(app);
+const expect = require('chai').expect;
+const activityLogUtil = require('../../utils/activityLog');
+const jobQueue = require('../../jobQueue/setup').jobQueue;
+
+// It starts app context
+require('../../index');
 
 describe('SIGTERM Signal handling', () => {
-  let closeStub;
-
   beforeEach(() => {
-    sinon.spy(server, 'close');
+    tu.toggleOverride('enableSigtermActivityLog', true);
+    sinon.spy(activityLogUtil, 'printActivityLogString');
+    sinon.spy(jobQueue, 'shutdown');
+    sinon.spy(process, 'exit');
   });
 
-  afterEach(() => {
-    server.close.restore();
+  afterEach((done) => {
+    activityLogUtil.printActivityLogString.restore();
+    jobQueue.shutdown.restore();
+    process.exit.restore();
   });
 
-  // Don't call the stopHandler when exiting the test.
   after(() => {
+    tu.toggleOverride('enableSigtermActivityLog', false);
     process.removeAllListeners('SIGTERM');
     process.removeAllListeners('SIGINT');
   });
 
-  it('should call server.close() when receiving a SIGTERM', (done) => {
-    process.once('SIGTERM', () => {
-      expect(server.close.cal);
+  it('should print log and shutdown job kue when receiving a SIGTERM',
+    (done) => {
+    process.once('exit', () => {
+      /*
+       must be 'exit' otherwise (once SIGTERM), log activity happens after
+       this check.
+       */
+      expect(activityLogUtil.printActivityLogString.calledOnce).to.be.true;
+      sinon.assert.calledWith(
+        activityLogUtil.printActivityLogString,
+        sinon.match({ status: 'Job queue shutdown: OK',
+          totalTime: sinon.match(/^\d*ms/), }),
+        'sigterm'
+      );
+
+      expect(jobQueue.shutdown.calledOnce).to.be.true;
+      expect(process.exit.calledOnce).to.be.true;
       done();
     });
     process.kill(process.pid, 'SIGTERM');
   });
-
-  // it.skip(`should call 'process.exit()' after ${settings.stopTimeout}
-  //       seconds when receiving a ${SIGNAL}`, (done) => {
-  //   process.once(SIGNAL, () => {
-  //
-  //     /*
-  //       It shouldn't have called `process.exit()` right after the signal
-  //       was sent.
-  //     */
-  //     sinon.assert.notCalled(exitStub);
-  //
-  //     // set clock a bit after the timeout
-  //     sandbox.clock.tick(settings + 10);
-  //
-  //     /*
-  //       Timeout handler should have triggered and process.exit() should
-  //       have been executed.
-  //     */
-  //     sinon.assert.calledOnce(exitStub);
-  //     done();
-  //   });
-  //   process.kill(process.pid, SIGNAL);
-  // });
 });
