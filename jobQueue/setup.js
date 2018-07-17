@@ -36,23 +36,24 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
 
 const jobQueue = kue.createQueue(redisOptions);
 
-process.on('SIGTERM', () => {
+/**
+ * Finishes (process.exit) when all workers tell Kue they are stopped.
+ */
+function gracefulShutdown() {
   const start = Date.now();
-  server.close(() => { // Stop http server and stop accepting any new request.
-    jobQueue.shutdown(SHUTDOWN_TIMEOUT, (err) => {
-      if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
-        const status = `Job queue shutdown: ${err || 'OK'}`;
-        const logWrapper = {
-          status,
-          totalTime: `${Date.now() - start}ms`,
-        };
-        activityLogUtil.printActivityLogString(logWrapper, 'sigterm');
-      }
+  jobQueue.shutdown(SHUTDOWN_TIMEOUT, (err) => {
+    if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
+      const status = 'Job queue shutdown: ' + (err || 'OK');
+      const logWrapper = {
+        status,
+        totalTime: `${Date.now() - start}ms`,
+      };
+      activityLogUtil.printActivityLogString(logWrapper, 'sigterm');
+    }
 
-      process.exit(SUCCESSFUL_EXIT);
-    });
+    process.exit(SUCCESSFUL_EXIT);
   });
-});
+}
 
 jobQueue.on('error', (err) => {
   console.error('Kue Error!', err); // eslint-disable-line no-console
@@ -76,6 +77,7 @@ module.exports = {
     SAMPLE_TIMEOUT: 1,
   },
   jobQueue,
+  gracefulShutdown,
   jobType: {
     BULK_CREATE_AUDIT_EVENTS: 'BULK_CREATE_AUDIT_EVENTS',
     BULKUPSERTSAMPLES: 'bulkUpsertSamples',

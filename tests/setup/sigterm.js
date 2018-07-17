@@ -14,7 +14,8 @@ const tu = require('../testUtils');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 const activityLogUtil = require('../../utils/activityLog');
-const jobQueue = require('../../jobQueue/setup').jobQueue;
+const jobQueueSetup = require('../../jobQueue/setup');
+const jobQueue = jobQueueSetup.jobQueue;
 
 // It starts app context
 require('../../index');
@@ -24,6 +25,7 @@ describe('SIGTERM Signal handling', () => {
   beforeEach(() => {
     tu.toggleOverride('enableSigtermActivityLog', true);
     sinon.spy(activityLogUtil, 'printActivityLogString');
+    sinon.spy(jobQueueSetup, 'gracefulShutdown');
     sinon.spy(jobQueue, 'shutdown');
     sinon.spy(process, 'exit');
   });
@@ -31,6 +33,7 @@ describe('SIGTERM Signal handling', () => {
   afterEach(() => {
     activityLogUtil.printActivityLogString.restore();
     jobQueue.shutdown.restore();
+    jobQueueSetup.gracefulShutdown.restore();
     process.exit.restore();
   });
 
@@ -56,6 +59,7 @@ describe('SIGTERM Signal handling', () => {
       );
 
       expect(jobQueue.shutdown.calledOnce).to.be.true;
+      expect(jobQueueSetup.gracefulShutdown.calledOnce).to.be.true;
       expect(process.exit.calledOnce).to.be.true;
       done();
     });

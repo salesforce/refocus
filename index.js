@@ -21,6 +21,7 @@ const throng = require('throng');
 const DEFAULT_WEB_CONCURRENCY = 1;
 const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 const sampleStore = require('./cache/sampleStoreInit');
+const jobSetup = require('./jobQueue/setup');
 
 /**
  * Entry point for each clustered process.
@@ -307,6 +308,13 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
 
   // create app routes
   require('./view/loadView').loadView(app, passportModule, '/v1');
+
+  process.once('SIGTERM', () => {
+    // Stop http server and stop accepting any new request.
+    httpServer.close(() => {
+      jobSetup.gracefulShutdown();
+    });
+  });
 
   module.exports = { app, passportModule };
 } // start
