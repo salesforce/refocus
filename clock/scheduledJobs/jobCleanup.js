@@ -19,6 +19,22 @@ const jobWrapper = require('../../jobQueue/jobWrapper');
 const conf = require('../../config');
 kue.Job.rangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
 kue.Job.prototype.removeAsync = Promise.promisify(kue.Job.prototype.remove);
+const activityLogUtil = require('../../utils/activityLog');
+
+function logActivity(skippedJobCount, removedJobCount, errorJobCount,
+                     jobStartTime) {
+  const iterations = skippedJobCount + removedJobCount - errorJobCount;
+  if (iterations) {
+    const jobEndTime = Date.now();
+    const jobCleanUpWrapper = {};
+    jobCleanUpWrapper.iterations = iterations;
+    jobCleanUpWrapper.errors = errorJobCount;
+    jobCleanUpWrapper.removed = removedJobCount;
+    jobCleanUpWrapper.skipped = skippedJobCount;
+    jobCleanUpWrapper.totalTime = `${jobEndTime - jobStartTime}ms`;
+    activityLogUtil.printActivityLogString(jobCleanUpWrapper, 'jobCleanup');
+  }
+}
 
 /**
  * Execute the call to clean up completed jobs.
@@ -26,24 +42,24 @@ kue.Job.prototype.removeAsync = Promise.promisify(kue.Job.prototype.remove);
  * no jobs left, skipping any that are younger than delay ms.
  *
  * @param {Number} batchSize - the number of jobs to delete in each batch
- * @param {Number} delay - the delay, in ms, before completed jobs should be deleted
+ * @param {Number} delay - the delay, in ms, before completed jobs should be
+ *  deleted
  * @returns {Promise}
  */
 function execute(batchSize, delay) {
   let now;
   let removedJobCount = 0;
   let skippedJobCount = 0;
-
-  if (featureToggles.isFeatureEnabled('instrumentKue')) {
-    console.log('[KJI] Ready to remove completed jobs');
-  }
+  let errorJobCount = 0;
+  const jobStartTime = Date.now();
 
   return deleteNextNJobs(batchSize)
-  .then(() => {
-    if (featureToggles.isFeatureEnabled('instrumentKue')) {
-      console.log(`[KJI] Removed ${removedJobCount} jobs`);
-    }
-  });
+    .then(() => {
+      if (featureToggles.isFeatureEnabled('enableJobCleanupActivityLogs')) {
+        logActivity(skippedJobCount, removedJobCount,
+          errorJobCount, jobStartTime);
+      }
+    });
 
   function deleteNextNJobs(n) {
     if (n === 0) return Promise.resolve();
@@ -53,46 +69,43 @@ function execute(batchSize, delay) {
 
     // get n jobs
     return kue.Job.rangeByStateAsync('complete', from, to, 'asc')
-    .catch((err) => {
-      console.log('Error getting completed jobs from queue', err);
-      return Promise.reject(err);
-    })
+      .catch((err) => {
+        console.log('Error getting completed jobs from queue', err);
+        return Promise.reject(err);
+      })
 
-    // delete n jobs
-    .then((jobs) =>
-      Promise.all(jobs.map((job) => {
-        if (delay > 0 && now - job.updated_at < delay) {
-          return 'skipped';
-        } else {
+      // delete n jobs
+      .then((jobs) =>
+        Promise.all(jobs.map((job) => {
+          if (delay > 0 && now - job.updated_at < delay) {
+            return 'skipped';
+          }
+
           return job.removeAsync()
-          .catch((err) => {
-            console.log(`Error removing job ${job.id}`, err);
-            return Promise.reject(err);
-          });
-        }
-      }))
-    )
+            .catch((err) => {
+              errorJobCount++;
+              return Promise.reject(err);
+            });
+        }))
+      )
 
-    // count skipped jobs
-    .then((results) => {
-      const skippedCount = results.reduce((count, result) =>
-        result === 'skipped' ? count + 1 : count,
-      0);
-      skippedJobCount += skippedCount;
-      removedJobCount += results.length - skippedCount;
-      return Promise.resolve(results);
-    })
+      // count skipped jobs
+      .then((results) => {
+        const skippedCount = results.reduce((count, result) =>
+            result === 'skipped' ? count + 1 : count,
+          0);
+        skippedJobCount += skippedCount;
+        removedJobCount += results.length - skippedCount;
+        return Promise.resolve(results);
+      })
 
-    // get and delete next n jobs
-    .then((results) => {
-      if (results.length < n) {
-        return Promise.resolve();
-      } else {
+      // get and delete next n jobs
+      .then((results) => {
+        if (results.length < n) return Promise.resolve();
+
         return deleteNextNJobs(n);
-      }
-    });
+      });
   }
-
 } // execute
 
 /**
@@ -104,10 +117,10 @@ function enqueue() {
       jobType.JOB_CLEANUP, { reqStartTime: Date.now() }
     );
     return Promise.resolve(job);
-  } else {
-    // If not using worker process, execute directly;
-    return execute(conf.JOB_REMOVAL_BATCH_SIZE, conf.JOB_REMOVAL_DELAY);
   }
+
+  // If not using worker process, execute directly;
+  return execute(conf.JOB_REMOVAL_BATCH_SIZE, conf.JOB_REMOVAL_DELAY);
 } // enqueue
 
 /**
