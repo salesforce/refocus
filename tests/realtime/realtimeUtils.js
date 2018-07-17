@@ -268,14 +268,349 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
     });
 
     describe('getNewObjAsString tests >', () => {
-      it('getNewObjAsString returns the expected string', () => {
-        const SAMPLE_ADD_KEY = 'refocus.internal.realtime.sample.add';
-        const string = realtimeUtils.getNewObjAsString(SAMPLE_ADD_KEY,
-          newSubject);
-        expect(string).to.be.a('string');
-        const obj = JSON.parse(string);
-        expect(obj.hasOwnProperty(SAMPLE_ADD_KEY)).to.equal(true);
-        expect(obj[SAMPLE_ADD_KEY]).to.deep.equal(newSubject);
+      const testEvents = {
+        'refocus.internal.realtime.subject.add': {
+          absolutePath: '___TEST_SUBJECT',
+          childCount: 0,
+          id: '9f346893-8cdd-4982-980e-fc662719772c',
+          isDeleted: '0',
+          relatedLinks: [],
+          tags: [],
+          sortBy: '',
+          description: 'this is sample description',
+          imageUrl: 'http://www.bar.com/a0.jpg',
+          isPublished: true,
+          name: '___TEST_SUBJECT',
+          updatedAt: '2018-07-13T23:27:12.708Z',
+          createdAt: '2018-07-13T23:27:12.708Z',
+          hierarchyLevel: 1,
+          geolocation: null,
+          helpEmail: null,
+          helpUrl: null,
+          parentAbsolutePath: null,
+          deletedAt: null,
+          parentId: null,
+          createdBy: null,
+        },
+        'refocus.internal.realtime.perspective.namespace.initialize': {
+          id: '2cc04471-86c9-49bc-bac7-18fa571c207c',
+          isDeleted: '0',
+          aspectFilterType: 'EXCLUDE',
+          aspectTagFilterType: 'EXCLUDE',
+          subjectTagFilterType: 'EXCLUDE',
+          statusFilterType: 'EXCLUDE',
+          name: '___testPersp',
+          lensId: '3d557baa-17e4-449b-9112-dd7f798523a0',
+          rootSubject: 'myMainSubject',
+          aspectFilter: ['temperature', 'humidity'],
+          aspectTagFilter: ['temp', 'hum'],
+          subjectTagFilter: ['ea', 'na'],
+          statusFilter: ['Critical', '-OK'],
+          updatedAt: '2018-07-13T23:27:46.859Z',
+          createdAt: '2018-07-13T23:27:46.859Z',
+          deletedAt: null,
+          createdBy: null,
+        },
+        'refocus.internal.realtime.bot.event.add': {
+          id: '21dea92c-bb8e-4fd9-b57d-ede256909700',
+          log: 'Sample Event',
+          context: { Sample: 'DATA' },
+          updatedAt: '2018-07-13T23:27:31.224Z',
+          createdAt: '2018-07-13T23:27:31.224Z',
+          roomId: null,
+          botId: null,
+          botDataId: null,
+          botActionId: null,
+          userId: null,
+          pubOpts: {
+            client: 'pubBot',
+            channel: 'botChannelName',
+            filterIndex: 3,
+            filterField: 'id',
+          },
+        },
+        'refocus.internal.realtime.bot.namespace.initialize': {
+          id: 66,
+          name: '___TestRoom',
+          active: true,
+          type: '7ddb30e3-b5da-4d7c-b095-f44a2eb0d510',
+          updatedAt: '2018-07-13T23:27:31.105Z',
+          createdAt: '2018-07-13T23:27:31.105Z',
+          settings: { Key1: 'Value1', Key2: 'Value2' },
+          bots: null,
+          externalId: null,
+          pubOpts: {
+            client: 'pubBot',
+            channel: 'botChannelName',
+            filterIndex: 0,
+            filterField: 'name',
+          },
+        },
+        'refocus.internal.realtime.sample.add': {
+          value: '10',
+          subjectId: 'c8fb7723-4319-4b22-98b2-70ecd140e7b0',
+          aspectId: 'a5ebf6e3-bc97-49c2-ba8b-00a14a3792d4',
+          name: '___NorthAmerica|___humidity',
+          status: 'Invalid',
+          relatedLinks: '[]',
+          previousStatus: 'Invalid',
+          statusChangedAt: '2018-07-13T23:28:34.260Z',
+          updatedAt: '2018-07-13T23:28:34.260Z',
+          createdAt: '2018-07-13T23:28:34.260Z',
+          aspect: {
+            id: 'a5ebf6e3-bc97-49c2-ba8b-00a14a3792d4',
+            isDeleted: '0',
+            valueType: 'BOOLEAN',
+            relatedLinks: [],
+            tags: [],
+            name: '___humidity',
+            timeout: '60s',
+            isPublished: 'true',
+            updatedAt: '2018-07-13T23:28:34.246Z',
+            createdAt: '2018-07-13T23:28:34.246Z',
+          },
+          subject: {
+            absolutePath: '___NorthAmerica',
+            childCount: '0',
+            id: 'c8fb7723-4319-4b22-98b2-70ecd140e7b0',
+            isDeleted: '0',
+            relatedLinks: [],
+            tags: [],
+            sortBy: '',
+            name: '___NorthAmerica',
+            isPublished: 'true',
+            updatedAt: '2018-07-13T23:28:34.236Z',
+            createdAt: '2018-07-13T23:28:34.236Z',
+            hierarchyLevel: '1',
+          },
+          absolutePath: '___NorthAmerica',
+        },
+        'refocus.internal.realtime.sample.update': {
+          value: '10',
+          subjectId: 'c8fb7723-4319-4b22-98b2-70ecd140e7b0',
+          aspectId: 'a5ebf6e3-bc97-49c2-ba8b-00a14a3792d4',
+          name: '___NorthAmerica|___humidity',
+          status: 'Invalid',
+          relatedLinks: '[]',
+          previousStatus: 'Invalid',
+          statusChangedAt: '2018-07-13T23:28:34.260Z',
+          updatedAt: '2018-07-13T23:28:34.260Z',
+          createdAt: '2018-07-13T23:28:34.260Z',
+          aspect: {
+            id: 'a5ebf6e3-bc97-49c2-ba8b-00a14a3792d4',
+            isDeleted: '0',
+            valueType: 'BOOLEAN',
+            relatedLinks: [],
+            tags: [],
+            name: '___humidity',
+            timeout: '60s',
+            isPublished: 'true',
+            updatedAt: '2018-07-13T23:28:34.246Z',
+            createdAt: '2018-07-13T23:28:34.246Z',
+          },
+          subject: {
+            absolutePath: '___NorthAmerica',
+            childCount: '0',
+            id: 'c8fb7723-4319-4b22-98b2-70ecd140e7b0',
+            isDeleted: '0',
+            relatedLinks: [],
+            tags: [],
+            sortBy: '',
+            name: '___NorthAmerica',
+            isPublished: 'true',
+            updatedAt: '2018-07-13T23:28:34.236Z',
+            createdAt: '2018-07-13T23:28:34.236Z',
+            hierarchyLevel: '1',
+          },
+          absolutePath: '___NorthAmerica',
+        },
+        'refocus.internal.realtime.sample.remove': {
+          aspectId: '63328a37-7d2c-4c71-a5ea-6eba4205db2b',
+          subjectId: '02ed7ee4-fc7d-41d4-911f-ef53d331fd2f',
+          name: '___Subject|___Aspect',
+          status: 'Invalid',
+          value: '',
+          relatedLinks: '[]',
+          previousStatus: 'Invalid',
+          statusChangedAt: '2018-07-13T23:28:28.443Z',
+          updatedAt: '2018-07-13T23:28:28.443Z',
+          createdAt: '2018-07-13T23:28:28.443Z',
+          subject: {
+            absolutePath: '___Subject',
+            childCount: 0,
+            description: null,
+            geolocation: null,
+            helpEmail: null,
+            helpUrl: null,
+            id: '02ed7ee4-fc7d-41d4-911f-ef53d331fd2f',
+            imageUrl: null,
+            isDeleted: 1531524508457,
+            isPublished: true,
+            name: '___Subject',
+            parentAbsolutePath: null,
+            relatedLinks: [],
+            tags: [],
+            sortBy: '',
+            createdAt: '2018-07-13T23:28:28.432Z',
+            updatedAt: '2018-07-13T23:28:28.457Z',
+            deletedAt: '2018-07-13T23:28:28.459Z',
+            hierarchyLevel: 1,
+            parentId: null,
+            createdBy: null,
+            user: null,
+          },
+          aspect: {
+            id: '63328a37-7d2c-4c71-a5ea-6eba4205db2b',
+            isDeleted: '0',
+            relatedLinks: [],
+            tags: [],
+            isPublished: 'true',
+            name: '___Aspect',
+            timeout: '30s',
+            valueType: 'NUMERIC',
+            updatedAt: '2018-07-13T23:28:28.429Z',
+            createdAt: '2018-07-13T23:28:28.429Z',
+          },
+          absolutePath: '___Subject',
+        },
+        'refocus.internal.realtime.subject.remove': {
+          absolutePath: '___Subject',
+          childCount: 0,
+          description: null,
+          geolocation: null,
+          helpEmail: null,
+          helpUrl: null,
+          id: '02ed7ee4-fc7d-41d4-911f-ef53d331fd2f',
+          imageUrl: null,
+          isDeleted: 1531524508457,
+          isPublished: true,
+          name: '___Subject',
+          parentAbsolutePath: null,
+          relatedLinks: [],
+          tags: [],
+          sortBy: '',
+          createdAt: '2018-07-13T23:28:28.432Z',
+          updatedAt: '2018-07-13T23:28:28.457Z',
+          deletedAt: '2018-07-13T23:28:28.459Z',
+          hierarchyLevel: 1,
+          parentId: null,
+          createdBy: null,
+          user: null,
+        },
+        'refocus.internal.realtime.sample.nochange': {
+          value: '10',
+          subjectId: 'c8fb7723-4319-4b22-98b2-70ecd140e7b0',
+          aspectId: 'a5ebf6e3-bc97-49c2-ba8b-00a14a3792d4',
+          name: '___NorthAmerica|___humidity',
+          status: 'Invalid',
+          relatedLinks: '[]',
+          previousStatus: 'Invalid',
+          statusChangedAt: '2018-07-13T23:28:34.260Z',
+          updatedAt: '2018-07-13T23:28:34.260Z',
+          createdAt: '2018-07-13T23:28:34.260Z',
+          aspect: {
+            id: 'a5ebf6e3-bc97-49c2-ba8b-00a14a3792d4',
+            isDeleted: '0',
+            valueType: 'BOOLEAN',
+            relatedLinks: [],
+            tags: [],
+            name: '___humidity',
+            timeout: '60s',
+            isPublished: 'true',
+            updatedAt: '2018-07-13T23:28:34.246Z',
+            createdAt: '2018-07-13T23:28:34.246Z',
+          },
+          subject: {
+            absolutePath: '___NorthAmerica',
+            childCount: '0',
+            id: 'c8fb7723-4319-4b22-98b2-70ecd140e7b0',
+            isDeleted: '0',
+            relatedLinks: [],
+            tags: [],
+            sortBy: '',
+            name: '___NorthAmerica',
+            isPublished: 'true',
+            updatedAt: '2018-07-13T23:28:34.236Z',
+            createdAt: '2018-07-13T23:28:34.236Z',
+            hierarchyLevel: '1',
+          },
+          absolutePath: '___NorthAmerica',
+        },
+      };
+
+      it('getNewObjAsString for subject.add', () => {
+        const key = 'refocus.internal.realtime.subject.add';
+        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        expect(str).to.be.a('string');
+        const obj = JSON.parse(str);
+        expect(obj[key]).to.deep.equal(testEvents[key]);
+      });
+
+      it('getNewObjAsString for perspective.namespace.initialize', () => {
+        const key =
+          'refocus.internal.realtime.perspective.namespace.initialize';
+        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        expect(str).to.be.a('string');
+        const obj = JSON.parse(str);
+        expect(obj[key]).to.deep.equal(testEvents[key]);
+      });
+
+      it('getNewObjAsString for bot.event.add', () => {
+        const key =
+          'refocus.internal.realtime.bot.event.add';
+        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        expect(str).to.be.a('string');
+        const obj = JSON.parse(str);
+        expect(obj[key]).to.deep.equal(testEvents[key]);
+      });
+
+      it('getNewObjAsString for bot.namespace.initialize', () => {
+        const key =
+          'refocus.internal.realtime.bot.namespace.initialize';
+        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        expect(str).to.be.a('string');
+        const obj = JSON.parse(str);
+        expect(obj[key]).to.deep.equal(testEvents[key]);
+      });
+
+      it('getNewObjAsString for sample.add', () => {
+        const key = 'refocus.internal.realtime.sample.add';
+        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        expect(str).to.be.a('string');
+        const obj = JSON.parse(str);
+        expect(obj[key]).to.deep.equal(testEvents[key]);
+      });
+
+      it('getNewObjAsString for sample.update', () => {
+        const key = 'refocus.internal.realtime.sample.update';
+        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        expect(str).to.be.a('string');
+        const obj = JSON.parse(str);
+        expect(obj[key].new).to.deep.equal(testEvents[key]);
+      });
+
+      it('getNewObjAsString for sample.remove', () => {
+        const key = 'refocus.internal.realtime.sample.remove';
+        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        expect(str).to.be.a('string');
+        const obj = JSON.parse(str);
+        expect(obj[key]).to.deep.equal(testEvents[key]);
+      });
+
+      it('getNewObjAsString for sample.nochange', () => {
+        const key = 'refocus.internal.realtime.sample.nochange';
+        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        expect(str).to.be.a('string');
+        const obj = JSON.parse(str);
+        const nc = {
+          name: testEvents[key].name,
+          updatedAt: testEvents[key].updatedAt,
+          aspect: {
+            name: testEvents[key].aspect.name,
+            timeout: testEvents[key].aspect.timeout,
+          },
+        };
+        expect(obj[key]).to.deep.equal(nc);
       });
     });
 
