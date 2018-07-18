@@ -113,8 +113,6 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(() => {
-        expect(activityLogUtil.printActivityLogString.calledOnce)
-          .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
           sinon.match({ iterations: 1, removed: 20, skipped: 0, errors: 0,
@@ -135,8 +133,6 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(() => {
-        expect(activityLogUtil.printActivityLogString.calledOnce)
-          .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
           sinon.match({ iterations: 1, removed: 1, skipped: 0, errors: 0,
@@ -157,8 +153,6 @@ describe('tests/clock/jobCleanup.js >', () => {
         .then(() => jobCleanup.execute(batchSize, delay))
         .then(() => expectNJobs(expectedCount))
         .then(() => {
-          expect(activityLogUtil.printActivityLogString.calledOnce)
-            .to.equal(true);
           sinon.assert.calledWith(
             activityLogUtil.printActivityLogString,
             sinon.match({ iterations: 1, removed: 5, skipped: 0, errors: 0,
@@ -179,8 +173,6 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(() => {
-        expect(activityLogUtil.printActivityLogString.calledOnce)
-          .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
           sinon.match({ iterations: 5, removed: 22, skipped: 0, errors: 0,
@@ -201,8 +193,6 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(() => {
-        expect(activityLogUtil.printActivityLogString.calledOnce)
-          .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
           sinon.match({ iterations: 4, removed: 19, skipped: 0, errors: 0,
@@ -223,8 +213,6 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(() => {
-        expect(activityLogUtil.printActivityLogString.calledOnce)
-          .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
           sinon.match({ iterations: 21, removed: 100, skipped: 0, errors: 0,
@@ -245,8 +233,6 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(() => {
-        expect(activityLogUtil.printActivityLogString.calledOnce)
-          .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
           sinon.match({ iterations: 101, removed: 100, skipped: 0, errors: 0,

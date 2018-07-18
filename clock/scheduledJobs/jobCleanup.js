@@ -21,25 +21,18 @@ kue.Job.rangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
 kue.Job.prototype.removeAsync = Promise.promisify(kue.Job.prototype.remove);
 const activityLogUtil = require('../../utils/activityLog');
 
-function hasValidCount(log) {
-  return log.errorJobCount > 0 || log.removedJobCount > 0 ||
-    log.skippedJobCount > 0;
-}
-
 /**
  * Delegates the internal count state to Activity Log template.
  * @param {Object} log
  */
 function logActivity(log) {
-  if (hasValidCount(log)) {
-    const jobCleanUpWrapper = {};
-    jobCleanUpWrapper.iterations = log.iterations;
-    jobCleanUpWrapper.errors = log.errorJobCount;
-    jobCleanUpWrapper.removed = log.removedJobCount;
-    jobCleanUpWrapper.skipped = log.skippedJobCount;
-    jobCleanUpWrapper.totalTime = `${Date.now() - log.jobStartTime}ms`;
-    activityLogUtil.printActivityLogString(jobCleanUpWrapper, 'jobCleanup');
-  }
+  const jobCleanUpWrapper = {};
+  jobCleanUpWrapper.iterations = log.iterations;
+  jobCleanUpWrapper.errors = log.errorJobCount;
+  jobCleanUpWrapper.removed = log.removedJobCount;
+  jobCleanUpWrapper.skipped = log.skippedJobCount;
+  jobCleanUpWrapper.totalTime = `${Date.now() - log.jobStartTime}ms`;
+  activityLogUtil.printActivityLogString(jobCleanUpWrapper, 'jobCleanup');
 }
 
 /**
