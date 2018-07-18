@@ -21,23 +21,22 @@ kue.Job.rangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
 kue.Job.prototype.removeAsync = Promise.promisify(kue.Job.prototype.remove);
 const activityLogUtil = require('../../utils/activityLog');
 
-function logActivity(skippedJobCount, removedJobCount, errorJobCount,
-                     jobStartTime) {
-  const iterations = skippedJobCount + removedJobCount - errorJobCount;
-  if (iterations) {
-    const jobEndTime = Date.now();
-    const jobCleanUpWrapper = {};
-    jobCleanUpWrapper.iterations = iterations;
-    jobCleanUpWrapper.errors = errorJobCount;
-    jobCleanUpWrapper.removed = removedJobCount;
-    jobCleanUpWrapper.skipped = skippedJobCount;
-    jobCleanUpWrapper.totalTime = `${jobEndTime - jobStartTime}ms`;
-    activityLogUtil.printActivityLogString(jobCleanUpWrapper, 'jobCleanup');
-  }
+/**
+ * Delegates the internal count state to Activity Log template.
+ * @param {Object} log
+ */
+function logActivity(log) {
+  const jobCleanUpWrapper = {};
+  jobCleanUpWrapper.iterations = log.iterations;
+  jobCleanUpWrapper.errors = log.errorJobCount;
+  jobCleanUpWrapper.removed = log.removedJobCount;
+  jobCleanUpWrapper.skipped = log.skippedJobCount;
+  jobCleanUpWrapper.totalTime = `${Date.now() - log.jobStartTime}ms`;
+  activityLogUtil.printActivityLogString(jobCleanUpWrapper, 'jobCleanup');
 }
 
 /**
- * Execute the call to clean up completed jobs.
+ * Executes the call to clean up completed jobs.
  * Get batchSize completed jobs, delete those jobs, and repeat until there are
  * no jobs left, skipping any that are younger than delay ms.
  *
@@ -51,17 +50,25 @@ function execute(batchSize, delay) {
   let removedJobCount = 0;
   let skippedJobCount = 0;
   let errorJobCount = 0;
+  let iterations = 0;
   const jobStartTime = Date.now();
 
   return deleteNextNJobs(batchSize)
     .then(() => {
       if (featureToggles.isFeatureEnabled('enableJobCleanupActivityLogs')) {
-        logActivity(skippedJobCount, removedJobCount,
-          errorJobCount, jobStartTime);
+        logActivity({ iterations, skippedJobCount, removedJobCount,
+          errorJobCount, jobStartTime, });
       }
     });
 
+  /**
+   * Method which define the number of iterations in order to delete a set of
+   * jobs
+   * @param {Number} n - batch size
+   * @returns {*}
+   */
   function deleteNextNJobs(n) {
+    iterations++;
     if (n === 0) return Promise.resolve();
     const from = skippedJobCount;
     const to = skippedJobCount + n - 1;
