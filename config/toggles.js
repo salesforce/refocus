@@ -96,6 +96,8 @@ const longTermToggles = {
     'unauthorized'),
   enableWorkerActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'worker'),
+  enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'jobCleanup'),
 
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
@@ -170,6 +172,10 @@ const shortTermToggles = {
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),
 
+  // Enable IOREDIS instead of node redis
+  enableIORedis: environmentVariableTrue(pe,
+    'ENABLE_IOREDIS'),
+
   // Enable using worker dyno for hierarchy queries
   enqueueHierarchy: environmentVariableTrue(pe, 'ENQUEUE_HIERARCHY'),
 
@@ -179,6 +185,13 @@ const shortTermToggles = {
   // Look up the subject inside the promise chain when publishing sample
   publishSampleInPromiseChain: environmentVariableTrue(pe,
     'PUBLISH_SAMPLE_IN_PROMISE_CHAIN'),
+
+  /*
+   * Use new 'refocus.internal.realtime.sample.nochange' events if sample did
+   * not change.
+   */
+  publishSampleNoChange: environmentVariableTrue(pe,
+    'PUBLISH_SAMPLE_NO_CHANGE'),
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 

@@ -41,7 +41,7 @@ module.exports = {
    * Convert activity log object to String format and print.
    *
    * @param  {Object} logObject - Log Object
-   * @param  {string} logtype - api|realtime|worker|unauthorized
+   * @param  {string} logtype - @see /config/activityLog.js
    * @param  {string} logLevel - Log Level info, warn, error
    *  verbose, debug, silly. Default log info.
    */

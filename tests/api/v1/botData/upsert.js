@@ -180,6 +180,64 @@ describe('tests/api/v1/botData/upsert.js >', () => {
     .catch(done);
   });
 
+  it('Pass, update botData using bot name', (done) => {
+    BotData.create(testBotData)
+    .then(() => {
+      testBotData.value = 'newValue';
+      testBotData.botId = b.getStandard().name;
+      api.post(`${path}`)
+      .set('Authorization', token)
+      .send(testBotData)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.value).to.equal('newValue');
+        return done();
+      });
+    })
+    .catch(done);
+  });
+
+  it('Pass, post botData using bot name', (done) => {
+    testBotData.botId = b.getStandard().name;
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(testBotData)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.value).to.equal(testBotData.value);
+      return done();
+    });
+  });
+
+  it('Fail, botData with invalid bot name', (done) => {
+    BotData.create(testBotData)
+    .then(() => {
+      testBotData.value = 'newValue';
+      testBotData.botId = 'invalidName';
+      api.post(`${path}`)
+      .set('Authorization', token)
+      .send(testBotData)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.error.text)
+        .to.contain('invalid input syntax');
+        return done();
+      });
+    });
+  });
+
   it('Fail, botData with invalid name', (done) => {
     testBotData.name = '~!invalidName';
     api.post(`${path}`)

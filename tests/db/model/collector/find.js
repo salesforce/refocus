@@ -52,7 +52,7 @@ describe('tests/db/model/collector/find.js >', () => {
     })
     .then((g2) => {
       generator2 = g2;
-      return collectorInst1.addCurrentGenerators([generator1, generator2]);
+      return collectorInst1.addPossibleGenerators([generator1, generator2]);
     })
     .then(() => {
       const c = u.getCollectorObj();
@@ -100,7 +100,7 @@ describe('tests/db/model/collector/find.js >', () => {
   });
 
   it('Collector Instance with related generators', (done) => {
-    collectorInst1.getCurrentGenerators()
+    collectorInst1.getPossibleGenerators()
     .then((generators) => {
       expect(generators).to.have.lengthOf(2);
       const sg1 = generators.filter((gen) =>
@@ -115,7 +115,7 @@ describe('tests/db/model/collector/find.js >', () => {
   });
 
   it('Collector Instance without generators ', (done) => {
-    collectorInst2.getCurrentGenerators()
+    collectorInst2.getPossibleGenerators()
     .then((generators) => {
       expect(generators).to.have.lengthOf(0);
       done();
