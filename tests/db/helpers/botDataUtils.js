@@ -452,4 +452,46 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
       done();
     }).catch(done);
   });
+
+  it('fail, source botData went in before botData to be synced',
+  (done) => {
+    Bot.create(bot1)
+    .then((botRes) => {
+      bot1Id = botRes.id;
+      return Bot.create(bot2);
+    })
+    .then((botRes2) => {
+      bot2Id = botRes2.id;
+      return Bot.create(bot3);
+    })
+    .then((botRes3) => {
+      bot3Id = botRes3.id;
+      return RoomType.create(roomType3);
+    })
+    .then((rtRes) => {
+      room.type = rtRes.id;
+      return Room.create(room);
+    })
+    .then((roomRes) => {
+      roomId = roomRes.id;
+      bot1data.botId = bot1Id;
+      bot1data.roomId = roomId;
+      return BotData.create(bot1data);
+    })
+    .then(() => {
+      bot3data.botId = bot2Id;
+      bot3data.roomId = roomId;
+      return BotData.create(bot3data);
+    })
+    .then(() => {
+      bot4data.botId = bot3Id;
+      bot4data.roomId = roomId;
+      return BotData.create(bot4data);
+    })
+    .then(() => BotData.findOne({ where: { botId: bot2Id } }))
+    .then((bdRes) => {
+      expect(bdRes.value).to.equal('{"name": "tausif"}');
+      done();
+    }).catch(done);
+  });
 });
