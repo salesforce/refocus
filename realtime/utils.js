@@ -29,6 +29,7 @@ const filters = [
   'statusFilter',
 ];
 const botAbsolutePath = '/Bots';
+const SEVEN = 7; // the length of the strings "INCLUDE" and "EXCLUDE"
 
 /**
  * A function to see if an object is a subject object or not. It returns true
@@ -101,12 +102,12 @@ function parseObject(messgObj, key) {
 }
 
 /**
- * A function that checks if atleast one element of an array is present in a
- * set and returns true if present.
+ * Returns true if at least one element of the array is present in the set.
+ *
  * @param  {Set}  filterValueSet - A set of strings contaning filter values
- * @param  {Array}  objValueArr - A any array of strings  contaning obj values
+ * @param  {Array}  objValueArr - A any array of strings contaning obj values
  * @returns {Boolean} - returns true if any of the elements of the obj value
- * array is found in the filter value set
+ *  array is found in the filter value set
  */
 function isPresent(filterValueSet, objValueArr) {
   for (let i = 0; i < objValueArr.length; i++) {
@@ -119,84 +120,67 @@ function isPresent(filterValueSet, objValueArr) {
 }
 
 /**
- * The filterString is used to extract the filterType and filter values and
- * the object is compared against the extracted filter to check if the field
- * of the object matches the filter criteria.
+ * The filterString is used to extract the filterType and filter values and the
+ * object is compared against the extracted filter to check if the field of the
+ * object matches the filter criteria.
+ *
  * @param  {String} filterString - String of the form filterType=values.
- * @param  {String|Array} objValues - The values of the object, that is to be
- * matched against a filter criteria
- * @returns {Boolean} - true if the object matches the filter criteria, false
- * otherwise.
+ * @param  {String|Array} objValues - The values of the object to be matched
+ *  against filter criteria
+ * @returns {Boolean} - true if the object matches the filter criteria
  */
-function applyFilter(filterString, objValues) {
-  const objValueArr = [];
-  if (objValues && Array.isArray(objValues)) {
-    objValues.forEach((obj) => {
-      objValueArr.push(obj);
-    });
-  } else {
-    objValueArr.push(objValues);
-  }
+function applyFilter(filterString, objValues = []) {
+  console.log(`applyFilter filterString="${filterString}" objValues="${objValues}"`);
+
+  // Short-circuit return true if there is no filterString
+  if (!filterString) return true;
 
   /*
-   * The filter string is of the form filterType=values. For example,
-   * an aspect filterString will be of the form INCLUDE=Temperature,Humidity
-   * where temperature and humidity are the aspects and INCLUDE is the
-   * filterType
+   * The filter string is a name-value pair of the form `filterType=values`.
+   * For example, aspect filterString `INCLUDE=Temperature,Humidity` has
+   * filterType `INCLUDE` and aspect values `Temperature` and `Humidity`.
+   * The "value" part of the name-value pair will be empty if the filter is not
+   * set in the perspective.
    */
-  if (filterString) {
-    const filterComponents =
-      filterString.split(constants.fieldTypeFieldSeparator);
+  const nvp = filterString.split(constants.fieldTypeFieldSeparator);
 
-    /*
-     * When the filters are not set the size of the filterComponents array is
-     * less than 2 and we are returning true,
-     *
-     */
-    if (filterComponents.length < 2) {
-      return true;
-    }
+  /*
+   * Short-circuit return true if the filterString is not a name-value pair
+   * with an "=" separator.
+   */
+  if (nvp.length < 2) return true;
 
-    // filter type is either INCLUDE or EXCLUDE
-    const filterType = filterComponents[0];
+  const filterType = nvp[0]; // INCLUDE or EXCLUDE
 
-    /*
-     * field values is an empty string('') when any of the filters are not
-     * set in the perspective
-     */
-    const filterValues = filterComponents[1];
-    const filterValueSet = new Set(filterValues.split(constants
-                                                  .valuesSeparator));
+  // Short-circuit return true if filterType is neither INCLUDE nor EXCLUDE
+  if (!constants.validFilterTypes.includes(filterType)) return true;
 
-    if (filterType === constants.filterTypeInclude) {
-      /*
-       * If any of the values in the objValueArr is found in the filterValueSet
-       * return true.
-       */
-      return isPresent(filterValueSet, objValueArr);
-    }
+  const filterValueSet = new Set(nvp[1].split(constants.valuesSeparator));
+  const arr = Array.isArray(objValues) ? objValues : [objValues];
+  const valueIsPresent = isPresent(filterValueSet, arr);
 
-    /*
-     * if any of the values in the objValueArr is found in the filterValueSet
-     * return false
-     */
-    return !isPresent(filterValueSet, objValueArr);
-  }
-
-  return true;
+  if (filterType === constants.filterTypeInclude) return valueIsPresent;
+  return !valueIsPresent; // otherwise it's an EXCLUDE filter
 }
 
 /**
- * The decision to emit an object over a namespace identified by the nspComponents
- * variable happens here. The nspComponents are decoded to various filters and the
- * filters are compared with the obj to decide whether this object should be
- * emitted over the namespace identified by the nspComponents variable
+ * The decision to emit an object over a namespace identified by the
+ * nspComponents variable happens here. The nspComponents are decoded to
+ * various filters and the filters are compared with the obj to decide whether
+ * this object should be emitted over the namespace identified by the
+ * nspComponents variable.
+ *
  * @param  {String} nspComponents - array of namespace strings for filtering
  * @param  {Object} obj - Object that is to be emitted to the client
  * @returns {Boolean} - true if this obj is to be emitted over this namespace
- * identified by this namespace string.
+ *  identified by this namespace string.
  */
 function perspectiveEmit(nspComponents, obj) {
+  /*
+   * Note: I perf tested these individual assignments from the nspComponents
+   * array vs. using destructuring assignment, and individual assigments was
+   * 10x faster.
+   */
   const aspectFilter = nspComponents[constants.aspectFilterIndex];
   const subjectTagFilter = nspComponents[constants.subjectTagFilterIndex];
   const aspectTagFilter = nspComponents[constants.aspectTagFilterIndex];
@@ -206,7 +190,7 @@ function perspectiveEmit(nspComponents, obj) {
    * When none of the filters are set, the nspComponent just has the
    * subjectAbsolutePath in it, so we do not have to check for the filter
    * conditions and we just need to return true.
-  */
+   */
   if (nspComponents.length < 2) {
     return true;
   }
