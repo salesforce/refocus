@@ -12,7 +12,6 @@
  * Gets an array of all rooms which should be deactivated, then deactivates
  * them and does a sync if this is enabled in the room settings.
  */
-const featureToggles = require('feature-toggles');
 const moment = require('moment');
 const Op = require('sequelize').Op;
 

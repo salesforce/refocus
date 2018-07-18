@@ -62,9 +62,7 @@ if (featureToggles.isFeatureEnabled('enablePubStatsLogs')) {
   setInterval(pubStatsLogs.execute, conf.pubStatsLogsIntervalMillis);
 }
 
-if (featureToggles.isFeatureEnabled('autoDeactivateRooms')) {
-  setInterval(deactivateRooms.execute, conf.deactivateRoomsInterval);
-}
+setInterval(deactivateRooms.execute, conf.deactivateRoomsInterval);
 
 // Clean up completed jobs
 setInterval(jobCleanup.enqueue, conf.JOB_REMOVAL_INTERVAL);
