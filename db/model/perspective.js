@@ -220,6 +220,24 @@ module.exports = function perspective(seq, dataTypes) {
       ],
     });
 
+    Perspective.addScope('namespace', {
+      attributes: [
+        'id',
+        'name',
+        'rootSubject',
+        'aspectFilterType',
+        'aspectFilter',
+        'aspectTagFilterType',
+        'aspectTagFilter',
+        'subjectTagFilterType',
+        'subjectTagFilter',
+        'statusFilterType',
+        'statusFilter',
+      ],
+      where: {
+        isDeleted: 0,
+      },
+    });
   };
 
   /**
