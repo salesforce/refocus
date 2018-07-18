@@ -138,7 +138,9 @@ module.exports = function collector(seq, dataTypes) {
         if (inst.changed('status')) {
           if (inst.status === collectorStatus.Running) {
             return u.findAndAssignGenerators(seq);
-          } else if (inst.status === collectorStatus.Stopped ||
+          }
+
+          if (inst.status === collectorStatus.Stopped ||
             inst.status === collectorStatus.Paused) {
             /* if status is changed to Stopped or Paused, then reassign the
              generators which were assigned to this collector */
