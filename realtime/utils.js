@@ -247,24 +247,31 @@ function botEmit(nspComponents, obj, pubOpts) {
 }
 
 /**
-  * Splits up the nspString into its components and decides if it is a bot
-  * or a perspective that needs to be emitted
-  * @param {String} nspString - A namespace string, that identifies a
-  * socketio namespace
-  * @param {Object} obj - Object that is to be emitted to the client
-  * @param {Object} pubOpts - Options for client and channel to publish with.
-  * @returns {Boolean} - true if this obj is to be emitted over this namespace
-  * identified by this namespace string.
-  */
+ * Splits up the nspString into its components and decides if it is a bot or a
+ * perspective that needs to be emitted.
+ *
+ * @param {String} nspString - A namespace string, that identifies a
+ *  socketio namespace
+ * @param {Object} obj - Object that is to be emitted to the client
+ * @param {Object} pubOpts - Options for client and channel to publish with.
+ * @returns {Boolean} - true if this obj is to be emitted over this namespace
+ *  identified by this namespace string.
+ */
 function shouldIEmitThisObj(nspString, obj, pubOpts) {
-  // extract all the components that makes up a namespace.
+  // Extract all the components which make up a namespace.
   const nspComponents = nspString.split(constants.filterSeperator);
   const absPathNsp = nspComponents[constants.asbPathIndex];
   const absolutePathObj = '/' + obj.absolutePath;
 
-  if ((absolutePathObj).startsWith(absPathNsp)) {
+  /*
+   * Note: we are using `str1.indexOf(str2) === 0` here instead of the more
+   * intuitve `str1.startsWith(str2)` because performance tested better. 
+   */
+  if (absolutePathObj.indexOf(absPathNsp) === 0) {
     return perspectiveEmit(nspComponents, obj);
-  } else if (absPathNsp === botAbsolutePath) {
+  }
+
+  if (absPathNsp === botAbsolutePath) {
     return botEmit(nspComponents, obj, pubOpts);
   }
 
