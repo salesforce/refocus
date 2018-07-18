@@ -265,7 +265,7 @@ function shouldIEmitThisObj(nspString, obj, pubOpts) {
 
   /*
    * Note: we are using `str1.indexOf(str2) === 0` here instead of the more
-   * intuitve `str1.startsWith(str2)` because performance tested better. 
+   * intuitve `str1.startsWith(str2)` because performance tested better.
    */
   if (absolutePathObj.indexOf(absPathNsp) === 0) {
     return perspectiveEmit(nspComponents, obj);
