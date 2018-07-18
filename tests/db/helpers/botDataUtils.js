@@ -483,11 +483,6 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
       bot3data.roomId = roomId;
       return BotData.create(bot3data);
     })
-    .then(() => {
-      bot4data.botId = bot3Id;
-      bot4data.roomId = roomId;
-      return BotData.create(bot4data);
-    })
     .then(() => BotData.findOne({ where: { botId: bot2Id } }))
     .then((bdRes) => {
       expect(bdRes.value).to.equal('{"name": "tausif"}');
