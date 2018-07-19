@@ -126,7 +126,7 @@ function isPresent(filterValueSet, objValueArr) {
  *
  * @param  {String} filterString - String of the form filterType=values.
  * @param  {String|Array} objValues - The values of the object to be matched
- *  against filter criteria
+ *  against filter criteria (empty array if none)
  * @returns {Boolean} - true if the object matches the filter criteria
  */
 function applyFilter(filterString, objValues = []) {
@@ -154,19 +154,16 @@ function applyFilter(filterString, objValues = []) {
   if (!constants.validFilterTypes.includes(filterType)) return true;
 
   const filterValueSet = new Set(nvp[1].split(constants.valuesSeparator));
-  const arr = Array.isArray(objValues) ? objValues : [objValues];
-  const valueIsPresent = isPresent(filterValueSet, arr);
+  const objValuesArr = Array.isArray(objValues) ? objValues : [objValues];
+  const valueIsPresent = isPresent(filterValueSet, objValuesArr);
 
   if (filterType === constants.filterTypeInclude) return valueIsPresent;
   return !valueIsPresent; // otherwise it's an EXCLUDE filter
-}
+} // applyFilter
 
 /**
- * The decision to emit an object over a namespace identified by the
- * nspComponents variable happens here. The nspComponents are decoded to
- * various filters and the filters are compared with the obj to decide whether
- * this object should be emitted over the namespace identified by the
- * nspComponents variable.
+ * Returns true if this object should be emitted as a real-time event to a
+ * namespace given the various filters passed in here as nspComponents.
  *
  * @param  {String} nspComponents - array of namespace strings for filtering
  * @param  {Object} obj - Object that is to be emitted to the client
@@ -187,26 +184,22 @@ function perspectiveEmit(nspComponents, obj) {
   /*
    * When none of the filters are set, the nspComponent just has the
    * subjectAbsolutePath in it, so we do not have to check for the filter
-   * conditions and we just need to return true.
+   * conditions and we can just return true.
    */
-  if (nspComponents.length < 2) {
-    return true;
-  }
+  if (nspComponents.length < 2) return true;
 
   /*
-   * if this is a subject object, just apply the subjectTagFilter and return
-   * the results
+   * If the obj is a subject, just apply the subjectTagFilter and return the
+   * result.
    */
-  if (isThisSubject(obj)) {
-    return applyFilter(subjectTagFilter, obj.tags);
-  }
+  if (isThisSubject(obj)) return applyFilter(subjectTagFilter, obj.tags);
 
-  // apply all the filters and return the result
+  // Otherwise it's a sample, so apply all the filters and return the result.
   return applyFilter(aspectFilter, obj.aspect.name) &&
     applyFilter(subjectTagFilter, obj.subject.tags) &&
     applyFilter(aspectTagFilter, obj.aspect.tags) &&
     applyFilter(statusFilter, obj.status);
-}
+} // perspectiveEmit
 
 /**
  * The decision to emit an object over a namespace identified by the nspComponents
