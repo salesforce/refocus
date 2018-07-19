@@ -26,8 +26,8 @@ function stackTraceFilter(ln) {
   return !ln.includes('/node_modules/') &&
   !ln.includes('timers.js') &&
   !ln.includes('next_tick') &&
-  !ln.includes('module.js')
-}
+  !ln.includes('module.js');
+} // stackTraceFilter
 
 /**
  * Display additional details from the request, response and error using
