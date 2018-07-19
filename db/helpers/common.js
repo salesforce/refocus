@@ -180,8 +180,6 @@ function validateContextDef(contextDef, requiredProps) {
 function tagsChanged(inst) {
   let prevTags = inst.previous('tags');
   let currTags = inst.get('tags');
-  console.log('prevTags', prevTags);
-  console.log('currTags', currTags);
   if (!inst.changed('tags')) {
     return false;
   } else if (prevTags.length !== currTags.length) {
