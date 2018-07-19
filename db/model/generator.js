@@ -169,21 +169,24 @@ module.exports = function generator(seq, dataTypes) {
         const gtName = inst.generatorTemplate.name;
         const gtVersion = inst.generatorTemplate.version;
 
-        if (inst.changed('isActive')) {
-          inst.assignToCollector();
-        }
-
-        /* If possibleCollectors are changed and this generator current
-         collector is not included in the changed possibleCollectors, then
-         assign this generator to another collector */
+        let isCurrentCollectorIncluded = true;
         if (inst.possibleCollectors && inst.changed('possibleCollectors')) {
-          const isCurrentCollectorIncluded = inst.possibleCollectors.some(
+          isCurrentCollectorIncluded = inst.possibleCollectors.some(
             (coll) => coll.name === inst.currentCollector
           );
+        }
 
-          if (!isCurrentCollectorIncluded) {
-            inst.assignToCollector();
-          }
+        /*
+         Assign to collector in following cases:
+         1) isActive is changed.
+         2) If possibleCollectors are changed and this generator current
+          collector is not included in the changed possibleCollectors.
+         3) If possibleCollectors are changed and collector is not assigned
+          to generator
+         */
+        if (inst.changed('isActive') || !isCurrentCollectorIncluded ||
+          (inst.changed('possibleCollectors') && !inst.currentCollector)) {
+          inst.assignToCollector();
         }
 
         if (inst.changed('generatorTemplate') || inst.changed('context')) {
@@ -428,9 +431,13 @@ module.exports = function generator(seq, dataTypes) {
   Generator.prototype.updateWithCollectors = function (requestBody) {
     return Promise.resolve()
     .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
-    .then((collectors) => this.addPossibleCollectors(collectors))
-    .then(() => this.update(requestBody))
-    .then(() => this.reload());
+    .then((collectors) => {
+      // prevent overwrite of reloaded collectors on update
+      delete requestBody.possibleCollectors;
+      return this.addPossibleCollectors(collectors);
+    })
+    .then(() => this.reload())
+    .then(() => this.update(requestBody));
   };
 
   Generator.prototype.isWritableBy = function (who) {

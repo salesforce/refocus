@@ -15,6 +15,7 @@ const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const sinon = require('sinon');
 const gtUtil = u.gtUtil;
 const path = '/v1/generators';
 const Generator = tu.db.Generator;
@@ -29,6 +30,7 @@ const testStartTime = new Date();
 describe('tests/api/v1/generators/patchWithCollector.js >', () => {
   let token;
   let generatorId;
+  let generatorInst;
   let collector1 = { name: 'hello', version: '1.0.0' };
   let collector2 = { name: 'beautiful', version: '1.0.0' };
   let collector3 = { name: 'world', version: '1.0.0' };
@@ -63,6 +65,7 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
     Generator.create(generator)
     .then((gen) => {
       generatorId = gen.id;
+      generatorInst = gen;
       return gen.addPossibleCollectors([collector1]);
     })
     .then(() => done())
@@ -71,6 +74,7 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
 
   // delete generator after each test
   afterEach(() => tu.forceDelete(tu.db.Generator, testStartTime));
+  after(u.forceDelete);
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -161,6 +165,143 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
       expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
       expect(res.body.errors[0].source).to.equal('Generator');
       done();
+    });
+  });
+
+  describe('assign to collector >', () => {
+    // generator already created with collector1 as possible collector
+    let clock;
+    const now = Date.now();
+    let collectorAlive1 = {
+      name: 'IamAliveAndRunning1',
+      version: '1.0.0',
+      status: 'Running',
+      lastHeartbeat: now,
+    };
+
+    let collectorAlive2 = {
+      name: 'IamAliveAndRunning2',
+      version: '1.0.0',
+      status: 'Running',
+      lastHeartbeat: now,
+    };
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers(now);
+    });
+
+    before((done) => { // create alive collectors
+      tu.db.Collector.bulkCreate([collectorAlive1, collectorAlive2])
+      .then((collectors) => {
+        collectorAlive1 = collectors[0];
+        collectorAlive2 = collectors[1];
+        return done();
+      })
+      .catch(done);
+    });
+
+    afterEach(() => clock.restore());
+
+    it('unassigned generator with no possible collectors, patch generator ' +
+      'with possible collectors should set currentCollector if an alive' +
+      'collector is included', (done) => {
+      expect(generatorInst.currentCollector).to.be.equal(null);
+      generatorInst.setPossibleCollectors([])
+      .then(() => generatorInst.reload())
+      .then(() => {
+        expect(generatorInst.possibleCollectors).to.be.empty;
+        const requestBody = {};
+        requestBody.possibleCollectors = [collector1.name, collectorAlive1.name];
+        requestBody.isActive = true;
+        api.patch(`${path}/${generatorId}`)
+        .set('Authorization', token)
+        .send(requestBody)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const collectors = res.body.possibleCollectors;
+          expect(Array.isArray(collectors)).to.be.true;
+          expect(collectors.length).to.equal(TWO);
+          const collectorNames = collectors.map((collector) => collector.name);
+          expect(collectorNames).to.deep.equal(
+            ['hello', 'IamAliveAndRunning1']
+          );
+          expect(res.body.currentCollector).to.equal('IamAliveAndRunning1');
+          return done();
+        });
+      })
+      .catch(done);
+    });
+
+    it('unassigned generator, patch generator with more possible collectors ' +
+      'should set currentCollector if alive collector is included', (done) => {
+      expect(generatorInst.currentCollector).to.be.equal(null);
+      const requestBody = {};
+      requestBody.possibleCollectors = [collector1.name, collectorAlive1.name];
+      requestBody.isActive = true;
+      api.patch(`${path}/${generatorId}`)
+      .set('Authorization', token)
+      .send(requestBody)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        const collectors = res.body.possibleCollectors;
+        expect(Array.isArray(collectors)).to.be.true;
+        expect(collectors.length).to.equal(TWO);
+        const collectorNames = collectors.map((collector) => collector.name);
+        expect(collectorNames).to.deep.equal(['hello', 'IamAliveAndRunning1']);
+        expect(res.body.currentCollector).to.equal('IamAliveAndRunning1');
+        return done();
+      });
+    });
+
+    it('assigned generator, patch generator with more possible collectors ' +
+      'should not change currentCollector even if alive collector is added',
+    (done) => {
+      expect(generatorInst.currentCollector).to.be.equal(null);
+
+      // set possibleCollectors to collectorAlive1
+      generatorInst.setPossibleCollectors([collectorAlive1])
+      .then(() => generatorInst.reload())
+
+      // make generator active
+      .then(() => generatorInst.update({ isActive: true }))
+      .then((gen) => {
+        // currentcollector = collectorAlive1
+        expect(gen.currentCollector).to.be.equal(collectorAlive1.name);
+
+        // set possible collectors = collector1, collectorAlive2
+        const requestBody = {};
+        requestBody.possibleCollectors =
+        [collector1.name, collectorAlive2.name];
+        requestBody.isActive = true;
+
+        api.patch(`${path}/${generatorId}`)
+        .set('Authorization', token)
+        .send(requestBody)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const collectors = res.body.possibleCollectors;
+          expect(Array.isArray(collectors)).to.be.true;
+          expect(collectors.length).to.equal(THREE);
+          const collectorNames = collectors.map((collector) => collector.name);
+          expect(collectorNames).to.deep.equal(
+            ['hello', 'IamAliveAndRunning1', 'IamAliveAndRunning2']
+          );
+          expect(res.body.currentCollector).to.equal('IamAliveAndRunning1');
+          return done();
+        });
+      }).catch(done);
     });
   });
 });

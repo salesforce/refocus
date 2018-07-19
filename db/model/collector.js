@@ -109,16 +109,12 @@ module.exports = function collector(seq, dataTypes) {
           .then(() => {
             // Add createdBy user to Collector writers.
             if (inst.createdBy) {
-              return new seq.Promise((resolve, reject) =>
-                inst.addWriter(inst.createdBy)
-                .then(() => resolve(inst))
-                .catch((err) => reject(err))
-              );
+              return inst.addWriter(inst.createdBy);
             }
 
             return Promise.resolve();
           }),
-          u.findAndAssignGenerators(seq),
+          u.assignUnassignedGenerators(seq),
         ]);
       }, // hooks.afterCreate
 
@@ -137,7 +133,7 @@ module.exports = function collector(seq, dataTypes) {
          generators */
         if (inst.changed('status')) {
           if (inst.status === collectorStatus.Running) {
-            return u.findAndAssignGenerators(seq);
+            return u.assignUnassignedGenerators(seq);
           }
 
           if (inst.status === collectorStatus.Stopped ||
