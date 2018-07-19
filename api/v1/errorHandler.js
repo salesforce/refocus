@@ -14,6 +14,7 @@
 'use strict';
 
 const util = require('util');
+const nodeEnv = require('../../config').nodeEnv;
 const featureToggles = require('feature-toggles');
 const apiErrors = require('./apiErrors');
 const constants = require('./constants');
@@ -118,8 +119,9 @@ module.exports = function errorHandler(err, req, res, next) {
     return next();
   }
 
+  let errResponse;
   try {
-    const errResponse = constructError(err);
+    errResponse = constructError(err);
     if (!isApiError(err) && !isDbError(err) && !isCacheError(err)) {
       if (/Route defined in Swagger specification.*/.test(err.message)) {
         err.status = constants.httpStatus.NOT_ALLOWED;
@@ -136,9 +138,7 @@ module.exports = function errorHandler(err, req, res, next) {
           };
 
           // Add "request_id" if header is set by heroku.
-          if (req.headers && req.headers['x-request-id']) {
-            logObject.request_id = req.headers['x-request-id'];
-          }
+          if (req.request_id) logObject.request_id = req.request_id;
 
           activityLog.printActivityLogString(logObject, 'unauthorized');
         }
@@ -147,18 +147,31 @@ module.exports = function errorHandler(err, req, res, next) {
       }
     }
 
-    // console.log('\n-----ERROR HANDLER------------------------------------');
-    // console.log('ERROR STATUS: ', err.status);
-    // console.log('ERROR RESPONSE: ', errResponse);
-    // console.log('REQUEST BODY: ', req.body);
-    // console.log('STACK: ', err.stack);
-    // console.log('------------------------------------------------------\n');
+    if (nodeEnv === 'development') {
+      console.error('\nerrorHandler|response:', errResponse);
+      console.error('errorHandler|request body:', req.body);
+      console.error(`errorHandler|${err.message} (status=${err.status})`);
+      err.stack.split('\n')
+        .slice(1)
+        .filter((ln) => !ln.includes('/node_modules/') &&
+          !ln.includes('timers.js') && !ln.includes('next_tick') &&
+          !ln.includes('module.js'))
+        .forEach((ln) => console.error(ln));
+    }
+
     res.status(err.status).json(errResponse);
   } catch (err2) {
-    // console.log('\n-----ERROR HANDLER CATCH------------------------------');
-    // console.log(err2);
-    // console.log('STACK: ', util.isError(err2) && err2.stack);
-    // console.log('------------------------------------------------------\n');
+    if (nodeEnv === 'development') {
+      console.error('\nerrorHandler|response:', errResponse);
+      console.error('errorHandler|request body:', req.body);
+      console.error(`errorHandler|${err.message} (status=${err.status})`);
+      err.stack.split('\n')
+        .slice(1)
+        .filter((ln) => !ln.includes('/node_modules/') &&
+          !ln.includes('timers.js'))
+        .forEach((ln) => console.error(ln));
+    }
+
     return next;
   }
 };
