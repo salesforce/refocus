@@ -14,6 +14,8 @@ const expect = require('chai').expect;
 const applyFilter = require('../../realtime/utils').applyFilter;
 
 describe('tests/realtime/realtimeUtilsApplyFilter.js >', () => {
+  it('filter undefined', () => expect(applyFilter()).to.be.true);
+
   describe('exclude filter >', () => {
     describe('aspect name filter >', () => {
       describe('no aspect name >', () => {
