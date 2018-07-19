@@ -180,7 +180,6 @@ module.exports = function room(seq, dataTypes) {
       attributes: ['id', 'name'],
       where: {
         active: true,
-        isDeleted: 0,
       },
     });
   };
