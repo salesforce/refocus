@@ -479,13 +479,14 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
 } // attachAspectSubject
 
 module.exports = {
-  getPerspectiveNamespaceString,
+  applyFilter, // for testing only
+  attachAspectSubject,
   getBotsNamespaceString,
   getNewObjAsString,
-  initializePerspectiveNamespace,
+  getPerspectiveNamespaceString,
   initializeBotNamespace,
+  initializePerspectiveNamespace,
   isIpWhitelisted,
   parseObject,
   shouldIEmitThisObj,
-  attachAspectSubject,
 }; // exports
