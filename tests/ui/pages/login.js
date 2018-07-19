@@ -8,6 +8,7 @@ let browser;
 
 const opts = {
   headless: true,
+  args:['--no-sandbox', '--disable-setuid-sandbox'],
   slowMo: 80,
   timeout: 10000
 };
