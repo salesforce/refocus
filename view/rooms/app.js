@@ -54,6 +54,7 @@ const BOT_REQ_HEADERS = {
 let _io;
 let _user;
 let _roomName;
+let _roomTypeName;
 let _isActive;
 let _movingContent;
 let _botsLayout;
@@ -700,6 +701,13 @@ function setupSocketIOClient(bots) {
     const room = eventData[settingsChangedEventName];
     if (room.id === parseInt(ROOM_ID, 10)) {
       debugMessage('Setting Changed', room);
+
+      if (_roomName !== room.name) {
+        _roomName = room.name;
+        const subTitle = `${_roomName} - ${_roomTypeName}`;
+        uPage.setSubtitle(subTitle);
+      }
+
       Object.keys(botInfo).forEach((key) => {
         createIframeEvent(roomChannel, room, botInfo, key);
       });
@@ -956,7 +964,8 @@ window.onload = () => {
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + response.type);
   })
   .then((res) => {
-    const subTitle = `${_roomName} - ${res.body.name}`;
+    _roomTypeName = res.body.name;
+    const subTitle = `${_roomName} - ${_roomTypeName}`;
     uPage.setSubtitle(subTitle);
     document.title = subTitle;
     let layoutCookie =
