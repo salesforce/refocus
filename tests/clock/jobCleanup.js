@@ -23,23 +23,36 @@ const kue = require('kue');
 const originalRangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
 jobQueue.completeCountAsync = Promise.promisify(jobQueue.completeCount);
 jobQueue.completeAsync = Promise.promisify(jobQueue.complete);
+const sinon = require('sinon');
+const activityLogUtil = require('../../utils/activityLog');
 
 describe('tests/clock/jobCleanup.js >', () => {
+  const MILLISECONDS_EXPRESSION = /^\d*ms/;
+
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
+    tu.toggleOverride('enableJobCleanupActivityLogs', true);
     jobQueue.process('TEST', 100, testJob);
     done();
   });
 
   beforeEach((done) => {
+    sinon.spy(activityLogUtil, 'printActivityLogString');
+
     jobCleanup.execute(100, 0)
     .then(jobCleanup.resetCounter())
     .then(done)
     .catch(done);
   });
 
+  afterEach((done) => {
+    activityLogUtil.printActivityLogString.restore();
+    done();
+  });
+
   after((done) => {
     tu.toggleOverride('enableWorkerProcess', false);
+    tu.toggleOverride('enableJobCleanupActivityLogs', false);
     jobCleanup.execute(100, 0).then(done).catch(done);
   });
 
@@ -99,7 +112,16 @@ describe('tests/clock/jobCleanup.js >', () => {
       expectNJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 1, removed: 20, skipped: 0, errors: 0,
+            totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        done();
+      })
+      .catch(done);
     });
 
     it('jobs: 1, batchSize: 10', (done) => {
@@ -110,7 +132,16 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 1, removed: 1, skipped: 0, errors: 0,
+          totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        done();
+      })
+      .catch(done);
     });
 
     it('jobs: 5, batchSize: 10', (done) => {
@@ -118,10 +149,19 @@ describe('tests/clock/jobCleanup.js >', () => {
       const batchSize = 10;
 
       runJobs(jobCount)
-      .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(batchSize, delay))
-      .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+        .then(() => expectNJobs(jobCount))
+        .then(() => jobCleanup.execute(batchSize, delay))
+        .then(() => expectNJobs(expectedCount))
+        .then(() => {
+          sinon.assert.calledWith(
+            activityLogUtil.printActivityLogString,
+            sinon.match({ iterations: 1, removed: 5, skipped: 0, errors: 0,
+              totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+            'jobCleanup'
+          );
+          done();
+        })
+        .catch(done);
     });
 
     it('jobs: 22, batchSize: 5', (done) => {
@@ -132,7 +172,16 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 5, removed: 22, skipped: 0, errors: 0,
+            totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        done();
+      })
+      .catch(done);
     });
 
     it('jobs: 19, batchSize: 5', (done) => {
@@ -143,7 +192,16 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 4, removed: 19, skipped: 0, errors: 0,
+            totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        done();
+      })
+      .catch(done);
     });
 
     it('jobs: 100, batchSize: 5', (done) => {
@@ -154,7 +212,16 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 21, removed: 100, skipped: 0, errors: 0,
+            totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        done();
+      })
+      .catch(done);
     });
 
     it('jobs: 100, batchSize: 1', (done) => {
@@ -165,21 +232,34 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 101, removed: 100, skipped: 0, errors: 0,
+            totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        done();
+      })
+      .catch(done);
     });
 
     it('batchSize: 0 (none removed)', (done) => {
       const jobCount = 5;
       const batchSize = 0;
-      const expectedCount = 5;
+      const expectedCountWhenNoneRemoved = 5;
 
       runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
       .then(() => jobCleanup.execute(batchSize, delay))
-      .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => expectNJobs(expectedCountWhenNoneRemoved))
+      .then(() => {
+        expect(activityLogUtil.printActivityLogString.calledOnce)
+          .to.equal(false);
+        done();
+      })
+      .catch(done);
     });
-
   });
 
   describe('delay - staggered >', () => {
@@ -196,7 +276,25 @@ describe('tests/clock/jobCleanup.js >', () => {
       runJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        // when delay applied log called twice.
+        expect(activityLogUtil.printActivityLogString.calledTwice)
+          .to.equal(true);
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 1, removed: 5, skipped: 0, errors: 0,
+            totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 5, removed: 17, skipped: 3, errors: 0,
+            totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        done();
+      })
+      .catch(done);
     });
 
     it('skip 15', (done) => {
@@ -207,9 +305,26 @@ describe('tests/clock/jobCleanup.js >', () => {
       runJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        // when delay applied log called twice.
+        expect(activityLogUtil.printActivityLogString.calledTwice)
+          .to.equal(true);
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 1, removed: 3, skipped: 0, errors: 0,
+            totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 5, removed: 5, skipped: 15, errors: 0,
+            totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        done();
+      })
+      .catch(done);
     });
-
   });
 
   describe('delay - non-contiguous >', () => {
@@ -226,7 +341,25 @@ describe('tests/clock/jobCleanup.js >', () => {
       runJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        // when delay applied log called twice.
+        expect(activityLogUtil.printActivityLogString.calledTwice)
+          .to.equal(true);
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 1, removed: 15, skipped: 0, errors: 0,
+            totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 5, removed: 10, skipped: 10, errors: 0,
+            totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        done();
+      })
+      .catch(done);
     });
 
     it('skip 1/4', (done) => {
@@ -238,7 +371,25 @@ describe('tests/clock/jobCleanup.js >', () => {
       runJobs(jobCount)
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+      .then(() => {
+        // when delay applied log called twice.
+        expect(activityLogUtil.printActivityLogString.calledTwice)
+          .to.equal(true);
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 1, removed: 10, skipped: 0, errors: 0,
+            totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({ iterations: 5, removed: 15, skipped: 5, errors: 0,
+            totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
+          'jobCleanup'
+        );
+        done();
+      })
+      .catch(done);
     });
   });
 
@@ -276,7 +427,6 @@ describe('tests/clock/jobCleanup.js >', () => {
       })
       .catch(done);
     });
-
   });
 
   it('id counter reset', (done) => {
@@ -295,5 +445,4 @@ describe('tests/clock/jobCleanup.js >', () => {
     .then((ids) => { expect(ids[0]).to.equal(1); })
     .then(done).catch(done);
   });
-
 });

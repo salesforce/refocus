@@ -71,6 +71,8 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
  * @returns {Object} - object that was published
  */
 function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
+  if (!inst || !event) return false;
+
   const obj = {};
   obj[event] = inst;
 
@@ -90,15 +92,14 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
    * to get the object just for update events.
    */
   if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
-    obj[event] = prepareToPublish(inst, changedKeys, ignoreAttributes);
+    const prepared = prepareToPublish(inst, changedKeys, ignoreAttributes);
+    if (!prepared) return false;
+    obj[event] = prepared;
   }
 
-  if (obj[event]) {
-    pubClient.publish(channelName, JSON.stringify(obj));
-  }
-
+  pubClient.publish(channelName, JSON.stringify(obj));
   return obj;
-} // publishChange
+} // publishObject
 
 /**
  * The sample object needs to be attached its subject object and it also needs
@@ -114,6 +115,12 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  * @returns {Promise} - which resolves to a sample object
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
+  if (featureToggles.isFeatureEnabled('publishSampleNoChange')) {
+    if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
+      return publishSampleNoChange(sampleInst);
+    }
+  }
+
   const eventType = event || getSampleEventType(sampleInst);
   let prom;
 
@@ -127,11 +134,45 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
 
   return prom.then((sample) => {
     if (sample) {
+      sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
       publishObject(sample, eventType);
       return sample;
     }
   });
 } // publishSample
+
+/**
+ * Publish a sample when nothing changed except last update timestamp.
+ *
+ * @param  {Object} sample - The sample to be published
+ * @returns {Promise} - which resolves to the object that was published
+ */
+function publishSampleNoChange(sample) {
+  const s = {
+    name: sample.name,
+    status: sample.status, // for socket.io perspective filtering
+    absolutePath: sample.absolutePath, // used for persp filtering
+    updatedAt: sample.updatedAt,
+    subject: {
+      absolutePath: sample.absolutePath,
+      tags: sample.subjectTags, // for socket.io perspective filtering
+    },
+    aspect: {
+      name: sample.aspectName, // for socket.io perspective filtering
+      tags: sample.aspectTags, // for socket.io perspective filtering
+      /*
+       * aspect.timeout is needed by perspective to track whether page is still
+       * getting real-time events
+       */
+      timeout: sample.aspectTimeout,
+    },
+  };
+  return Promise.resolve(true)
+  .then(() => {
+    publishObject(s, sampleEvent.nc);
+    return sample;
+  });
+} // publishSampleNoChange
 
 module.exports = {
   publishObject,

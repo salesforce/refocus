@@ -43,6 +43,10 @@ module.exports = (io) => {
       const mssgObj = JSON.parse(mssgStr);
       const key = Object.keys(mssgObj)[0];
       const parsedObj = rtUtils.parseObject(mssgObj[key], key);
+      let { pubOpts } = parsedObj;
+
+      // Deleting pubOpts from parsedObj before passing it to the emitter
+      delete parsedObj.pubOpts;
 
       if (featureToggles.isFeatureEnabled('enablePubStatsLogs')) {
         trackPublishKey(key);
@@ -52,7 +56,7 @@ module.exports = (io) => {
        * pass on the message received through the redis subscriber to the socket
        * io emitter to send data to the browser clients.
        */
-      emitter(io, key, parsedObj);
+      emitter(io, key, parsedObj, pubOpts);
     });
   });
 };
