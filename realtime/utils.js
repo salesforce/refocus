@@ -130,8 +130,6 @@ function isPresent(filterValueSet, objValueArr) {
  * @returns {Boolean} - true if the object matches the filter criteria
  */
 function applyFilter(filterString, objValues = []) {
-  console.log(`applyFilter filterString="${filterString}" objValues="${objValues}"`);
-
   // Short-circuit return true if there is no filterString
   if (!filterString) return true;
 
@@ -463,6 +461,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
 } // attachAspectSubject
 
 module.exports = {
+  applyFilter, // for testing only
   getPerspectiveNamespaceString,
   getBotsNamespaceString,
   getNewObjAsString,
