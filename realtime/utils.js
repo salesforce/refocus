@@ -163,12 +163,13 @@ function applyFilter(filterString, objValues = []) {
 
 /**
  * Returns true if this object should be emitted as a real-time event to a
- * namespace given the various filters passed in here as nspComponents.
+ * namespace (representing a perspective) given the various filters passed in
+ * here as nspComponents.
  *
  * @param  {String} nspComponents - array of namespace strings for filtering
  * @param  {Object} obj - Object that is to be emitted to the client
- * @returns {Boolean} - true if this obj is to be emitted over this namespace
- *  identified by this namespace string.
+ * @returns {Boolean} - true if this obj is to be emitted based on the filters
+ *  represented by the nspComponents
  */
 function perspectiveEmit(nspComponents, obj) {
   /*
@@ -202,24 +203,21 @@ function perspectiveEmit(nspComponents, obj) {
 } // perspectiveEmit
 
 /**
- * The decision to emit an object over a namespace identified by the nspComponents
- * variable happens here. The nspComponents are decoded to various filters and the
- * filters are compared with the obj to decide whether this object should be
- * emitted over the namespace identified by the nspComponents variable
+ * Returns true if this object should be emitted as a real-time event to a
+ * namespace (representing a room) given the various filters passed in here
+ * as nspComponents.
+ *
  * @param {String} nspComponents - array of namespace strings for filtering
  * @param {Object} obj - Object that is to be emitted to the client
  * @param {Object} pubOpts - Options for client and channel to publish with.
- * @returns {Boolean} - true if this obj is to be emitted over this namespace
- * identified by this namespace string.
+ * @returns {Boolean} - true if this obj is to be emitted based on the filters
+ *  represented by the nspComponents
  */
 function botEmit(nspComponents, obj, pubOpts) {
-  if (pubOpts) {
-    const objFilter = nspComponents[pubOpts.filterIndex];
-    return applyFilter(objFilter, obj[pubOpts.filterField]);
-  }
-
-  return false;
-}
+  if (!pubOpts) return false;
+  const objFilter = nspComponents[pubOpts.filterIndex];
+  return applyFilter(objFilter, obj[pubOpts.filterField]);
+} // botEmit
 
 /**
  * Splits up the nspString into its components and decides if it is a bot or a
