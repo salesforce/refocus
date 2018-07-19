@@ -96,6 +96,8 @@ const longTermToggles = {
     'unauthorized'),
   enableWorkerActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'worker'),
+  enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'jobCleanup'),
 
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
@@ -184,13 +186,18 @@ const shortTermToggles = {
   publishSampleInPromiseChain: environmentVariableTrue(pe,
     'PUBLISH_SAMPLE_IN_PROMISE_CHAIN'),
 
+  /*
+   * Use new 'refocus.internal.realtime.sample.nochange' events if sample did
+   * not change.
+   */
+  publishSampleNoChange: environmentVariableTrue(pe,
+    'PUBLISH_SAMPLE_NO_CHANGE'),
+
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
   requireHelpEmailOrHelpUrl: environmentVariableTrue(
     pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
-
-  autoDeactivateRooms: environmentVariableTrue(pe, 'AUTO_DEACTIVATE_ROOMS'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

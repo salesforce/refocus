@@ -130,6 +130,13 @@ module.exports = function room(seq, dataTypes) {
           }
         }
 
+        if (instance.changed('active')) {
+          if (instance.active) {
+            return realTime.publishObject(instance.toJSON(), roomEventNames.add,
+              null, null, pubOpts);
+          }
+        }
+
         return seq.Promise.resolve();
       }, // hooks.afterUpdate
 
@@ -168,6 +175,12 @@ module.exports = function room(seq, dataTypes) {
       as: 'writers',
       through: 'RoomWriters',
       foreignKey: 'roomId',
+    });
+    Room.addScope('namespace', {
+      attributes: ['id', 'name'],
+      where: {
+        active: true,
+      },
     });
   };
 
