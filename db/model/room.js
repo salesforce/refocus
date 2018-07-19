@@ -176,6 +176,12 @@ module.exports = function room(seq, dataTypes) {
       through: 'RoomWriters',
       foreignKey: 'roomId',
     });
+    Room.addScope('namespace', {
+      attributes: ['id', 'name'],
+      where: {
+        active: true,
+      },
+    });
   };
 
   return Room;
