@@ -123,7 +123,15 @@ module.exports = function room(seq, dataTypes) {
       },
 
       afterUpdate(instance /* , opts */) {
-        if (instance.changed('settings') || instance.changed('name')) {
+        if (instance.changed('settings')) {
+          if (instance.active) {
+            return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
+              null, null, pubOpts);
+          }
+        }
+
+        // Note: We should delete the socket.io namespace for the old room name
+        if (instance.changed('name')) {
           if (instance.active) {
             return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
               null, null, pubOpts);
