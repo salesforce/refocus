@@ -29,7 +29,6 @@ const filters = [
   'statusFilter',
 ];
 const botAbsolutePath = '/Bots';
-const SEVEN = 7; // the length of the strings "INCLUDE" and "EXCLUDE"
 
 /**
  * A function to see if an object is a subject object or not. It returns true
@@ -148,9 +147,8 @@ function applyFilter(filterString, objValues = []) {
    */
   if (nvp.length < 2) return true;
 
-  const filterType = nvp[0]; // INCLUDE or EXCLUDE
-
-  // Short-circuit return true if filterType is neither INCLUDE nor EXCLUDE
+  // Get filter type (INCLUDE/EXCLUDE). Short-circuit return true if invalid.
+  const filterType = nvp[0];
   if (!constants.validFilterTypes.includes(filterType)) return true;
 
   const filterValueSet = new Set(nvp[1].split(constants.valuesSeparator));
