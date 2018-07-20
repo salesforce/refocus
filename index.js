@@ -16,12 +16,25 @@
 
 /* eslint-disable global-require */
 /* eslint-disable no-process-env */
-
 const throng = require('throng');
 const DEFAULT_WEB_CONCURRENCY = 1;
 const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 const sampleStore = require('./cache/sampleStoreInit');
 const jobSetup = require('./jobQueue/setup');
+const conf = require('./config');
+
+/**
+ * After receiving SIGTERM the app will exit automatically if there is no
+ * a SIGKILL event fired from the host platform (eg. Heroku) in
+ * WAITING_SIG_KILL_TIMEOUT seconds.
+ *
+ * default=60sec
+ */
+function shutdownApp() {
+  setTimeout(() => {
+    process.exit(0);
+  }, conf.WAITING_SIG_KILL_TIMEOUT);
+}
 
 /**
  * Entry point for each clustered process.
@@ -41,7 +54,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   // SegfaultHandler.registerHandler('crash.log');
 
   const featureToggles = require('feature-toggles');
-  const conf = require('./config');
+
   if (conf.newRelicKey) {
     require('newrelic');
   }
@@ -309,10 +322,21 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   // create app routes
   require('./view/loadView').loadView(app, passportModule, '/v1');
 
-  process.once('SIGTERM', () => {
-    // Stop http server and stop accepting any new request.
+  process.on('SIGTERM', () => {
+    /*
+     Heroku: from now on, 30 seconds to shutdown cleanly. If any processes
+     remain after that time period, Dyno manager will terminate them forcefully
+     with SIGKILL logging 'Error R12' to indicate that the shutdown process is
+     not behaving correctly.
+     Steps:
+     - stop accepting new requests;
+     - stop jobs and attempt to finish their current requests or
+     put jobs back on the queue;
+    */
     httpServer.close(() => {
       jobSetup.gracefulShutdown();
+
+      shutdownApp();
     });
   });
 

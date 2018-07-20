@@ -24,11 +24,6 @@ const redisOptions = {
   redis: conf.redis.instanceUrl.queue,
 };
 
-const express = require('express');
-const server = require('http').Server(express());
-const SHUTDOWN_TIMEOUT = 5000;
-const SUCCESSFUL_EXIT = 0;
-
 const redisInfo = urlParser.parse(redisOptions.redis, true);
 if (redisInfo.protocol !== PROTOCOL_PREFIX) {
   redisOptions.redis = 'redis:' + redisOptions.redis;
@@ -37,11 +32,11 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
 const jobQueue = kue.createQueue(redisOptions);
 
 /**
- * Finishes (process.exit) when all workers tell Kue they are stopped.
+ * Kue graceful shutdown.
  */
 function gracefulShutdown() {
   const start = Date.now();
-  jobQueue.shutdown(SHUTDOWN_TIMEOUT, (err) => {
+  jobQueue.shutdown(conf.KUE_SHUTDOWN_TIME_OUT, (err) => {
     if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
       const status = 'Job queue shutdown: ' + (err || 'OK');
       const logWrapper = {
@@ -50,8 +45,6 @@ function gracefulShutdown() {
       };
       activityLogUtil.printActivityLogString(logWrapper, 'sigterm');
     }
-
-    process.exit(SUCCESSFUL_EXIT);
   });
 }
 
@@ -89,6 +82,5 @@ module.exports = {
   },
   ttlForJobsAsync: conf.JOB_QUEUE_TTL_SECONDS_ASYNC,
   ttlForJobsSync: conf.JOB_QUEUE_TTL_SECONDS_SYNC,
-  delayToRemoveJobs: conf.JOB_REMOVAL_DELAY_SECONDS,
   kue,
 }; // exports
