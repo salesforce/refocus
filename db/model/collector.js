@@ -114,7 +114,7 @@ module.exports = function collector(seq, dataTypes) {
 
             return Promise.resolve();
           }),
-          u.assignUnassignedGenerators(seq),
+          u.assignUnassignedGenerators(),
         ]);
       }, // hooks.afterCreate
 
@@ -129,11 +129,11 @@ module.exports = function collector(seq, dataTypes) {
       }, // hooks.beforeUpdate
 
       afterUpdate(inst /* , opts */) {
-        /* if status is changed to Running, then find and assign unassigned
-         generators */
         if (inst.changed('status')) {
+          /* if status is changed to Running, then find and assign unassigned
+           generators */
           if (inst.status === collectorStatus.Running) {
-            return u.assignUnassignedGenerators(seq);
+            return u.assignUnassignedGenerators();
           }
 
           if (inst.status === collectorStatus.Stopped ||

@@ -17,6 +17,7 @@
 const Joi = require('joi');
 const ValidationError = require('../dbErrors').ValidationError;
 const semverRegex = require('semver-regex');
+const utils = require('../utils.js');
 
 const osInfoSchema = Joi.object().keys({
   arch: Joi.string(),
@@ -84,11 +85,10 @@ function validateVersion(version) {
 
 /**
  * Find unassigned generators and assign them.
- * @param {Object} seq - Sequelize object
  * @returns {Promise} - Resolves to array of assigned generator db objects
  */
-function assignUnassignedGenerators(seq) {
-  return seq.models.Generator.findAll(
+function assignUnassignedGenerators() {
+  return utils.seq.models.Generator.findAll(
     { where: { currentCollector: null, isActive: true } }
   )
   .map((g) => {
