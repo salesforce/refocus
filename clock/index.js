@@ -20,6 +20,7 @@
  * inside the main web process.
  */
 const conf = require('../config');
+const collectorConf = require('../config/collectorConfig');
 if (conf.newRelicKey) {
   require('newrelic');
 }
@@ -74,4 +75,4 @@ setInterval(jobCleanup.resetCounter, conf.JOB_COUNTER_RESET_INTERVAL);
 
 // Check missed collector heartbeats
 setInterval(checkMissedCollectorHeartbeatJob.enqueue,
-  conf.missedCollectorHeartbeatCheckIntervalMillis);
+  collectorConf.heartbeatLatencyToleranceMillis);
