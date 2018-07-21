@@ -3653,6 +3653,11 @@ paths:
                 readOnly: true
                 description: >-
                   Filter by the name of current collector assigned to the generator.
+              isActive:
+                type: boolean
+                description: >-
+                  Default false. When set to true, the generator will be 
+                  assigned to a running collector and regularly send in samples.
               generatorTemplate:
                 type: object
                 description: Details of Generator Template.
@@ -3774,7 +3779,12 @@ paths:
                 type: string
                 readOnly: true
                 description: >-
-                  Filter by the name of current collector assigned to the generator.
+                  Name of current collector assigned to the generator.
+              isActive:
+                type: boolean
+                description: >-
+                  Default false. When set to true, the generator will be 
+                  assigned to a running collector and regularly send in samples.
               generatorTemplate:
                 type: object
                 description: Details of Generator Template.
@@ -11722,7 +11732,7 @@ definitions:
           Interval (seconds) between each collection.
       isActive:
         type: boolean
-        description: Default false. When set to true, the generator will be assigned to an available collector and regularly send in samples.
+        description: Default false. When set to true, the generator will be assigned to a running collector and regularly send in samples.
       name:
         type: string
         readOnly: true
@@ -11808,7 +11818,7 @@ definitions:
           Interval (seconds) between each collection.
       isActive:
         type: boolean
-        description: Default false. When set to true, the generator will be assigned to an available collector and regularly send in samples.
+        description: Default false. When set to true, the generator will be assigned to a running collector and regularly send in samples.
       name:
         type: string
         readOnly: true
