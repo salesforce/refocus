@@ -35,7 +35,8 @@ const constants = {
       'user', // an object
     ],
     sample: ['relatedLinks', 'user'],
-    subject: ['aspectNames', 'tags', 'relatedLinks', 'geolocation', 'user'],
+    subject: ['aspectNames', 'tags', 'relatedLinks', 'geolocation', 'user',
+      'children'],
   },
   indexKey: {
     aspect: PFX + SEP + 'aspects',
