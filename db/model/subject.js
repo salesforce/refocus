@@ -205,8 +205,7 @@ module.exports = function subject(seq, dataTypes) {
 
         if (isSubjectUnpublished) {
           promiseArr.push(
-            subjectUtils.removeRelatedSamples(inst.dataValues, seq)
-          );
+            subjectUtils.removeRelatedSamples(inst.dataValues, seq));
         }
 
         if (inst.changed('absolutePath')) {
@@ -219,8 +218,7 @@ module.exports = function subject(seq, dataTypes) {
 
           // remove all the related samples
           promiseArr.push(
-            subjectUtils.removeRelatedSamples(inst._previousDataValues, seq)
-          );
+            subjectUtils.removeRelatedSamples(inst._previousDataValues, seq));
         }
 
         if (inst.changed('parentAbsolutePath') ||
@@ -257,8 +255,8 @@ module.exports = function subject(seq, dataTypes) {
           instDataObj));
 
         /*
-         * Once all the data related changes are done and the sample realtime
-         * events have been sent. Send the corresponding subject realtime event
+         * Once all the data-related changes are done and the sample realtime
+         * events have been sent, send the corresponding subject realtime event.
          */
         return Promise.all(promiseArr)
         .then(() => {

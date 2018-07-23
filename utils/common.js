@@ -25,7 +25,7 @@ function logInvalidHmsetValues(key, obj) {
     for (let _key in obj) {
       if ((obj[_key] === undefined) || Array.isArray(obj[_key])) {
         console.trace('Invalid hmset params: key ' + key +
-          ' with undefined field: ' + _key + ', received: ' +
+          ' with undefined or array field: ' + _key + ', received: ' +
           JSON.stringify(obj));
         break;
       }
