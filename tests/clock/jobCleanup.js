@@ -113,11 +113,9 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(() => {
-        expect(activityLogUtil.printActivityLogString.calledOnce)
-          .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 20, removed: 20, skipped: 0, errors: 0,
+          sinon.match({ iterations: 1, removed: 20, skipped: 0, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
@@ -135,8 +133,6 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(() => {
-        expect(activityLogUtil.printActivityLogString.calledOnce)
-          .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
           sinon.match({ iterations: 1, removed: 1, skipped: 0, errors: 0,
@@ -157,11 +153,9 @@ describe('tests/clock/jobCleanup.js >', () => {
         .then(() => jobCleanup.execute(batchSize, delay))
         .then(() => expectNJobs(expectedCount))
         .then(() => {
-          expect(activityLogUtil.printActivityLogString.calledOnce)
-            .to.equal(true);
           sinon.assert.calledWith(
             activityLogUtil.printActivityLogString,
-            sinon.match({ iterations: 5, removed: 5, skipped: 0, errors: 0,
+            sinon.match({ iterations: 1, removed: 5, skipped: 0, errors: 0,
               totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
             'jobCleanup'
           );
@@ -179,11 +173,9 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(() => {
-        expect(activityLogUtil.printActivityLogString.calledOnce)
-          .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 22, removed: 22, skipped: 0, errors: 0,
+          sinon.match({ iterations: 5, removed: 22, skipped: 0, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
@@ -201,11 +193,9 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(() => {
-        expect(activityLogUtil.printActivityLogString.calledOnce)
-          .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 19, removed: 19, skipped: 0, errors: 0,
+          sinon.match({ iterations: 4, removed: 19, skipped: 0, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
@@ -223,11 +213,9 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(() => {
-        expect(activityLogUtil.printActivityLogString.calledOnce)
-          .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 100, removed: 100, skipped: 0, errors: 0,
+          sinon.match({ iterations: 21, removed: 100, skipped: 0, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
@@ -245,11 +233,9 @@ describe('tests/clock/jobCleanup.js >', () => {
       .then(() => jobCleanup.execute(batchSize, delay))
       .then(() => expectNJobs(expectedCount))
       .then(() => {
-        expect(activityLogUtil.printActivityLogString.calledOnce)
-          .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 100, removed: 100, skipped: 0, errors: 0,
+          sinon.match({ iterations: 101, removed: 100, skipped: 0, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
@@ -296,13 +282,13 @@ describe('tests/clock/jobCleanup.js >', () => {
           .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 5, removed: 5, skipped: 0, errors: 0,
+          sinon.match({ iterations: 1, removed: 5, skipped: 0, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 20, removed: 17, skipped: 3, errors: 0,
+          sinon.match({ iterations: 5, removed: 17, skipped: 3, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
@@ -325,13 +311,13 @@ describe('tests/clock/jobCleanup.js >', () => {
           .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 3, removed: 3, skipped: 0, errors: 0,
+          sinon.match({ iterations: 1, removed: 3, skipped: 0, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 20, removed: 5, skipped: 15, errors: 0,
+          sinon.match({ iterations: 5, removed: 5, skipped: 15, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
@@ -361,13 +347,13 @@ describe('tests/clock/jobCleanup.js >', () => {
           .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 15, removed: 15, skipped: 0, errors: 0,
+          sinon.match({ iterations: 1, removed: 15, skipped: 0, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 20, removed: 10, skipped: 10, errors: 0,
+          sinon.match({ iterations: 5, removed: 10, skipped: 10, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
@@ -391,13 +377,13 @@ describe('tests/clock/jobCleanup.js >', () => {
           .to.equal(true);
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 10, removed: 10, skipped: 0, errors: 0,
+          sinon.match({ iterations: 1, removed: 10, skipped: 0, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 20, removed: 15, skipped: 5, errors: 0,
+          sinon.match({ iterations: 5, removed: 15, skipped: 5, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
