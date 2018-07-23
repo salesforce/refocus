@@ -47,7 +47,7 @@ module.exports = {
     activity: 'jobCreate',
     jobId: 'None',
     jobPriority: 'None',
-    jobType: 'None',    
+    jobType: 'None',
     process: 'None',
     totalTime: '0ms',
   },
