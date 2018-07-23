@@ -213,7 +213,7 @@ function createJob(jobName, data, req) {
   const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
     conf.deprioritizeJobsFrom, req);
   const job = jobQueue.create(jobName, data);
-  return job.ttl(TIME_TO_LIVE)
+  job.ttl(TIME_TO_LIVE)
   .priority(jobPriority)
   .save((err) => {
     if (err) {
@@ -224,8 +224,9 @@ function createJob(jobName, data, req) {
 
     logJobOnComplete(req, job);
     logJobCreate(startTime, job);
-    return job;
   });
+
+  return job;
 } // createJob
 
 module.exports = {
