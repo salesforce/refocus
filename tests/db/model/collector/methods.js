@@ -29,6 +29,9 @@ const gtUtil = sgUtils.gtUtil;
 
 describe('tests/db/model/collector/methods.js >', () => {
   let clock;
+  let dbCollector1;
+  let dbCollector2;
+  let dbCollector3;
 
   const collector1 = u.getCollectorObj();
   const collector2 = u.getCollectorObj();
@@ -67,7 +70,11 @@ describe('tests/db/model/collector/methods.js >', () => {
     Collector.create(collector1),
     Collector.create(collector2),
     Collector.create(collector3),
-  ));
+  ).spread((col1, col2, col3) => {
+    dbCollector1 = col1;
+    dbCollector2 = col2;
+    dbCollector3 = col3;
+  }));
 
   afterEach(() => clock.restore());
   afterEach(u.forceDelete);
@@ -106,16 +113,39 @@ describe('tests/db/model/collector/methods.js >', () => {
     });
 
     describe('checkMissedHeartbeat >', () => {
+      /*
+       Any generators which have dead collectors assigned (i.e. which missed
+       their heartbeat) should be reassigned to a new collector
 
-      beforeEach(() =>
-        GeneratorTemplate.create(generatorTemplate)
+       How we test: assign current collectors to generators, let one
+       collector miss the heartbeat and verify that the generator is reassigned
+       to an alive collector.
+       */
+      beforeEach(() => GeneratorTemplate.create(generatorTemplate)
         .then((gt1) => generatorTemplate.id = gt1.id)
+        /*
+         On create, beforeCreate hook is triggered which tries to validate that
+         generator is active and calls assignToCollector, which will reset the
+         currentCollector to null.
+         To bypass this logic, we set validate: false, hooks: false as second
+         parameter in Generator.create
+         */
         .then(() => Promise.join(
-          Generator.createWithCollectors(generator1),
-          Generator.createWithCollectors(generator2),
-          Generator.createWithCollectors(generator3),
-        ))
-      );
+            Generator.create(generator1, { validate: false, hooks: false }),
+            Generator.create(generator2, { validate: false, hooks: false }),
+            Generator.create(generator3, { validate: false, hooks: false }),
+          ).spread((gen1, gen2, gen3) => Promise.join(
+              gen1.setPossibleCollectors(
+                [dbCollector1, dbCollector2, dbCollector3]
+              ),
+              gen2.setPossibleCollectors(
+                [dbCollector1, dbCollector2, dbCollector3]
+              ),
+              gen3.setPossibleCollectors(
+                [dbCollector1, dbCollector2, dbCollector3]
+              ),
+            )
+          )));
 
       afterEach(u.forceDelete);
 
@@ -125,6 +155,9 @@ describe('tests/db/model/collector/methods.js >', () => {
         clock = sinon.useFakeTimers(fakeNow);
         collectorConfig.heartbeatLatencyToleranceMillis = threshold;
 
+        /* checkMissedHeartbeat identifies collector2 as dead because more than
+         3000ms has passed since lastHeartbeat (sinon used to fake time).
+         As a result, generator2 is reassigned to collector3. */
         return Collector.checkMissedHeartbeat()
         .then(() => Promise.join(
           Generator.find({ where: { name: generator1.name } }),
@@ -195,19 +228,34 @@ describe('tests/db/model/collector/methods.js >', () => {
         Collector.build({ lastHeartbeat })
         .isAlive().should.be.false;
       });
-
     });
 
     describe('reassignGenerators >', () => {
-      beforeEach(() =>
-        GeneratorTemplate.create(generatorTemplate)
+      beforeEach(() => GeneratorTemplate.create(generatorTemplate)
         .then((gt1) => generatorTemplate.id = gt1.id)
+        /*
+         On create, beforeCreate hook is triggered which tries to validate that
+         generator is active and calls assignToCollector, which will reset the
+         currentCollector to null.
+         To bypass this logic, we set validate: false, hooks: false as second
+         parameter in Generator.create
+         */
         .then(() => Promise.join(
-          Generator.createWithCollectors(generator1),
-          Generator.createWithCollectors(generator2),
-          Generator.createWithCollectors(generator3),
-        ))
-      );
+            Generator.create(generator1, { validate: false, hooks: false }),
+            Generator.create(generator2, { validate: false, hooks: false }),
+            Generator.create(generator3, { validate: false, hooks: false }),
+          ).spread((gen1, gen2, gen3) => Promise.join(
+              gen1.setPossibleCollectors(
+                [dbCollector1, dbCollector2, dbCollector3]
+              ),
+              gen2.setPossibleCollectors(
+                [dbCollector1, dbCollector2, dbCollector3]
+              ),
+              gen3.setPossibleCollectors(
+                [dbCollector1, dbCollector2, dbCollector3]
+              ),
+            )
+          )));
 
       afterEach(u.forceDelete);
 

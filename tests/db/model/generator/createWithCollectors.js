@@ -18,6 +18,7 @@ const gtUtil = u.gtUtil;
 const Collector = tu.db.Collector;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
+const sinon = require('sinon');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -71,9 +72,12 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       collector2.name,
       collector3.name,
     ];
+    localGenerator.isActive = true;
     localGenerator.currentCollector = collector1.name;
 
-    Generator.createWithCollectors(localGenerator)
+    // make collector1 alive
+    collector1.update({ status: 'Running', lastHeartbeat: Date.now() })
+    .then(() => Generator.createWithCollectors(localGenerator))
     .then((o) => {
       expect(o.possibleCollectors.length).to.equal(THREE);
       const collectorNames = o.possibleCollectors.map((collector) => collector.name);
@@ -91,7 +95,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       expect(o.helpUrl).to.equal(generator.helpUrl);
       expect(o.helpEmail).to.equal(generator.helpEmail);
       expect(o.createdBy).to.equal(generator.createdBy);
-      expect(o.isActive).to.equal(false);
+      expect(o.isActive).to.equal(true);
       expect(o.generatorTemplate.name).to.equal('refocus-ok-template');
       expect(o.generatorTemplate.version).to.equal('1.0.0');
       expect(typeof o.getWriters).to.equal('function');
