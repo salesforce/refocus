@@ -87,16 +87,29 @@ function validateVersion(version) {
  * @param {Object} seq - Sequelize object
  * @returns {Promise} - Resolves to array of assigned generator db objects
  */
+// TODO: optimize to use a sequelize query.
 function findAndAssignGenerators(seq) {
+  // console.log('in find and assign')
   return seq.models.Generator.findAll(
-    { where: { currentCollector: null, isActive: true } }
+    {
+      where: { isActive: true },
+      // include: [
+      //   {
+      //     association: Generator.getGeneratorAssociations().currentCollector
+      //     where: { collectorId: null }
+      //   }
+      // ]
+    }
   )
-  .then((unassignedGenerators) =>
-    Promise.all(unassignedGenerators.map((g) => {
+  .then((activeGens) => {
+    // console.log('activeGens', activeGens)
+    const unassignedGenerators = activeGens.filter((gen) => gen.currentCollector === null);
+    // console.log(unassignedGenerators)
+    return Promise.all(unassignedGenerators.map((g) => {
       g.assignToCollector();
       return g.save();
-    })
-  ));
+    }));
+  });
 }
 
 module.exports = {

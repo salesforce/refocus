@@ -135,13 +135,13 @@ module.exports = function generator(seq, dataTypes) {
       type: dataTypes.JSON,
       allowNull: true,
     },
-    currentCollector: {
-      type: dataTypes.STRING(constants.fieldlen.normalName),
-      allowNull: true,
-      validate: {
-        is: constants.nameRegex,
-      },
-    },
+    // currentCollector: {
+    //   type: dataTypes.STRING(constants.fieldlen.normalName),
+    //   allowNull: true,
+    //   validate: {
+    //     is: constants.nameRegex,
+    //   },
+    // },
   }, {
     hooks: {
 
@@ -178,7 +178,7 @@ module.exports = function generator(seq, dataTypes) {
          assign this generator to another collector */
         if (inst.possibleCollectors && inst.changed('possibleCollectors')) {
           const isCurrentCollectorIncluded = inst.possibleCollectors.some(
-            (coll) => coll.name === inst.currentCollector
+            (coll) => coll.name === inst.currentCollector.name
           );
 
           if (!isCurrentCollectorIncluded) {
@@ -286,12 +286,14 @@ module.exports = function generator(seq, dataTypes) {
       as: 'possibleCollectors',
       through: 'GeneratorCollectors',
       foreignKey: 'generatorId',
+      // scope: ['withoutGenerators'],
     });
 
-    // assoc.currentCollector = Generator.belongsTo(models.Collector, {
-    //   as: 'currentCollector',
-    //   foreignKey: 'collectorId',
-    // });
+    assoc.currentCollector = Generator.belongsTo(models.Collector, {
+      as: 'currentCollector',
+      foreignKey: 'collectorId',
+      // scope: ['withoutGenerators'],
+    });
 
     assoc.writers = Generator.belongsToMany(models.User, {
       as: 'writers',
@@ -322,11 +324,36 @@ module.exports = function generator(seq, dataTypes) {
             'updatedAt',
           ],
         },
+        {
+          association: assoc.currentCollector,
+          attributes: [
+            'id',
+            'name',
+            'registered',
+            'status',
+            'lastHeartbeat',
+            'isDeleted',
+            'createdAt',
+            'updatedAt',
+          ],
+        },
       ],
       order: ['name'],
     }, {
       override: true,
     });
+
+    // used in collector association to avoid circular dependency problem where
+    // a collector gets currentGenerators, which need to get collectors... and so on.
+    // Generator.addScope('withoutCollectors', {
+    //   include: [
+    //     {
+    //       association: assoc.user,
+    //       attributes: ['name', 'email', 'fullName'],
+    //     },
+    //   ],
+    //   order: ['name'],
+    // });
 
     Generator.addScope('user', {
       include: [
@@ -477,12 +504,13 @@ module.exports = function generator(seq, dataTypes) {
    */
   Generator.prototype.assignToCollector = function () {
     const possibleCollectors = this.possibleCollectors;
+    let newColl;
     if (this.isActive && possibleCollectors && possibleCollectors.length) {
       possibleCollectors.sort((c1, c2) => c1.name > c2.name);
-      const newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive());
-      this.currentCollector = newColl ? newColl.name : null;
-    } else {
-      this.currentCollector = null;
+      newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive());     
     }
+    this.currentCollector = newColl || null;
   };
+
+  return Generator;
 };

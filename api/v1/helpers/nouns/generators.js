@@ -36,6 +36,7 @@ module.exports = {
   fieldScopeMap: {
     user: 'user',
     possibleCollectors: 'possibleCollectors',
+    currentCollector: 'currentCollector',
   },
 
   /*
@@ -45,6 +46,6 @@ module.exports = {
   sortArrayObjects: {
     possibleCollectors: 'name',
   },
-  readOnlyFields: ['id', 'isDeleted', 'currentCollector'],
+  readOnlyFields: ['id', 'isDeleted'], //, 'currentCollector'],
 
 }; // exports

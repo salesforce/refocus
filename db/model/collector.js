@@ -95,9 +95,6 @@ module.exports = function collector(seq, dataTypes) {
       },
     },
   }, {
-    defaultScope: {
-      order: ['name'],
-    },
     hooks: {
       beforeDestroy(inst /* , opts */) {
         return common.setIsDeleted(seq.Promise, inst);
@@ -203,17 +200,20 @@ module.exports = function collector(seq, dataTypes) {
 
   Collector.postImport = function (models) {
 
-    // This field is not currently needed by collector, but table already exists
-    // because generator needs to access its possible collectors.
-    assoc.possibleGenerators = Collector.belongsToMany(models.Generator, {
-      as: 'possibleGenerators',
-      through: 'GeneratorCollectors',
-      foreignKey: 'collectorId',
-    });
+    // This field is not currently needed by collector, but 'GeneratorCollector' 
+    // table already exists because generators have a many-to-many association
+    // with possibleCollectors.
+    // assoc.possibleGenerators = Collector.belongsToMany(models.Generator, {
+    //   as: 'possibleGenerators',
+    //   through: 'GeneratorCollectors',
+    //   foreignKey: 'collectorId',
+    //   scope: ['withoutCollectors'],
+    // });
 
     // assoc.currentGenerators = Collector.hasMany(models.Generator, {
     //   as: 'currentGenerators',
     //   foreignKey: 'collectorId',
+    //   scope: ['withoutCollectors'],
     // });
 
     assoc.createdBy = Collector.belongsTo(models.User, {
@@ -225,6 +225,24 @@ module.exports = function collector(seq, dataTypes) {
       through: 'CollectorWriters',
       foreignKey: 'collectorId',
     });
+
+    Collector.addScope('defaultScope', {
+      order: ['name'],
+      // include: [
+      //   {
+      //     association: assoc.currentGenerators,
+      //     attributes: ['name'],
+      //   },
+      // ]
+    }, {
+      override: true,
+    });
+
+    // used in generator association to avoid circular dependency problem where
+    // a generator gets collectors that gets generators... and so on.
+    // Collector.addScope('withoutGenerators', {
+    //   order: ['name'],
+    // });
 
     Collector.addScope('status', {
       attributes: ['status'],
