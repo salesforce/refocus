@@ -130,6 +130,14 @@ module.exports = function room(seq, dataTypes) {
           }
         }
 
+        // Note: We should delete the socket.io namespace for the old room name
+        if (instance.changed('name')) {
+          if (instance.active) {
+            return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
+              null, null, pubOpts);
+          }
+        }
+
         if (instance.changed('active')) {
           if (instance.active) {
             return realTime.publishObject(instance.toJSON(), roomEventNames.add,
@@ -180,7 +188,6 @@ module.exports = function room(seq, dataTypes) {
       attributes: ['id', 'name'],
       where: {
         active: true,
-        isDeleted: 0,
       },
     });
   };

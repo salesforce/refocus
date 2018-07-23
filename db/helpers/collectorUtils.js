@@ -17,6 +17,7 @@
 const Joi = require('joi');
 const ValidationError = require('../dbErrors').ValidationError;
 const semverRegex = require('semver-regex');
+const utils = require('../utils.js');
 
 const osInfoSchema = Joi.object().keys({
   arch: Joi.string(),
@@ -84,31 +85,23 @@ function validateVersion(version) {
 
 /**
  * Find unassigned generators and assign them.
- * @param {Object} seq - Sequelize object
  * @returns {Promise} - Resolves to array of assigned generator db objects
  */
-// TODO: optimize to use a sequelize query.
-function findAndAssignGenerators(seq) {
-  // console.log('in find and assign')
-  return seq.models.Generator.findAll(
-    {
-      where: { isActive: true },
+// TODO: use a sequelize query to do filtering by generators with no currentCollector.
+function assignUnassignedGenerators() {
+  return utils.seq.models.Generator.findAll(
+    { where: { isActive: true } },
       // include: [
       //   {
       //     association: Generator.getGeneratorAssociations().currentCollector
       //     where: { collectorId: null }
       //   }
       // ]
-    }
   )
-  .then((activeGens) => {
-    // console.log('activeGens', activeGens)
-    const unassignedGenerators = activeGens.filter((gen) => gen.currentCollector === null);
-    // console.log(unassignedGenerators)
-    return Promise.all(unassignedGenerators.map((g) => {
-      g.assignToCollector();
-      return g.save();
-    }));
+  .filter((g) => g.currentCollector === null)
+  .map((g) => {
+    g.assignToCollector();
+    return g.save();
   });
 }
 
@@ -116,5 +109,5 @@ module.exports = {
   validateOsInfo,
   validateProcessInfo,
   validateVersion,
-  findAndAssignGenerators,
+  assignUnassignedGenerators,
 }; // exports

@@ -231,9 +231,15 @@ describe('tests/db/model/collector/methods.js >', () => {
     });
 
     describe('reassignGenerators >', () => {
-      // check checkMissedHeartbeat test for comments
       beforeEach(() => GeneratorTemplate.create(generatorTemplate)
         .then((gt1) => generatorTemplate.id = gt1.id)
+        /*
+         On create, beforeCreate hook is triggered which tries to validate that
+         generator is active and calls assignToCollector, which will reset the
+         currentCollector to null.
+         To bypass this logic, we set validate: false, hooks: false as second
+         parameter in Generator.create
+         */
         .then(() => Promise.join(
             Generator.create(generator1, { validate: false, hooks: false }),
             Generator.create(generator2, { validate: false, hooks: false }),
