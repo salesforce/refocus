@@ -83,6 +83,10 @@ const longTermToggles = {
   // Activity logging
   enableApiActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'api'),
   enableJobActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'job'),
+  enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'jobCleanup'),
+  enableJobCreateActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'jobCreate'),
   enableKueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'kueStats'),
   enableLimiterActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
@@ -96,8 +100,6 @@ const longTermToggles = {
     'unauthorized'),
   enableWorkerActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'worker'),
-  enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
-    'jobCleanup'),
 
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
