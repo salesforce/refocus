@@ -9518,8 +9518,9 @@ paths:
       summary: Delete user
       tags: [ users ]
       description: >-
-        Delete the specified user. Beware! Deleting a user also deletes all the
-        perspectives associated with this user.
+        Delete the specified user. An admin user may delete any user;
+        non-admin users may only delete themselves. Beware! Deleting a user
+        also deletes all the perspectives associated with this user.
       operationId: deleteUser
       parameters:
         -
