@@ -18,7 +18,6 @@ const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doGetWriters = require('../helpers/verbs/doGetWriters');
 const u = require('../helpers/verbs/utils');
-const heartbeatUtils = require('../helpers/verbs/heartbeatUtils');
 const constants = require('../constants');
 const Aspect = require('../helpers/nouns/aspects').model;
 const apiErrors = require('../apiErrors');
@@ -178,7 +177,6 @@ module.exports = {
     validateGeneratorAspectsPermissions(toPost.aspects, req)
     .then(() =>
       helper.model.createWithCollectors(toPost))
-    .then((o) => o.reload())
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.sortArrayObjectsByField(helper, o); // order collectors by name
@@ -205,7 +203,6 @@ module.exports = {
     const puttableFields =
       req.swagger.params.queryBody.schema.schema.properties;
     let instance;
-    let collectors = [];
 
     /*
      * Find the instance, then update it.
@@ -220,15 +217,15 @@ module.exports = {
       return helper.model.validateCollectors(toPut.possibleCollectors);
     })
     .then((_collectors) => {
-      collectors = _collectors;
-      return u.updateInstance(instance, puttableFields, toPut);
+      // prevent overwrite of reloaded collectors on update
+      delete puttableFields.possibleCollectors;
+      return instance.setPossibleCollectors(_collectors);
     })
-    .then((_updatedInstance) => {
-      instance = _updatedInstance;
-      return instance.setPossibleCollectors(collectors);
-    }) // need reload instance to attach associations
     .then(() => instance.reload())
-    .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, helper, res))
+    .then(() => u.updateInstance(instance, puttableFields, toPut))
+    .then((retVal) =>
+      u.handleUpdatePromise(resultObj, req, retVal, helper, res)
+    )
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
 

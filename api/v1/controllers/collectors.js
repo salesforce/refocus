@@ -376,6 +376,9 @@ function startCollector(req, res, next) {
   const body = req.swagger.params.queryBody.value;
   body.status = 'Running';
   body.createdBy = req.user.id;
+
+  // Set lastHeartbeat to make collector alive for generators to be assigned
+  body.lastHeartbeat = Date.now();
   let collToReturn;
   return helper.model.findOne({ where: { name: body.name } })
   /* Already exists? Verify that this user has write permission. */
@@ -408,13 +411,7 @@ function startCollector(req, res, next) {
     collToReturn = coll;
     /* TODO: change to use currentGenerators once that includes current gens only */
 
-    // return Generator.findAll({ where: { currentCollector: coll.name } });
-    /*
-     * TODO: this actually maps to Generator.possibleCollectors, not currentCollector.
-     * This is necessary for now since currentCollector is not being set yet.
-     * Change to use only current collectors once all the assignment logic is in place.
-     */
-    return coll.getPossibleGenerators();
+    return Generator.findAll({ where: { currentCollector: coll.name } });
   })
   /* Add all the attributes necessary to send back to collector. */
   .then((gens) => Promise.all(gens.map((g) => g.updateForHeartbeat())))

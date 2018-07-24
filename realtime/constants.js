@@ -37,6 +37,7 @@ module.exports = {
 
   fieldTypeFieldSeparator: '=',
 
+  validFilterTypes: ['INCLUDE', 'EXCLUDE'],
   filterTypeInclude: 'INCLUDE',
 
   events: {
