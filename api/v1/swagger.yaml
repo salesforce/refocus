@@ -11548,6 +11548,7 @@ definitions:
         - "Stopped"
         - "Running"
         - "Paused"
+        - "MissedHeartbeat"
       lastHeartbeat:
         readOnly: true
         type: string
