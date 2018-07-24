@@ -13,11 +13,8 @@
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const redisOps = require('../../../../cache/redisOps');
 const Subject = tu.db.Subject;
 const Profile = tu.db.Profile;
-const Aspect = tu.db.Aspect;
-const Sample = tu.db.Sample;
 const User = tu.db.User;
 
 describe('tests/db/model/subject/updateChild.js >', () => {
@@ -270,75 +267,6 @@ describe('tests/db/model/subject/updateChild.js >', () => {
         subjProtected.isWritableBy(user1.name)
         .then((isWritableBy) => {
           expect(isWritableBy).to.be.true;
-          done();
-        })
-        .catch(done);
-      });
-    });
-
-    describe('update, redis operations >', () => {
-      let subject;
-
-      const aspectToCreate = {
-        isPublished: true,
-        name: `${tu.namePrefix}Aspect`,
-        timeout: '30s',
-        valueType: 'NUMERIC',
-      };
-
-      beforeEach((done) => {
-        let aId;
-        Aspect.create(aspectToCreate)
-        .then((asp) => {
-          aId = asp.id;
-          return Subject.findById(childId2);
-        })
-        .then((subj) => {
-          subject = subj;
-          return Sample.create({
-            aspectId: aId,
-            subjectId: subject.id,
-          });
-        })
-        .then(() => {
-          done();
-        })
-        .catch(done);
-      });
-
-      beforeEach(u.populateRedis);
-
-      it('Subject unpublish removes entries from aspSubMap and subAspMap',
-      (done) => {
-        let childSubject;
-
-        // asp-to-subj map will have one element
-        redisOps.getAspSubjMapMembers(aspectToCreate.name, false)
-        .then((res) => {
-          expect(res).to.deep.equal(['___parent1.___child1.___child2']);
-          return Subject.findById(subject.id);
-        })
-        .then((child) => {
-          childSubject = child;
-          expect(child.get('isPublished')).to.equal(true);
-          return redisOps.getSubjAspMapMembers(subject.absolutePath, false);
-        })
-        .then((res) => {
-          // subj-to-asp map will have one element
-          expect(res).to.deep.equal(['___aspect']);
-          return childSubject.update({ isPublished: false });
-        })
-        .then(() => {
-          expect(childSubject.get('isPublished')).to.equal(false);
-          return redisOps.getAspSubjMapMembers(aspectToCreate.name, false);
-        })
-        .then((res) => {
-          // asp-to-subj map should be empty now
-          expect(res).to.be.empty;
-          return redisOps.getSubjAspMapMembers(subject.absolutePath, false);
-        }).then((res) => {
-          // subj-to-asp map should be empty now
-          expect(res).to.be.empty;
           done();
         })
         .catch(done);

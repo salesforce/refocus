@@ -366,10 +366,10 @@ describe('tests/db/model/subject/delete.js >', () => {
 
     it('samples deleted when subject is deleted', (done) => {
       // asp-to-subj map will have one element
-      redisOps.getAspSubjMapMembers(aspectToCreate.name, false)
+      redisOps.executeCommand(redisOps.getAspSubjMapMembers(aspectToCreate.name))
       .then((res) => {
         expect(res).to.deep.equal(['___subject']);
-      }).then(() => redisOps.getSubjAspMapMembers(subject.absolutePath, false))
+      }).then(() => redisOps.executeCommand(redisOps.getSubjAspMapMembers(subject.absolutePath)))
       .then((res) => {
         // subj-to-asp map will have one element
         expect(res).to.deep.equal(['___aspect']);
@@ -379,12 +379,12 @@ describe('tests/db/model/subject/delete.js >', () => {
       .then(() => Sample.findOne(sample))
       .then((samp) => {
         expect(samp).to.equal(null);
-        return redisOps.getAspSubjMapMembers(aspectToCreate.name, false);
+        return redisOps.executeCommand(redisOps.getAspSubjMapMembers(aspectToCreate.name));
       })
       .then((res) => {
         // asp-to-subj map should be empty now
         expect(res).to.be.empty;
-        return redisOps.getSubjAspMapMembers(subject.absolutePath, false);
+        return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subject.absolutePath));
       }).then((res) => {
         // subj-to-asp map should be empty now
         expect(res).to.be.empty;

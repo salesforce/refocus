@@ -284,7 +284,8 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     })
     .then((values) => {
       expect(values[0]).to.be.empty;
-      expect(values[1]).to.be.deep.equal(['humidity', 'temperature']);
+      expect(values[1].length).to.be.equal(2);
+      expect(values[1]).to.include.members(['humidity', 'temperature']);
       expect(values[2]).to.be.equal(0);
       expect(values[3]).to.be.equal(0);
       expect(values[4]).to.be.equal(1);

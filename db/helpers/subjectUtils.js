@@ -133,13 +133,12 @@ function removeRelatedSamples(subject, seq) {
     samples = _samples;
 
     // get aspects from subaspmap mapping for this subject
-    return redisOps.getSubjAspMapMembers(subject.absolutePath, false);
+    return redisOps.executeCommand(
+      redisOps.getSubjAspMapMembers(subject.absolutePath));
   })
-  .then((aspectNames) =>
+  .then((aspectNames) => redisOps.executeBatchCmds(
     redisOps.deleteSubjectFromAspectResourceMaps(
-      aspectNames, subject.absolutePath
-    )
-  )
+      aspectNames, subject.absolutePath)))
   .then(() => redisOps.deleteKey(subAspMapType, subject.absolutePath))
   .then(() => {
     const promises = [];

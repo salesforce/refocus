@@ -13,9 +13,11 @@
  */
 'use strict'; // eslint-disable-line strict
 
+const sampleEvent = require('../../realtime/constants').events.sample;
 const InvalidRangeValuesError = require('../dbErrors').InvalidRangeValuesError;
 const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
 const redisOps = require('../../cache/redisOps');
+const publishSample = require('../../realtime/redisPublisher').publishSample;
 const aspSubMapType = redisOps.aspSubMapType;
 
 /**
@@ -96,23 +98,45 @@ function validateStatusRange(arr) {
  * 2. aspect-to-subject mapping -> samsto:aspsubmap:aspectname
  * 3. sample entry in samsto:samples (samsto:samples:*|oldaspectname)
  * 4. sample hash samsto:samples:*|oldaspectname
- * @param {Object} aspectName - The aspect name
+ * @param {Object} aspect - aspect object
+ * @param {Object} seq - The sequelize object
  * @returns {Promise} which resolves to the deleted samples.
  */
-function removeAspectRelatedSamples(aspectName) {
+function removeAspectRelatedSamples(aspect, seq) {
   let samples = [];
-  return redisOps.deleteSampleKeys(aspSubMapType, aspectName)
+  return redisOps.deleteSampleKeys(aspSubMapType, aspect.name)
   .then((_samples) => {
     samples = _samples;
 
     // get subjects from aspect-to-subject mapping for this aspect
-    return redisOps.getAspSubjMapMembers(aspectName, false);
+    return redisOps.executeCommand(redisOps.getAspSubjMapMembers(aspect.name));
   })
-  .then((subjAbsPaths) => redisOps.deleteAspectFromSubjectResourceMaps(
-      subjAbsPaths, aspectName, false))
-  .then(() => redisOps.deleteKey(aspSubMapType, aspectName))
-  .then(() => Promise.resolve(samples));
-} // removeRelatedSamples
+  .then((subjAbsPaths) => redisOps.executeBatchCmds(
+    redisOps.deleteAspectFromSubjectResourceMaps(subjAbsPaths, aspect.name)))
+  .then(() => redisOps.deleteKey(aspSubMapType, aspect.name))
+  .then(() => {
+    const promises = [];
+
+    // publish the samples only if the sequelize object seq is available
+    if (seq && samples.length) {
+      samples.forEach((sample) => {
+        /*
+         * publishSample attaches the subject and the aspect by fetching it
+         * either from the database or redis. Deleted aspect will not be found
+         * when called from the afterDelete and afterUpdate hookes. So, attach
+         * the aspect here before publishing the sample.
+         */
+        if (sample) {
+          sample.aspect = aspect;
+          promises.push(publishSample(sample, seq.models.Subject, sampleEvent.del,
+            seq.models.Aspect));
+        }
+      });
+    }
+
+    return Promise.all(promises);
+  });
+} // removeAspectRelatedSamples
 
 module.exports = {
   validateStatusRange,

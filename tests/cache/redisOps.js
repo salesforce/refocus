@@ -193,9 +193,9 @@ describe('tests/cache/redisOps >', () => {
       rcli.smembersAsync(aspSubMapAspect2Key)
       .then((subjectNames) => {
         expect(subjectNames).to.deep.equal(['___subject1.___subject2']);
-        return redisOps.deleteSubjectFromAspectResourceMaps(
-          [a2.name], s2.absolutePath
-        );
+        return redisOps.executeCommand(
+          redisOps.deleteSubjectFromAspectResourceMaps(
+            [a2.name], s2.absolutePath));
       })
       .then(() => rcli.smembersAsync(aspSubMapAspect2Key))
       .then((subNames) => {
