@@ -178,8 +178,8 @@ function validateContextDef(contextDef, requiredProps) {
  * @returns {Boolean}
  */
 function tagsChanged(inst) {
-  let prevTags = inst.previous('tags');
-  let currTags = inst.get('tags');
+  let prevTags = inst.previous('tags') || [];
+  let currTags = inst.get('tags') || [];
   if (!inst.changed('tags')) {
     return false;
   } else if (prevTags.length !== currTags.length) {
