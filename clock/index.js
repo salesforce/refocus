@@ -20,6 +20,7 @@
  * inside the main web process.
  */
 const conf = require('../config');
+const collectorConf = require('../config/collectorConfig');
 if (conf.newRelicKey) {
   require('newrelic');
 }
@@ -33,6 +34,8 @@ const queueStatsActivityLogs =
 const sampleTimeoutJob = require('./scheduledJobs/sampleTimeoutJob');
 const jobCleanup = require('./scheduledJobs/jobCleanup');
 const deactivateRooms = require('./scheduledJobs/deactivateRooms');
+const checkMissedCollectorHeartbeatJob =
+  require('./scheduledJobs/checkMissedCollectorHeartbeatJob');
 
 /*
  * Add all the scheduled work here.
@@ -69,3 +72,7 @@ setInterval(jobCleanup.enqueue, conf.JOB_REMOVAL_INTERVAL);
 
 // Reset the job id counter
 setInterval(jobCleanup.resetCounter, conf.JOB_COUNTER_RESET_INTERVAL);
+
+// Check missed collector heartbeats
+setInterval(checkMissedCollectorHeartbeatJob.enqueue,
+  collectorConf.heartbeatLatencyToleranceMillis);

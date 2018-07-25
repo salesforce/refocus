@@ -25,14 +25,27 @@ module.exports = {
   /**
    * DELETE /users/{key}
    *
-   * Deletes the user and sends it back in the response.
+   * Deletes the user and sends it back in the response. An admin user may
+   * delete any user; non-admin users may only delete themselves.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   deleteUser(req, res, next) {
-    doDelete(req, res, next, helper);
+    const userToDelete = req.swagger.params.key.value;
+    const getNamePromise = u.looksLikeId(userToDelete) ?
+      helper.model.findById(userToDelete, { attributes: ['name'] }) :
+      Promise.resolve(userToDelete);
+    getNamePromise.then((n) => {
+      const deletingMyself = n &&
+        req.headers.UserName === (n.get ? n.get('name') : n);
+      if (req.headers.IsAdmin || deletingMyself) {
+        doDelete(req, res, next, helper);
+      } else {
+        u.forbidden(next);
+      }
+    });
   },
 
   /**

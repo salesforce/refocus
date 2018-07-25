@@ -3653,6 +3653,11 @@ paths:
                 readOnly: true
                 description: >-
                   Filter by the name of current collector assigned to the generator.
+              isActive:
+                type: boolean
+                description: >-
+                  Default false. When set to true, the generator will be 
+                  assigned to a running collector and regularly send in samples.
               generatorTemplate:
                 type: object
                 description: Details of Generator Template.
@@ -3774,7 +3779,12 @@ paths:
                 type: string
                 readOnly: true
                 description: >-
-                  Filter by the name of current collector assigned to the generator.
+                  Name of current collector assigned to the generator.
+              isActive:
+                type: boolean
+                description: >-
+                  Default false. When set to true, the generator will be 
+                  assigned to a running collector and regularly send in samples.
               generatorTemplate:
                 type: object
                 description: Details of Generator Template.
@@ -9508,8 +9518,9 @@ paths:
       summary: Delete user
       tags: [ users ]
       description: >-
-        Delete the specified user. Beware! Deleting a user also deletes all the
-        perspectives associated with this user.
+        Delete the specified user. An admin user may delete any user;
+        non-admin users may only delete themselves. Beware! Deleting a user
+        also deletes all the perspectives associated with this user.
       operationId: deleteUser
       parameters:
         -
@@ -11548,6 +11559,7 @@ definitions:
         - "Stopped"
         - "Running"
         - "Paused"
+        - "MissedHeartbeat"
       lastHeartbeat:
         readOnly: true
         type: string
@@ -11722,7 +11734,7 @@ definitions:
           Interval (seconds) between each collection.
       isActive:
         type: boolean
-        description: Default false. When set to true, the generator will be assigned to an available collector and regularly send in samples.
+        description: Default false. When set to true, the generator will be assigned to a running collector and regularly send in samples.
       name:
         type: string
         readOnly: true
@@ -11808,7 +11820,7 @@ definitions:
           Interval (seconds) between each collection.
       isActive:
         type: boolean
-        description: Default false. When set to true, the generator will be assigned to an available collector and regularly send in samples.
+        description: Default false. When set to true, the generator will be assigned to a running collector and regularly send in samples.
       name:
         type: string
         readOnly: true

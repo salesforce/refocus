@@ -17,6 +17,7 @@ const u = require('../helpers/collectorUtils');
 const assoc = {};
 const collectorConfig = require('../../config/collectorConfig');
 const MS_PER_SEC = 1000;
+const collectorStatus = constants.collectorStatuses;
 
 module.exports = function collector(seq, dataTypes) {
   const Collector = seq.define('Collector', {
@@ -103,17 +104,19 @@ module.exports = function collector(seq, dataTypes) {
       }, // beforeDestroy
 
       afterCreate(inst /* , opts*/) {
-        // Add createdBy user to Collector writers.
-        if (inst.createdBy) {
-          return new seq.Promise((resolve, reject) =>
-            inst.addWriter(inst.createdBy)
-            .then(() => resolve(inst))
-            .catch((err) => reject(err))
-          );
-        }
+        return Promise.all([
+          Promise.resolve()
+          .then(() => {
+            // Add createdBy user to Collector writers.
+            if (inst.createdBy) {
+              return inst.addWriter(inst.createdBy);
+            }
 
-        return inst;
-      }, // hooks.beforeCreate
+            return Promise.resolve();
+          }),
+          u.assignUnassignedGenerators(),
+        ]);
+      }, // hooks.afterCreate
 
       beforeUpdate(inst /* , opts */) {
         // Invalid status transition: [Stopped --> Paused]
@@ -124,6 +127,25 @@ module.exports = function collector(seq, dataTypes) {
           throw new ValidationError(msg);
         }
       }, // hooks.beforeUpdate
+
+      afterUpdate(inst /* , opts */) {
+        if (inst.changed('status')) {
+          /* if status is changed to Running, then find and assign unassigned
+           generators */
+          if (inst.status === collectorStatus.Running) {
+            return u.assignUnassignedGenerators();
+          }
+
+          if (inst.status === collectorStatus.Stopped ||
+            inst.status === collectorStatus.Paused) {
+            /* if status is changed to Stopped or Paused, then reassign the
+             generators which were assigned to this collector */
+            return inst.reassignGenerators();
+          }
+        }
+
+        return inst;
+      }, // afterUpdate
     }, // hooks
     indexes: [
       {
