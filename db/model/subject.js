@@ -190,6 +190,8 @@ module.exports = function subject(seq, dataTypes) {
        * @returns {Promise}
        */
       afterUpdate(inst /* , opts */) {
+        const cmds = [];
+
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
 
@@ -215,6 +217,20 @@ module.exports = function subject(seq, dataTypes) {
           // rename entry in subject store
           promiseArr.push(redisOps.renameKey(subjectType, oldAbsPath,
            newAbsPath));
+
+          if (inst.isPublished) {
+            // duplicate subject-to-aspect resource map with new absolute path
+            promiseArr.push(redisOps.executeCommand(redisOps.duplicateSet(
+              redisOps.subAspMapType, newAbsPath, oldAbsPath)));
+
+            /* add new subject absolute path entries to aspect-to-subject
+              resource maps */
+            promiseArr.push(
+              redisOps.executeCommand(redisOps.getSubjAspMapMembers(oldAbsPath))
+              .map((aspectName) => cmds.push(
+                redisOps.addSubjectAbsPathInAspectSet(aspectName, newAbsPath)))
+            );
+          }
 
           // remove all the related samples
           promiseArr.push(
@@ -259,6 +275,7 @@ module.exports = function subject(seq, dataTypes) {
          * events have been sent, send the corresponding subject realtime event.
          */
         return Promise.all(promiseArr)
+        .then(() => redisOps.executeBatchCmds(cmds))
         .then(() => {
           if (isSubjectUnpublished) {
             // Treat unpublishing a subject as a "delete" event.
