@@ -20,6 +20,7 @@ const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
 const conf = require('../config');
+const logJobCreate = require('./logJobCreate');
 const queueTimeActivityLogs =
   require('../clock/scheduledJobs/queueStatsActivityLogs');
 
@@ -175,14 +176,9 @@ function calculateJobPriority(prioritize, deprioritize, req) {
  *  jobQueue is created in the test mode.
  */
 function createPromisifiedJob(jobName, data, req) {
+  const startTime = Date.now();
   const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
     conf.deprioritizeJobsFrom, req);
-  if (featureToggles.isFeatureEnabled('instrumentKue')) {
-    console.log('[KJI] Entered ' + // eslint-disable-line no-console
-      `jobWrapper.js createPromisifiedJob: jobName=${jobName} ` +
-      `jobPriority=${jobPriority}`);
-  }
-
   return new Promise((resolve, reject) => {
     const job = jobQueue.create(jobName, data);
     job.ttl(TIME_TO_LIVE)
@@ -195,6 +191,7 @@ function createPromisifiedJob(jobName, data, req) {
       }
 
       logJobOnComplete(req, job);
+      logJobCreate(startTime, job);
       return resolve(job);
     });
   });
@@ -208,18 +205,13 @@ function createPromisifiedJob(jobName, data, req) {
  *  listening for this jobName to process the jobs.
  * @param {Object} data - Data for the job to work with.
  * @param {Object} req - Request object.
- * @returns {Object} - A job object. The job object will be null when the
- *  jobQueue is created in the test mode.
+ * @returns {Promise} - resolves to job object. The job object will be null
+ *  when the jobQueue is created in test mode.
  */
 function createJob(jobName, data, req) {
+  const startTime = Date.now();
   const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
     conf.deprioritizeJobsFrom, req);
-  if (featureToggles.isFeatureEnabled('instrumentKue')) {
-    console.log('[KJI] Entered ' + // eslint-disable-line no-console
-      `jobWrapper.js createJob: jobName=${jobName} ` +
-      `jobPriority=${jobPriority}`);
-  }
-
   const job = jobQueue.create(jobName, data);
   job.ttl(TIME_TO_LIVE)
   .priority(jobPriority)
@@ -231,6 +223,7 @@ function createJob(jobName, data, req) {
     }
 
     logJobOnComplete(req, job);
+    logJobCreate(startTime, job);
   });
 
   return job;

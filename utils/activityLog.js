@@ -41,9 +41,9 @@ module.exports = {
    * Convert activity log object to String format and print.
    *
    * @param  {Object} logObject - Log Object
-   * @param  {string} logtype - @see /config/activityLog.js
-   * @param  {string} logLevel - Log Level info, warn, error
-   *  verbose, debug, silly. Default log info.
+   * @param  {String} logtype - @see /config/activityLog.js
+   * @param  {String} logLevel - info|warn|error|verbose|debug|silly
+   *  (default=info)
    */
   printActivityLogString(logObject, logtype, logLevel='info') {
     // example: activity=worker user="igoldstein@salesforce.com" token="Eleven"
@@ -57,7 +57,7 @@ module.exports = {
         logStr += `${param}=`;
 
         // if logObject has this param set, append the value
-        if (logObject[param]) {
+        if (logObject.hasOwnProperty(param)) {
           logStr += `${logObject[param]} `;
         } else {
           // append default value defined in config
