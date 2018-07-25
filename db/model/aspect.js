@@ -20,7 +20,6 @@ const timeoutRegex = /^[0-9]{1,9}[SMHDsmhd]$/;
 const valueLabelLength = 10;
 const redisOps = require('../../cache/redisOps');
 const aspectType = redisOps.aspectType;
-const sampleType = redisOps.sampleType;
 const Promise = require('bluebird');
 const Op = require('sequelize').Op;
 const publishSample = require('../../realtime/redisPublisher').publishSample;
@@ -231,6 +230,7 @@ module.exports = function aspect(seq, dataTypes) {
        */
       afterUpdate(inst /* , opts */) {
         const promiseArr = [];
+        const cmds = [];
         const nameChanged = inst.previous('name') !== inst.getDataValue('name');
         const isPublishedChanged =
           inst.previous('isPublished') !== inst.getDataValue('isPublished');
@@ -254,12 +254,28 @@ module.exports = function aspect(seq, dataTypes) {
           promiseArr.push(redisOps.renameKey(aspectType,
             oldAspectName, newAspName));
 
+          // duplicate aspect-to-subject resource map with new name
+          promiseArr.push(redisOps.executeCommand(redisOps.duplicateSet(
+            redisOps.aspSubMapType, newAspName, oldAspectName
+          )));
+
+          // add new aspect name entries to subject-to-aspect resource maps
+          promiseArr.push(
+            redisOps.executeCommand(
+              redisOps.getAspSubjMapMembers(oldAspectName)
+            )
+            .map((subjAbsPath) => cmds.push(redisOps.addAspectNameInSubjectSet(
+              subjAbsPath, newAspName)))
+          );
+
           /*
            * delete multiple possible sample entries in the sample master
-           * list of index and the related sample hashes
+           * list of index and the related sample hashes. Deletes old aspect
+           * name from subject-to-aspect resource maps. Deletes aspect-to-
+           * subject resource map with old aspect name as key.
            */
-          promiseArr.push(redisOps.deleteKeys(sampleType, aspectType,
-            oldAspectName));
+          promiseArr.push(u.removeAspectRelatedSamples(
+            inst._previousDataValues, seq));
         } else if (isPublishedChanged) {
           // Prevent any changes to original inst dataValues object
           const instDataObj = JSON.parse(JSON.stringify(inst.get()));
@@ -269,11 +285,12 @@ module.exports = function aspect(seq, dataTypes) {
           promiseArr.push(redisOps.addKey(aspectType, inst.name));
           if (!inst.isPublished) {
             /*
-             * Delete multiple possible entries in the sample master list of
-             * index
+             * delete multiple possible sample entries in the sample master
+             * list of index and the related sample hashes. Deletes aspect
+             * name from subject-to-aspect resource maps. Deletes aspect-to-
+             * subject resource map with aspect name as key.
              */
-            promiseArr.push(redisOps.deleteKeys(sampleType,
-              aspectType, inst.name));
+            promiseArr.push(u.removeAspectRelatedSamples(inst.dataValues, seq));
           }
         } else if (inst.isPublished) {
           const instChanged = {};
@@ -304,12 +321,27 @@ module.exports = function aspect(seq, dataTypes) {
           );
         } // tags changed
 
-        return seq.Promise.all(promiseArr);
+        /* If aspect is published and any status range changes, delete the
+         samples. Let the next new sample come in and recalculate status based
+         on the new ranges.
+         */
+        if (inst.isPublished && (inst.changed('criticalRange') ||
+         inst.changed('warningRange') || inst.changed('infoRange') ||
+        inst.changed('okRange'))) {
+          promiseArr.push(u.removeAspectRelatedSamples(inst.dataValues, seq));
+        }
+
+        return seq.Promise.all(promiseArr)
+        .then(() => redisOps.executeBatchCmds(cmds));
       }, // hooks.afterUpdate
 
       /**
        * When a publihsed aspect is deleted. Delete its entry in the aspectStore
        * and the sampleStore if any.
+       * Delete multiple possible sample entries in the sample master
+       * list of index and the related sample hashes. Deletes aspect
+       * name from subject-to-aspect resource maps. Deletes aspect-to-
+       * subject resource map with aspect name as key.
        *
        * @param {Aspect} inst - The deleted instance
        * @returns {Promise}
@@ -317,7 +349,7 @@ module.exports = function aspect(seq, dataTypes) {
       afterDelete(inst /* , opts */) {
         return Promise.join(
           redisOps.deleteKey(aspectType, inst.name),
-          redisOps.deleteKeys(sampleType, aspectType, inst.name)
+          u.removeAspectRelatedSamples(inst.dataValues, seq)
         );
       }, // hooks.afterDelete
 
