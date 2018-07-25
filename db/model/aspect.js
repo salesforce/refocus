@@ -204,7 +204,7 @@ module.exports = function aspect(seq, dataTypes) {
          * will send an "add" event.) This way, perspectives
          * which filter by aspect tags will get the right samples.
          */
-        if (inst.isPublished && inst.changed('tags') ||
+        if (inst.isPublished && common.tagsChanged(inst) ||
           (inst.changed('isPublished') && inst.previous('isPublished'))) {
           promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
             .each((samp) => {
@@ -308,7 +308,7 @@ module.exports = function aspect(seq, dataTypes) {
          * will already have sent a "delete" event.) This way, perspectives
          * which filter by aspect tags will get the right samples.
          */
-        if (inst.isPublished && inst.changed('tags')) {
+        if (inst.isPublished && common.tagsChanged(inst)) {
           promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
             .each((samp) => {
               if (samp) {

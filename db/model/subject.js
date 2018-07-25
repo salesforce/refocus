@@ -293,7 +293,7 @@ module.exports = function subject(seq, dataTypes) {
               changedKeys, ignoreAttributes);
             publishObject(inst, eventName.add, changedKeys,
                 ignoreAttributes);
-          } else if (inst.isPublished && (inst.changed('tags') ||
+          } else if (inst.isPublished && (common.tagsChanged(inst) ||
             inst.changed('parentId'))) {
             /*
              * If tags OR parent were updated, send a "delete" event followed
