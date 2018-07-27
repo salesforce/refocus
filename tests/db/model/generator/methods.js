@@ -24,6 +24,10 @@ const collectorStatuses = require('../../../../db/constants').collectorStatuses;
 describe('tests/db/model/generator/methods.js >', () => {
   let clock;
   let now = Date.now();
+  let generator1;
+  let collector1;
+  let collector2;
+  let collector3;
 
   const gen1 = u.getGenerator();
   const gt1 = gtUtil.getGeneratorTemplate();
@@ -57,10 +61,15 @@ describe('tests/db/model/generator/methods.js >', () => {
       Collector.create(coll3),
     ))
     .spread((_gen1, _coll1, _coll2, _coll3) => {
-      gen1.id = _gen1.id;
-      coll1.id = _coll1.id;
-      coll2.id = _coll2.id;
-      coll3.id = _coll3.id;
+      // gen1.id = _gen1.id;
+      // coll1.id = _coll1.id;
+      // coll2.id = _coll2.id;
+      // coll3.id = _coll3.id;
+      console.log(_gen1)
+      generator1 = _gen1;
+      collector1 = _coll1;
+      collector2 = _coll2;
+      collector3 = _coll3;
     })
   );
 
@@ -75,19 +84,26 @@ describe('tests/db/model/generator/methods.js >', () => {
   describe('assignToCollector >', () => {
     // assignToCollector is called as a part of updateWithCollectors
     // in beforeUpdate hook
-    it('collectors specified, first choice available', () =>
-      Promise.resolve()
-      .then(() => Generator.findById(gen1.id))
-      .then((g) => g.updateWithCollectors({
+    it.only('collectors specified, first choice available', (done) => {
+      // Promise.resolve()
+      // .then(() => Generator.findById(gen1.id))
+      // .then((g) => 
+      debugger;
+      generator1.updateWithCollectors({
         isActive: true,
         possibleCollectors: [coll2.name, coll3.name],
-      }))
-
-      .then(() => Generator.findById(gen1.id))
-      .then((g) => {
-        expect(g.currentCollector).to.equal(coll2.name);
       })
-    );
+    // )
+      // .then(() => Generator.findById(gen1.id))
+      .then(() => {
+        debugger;
+        // console.log(generator1)
+        expect(generator1.currentCollector.name).to.equal(collector2.name);
+        expect(generator1.currentCollector.id).to.equal(collector2.id);
+        done()
+      })
+      .catch(done)
+    });
 
     // assignToCollector is called as a part of updateWithCollectors
     // in beforeUpdate hook
@@ -106,7 +122,8 @@ describe('tests/db/model/generator/methods.js >', () => {
       }))
       .then(() => Generator.findById(gen1.id))
       .then((g) => {
-        expect(g.currentCollector).to.equal(coll3.name);
+        expect(g.currentCollector.name).to.equal(coll3.name);
+        expect(g.currentCollector.id).to.equal(coll3.id);
         done();
       })
       .catch(done);
@@ -147,15 +164,22 @@ describe('tests/db/model/generator/methods.js >', () => {
           isActive: true,
           possibleCollectors: [coll2.name],
         }),
+        Collector.findById(coll3.id),
       ))
-      .spread((coll2, gen1) => gen1.update({
-        currentCollector: coll3.name,
-      }))
-
+      .spread((coll2, gen1, coll3) => {
+        console.log(gen1)
+        return gen1.setCurrentCollector(coll3)
+      })
       .then(() => Generator.findById(gen1.id))
       .then((g) => {
-        expect(g.currentCollector).to.equal(coll3.name);
-        g.assignToCollector();
+        expect(g.currentCollector.name).to.equal(coll3.name);
+        expect(g.currentCollector.id).to.equal(coll3.id);
+        return g.assignToCollector();
+        // return g.setCurrentCollector(null)
+      })
+      .then(() => Generator.findById(gen1.id))
+      .then((g) => g.save())
+      .then((g) => {
         expect(g.currentCollector).to.equal(null);
       })
     );

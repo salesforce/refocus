@@ -65,7 +65,7 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     expect(Generator.getProfileAccessField()).to.equal('generatorAccess');
   });
 
-  it('ok, create with all fields', (done) => {
+  it.only('ok, create with all fields', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.possibleCollectors = [
       collector1.name,
@@ -73,9 +73,9 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       collector3.name,
     ];
     localGenerator.isActive = true;
-    localGenerator.currentCollector = collector1.name;
 
     // make collector1 alive
+    debugger;
     collector1.update({ status: 'Running', lastHeartbeat: Date.now() })
     .then(() => Generator.createWithCollectors(localGenerator))
     .then((o) => {
@@ -100,7 +100,8 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       expect(o.generatorTemplate.version).to.equal('1.0.0');
       expect(typeof o.getWriters).to.equal('function');
       expect(typeof o.getPossibleCollectors).to.equal('function');
-      expect(o.currentCollector).to.equal(collector1.name);
+      expect(o.currentCollector.name).to.equal(collector1.name);
+      expect(o.currentCollector.id).to.equal(collector1.id);
       done();
     })
     .catch(done);

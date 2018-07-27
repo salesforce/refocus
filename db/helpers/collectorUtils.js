@@ -98,7 +98,7 @@ function assignUnassignedGenerators() {
       //   }
       // ]
   )
-  .filter((g) => g.currentCollector === null)
+  .then((gens) => gens.filter((g) => g.currentCollector === null))
   .map((g) => {
     g.assignToCollector();
     return g.save();

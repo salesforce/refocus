@@ -162,17 +162,25 @@ module.exports = function generator(seq, dataTypes) {
                 throw new dbErrors.SampleGeneratorContextEncryptionError();
               });
           })
-          .then(() => inst.assignToCollector());
+          .then(() => {
+            console.log(inst);
+            return inst.assignToCollector();
+          });
       }, // beforeCreate
 
       beforeUpdate(inst /* , opts */) {
+        debugger;
         const gtName = inst.generatorTemplate.name;
         const gtVersion = inst.generatorTemplate.version;
 
         let isCurrentCollectorIncluded = true;
+
+        // if possibleCollectors have changed, check if the currentCollector
+        // is still included
         if (inst.possibleCollectors && inst.changed('possibleCollectors')) {
+          console.log('inst.currentCollector: ', inst.currentCollector)
           isCurrentCollectorIncluded = inst.possibleCollectors.some(
-            (coll) => coll.name === inst.currentCollector
+            (coll) => coll.name === inst.currentCollector.name
           );
         }
 
@@ -184,23 +192,23 @@ module.exports = function generator(seq, dataTypes) {
          3) If possibleCollectors are changed and collector is not assigned
           to generator
          */
-        if (inst.changed('isActive') || !isCurrentCollectorIncluded ||
-          (inst.changed('possibleCollectors') && !inst.currentCollector)) {
-          inst.assignToCollector();
+        if (
+            inst.changed('isActive') ||
+            !isCurrentCollectorIncluded ||
+            (inst.changed('possibleCollectors') && !inst.currentCollector)
+           ) {
+          console.log('assigning generator to Collector!')
+          return inst.assignToCollector().then(() => {
+            return inst.reload();
+          });
         }
 
         /* If possibleCollectors are changed and this generator current
          collector is not included in the changed possibleCollectors, then
          assign this generator to another collector */
-        if (inst.possibleCollectors && inst.changed('possibleCollectors')) {
-          const isCurrentCollectorIncluded = inst.possibleCollectors.some(
-            (coll) => coll.name === inst.currentCollector.name
-          );
-
-          if (!isCurrentCollectorIncluded) {
-            inst.assignToCollector();
-          }
-        }
+        // if (!isCurrentCollectorIncluded) {
+        //   inst.assignToCollector();
+        // }
 
         if (inst.changed('generatorTemplate') || inst.changed('context')) {
           return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
@@ -219,6 +227,7 @@ module.exports = function generator(seq, dataTypes) {
             });
         }
 
+        console.log('inst: ', inst.currentCollector)
         return inst;
       }, // beforeUpdate
 
@@ -434,6 +443,7 @@ module.exports = function generator(seq, dataTypes) {
    * @param {Object} requestBody From API
    * @returns {Promise} created generator with collectors (if any)
    */
+
   Generator.createWithCollectors = function (requestBody) {
     let createdGenerator;
     let collectors;
@@ -442,11 +452,24 @@ module.exports = function generator(seq, dataTypes) {
     .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
     .then((_collectors) => collectors = _collectors)
     .then(() => createdGenerator = Generator.build(requestBody))
-    .then(() => createdGenerator.possibleCollectors = collectors) // mock for validation
-    .then(() => createdGenerator.save())
-    .then((gen) => createdGenerator = gen)
-    .then(() => createdGenerator.addPossibleCollectors(collectors))
-    .then(() => createdGenerator.reload());
+    .then(() => {
+      // when createdGen gets saved, it will validate that possible collectors
+      // exist on the instance being saved. This line mocks the presence of the
+      // possibleCollectors on the instance, but since this is an association,
+      // we still have to use the addPossibleCollectors later to save in the db.
+      createdGenerator.possibleCollectors = collectors;
+      return createdGenerator.save();
+    })
+    .then((gen) => {
+      createdGenerator = gen;
+      return createdGenerator.addPossibleCollectors(collectors);
+    })
+    // .then(() => createdGenerator.addPossibleCollectors(collectors))
+    // .then(() => createdGenerator.setCurrentCollector(currentCollector))
+    .then(() => {
+      console.log('before reload in createWithCollectors')
+      return createdGenerator.reload()
+    });
   };
 
   Generator.findForHeartbeat = function (findOpts) {
@@ -472,6 +495,7 @@ module.exports = function generator(seq, dataTypes) {
     return Promise.resolve()
     .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
     .then((collectors) => {
+      debugger;
       // prevent overwrite of reloaded collectors on update
       delete requestBody.possibleCollectors;
       return this.addPossibleCollectors(collectors);
@@ -522,14 +546,35 @@ module.exports = function generator(seq, dataTypes) {
    * Note that this doesn't save the change to the db, it only updates the
    * currentCollector field and expects the caller to save later.
    */
+  // problem: this.currentCollector doesn't update the association in the db, only updates the instance.
+  // we need to call setCurrentCollector, but this is triggering hooks and resulting in a cycle
   Generator.prototype.assignToCollector = function () {
+    debugger;
     const possibleCollectors = this.possibleCollectors;
-    let newColl;
+    let newColl = null;
     if (this.isActive && possibleCollectors && possibleCollectors.length) {
       possibleCollectors.sort((c1, c2) => c1.name > c2.name);
-      newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive());     
+      newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive()) || null;
     }
-    this.currentCollector = newColl || null;
+    // console.log('newColl: ', newColl)
+    // this.currentCollector = newColl ? newColl.name : null;
+    // this.currentCollector = newColl || null;
+
+    // since currentCollector is an association we need to use setCurrentCollector
+    // to persist changes to db.
+    // hooks are disabled because it would cause us to enter an endless cycle of
+    // updating generator. saving is disabled because sequelize will otherwise
+    // attempt to create & save a collector.
+    return Promise.resolve()
+    // .then(() => this.reload())
+    .then(() => this.setCurrentCollector(newColl, { hooks: false, save: false }))
+    // .then(() => this.reload())
+    .then(() => {
+      debugger;
+      console.log('after setCurrentCollector >>> ', this);
+      // console.log('newColl: ', newColl)
+      return Promise.resolve()
+    });
   };
 
   return Generator;

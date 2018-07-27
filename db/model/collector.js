@@ -201,12 +201,12 @@ module.exports = function collector(seq, dataTypes) {
     // This field is not currently needed by collector, but 'GeneratorCollector' 
     // table already exists because generators have a many-to-many association
     // with possibleCollectors.
-    // assoc.possibleGenerators = Collector.belongsToMany(models.Generator, {
-    //   as: 'possibleGenerators',
-    //   through: 'GeneratorCollectors',
-    //   foreignKey: 'collectorId',
-    //   scope: ['withoutCollectors'],
-    // });
+    assoc.possibleGenerators = Collector.belongsToMany(models.Generator, {
+      as: 'possibleGenerators',
+      through: 'GeneratorCollectors',
+      foreignKey: 'collectorId',
+      // scope: ['withoutCollectors'],
+    });
 
     // assoc.currentGenerators = Collector.hasMany(models.Generator, {
     //   as: 'currentGenerators',
@@ -278,6 +278,7 @@ module.exports = function collector(seq, dataTypes) {
     const now = Date.now();
     const lastHeartbeat = this.lastHeartbeat.getTime();
     const elapsed = now - lastHeartbeat;
+    console.log('tolerance: ', tolerance, 'elapsed: ', elapsed)
     return elapsed < tolerance;
   }; // isAlive
 
@@ -289,7 +290,9 @@ module.exports = function collector(seq, dataTypes) {
    */
   Collector.prototype.reassignGenerators = function () {
     /* TODO: change to use currentGenerators once that includes current gens only */
-    return seq.models.Generator.findAll({ where: { currentCollector: this.name } })
+    // return seq.models.Generator.findAll({ where: { currentCollector: this.name } })
+    return seq.models.Generator.findAll()
+    .then((gens) => gens.filter((gen) => gen.currentCollector.name === this.name))
     .map((g) => {
       g.assignToCollector();
       return g.save();
