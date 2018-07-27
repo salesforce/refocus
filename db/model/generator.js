@@ -163,7 +163,6 @@ module.exports = function generator(seq, dataTypes) {
               });
           })
           .then(() => {
-            console.log(inst);
             return inst.assignToCollector();
           });
       }, // beforeCreate
@@ -178,7 +177,6 @@ module.exports = function generator(seq, dataTypes) {
         // if possibleCollectors have changed, check if the currentCollector
         // is still included
         if (inst.possibleCollectors && inst.changed('possibleCollectors')) {
-          console.log('inst.currentCollector: ', inst.currentCollector)
           isCurrentCollectorIncluded = inst.possibleCollectors.some(
             (coll) => coll.name === inst.currentCollector.name
           );
@@ -198,9 +196,7 @@ module.exports = function generator(seq, dataTypes) {
             (inst.changed('possibleCollectors') && !inst.currentCollector)
            ) {
           console.log('assigning generator to Collector!')
-          return inst.assignToCollector().then(() => {
-            return inst.reload();
-          });
+          inst.assignToCollector();
         }
 
         /* If possibleCollectors are changed and this generator current
@@ -227,7 +223,6 @@ module.exports = function generator(seq, dataTypes) {
             });
         }
 
-        console.log('inst: ', inst.currentCollector)
         return inst;
       }, // beforeUpdate
 
@@ -498,10 +493,12 @@ module.exports = function generator(seq, dataTypes) {
       debugger;
       // prevent overwrite of reloaded collectors on update
       delete requestBody.possibleCollectors;
+      // this.possibleCollectors = collectors
       return this.addPossibleCollectors(collectors);
     })
     .then(() => this.reload())
-    .then(() => this.update(requestBody));
+    .then(() => this.update(requestBody))
+    // .then(() => this.reload());
   };
 
   Generator.prototype.isWritableBy = function (who) {
@@ -556,25 +553,18 @@ module.exports = function generator(seq, dataTypes) {
       possibleCollectors.sort((c1, c2) => c1.name > c2.name);
       newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive()) || null;
     }
-    // console.log('newColl: ', newColl)
-    // this.currentCollector = newColl ? newColl.name : null;
-    // this.currentCollector = newColl || null;
+    // console.log('newColl: ', newColl.isAlive)
 
     // since currentCollector is an association we need to use setCurrentCollector
     // to persist changes to db.
     // hooks are disabled because it would cause us to enter an endless cycle of
     // updating generator. saving is disabled because sequelize will otherwise
     // attempt to create & save a collector.
-    return Promise.resolve()
-    // .then(() => this.reload())
-    .then(() => this.setCurrentCollector(newColl, { hooks: false, save: false }))
-    // .then(() => this.reload())
-    .then(() => {
-      debugger;
-      console.log('after setCurrentCollector >>> ', this);
-      // console.log('newColl: ', newColl)
-      return Promise.resolve()
-    });
+
+    //TODO: add comment why we set collectorId like this
+    this.collectorId = newColl ? newColl.id : null;
+    // mocking the reload of the db
+    this.currentCollector = newColl
   };
 
   return Generator;
