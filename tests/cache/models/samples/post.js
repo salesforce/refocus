@@ -21,6 +21,7 @@ const samstoinit = require('../../../../cache/sampleStoreInit');
 const expect = require('chai').expect;
 const ZERO = 0;
 const u = require('./utils');
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
 
 describe('tests/cache/models/samples/post.js >', () => {
   describe(`api: redisStore: POST ${path} >`, () => {
@@ -260,7 +261,16 @@ describe('tests/cache/models/samples/post.js >', () => {
         }
 
         expect(res.body.name).to.be.equal(sampleName);
-        return done();
+
+        // check aspsubmap for added set
+        rcli.smembersAsync(
+          'samsto:aspsubmap:' + u.aspectToCreate.name.toLowerCase()
+        )
+        .then((resCli) => {
+          expect(resCli).to.deep.equal(['___test_subject.___child_subject']);
+        })
+        .then(() => done())
+        .catch(done);
       });
     });
 

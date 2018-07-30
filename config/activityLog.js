@@ -43,6 +43,14 @@ module.exports = {
     skipped: 0,
     totalTime: '0ms',
   },
+  jobCreate: {
+    activity: 'jobCreate',
+    jobId: 'None',
+    jobPriority: 'None',
+    jobType: 'None',
+    process: 'None',
+    totalTime: '0ms',
+  },
   kueStats: {
     activity: 'kueStats',
     activeCount: 0,
@@ -54,7 +62,9 @@ module.exports = {
   limiter: {
     activity: 'limiter',
     ipAddress: 'None',
-    limit: '0/0', // e.g. 500/60000 means exceeded 500 requests in 60 sec
+
+    // limit that was hit: 500/60000 means they hit 500 requests in 60 seconds
+    limit: '0/0',
     method: 'None', // one of HTTP verbs
     requestBytes: 0,
     request_id: 'None',
@@ -83,7 +93,7 @@ module.exports = {
     ipAddress: 'None',
     perspective: 'None',
     token: 'None',
-    totalTime: '0ms',
+    totalTime: 'None',
     user: 'None',
   },
   sigterm: {
