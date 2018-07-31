@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/setup/sigterm.js
+ * tests/jobQueue/setup.js
  */
 'use strict'; // eslint-disable-line strict
 const tu = require('../testUtils');
@@ -19,32 +19,31 @@ const jobQueue = jobQueueSetup.jobQueue;
 
 require('../../index');
 
-describe('SIGTERM Signal handling', () => {
+describe('Kue graceful shutdown', () => {
   beforeEach(() => {
     tu.toggleOverride('enableSigtermActivityLog', true);
     sinon.spy(activityLogUtil, 'printActivityLogString');
-    sinon.spy(jobQueueSetup, 'gracefulShutdown');
     sinon.spy(jobQueue, 'shutdown');
-    sinon.spy(process, 'exit');
   });
 
   afterEach(() => {
     activityLogUtil.printActivityLogString.restore();
     jobQueue.shutdown.restore();
-    jobQueueSetup.gracefulShutdown.restore();
-    process.exit.restore();
   });
 
   after(() => {
     tu.toggleOverride('enableSigtermActivityLog', false);
   });
 
-  it('should shutdown job kue when receiving a SIGTERM', (done) => {
-    process.kill(process.pid, 'SIGTERM');
+  it('should shutdown job kue and print activity', (done) => {
+    // When
+    jobQueueSetup.gracefulShutdown();
 
     setTimeout(() => {
-      // Queue setup has been called
-      expect(jobQueueSetup.gracefulShutdown.calledOnce).to.be.true;
+      // Then Kue shutdown has been called
+      expect(jobQueue.shutdown.calledOnce).to.be.true;
+
+      // And log activity is printed as expected
       expect(activityLogUtil.printActivityLogString.calledOnce).to.be.true;
       sinon.assert.calledWith(
         activityLogUtil.printActivityLogString,
@@ -54,31 +53,23 @@ describe('SIGTERM Signal handling', () => {
         }), 'sigterm'
       );
 
-      // Kue has been called
-      expect(jobQueue.shutdown.calledOnce).to.be.true;
-
-      /*
-        Process.exit must not be executed
-        Executes exceptionally after 1 min if there is no SIGKILL.
-      */
-      expect(process.exit.calledOnce).to.be.false;
       done();
     }, 10);
-  });
 
-  it('Must not be able to shutdown when Kue is shutting down', (done) => {
-    process.kill(process.pid, 'SIGTERM');
-    setTimeout(() => {
-      expect(activityLogUtil.printActivityLogString.calledOnce).to.be.true;
-      sinon.assert.calledWith(
-        activityLogUtil.printActivityLogString,
-        sinon.match({
-          status: 'Job queue shutdown: Error: Shutdown already in progress',
-          totalTime: sinon.match(/^\d*ms/),
-        }),
-        'sigterm'
-      );
-      done();
-    }, 10);
+    it('Must not be able to shutdown when is already shutting down', () => {
+      jobQueueSetup.gracefulShutdown();
+      setTimeout(() => {
+        expect(activityLogUtil.printActivityLogString.calledOnce).to.be.true;
+        sinon.assert.calledWith(
+          activityLogUtil.printActivityLogString,
+          sinon.match({
+            status: 'Job queue shutdown: Error: Shutdown already in progress',
+            totalTime: sinon.match(/^\d*ms/),
+          }),
+          'sigterm'
+        );
+        done();
+      }, 10);
+    });
   });
 });
