@@ -55,21 +55,29 @@ describe('Kue graceful shutdown', () => {
 
       done();
     }, 10);
+  });
 
-    it('Must not be able to shutdown when is already shutting down', () => {
-      jobQueueSetup.gracefulShutdown();
-      setTimeout(() => {
-        expect(activityLogUtil.printActivityLogString.calledOnce).to.be.true;
-        sinon.assert.calledWith(
-          activityLogUtil.printActivityLogString,
-          sinon.match({
-            status: 'Job queue shutdown: Error: Shutdown already in progress',
-            totalTime: sinon.match(/^\d*ms/),
-          }),
-          'sigterm'
-        );
+  it('Must not be able to shutdown when is already shutting down', (done) => {
+    jobQueueSetup.gracefulShutdown();
+    setTimeout(() => {
+      expect(activityLogUtil.printActivityLogString.calledOnce).to.be.true;
+      sinon.assert.calledWith(
+        activityLogUtil.printActivityLogString,
+        sinon.match({
+          status: 'Job queue shutdown: Error: Shutdown already in progress',
+          totalTime: sinon.match(/^\d*ms/),
+        }),
+        'sigterm'
+      );
+
+      const expectedError = 'INCR can\'t be processed. The connection' +
+        ' is already closed.';
+      const job = jobQueue.create('test', { foo: 'blah' });
+      job.save((err) => {
+        expect(err.message).to.be.equal(expectedError);
         done();
-      }, 10);
-    });
+      });
+    }, 10);
   });
 });
+
