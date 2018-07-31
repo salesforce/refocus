@@ -10,11 +10,14 @@
  * tests/setup/signal.js
  */
 'use strict'; // eslint-disable-line strict
+const tu = require('../testUtils');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 const signal = require('../../signal/signal');
-
 const supertest = require('supertest');
+
+// toggle must be set before the app start as process.on(SIGTERM) is at app boot
+tu.toggleOverride('enableSigtermEvent', true);
 const app = supertest(require('../../index').app);
 
 /**
@@ -31,6 +34,8 @@ describe('Validating SIGTERM from OS', () => {
     signal.gracefulShutdown.restore();
     signal.forceShutdownTimeout.restore();
   });
+
+  after(() => tu.toggleOverride('enableSigtermEvent', false));
 
   it('should handles gracefully and close http server', (done) => {
     // When it receives the shutdown

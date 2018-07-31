@@ -32,7 +32,7 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
 const jobQueue = kue.createQueue(redisOptions);
 
 /**
- * Kue graceful shutdown.
+ * Kue's Queue graceful shutdown.
  */
 function gracefulShutdown() {
   const start = Date.now();

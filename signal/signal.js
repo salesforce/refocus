@@ -10,22 +10,22 @@ const jobSetup = require('../jobQueue/setup');
 const WAITING_SIG_KILL_TIMEOUT = require('../config').WAITING_SIG_KILL_TIMEOUT;
 
 /**
- * Executes graceful shutdown per each module when needed.
+ * Executes graceful shutdown for each resource when needed.
  *
- * ie. shutdown Kue, clean DB conn, etc.
+ * ie. shutdown Kue, clean DB conn, IO, etc.
  *
- * Each module need to create their own graceful method and be executed here.
+ * Each module need to create their own graceful method and call it here.
  */
 function gracefulShutdown() {
   jobSetup.gracefulShutdown();
 }
 
 /**
- * After receiving SIGTERM the app will exit automatically if there is no
- * a SIGKILL event fired from the host platform (eg. Heroku) in
- * WAITING_SIG_KILL_TIMEOUT seconds.
+ * Force app to shutdown after a given ms timeout (@see
+ * config/WAITING_SIG_KILL_TIMEOUT) - Default timeout=60sec.
  *
- * default=60sec
+ * After receiving SIGTERM the app will exit automatically if there is no
+ * a SIGKILL event fired from the host platform (eg. Heroku).
  */
 function forceShutdownTimeout() {
   setTimeout(() => {

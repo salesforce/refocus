@@ -118,6 +118,9 @@ const longTermToggles = {
   enableSampleStoreInfoLogging: environmentVariableTrue(pe,
     'ENABLE_SAMPLE_STORE_INFO_LOGGING'),
 
+  // Enable graceful shutdown handling event
+  enableSigtermEvent: environmentVariableTrue(pe, 'ENABLE_SIGTERM_EVENT'),
+
   /*
    * Use this setting to offload work from web processes to worker processes to
    * achieve better web process throughput and response times.

@@ -309,23 +309,25 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   // create app routes
   require('./view/loadView').loadView(app, passportModule, '/v1');
 
-  /*
-   After receiving SIGTERM Heroku will give 30 seconds to shutdown cleanly.
-   If any processes remain after that time period, Dyno manager will terminate
-   them forcefully with SIGKILL logging 'Error R12' to indicate that the
-   shutdown process is not behaving correctly.
-   Steps:
-   - Stop accepting new requests;
-   - Handling pending resources;
-   - If not receive any SIGKILL a timeout will be applied killing the app
-   avoiding zombie process.
-  */
-  process.on('SIGTERM', () => {
-    httpServer.close(() => {
-      signal.gracefulShutdown();
-      signal.forceShutdownTimeout();
+  if (featureToggles.isFeatureEnabled('enableSigtermEvent')) {
+    /*
+     After receiving SIGTERM Heroku will give 30 seconds to shutdown cleanly.
+     If any processes remain after that time period, Dyno manager will terminate
+     them forcefully with SIGKILL logging 'Error R12' to indicate that the
+     shutdown process is not behaving correctly.
+     Steps:
+     - Stop accepting new requests;
+     - Handling pending resources;
+     - If not receive any SIGKILL a timeout will be applied killing the app
+     avoiding zombie process.
+    */
+    process.on('SIGTERM', () => {
+      httpServer.close(() => {
+        signal.gracefulShutdown();
+        signal.forceShutdownTimeout();
+      });
     });
-  });
+  }
 
   module.exports = { app, passportModule };
 } // start
