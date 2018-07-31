@@ -446,11 +446,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       return updatedSamp;
     }
 
-    if (featureToggles.isFeatureEnabled('preAttachSubject')) {
-      return cleanAddSubjectToSample(updatedSamp, subject);
-    }
-
-    return updatedSamp;
+    return cleanAddSubjectToSample(updatedSamp, subject);
   })
   .catch((err) => {
     if (isBulk) {
