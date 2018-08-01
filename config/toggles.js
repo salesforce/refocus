@@ -152,20 +152,9 @@ const longTermToggles = {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const shortTermToggles = {
-  /*
-   * Stop making special call to db/redis to attach the subject for real-time
-   * publishing after sample upsert--just use the subject we already got from
-   * redis at the beginning of the upsertOneSample operation.
-   */
-  preAttachSubject: environmentVariableTrue(pe, 'PRE_ATTACH_SUBJECT'),
-
   // get subject and aspect for realtime from database
   attachSubAspFromDB: environmentVariableTrue(pe,
     'ATTACH_SUB_ASP_FROM_DB'),
-
-  // when attaching from db, use scopes?
-  attachSubAspFromDBuseScopes: environmentVariableTrue(pe,
-    'ATTACH_SUB_ASP_FROM_DB_USE_SCOPES'),
 
   // turn on logging to log invalid hmset values
   logInvalidHmsetValues: environmentVariableTrue(pe,

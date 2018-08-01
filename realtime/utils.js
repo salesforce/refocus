@@ -391,22 +391,12 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
       },
     };
     let getAspectPromise;
-    if (featureToggles.isFeatureEnabled('attachSubAspFromDBuseScopes')) {
-      getAspectPromise =
-        aspectModel.scope({ method: ['forRealTime', aspName] }).findOne();
-    } else {
-      getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-        aspectModel.findOne(aspOpts);
-    }
+    getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
+      aspectModel.findOne(aspOpts);
 
     let getSubjectPromise;
-    if (featureToggles.isFeatureEnabled('attachSubAspFromDBuseScopes')) {
-      getSubjectPromise =
-        subjectModel.scope({ method: ['forRealTime', subAbsPath] }).findOne();
-    } else {
-      getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-        subjectModel.findOne(subOpts);
-    }
+    getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
+      subjectModel.findOne(subOpts);
 
     promiseArr = [getAspectPromise, getSubjectPromise];
   } else {
@@ -423,13 +413,8 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
-    if (featureToggles.isFeatureEnabled('attachSubAspFromDBuseScopes')) {
-      asp = asp.dataValues ? asp.dataValues : asp;
-      sub = sub.dataValues ? sub.dataValues : sub;
-    } else {
-      asp = asp.get ? asp.get() : asp;
-      sub = sub.get ? sub.get() : sub;
-    }
+    asp = asp.get ? asp.get() : asp;
+    sub = sub.get ? sub.get() : sub;
 
     delete asp.writers;
     delete sub.writers;
