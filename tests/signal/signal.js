@@ -16,7 +16,7 @@ const signal = require('../../signal/signal');
 const jobSetup = require('../../jobQueue/setup');
 const config = require('../../config');
 
-describe.skip('Signal handling graceful shutdown', () => {
+describe('Signal handling graceful shutdown', () => {
   it('should execute gracefulShutdown for each dependency', (done) => {
     // Setup
     sinon.stub(jobSetup, 'gracefulShutdown');
