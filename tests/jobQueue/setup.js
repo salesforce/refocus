@@ -19,7 +19,7 @@ const jobQueue = jobQueueSetup.jobQueue;
 
 require('../../index');
 
-describe('Kue graceful shutdown', () => {
+describe.skip('Kue graceful shutdown', () => {
   beforeEach(() => {
     tu.toggleOverride('enableSigtermActivityLog', true);
     sinon.spy(activityLogUtil, 'printActivityLogString');
