@@ -24,7 +24,7 @@ const app = supertest(require('../../index').app);
  * This test is covering the scenario when receives from OS the SIGTERM
  * which has been handled in index.js
  */
-describe('Validating SIGTERM from OS', () => {
+describe.skip('Validating SIGTERM from OS', () => {
   beforeEach(() => {
     sinon.stub(signal, 'gracefulShutdown');
     sinon.stub(signal, 'forceShutdownTimeout');
