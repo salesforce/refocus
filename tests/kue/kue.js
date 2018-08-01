@@ -19,7 +19,13 @@ const jobQueue = jobQueueSetup.jobQueue;
 
 require('../../index');
 
-describe('Kue graceful shutdown', () => {
+/**
+ * This test is covering Kue shutdown for jobQueue/setup file.
+ *
+ * In order to avoid side effect to the other tests when shutting down Kue's
+ * job, we created a separated script called test-kue (package.json).
+ */
+describe('Kue jobQueue graceful shutdown', () => {
   beforeEach(() => {
     tu.toggleOverride('enableSigtermActivityLog', true);
     sinon.spy(activityLogUtil, 'printActivityLogString');
