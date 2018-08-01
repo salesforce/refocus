@@ -61,6 +61,7 @@
     "test-view": "NODE_ENV=build npm run test-with-coverage -- --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view",
     "test-with-coverage": "istanbul cover ./node_modules/mocha/bin/_mocha --report none --print none --include-pid -- -R dot",
     "test-xfwd": "REJECT_MULTIPLE_X_FORWARDED_FOR=true npm run test-with-coverage -- --recursive tests/xfwd",
+    "test-kue": "npm run test-with-coverage -- --recursive tests/kue/setup.js",
     "undo-migratedb": "node db/migrateUndo.js",
     "view": "NODE_ENV=production gulp browserifyViews && npm start",
     "watch": "npm-watch"
