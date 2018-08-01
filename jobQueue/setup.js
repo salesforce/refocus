@@ -84,5 +84,6 @@ module.exports = {
   },
   ttlForJobsAsync: conf.JOB_QUEUE_TTL_SECONDS_ASYNC,
   ttlForJobsSync: conf.JOB_QUEUE_TTL_SECONDS_SYNC,
+  delayToRemoveJobs: conf.JOB_REMOVAL_DELAY_SECONDS,
   kue,
 }; // exports
