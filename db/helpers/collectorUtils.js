@@ -87,18 +87,12 @@ function validateVersion(version) {
  * Find unassigned generators and assign them.
  * @returns {Promise} - Resolves to array of assigned generator db objects
  */
-// TODO: use a sequelize query to do filtering by generators with no currentCollector.
 function assignUnassignedGenerators() {
   return utils.seq.models.Generator.findAll(
-    { where: { isActive: true } },
-      // include: [
-      //   {
-      //     association: Generator.getGeneratorAssociations().currentCollector
-      //     where: { collectorId: null }
-      //   }
-      // ]
+    // unassigned generators have no currentCollector, thus collectorId will be null
+    { where: { isActive: true, collectorId: null } },
   )
-  .then((gens) => gens.filter((g) => g.currentCollector === null))
+  // .then((gens) => gens.filter((g) => g.currentCollector === null))
   .map((g) => {
     g.assignToCollector();
     return g.save();

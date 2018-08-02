@@ -258,8 +258,10 @@ function heartbeat(req, res, next) {
     generatorsUpdated: [],
   };
 
+  console.log('------------heartbeat before findByKey')
   u.findByKey(helper, req.swagger.params)
   .then((o) => {
+    // console.log(o)
     collectorName = o.name;
 
     /*
@@ -317,6 +319,7 @@ function heartbeat(req, res, next) {
 
   // assign the changed generators to retval
   .then((generators) => {
+    console.log(generators)
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     retval.generatorsAdded = generators[0];
     retval.generatorsDeleted = generators[1];
@@ -411,11 +414,12 @@ function startCollector(req, res, next) {
     collToReturn = coll;
     /* TODO: change to use currentGenerators once that includes current gens only */
 
-    return Generator.findAll({ where: { currentCollector: coll.name } });
+    return Generator.findAll({ where: { collectorId: coll.id } });
   })
   /* Add all the attributes necessary to send back to collector. */
   .then((gens) => Promise.all(gens.map((g) => g.updateForHeartbeat())))
   .then((gens) => {
+    // console.log(gens)
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     collToReturn.dataValues.generatorsAdded = gens.map((g) => {
       g.token = jwtUtil.createToken(g.name, g.user.name,

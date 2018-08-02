@@ -168,7 +168,11 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
       .then(() => Generator.findById(generatorDBInstance.id))
       .then((gen) => gen.setPossibleCollectors(initialValues.possibleCollectors))
       .then(() => Generator.findById(generatorDBInstance.id))
-      .then((gen) => gen.updateWithCollectors(updates));
+      .then((gen) => {
+        // console.log(gen.possibleCollectors)
+        // console.log(updates)
+        return gen.updateWithCollectors(updates)
+      });
 
       if (changes.expectSuccess) {
         promise = promise.should.eventually.be.fulfilled;

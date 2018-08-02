@@ -288,7 +288,7 @@ describe('tests/db/model/generator/update.js >', () => {
     });
   });
 
-  describe('changing isActive reassigns collector', () => {
+  describe('changing isActive reassigns collector > ', () => {
     let clock;
     let now = Date.now();
 
@@ -308,14 +308,16 @@ describe('tests/db/model/generator/update.js >', () => {
       .then(() => gen.update({ isActive: false }, { validate: false, hooks: false }))
       .then(() => expect(gen.currentCollector).to.equal(null))
       .then(() => gen.update({ isActive: true }))
-      .then(() => expect(gen.currentCollector).to.equal(collectorObj1.name));
+      .then(() => expect(gen.currentCollector.name).to.equal(collectorObj1.name))
+      .then(() => expect(gen.currentCollector.id).to.equal(collectorObj1.id));
     });
 
     it('turning off isActive unassigns the generator', () => {
       const gen = generatorDBInstance;
       return gen.reload()
       .then(() => gen.update({ isActive: true }, { validate: false, hooks: false }))
-      .then(() => expect(gen.currentCollector).to.equal(collectorObj1.name))
+      .then(() => expect(gen.currentCollector.name).to.equal(collectorObj1.name))
+      .then(() => expect(gen.currentCollector.id).to.equal(collectorObj1.id))
       .then(() => gen.update({ isActive: false }))
       .then(() => expect(gen.currentCollector).to.equal(null));
     });
@@ -406,7 +408,7 @@ describe('tests/db/model/generator/update.js >', () => {
     );
   });
 
-  describe('with GlobalConfig for SG/SGT added', () => {
+  describe('with GlobalConfig for SG/SGT added > ', () => {
     const secretKey = 'mySecretKey';
     const algorithm = 'aes-256-cbc';
     before((done) => {

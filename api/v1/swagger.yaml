@@ -3401,12 +3401,12 @@ paths:
           type: array
           required: false
         -
-          # name: currentCollector
-          # in: query
-          # type: string
-          # description: >-
-          #   Filter by the current collector assigned to the generator.
-          # maxLength: 60
+          name: currentCollector
+          in: query
+          type: string
+          description: >-
+            Filter by the name of the current collector assigned to the generator.
+          maxLength: 60
       responses:
         200:
           description: >-
@@ -3648,11 +3648,11 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
-              # currentCollector:
-              #   type: string
-              #   readOnly: true
-              #   description: >-
-              #     Filter by the current collector assigned to the generator.
+              currentCollector:
+                type: string
+                readOnly: true
+                description: >-
+                  Filter by the name of the current collector assigned to the generator.
               isActive:
                 type: boolean
                 description: >-
@@ -3775,11 +3775,11 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
-              # currentCollector:
-              #   type: string
-              #   readOnly: true
-              #   description: >-
-              #     Current collector assigned to the generator.
+              currentCollector:
+                type: string
+                readOnly: true
+                description: >-
+                  Name of the current collector assigned to the generator.
               isActive:
                 type: boolean
                 description: >-
@@ -11775,10 +11775,10 @@ definitions:
         type: object
         description: >
           Variables accessible inside the transform function.
-      # currentCollector:
-      #   type: string
-      #   description: Current collector assigned to the generator.
-      #   maxLength: 60
+      currentCollector:
+        type: object
+        description: Current collector assigned to the generator.
+        maxLength: 60
       generatorTemplate:
         $ref: "#/definitions/GeneratorTemplateResponse"
 
@@ -11861,10 +11861,10 @@ definitions:
         type: object
         description: >
           Variables accessible inside the transform function.
-      # currentCollector:
-      #   type: string
-      #   description: Current collector assigned to the generator.
-      #   maxLength: 60
+      currentCollector:
+        type: object
+        description: Current collector assigned to the generator.
+        maxLength: 60
       generatorTemplate:
         $ref: "#/definitions/GeneratorTemplateResponse"
 
@@ -12174,7 +12174,7 @@ parameters:
         - intervalSecs
         - name
         - updatedAt
-        # - currentCollector
+        - currentCollector
         - user
         - possibleCollectors
 

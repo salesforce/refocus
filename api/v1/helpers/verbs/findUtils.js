@@ -305,7 +305,6 @@ function applyLimitIfUniqueField(opts, props) {
  */
 function options(params, props) {
   const opts = u.buildFieldList(params);
-
   // Specify the sort order. If defaultOrder is defined in props or sort value
   // then update sort order otherwise take value from model defination
   if ((params.sort && params.sort.value) || props.defaultOrder) {

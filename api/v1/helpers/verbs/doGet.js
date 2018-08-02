@@ -36,6 +36,7 @@ function doGet(req, res, next, props) {
   const reqParams = req.swagger.params;
   const fields = reqParams.fields ? reqParams.fields.value : null;
   const scopes = props.getScopes ? props.getScopes : [];
+  // console.log(reqParams)
 
   // only cache requests with no params
   if (props.cacheEnabled && !fields) {

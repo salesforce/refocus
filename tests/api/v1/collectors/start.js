@@ -37,6 +37,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
   let generator1;
   let generator2;
   const generatorTemplate = gtUtil.getGeneratorTemplate();
+  let collector1;
 
   before((done) => {
     tu.createUserAndToken()
@@ -56,24 +57,25 @@ describe('tests/api/v1/collectors/start.js >', () => {
   beforeEach((done) => {
     sgUtils.createGeneratorAspects()
     .then(() => GeneratorTemplate.create(generatorTemplate))
-    .then(() => {
+    .then(() => Collector.create(u.getCollectorToCreate()))
+    .then((c) => {
+      collector1 = c;
       const gen1 = sgUtils.getGenerator();
       gen1.name += 'generator-1';
       gen1.createdBy = user.id;
-      gen1.currentCollector = u.getCollectorToCreate().name;
+      gen1.collectorId = c.id;
 
       const gen2 = sgUtils.getGenerator();
       gen2.name += 'generator-2';
       gen2.createdBy = user.id;
-      gen2.currentCollector = u.getCollectorToCreate().name;
+      gen2.collectorId = c.id;
       return Generator.bulkCreate([gen1, gen2]);
     })
     .then((generators) => {
       generator1 = generators[0];
       generator2 = generators[1];
-      return Collector.create(u.getCollectorToCreate());
+      return collector1.addPossibleGenerators([generator1, generator2]);
     })
-    .then((c) => c.addPossibleGenerators([generator1, generator2]))
     .then(() => done())
     .catch(done);
   });
@@ -162,7 +164,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
           return Generator.find({ where: { name: gen3.name } })
           .then((gen) => {
             // gen3 currentCollector set to defaultCollector
-            expect(gen.currentCollector).to.be.equal(defaultCollector.name);
+            expect(gen.currentCollector.name).to.be.equal(defaultCollector.name);
             return done();
           })
           .catch(done);

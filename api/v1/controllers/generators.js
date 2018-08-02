@@ -200,6 +200,7 @@ module.exports = {
     apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     const resultObj = { reqStartTime: req.timestamp };
     const toPut = req.swagger.params.queryBody.value;
+    // console.log('toPut: ', toPut)
     const puttableFields =
       req.swagger.params.queryBody.schema.schema.properties;
     let instance;
@@ -219,10 +220,14 @@ module.exports = {
     .then((_collectors) => {
       // prevent overwrite of reloaded collectors on update
       delete puttableFields.possibleCollectors;
+      // mock possibleCollectors on instance so we don't need to reload
+      // again to get the currentCollector
+      instance.possibleCollectors = _collectors
       return instance.setPossibleCollectors(_collectors);
     })
-    .then(() => instance.reload())
+    // .then(() => instance.reload())
     .then(() => u.updateInstance(instance, puttableFields, toPut))
+    .then(() => instance.reload())
     .then((retVal) =>
       u.handleUpdatePromise(resultObj, req, retVal, helper, res)
     )

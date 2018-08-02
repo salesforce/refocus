@@ -292,10 +292,13 @@ module.exports = function collector(seq, dataTypes) {
     /* TODO: change to use currentGenerators once that includes current gens only */
     // return seq.models.Generator.findAll({ where: { currentCollector: this.name } })
     return seq.models.Generator.findAll()
-    .then((gens) => gens.filter((gen) => gen.currentCollector.name === this.name))
-    .map((g) => {
-      g.assignToCollector();
-      return g.save();
+    .then((gens) => {
+      gens.filter((gen) =>
+      gen.currentCollector && (gen.currentCollector.name === this.name))
+      .map((g) => {
+        g.assignToCollector();
+        return g.save();
+      });
     });
   };
 

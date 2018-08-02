@@ -163,12 +163,12 @@ module.exports = function generator(seq, dataTypes) {
               });
           })
           .then(() => {
+            // console.log('inst---> ', inst)
             return inst.assignToCollector();
           });
       }, // beforeCreate
 
       beforeUpdate(inst /* , opts */) {
-        debugger;
         const gtName = inst.generatorTemplate.name;
         const gtVersion = inst.generatorTemplate.version;
 
@@ -199,13 +199,6 @@ module.exports = function generator(seq, dataTypes) {
           inst.assignToCollector();
         }
 
-        /* If possibleCollectors are changed and this generator current
-         collector is not included in the changed possibleCollectors, then
-         assign this generator to another collector */
-        // if (!isCurrentCollectorIncluded) {
-        //   inst.assignToCollector();
-        // }
-
         if (inst.changed('generatorTemplate') || inst.changed('context')) {
           return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
             .then((gt) => {
@@ -234,7 +227,8 @@ module.exports = function generator(seq, dataTypes) {
         return Promise.all([
           Promise.resolve().then(() => {
             if (inst.currentCollector) {
-              const newCollector = inst.currentCollector;
+              const newCollector = inst.currentCollector.name;
+              // console.log('newCollector>>>> ', newCollector)
               return hbUtils.trackGeneratorChanges(inst, null, newCollector);
             }
           }),
@@ -247,9 +241,13 @@ module.exports = function generator(seq, dataTypes) {
       }, // afterCreate
 
       afterUpdate(inst) {
-        const oldCollector = inst.previous('currentCollector');
-        const newCollector = inst.get('currentCollector');
-        return hbUtils.trackGeneratorChanges(inst, oldCollector, newCollector);
+        console.log('afterUpdate >>>>>', inst)
+        debugger;
+        const oldCollectorName = inst.previous('currentCollector') ?
+                                 inst.previous('currentCollector').name : null;
+        const newCollectorName = inst.get('currentCollector') ?
+                                 inst.get('currentCollector').name : null;
+        return hbUtils.trackGeneratorChanges(inst, oldCollectorName, newCollectorName);
       }, //afterUpdate
     },
     validate: {
@@ -442,6 +440,7 @@ module.exports = function generator(seq, dataTypes) {
   Generator.createWithCollectors = function (requestBody) {
     let createdGenerator;
     let collectors;
+    console.log('in createWithCollectors')
 
     return Promise.resolve()
     .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
@@ -462,12 +461,13 @@ module.exports = function generator(seq, dataTypes) {
     // .then(() => createdGenerator.addPossibleCollectors(collectors))
     // .then(() => createdGenerator.setCurrentCollector(currentCollector))
     .then(() => {
-      console.log('before reload in createWithCollectors')
+      // console.log(createdGenerator)
       return createdGenerator.reload()
     });
   };
 
   Generator.findForHeartbeat = function (findOpts) {
+    console.log('entered findForHeartbeat: ', findOpts)
     return Generator.findAll(findOpts)
     .then((gens) => gens.map((g) => g.updateForHeartbeat()))
     .then((genpromises) => Promise.all(genpromises));
@@ -490,15 +490,23 @@ module.exports = function generator(seq, dataTypes) {
     return Promise.resolve()
     .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
     .then((collectors) => {
-      debugger;
       // prevent overwrite of reloaded collectors on update
       delete requestBody.possibleCollectors;
-      // this.possibleCollectors = collectors
+      // mock possibleCollectors on instance so we don't need to reload
+      // again to get the currentCollector (this matters if we try to set
+      // isActive=true and add a possibleCollector at the same time)
+      if (this.possibleCollectors) {
+        collectors.forEach((coll) => {
+          this.possibleCollectors.push(coll);
+        });
+      } else {
+        this.possibleCollectors = collectors;
+      }
+      console.log('collectors >>>> ', collectors)
       return this.addPossibleCollectors(collectors);
     })
-    .then(() => this.reload())
     .then(() => this.update(requestBody))
-    // .then(() => this.reload());
+    .then(() => this.reload());
   };
 
   Generator.prototype.isWritableBy = function (who) {
@@ -543,28 +551,25 @@ module.exports = function generator(seq, dataTypes) {
    * Note that this doesn't save the change to the db, it only updates the
    * currentCollector field and expects the caller to save later.
    */
-  // problem: this.currentCollector doesn't update the association in the db, only updates the instance.
-  // we need to call setCurrentCollector, but this is triggering hooks and resulting in a cycle
   Generator.prototype.assignToCollector = function () {
-    debugger;
     const possibleCollectors = this.possibleCollectors;
     let newColl = null;
     if (this.isActive && possibleCollectors && possibleCollectors.length) {
       possibleCollectors.sort((c1, c2) => c1.name > c2.name);
       newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive()) || null;
     }
-    // console.log('newColl: ', newColl.isAlive)
 
-    // since currentCollector is an association we need to use setCurrentCollector
-    // to persist changes to db.
-    // hooks are disabled because it would cause us to enter an endless cycle of
-    // updating generator. saving is disabled because sequelize will otherwise
-    // attempt to create & save a collector.
-
-    //TODO: add comment why we set collectorId like this
+    // since currentCollector is an association we need to set the collectorId
+    // for this generator object.
     this.collectorId = newColl ? newColl.id : null;
-    // mocking the reload of the db
-    this.currentCollector = newColl
+
+    // Even though collectorId has been set on the instance, the currentCollector
+    // will not be attached to this instance until it's saved and
+    // loaded from the db.
+    // This assignment saves us from doing the reload, as we are mocking the
+    // same behavior (going to the db and getting the currentCollector obj).
+    // Instead, we just attach the newColl directly on this instance.
+    this.currentCollector = newColl;
   };
 
   return Generator;

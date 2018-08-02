@@ -54,10 +54,6 @@ describe('tests/db/model/collector/methods.js >', () => {
   generator2.name += '2';
   generator3.name += '3';
 
-  generator1.currentCollector = collector1.name;
-  generator2.currentCollector = collector2.name;
-  generator3.currentCollector = collector3.name;
-
   generator1.possibleCollectors = [collector1.name, collector2.name, collector3.name];
   generator2.possibleCollectors = [collector1.name, collector2.name, collector3.name];
   generator3.possibleCollectors = [collector1.name, collector2.name, collector3.name];
@@ -74,6 +70,11 @@ describe('tests/db/model/collector/methods.js >', () => {
     dbCollector1 = col1;
     dbCollector2 = col2;
     dbCollector3 = col3;
+
+    // set currentCollector by setting collectorId
+    generator1.collectorId = col1.id;
+    generator2.collectorId = col2.id;
+    generator3.collectorId = col3.id;
   }));
 
   afterEach(() => clock.restore());
@@ -134,7 +135,8 @@ describe('tests/db/model/collector/methods.js >', () => {
             Generator.create(generator1, { validate: false, hooks: false }),
             Generator.create(generator2, { validate: false, hooks: false }),
             Generator.create(generator3, { validate: false, hooks: false }),
-          ).spread((gen1, gen2, gen3) => Promise.join(
+          ).spread((gen1, gen2, gen3) => {
+            return Promise.join(
               gen1.setPossibleCollectors(
                 [dbCollector1, dbCollector2, dbCollector3]
               ),
@@ -144,7 +146,8 @@ describe('tests/db/model/collector/methods.js >', () => {
               gen3.setPossibleCollectors(
                 [dbCollector1, dbCollector2, dbCollector3]
               ),
-            )
+            );
+          }
           )));
 
       afterEach(u.forceDelete);
@@ -166,9 +169,9 @@ describe('tests/db/model/collector/methods.js >', () => {
           Collector.find({ where: { name: collector2.name } }),
         ))
         .spread((gen1, gen2, gen3, coll2) => {
-          expect(gen1.currentCollector).to.equal(collector1.name);
-          expect(gen2.currentCollector).to.equal(collector3.name);
-          expect(gen3.currentCollector).to.equal(collector3.name);
+          expect(gen1.currentCollector.name).to.equal(collector1.name);
+          expect(gen2.currentCollector.name).to.equal(collector3.name);
+          expect(gen3.currentCollector.name).to.equal(collector3.name);
           expect(coll2.status).to.equal(collectorStatuses.MissedHeartbeat);
         });
       });
@@ -276,9 +279,9 @@ describe('tests/db/model/collector/methods.js >', () => {
           Generator.find({ where: { name: generator3.name } }),
         ))
         .spread((gen1, gen2, gen3) => {
-          expect(gen1.currentCollector).to.equal(collector2.name);
-          expect(gen2.currentCollector).to.equal(collector2.name);
-          expect(gen3.currentCollector).to.equal(collector3.name);
+          expect(gen1.currentCollector.name).to.equal(collector2.name);
+          expect(gen2.currentCollector.name).to.equal(collector2.name);
+          expect(gen3.currentCollector.name).to.equal(collector3.name);
         });
       });
 

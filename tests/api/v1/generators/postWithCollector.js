@@ -207,7 +207,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
         }
 
         expect(res.body.possibleCollectors.length).to.equal(TWO);
-        expect(res.body.currentCollector).to.equal('IamAliveAndRunning');
+        expect(res.body.currentCollector.name).to.equal('IamAliveAndRunning');
         return done();
       });
     });

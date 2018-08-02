@@ -30,11 +30,14 @@ function getChangedIds(collectorName) {
   .smembers(getKey(collectorName, DELETED))
   .smembers(getKey(collectorName, UPDATED))
   .execAsync()
-  .then((replies) => ({
-    added: replies[0],
-    deleted: replies[1],
-    updated: replies[2],
-  }));
+  .then((replies) => {
+    console.log(replies)
+    return ({
+      added: replies[0],
+      deleted: replies[1],
+      updated: replies[2],
+    })
+  });
 }
 
 /**
@@ -63,6 +66,9 @@ function removeFromSet(collectorName, change, genId) {
  * @returns {Promise}
  */
 function addToSet(collectorName, change, genId) {
+  console.log('collectorName >>>', collectorName)
+  console.log('change >>>', change)
+  console.log('genId >>>', genId)
   if (change === ADDED || change === DELETED || change === UPDATED) {
     const key = getKey(collectorName, change);
     return redisClient.saddAsync(key, genId);
@@ -107,19 +113,20 @@ function getKey(collectorName, changeType) {
  * @param {Array} newCollector - The name of the Collector this Generator is
  *  assigned to after the update.
  */
-function trackGeneratorChanges(generator, oldCollector, newCollector) {
-  if (oldCollector === newCollector) {
-    return trackChangesForCollector(oldCollector, UPDATED, generator);
+function trackGeneratorChanges(generator, oldCollectorName, newCollectorName) {
+  if (oldCollectorName === newCollectorName) {
+    return trackChangesForCollector(oldCollectorName, UPDATED, generator);
   } else {
     return Promise.all([
-      trackChangesForCollector(oldCollector, DELETED, generator),
-      trackChangesForCollector(newCollector, ADDED, generator),
+      trackChangesForCollector(oldCollectorName, DELETED, generator),
+      trackChangesForCollector(newCollectorName, ADDED, generator),
     ]);
   }
 
   function trackChangesForCollector(collectorName, change, generator) {
     const genId = generator.id;
     if (!collectorName) return Promise.resolve();
+    // console.log('trackChangesForCollector', genId)
     return getChangedIds(collectorName)
     .then((changedIds) => {
 

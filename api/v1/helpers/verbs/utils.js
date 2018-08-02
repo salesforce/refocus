@@ -376,6 +376,7 @@ function throwErrorForEmptyArray(arr, key, modelName) {
  *  ResourceNotFoundError if record not found
  */
 function findByName(model, key, opts) {
+  console.log('findByName: ', model, key, opts)
   return new Promise((resolve, reject) => {
     model.findOne(opts)
     .then((o) => {
@@ -405,6 +406,7 @@ function findByName(model, key, opts) {
  *  ResourceNotFoundError if record not found
  */
 function findByIdThenName(model, key, opts) {
+  console.log('findById: ', model, key, opts)
   return new Promise((resolve, reject) => {
     const wh = opts.where;
     delete opts.where;
@@ -562,6 +564,7 @@ function deleteAJsonArrayElement(jsonArray, elementName) {
  *  the list of fields requested.
  */
 function getScopedModel(props, fields) {
+  // console.log('props inside scoped model >>', props)
   const scopes = [];
   const toRemove = [];
 
@@ -586,6 +589,7 @@ function getScopedModel(props, fields) {
     return props.model.scope(scopes);
   }
 
+  // console.log(props.model)
   return props.model;
 } // getScopedModel
 
@@ -636,6 +640,7 @@ function cleanAndStripNulls(obj) {
  *  ResourceNotFoundError if record not found
  */
 function findByKey(props, params, extraAttributes) {
+  // console.log('findByKey being called! >>>>', params)
   const key = params.key.value;
   const opts = buildFieldList(params);
   const keyClause = {};
