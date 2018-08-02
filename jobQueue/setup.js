@@ -38,9 +38,7 @@ function gracefulShutdown() {
   const start = Date.now();
   jobQueue.shutdown(conf.kueShutdownTimeout, (err) => {
     if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
-      // lint disabled Since the status string allows spaces/special characters
-      // eslint-disable-next-line quotes
-      const status = "Job queue shutdown: " + (err || "OK"); // jscs:ignore validateQuoteMarks
+      const status = '"Job queue shutdown: ' + (err || 'OK') + '"';
       const logWrapper = {
         status,
         totalTime: `${Date.now() - start}ms`,

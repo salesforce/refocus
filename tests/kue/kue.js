@@ -8,8 +8,9 @@
 /**
  * This test is covering Kue shutdown for jobQueue/setup file.
  *
- * In order to avoid side effect to the other tests when shutting down Kue's
- * job, we created a separated script called test-kue in package.json.
+ * In order to avoid tests side affect when shutting down Kue's
+ * job, we created a separated script called test-graceful-shutdown
+ * in package.json.
  *
  * tests/jobQueue/setup.js
  */

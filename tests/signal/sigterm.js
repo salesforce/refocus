@@ -7,6 +7,11 @@
  */
 
 /**
+ * This test is running in a separated test script to avoid tests side effect
+ * since the sigterm test is executing process.kill to validate the event.
+ *
+ * test-graceful-shutdown in package.json.
+ *
  * tests/setup/signal.js
  */
 'use strict'; // eslint-disable-line strict

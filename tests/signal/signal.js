@@ -5,8 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or
  * https://opensource.org/licenses/BSD-3-Clause
  */
-
 /**
+ * This test is running in a separated test script to avoid tests side effect
+ * since the sigterm test is executing process.kill to validate the event.
+ *
+ * test-graceful-shutdown in package.json.
+ *
  * tests/signal/signal.js
  */
 'use strict'; // eslint-disable-line strict
