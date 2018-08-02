@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/setup/signal.js
+ * tests/signal/signal.js
  */
 'use strict'; // eslint-disable-line strict
 const sinon = require('sinon');
