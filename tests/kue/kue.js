@@ -5,8 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or
  * https://opensource.org/licenses/BSD-3-Clause
  */
-
 /**
+ * This test is covering Kue shutdown for jobQueue/setup file.
+ *
+ * In order to avoid side effect to the other tests when shutting down Kue's
+ * job, we created a separated script called test-kue in package.json.
+ *
  * tests/jobQueue/setup.js
  */
 'use strict'; // eslint-disable-line strict
@@ -19,12 +23,6 @@ const jobQueue = jobQueueSetup.jobQueue;
 
 require('../../index');
 
-/**
- * This test is covering Kue shutdown for jobQueue/setup file.
- *
- * In order to avoid side effect to the other tests when shutting down Kue's
- * job, we created a separated script called test-kue (package.json).
- */
 describe('Kue jobQueue graceful shutdown', () => {
   beforeEach(() => {
     tu.toggleOverride('enableSigtermActivityLog', true);

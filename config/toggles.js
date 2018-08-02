@@ -118,9 +118,6 @@ const longTermToggles = {
   enableSampleStoreInfoLogging: environmentVariableTrue(pe,
     'ENABLE_SAMPLE_STORE_INFO_LOGGING'),
 
-  // Enable graceful shutdown handling event
-  enableSigtermEvent: environmentVariableTrue(pe, 'ENABLE_SIGTERM_EVENT'),
-
   /*
    * Use this setting to offload work from web processes to worker processes to
    * achieve better web process throughput and response times.
@@ -170,6 +167,9 @@ const shortTermToggles = {
 
   // Enable IOREDIS instead of node redis
   enableIORedis: environmentVariableTrue(pe, 'ENABLE_IOREDIS'),
+
+  // Enable graceful shutdown handling event
+  enableSigtermEvent: environmentVariableTrue(pe, 'ENABLE_SIGTERM_EVENT'),
 
   // Enable using worker dyno for hierarchy queries
   enqueueHierarchy: environmentVariableTrue(pe, 'ENQUEUE_HIERARCHY'),

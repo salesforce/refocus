@@ -320,6 +320,9 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
      - Handling pending resources;
      - If not receive any SIGKILL a timeout will be applied killing the app
      avoiding zombie process.
+
+     @see more about server.close callback:
+     https://nodejs.org/docs/latest-v8.x/api/net.html#net_server_close_callback
     */
     process.on('SIGTERM', () => {
       httpServer.close(() => {

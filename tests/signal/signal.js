@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/setup/sigterm.js
+ * tests/setup/signal.js
  */
 'use strict'; // eslint-disable-line strict
 const sinon = require('sinon');
@@ -40,7 +40,7 @@ describe('Signal handling graceful shutdown', () => {
     signal.forceShutdownTimeout();
 
     // and tick the clock to the timeout
-    fakeSetTimeOut.tick(config.WAITING_SIG_KILL_TIMEOUT);
+    fakeSetTimeOut.tick(config.waitingSigKillTimeout);
 
     // Then
     expect(process.exit.calledOnce).to.be.true;
