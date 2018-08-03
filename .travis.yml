@@ -31,6 +31,7 @@ env:
 
 addons:
   postgresql: "9.6"
+  chrome: stable
   apt:
     sources:
       - ubuntu-toolchain-r-test
