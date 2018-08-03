@@ -10,10 +10,11 @@ const sinon = require('sinon');
 const app = require('./../../index.js').app;
 
 const opts = {
-  headless: false,
-  slowMo: 10,
-  timeout: 10000,
-  //args:['--no-sandbox', '--disable-setuid-sandbox']
+  //headless: false,
+  //slowMo: 10,
+  //timeout: 10000,
+  // 'args' option is needed for this to work in travis
+  args:['--no-sandbox', '--disable-setuid-sandbox']
 };
 
 module.exports = {
