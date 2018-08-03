@@ -205,13 +205,13 @@ module.exports = function collector(seq, dataTypes) {
       as: 'possibleGenerators',
       through: 'GeneratorCollectors',
       foreignKey: 'collectorId',
-      // scope: ['withoutCollectors'],
     });
 
+    // TODO: add this association
     // assoc.currentGenerators = Collector.hasMany(models.Generator, {
     //   as: 'currentGenerators',
     //   foreignKey: 'collectorId',
-    //   scope: ['withoutCollectors'],
+    //   // scope: ['withoutCollectors'],
     // });
 
     assoc.createdBy = Collector.belongsTo(models.User, {
@@ -226,21 +226,9 @@ module.exports = function collector(seq, dataTypes) {
 
     Collector.addScope('defaultScope', {
       order: ['name'],
-      // include: [
-      //   {
-      //     association: assoc.currentGenerators,
-      //     attributes: ['name'],
-      //   },
-      // ]
     }, {
       override: true,
     });
-
-    // used in generator association to avoid circular dependency problem where
-    // a generator gets collectors that gets generators... and so on.
-    // Collector.addScope('withoutGenerators', {
-    //   order: ['name'],
-    // });
 
     Collector.addScope('status', {
       attributes: ['status'],
@@ -278,7 +266,6 @@ module.exports = function collector(seq, dataTypes) {
     const now = Date.now();
     const lastHeartbeat = this.lastHeartbeat.getTime();
     const elapsed = now - lastHeartbeat;
-    console.log('tolerance: ', tolerance, 'elapsed: ', elapsed)
     return elapsed < tolerance;
   }; // isAlive
 
@@ -290,7 +277,6 @@ module.exports = function collector(seq, dataTypes) {
    */
   Collector.prototype.reassignGenerators = function () {
     /* TODO: change to use currentGenerators once that includes current gens only */
-    // return seq.models.Generator.findAll({ where: { currentCollector: this.name } })
     return seq.models.Generator.findAll()
     .then((gens) => {
       gens.filter((gen) =>

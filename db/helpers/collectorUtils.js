@@ -89,11 +89,11 @@ function validateVersion(version) {
  */
 function assignUnassignedGenerators() {
   return utils.seq.models.Generator.findAll(
-    // unassigned generators have no currentCollector, thus collectorId will be null
-    { where: { isActive: true, collectorId: null } },
-  )
-  // .then((gens) => gens.filter((g) => g.currentCollector === null))
-  .map((g) => {
+    // finds all unassigned generators (those with no currentCollector).
+    // Use collectorId because it's a field on the db model, vs currentCollector
+    // which is an association and can't be looked up with a normal where clause
+    { where: { isActive: true, collectorId: null } }
+  ).map((g) => {
     g.assignToCollector();
     return g.save();
   });

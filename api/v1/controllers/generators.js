@@ -200,7 +200,6 @@ module.exports = {
     apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     const resultObj = { reqStartTime: req.timestamp };
     const toPut = req.swagger.params.queryBody.value;
-    // console.log('toPut: ', toPut)
     const puttableFields =
       req.swagger.params.queryBody.schema.schema.properties;
     let instance;

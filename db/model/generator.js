@@ -163,7 +163,6 @@ module.exports = function generator(seq, dataTypes) {
               });
           })
           .then(() => {
-            // console.log('inst---> ', inst)
             return inst.assignToCollector();
           });
       }, // beforeCreate
@@ -195,7 +194,6 @@ module.exports = function generator(seq, dataTypes) {
             !isCurrentCollectorIncluded ||
             (inst.changed('possibleCollectors') && !inst.currentCollector)
            ) {
-          console.log('assigning generator to Collector!')
           inst.assignToCollector();
         }
 
@@ -228,7 +226,6 @@ module.exports = function generator(seq, dataTypes) {
           Promise.resolve().then(() => {
             if (inst.currentCollector) {
               const newCollector = inst.currentCollector.name;
-              // console.log('newCollector>>>> ', newCollector)
               return hbUtils.trackGeneratorChanges(inst, null, newCollector);
             }
           }),
@@ -241,8 +238,6 @@ module.exports = function generator(seq, dataTypes) {
       }, // afterCreate
 
       afterUpdate(inst) {
-        console.log('afterUpdate >>>>>', inst)
-        debugger;
         const oldCollectorName = inst.previous('currentCollector') ?
                                  inst.previous('currentCollector').name : null;
         const newCollectorName = inst.get('currentCollector') ?
@@ -304,13 +299,11 @@ module.exports = function generator(seq, dataTypes) {
       as: 'possibleCollectors',
       through: 'GeneratorCollectors',
       foreignKey: 'generatorId',
-      // scope: ['withoutGenerators'],
     });
 
     assoc.currentCollector = Generator.belongsTo(models.Collector, {
       as: 'currentCollector',
       foreignKey: 'collectorId',
-      // scope: ['withoutGenerators'],
     });
 
     assoc.writers = Generator.belongsToMany(models.User, {
@@ -360,18 +353,6 @@ module.exports = function generator(seq, dataTypes) {
     }, {
       override: true,
     });
-
-    // used in collector association to avoid circular dependency problem where
-    // a collector gets currentGenerators, which need to get collectors... and so on.
-    // Generator.addScope('withoutCollectors', {
-    //   include: [
-    //     {
-    //       association: assoc.user,
-    //       attributes: ['name', 'email', 'fullName'],
-    //     },
-    //   ],
-    //   order: ['name'],
-    // });
 
     Generator.addScope('user', {
       include: [
@@ -440,7 +421,6 @@ module.exports = function generator(seq, dataTypes) {
   Generator.createWithCollectors = function (requestBody) {
     let createdGenerator;
     let collectors;
-    console.log('in createWithCollectors')
 
     return Promise.resolve()
     .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
@@ -458,16 +438,10 @@ module.exports = function generator(seq, dataTypes) {
       createdGenerator = gen;
       return createdGenerator.addPossibleCollectors(collectors);
     })
-    // .then(() => createdGenerator.addPossibleCollectors(collectors))
-    // .then(() => createdGenerator.setCurrentCollector(currentCollector))
-    .then(() => {
-      // console.log(createdGenerator)
-      return createdGenerator.reload()
-    });
+    .then(() => createdGenerator.reload());
   };
 
   Generator.findForHeartbeat = function (findOpts) {
-    console.log('entered findForHeartbeat: ', findOpts)
     return Generator.findAll(findOpts)
     .then((gens) => gens.map((g) => g.updateForHeartbeat()))
     .then((genpromises) => Promise.all(genpromises));
@@ -502,7 +476,6 @@ module.exports = function generator(seq, dataTypes) {
       } else {
         this.possibleCollectors = collectors;
       }
-      console.log('collectors >>>> ', collectors)
       return this.addPossibleCollectors(collectors);
     })
     .then(() => this.update(requestBody))
