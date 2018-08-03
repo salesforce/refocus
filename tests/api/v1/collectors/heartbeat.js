@@ -330,7 +330,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         it('create', (done) => {
           Promise.resolve()
           .then(() => u.createGenerator(generator1, userId, collector1))
-          .then((g) => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.sendHeartbeat(collector1, collectorTokens))
           .then((res) => {
             u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res);
             expect(res.body.generatorsAdded[0].aspects[0])

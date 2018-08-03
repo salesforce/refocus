@@ -3310,7 +3310,7 @@ paths:
               - description
               - intervalSecs
               - name
-              # - currentCollector
+              - currentCollector
               - updatedAt
               - -isActive
               - -aspects
@@ -3321,7 +3321,7 @@ paths:
               - -intervalSecs
               - -name
               - -updatedAt
-              # - -currentCollector
+              - -currentCollector
         -
           $ref: "#/parameters/limitParam"
         -
