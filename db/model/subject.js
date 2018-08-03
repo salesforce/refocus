@@ -190,6 +190,8 @@ module.exports = function subject(seq, dataTypes) {
        * @returns {Promise}
        */
       afterUpdate(inst /* , opts */) {
+        const cmds = [];
+
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
 
@@ -205,8 +207,7 @@ module.exports = function subject(seq, dataTypes) {
 
         if (isSubjectUnpublished) {
           promiseArr.push(
-            subjectUtils.removeRelatedSamples(inst.dataValues, seq)
-          );
+            subjectUtils.removeRelatedSamples(inst.dataValues, seq));
         }
 
         if (inst.changed('absolutePath')) {
@@ -217,10 +218,23 @@ module.exports = function subject(seq, dataTypes) {
           promiseArr.push(redisOps.renameKey(subjectType, oldAbsPath,
            newAbsPath));
 
+          if (inst.isPublished) {
+            // duplicate subject-to-aspect resource map with new absolute path
+            promiseArr.push(redisOps.executeCommand(redisOps.duplicateSet(
+              redisOps.subAspMapType, newAbsPath, oldAbsPath)));
+
+            /* add new subject absolute path entries to aspect-to-subject
+              resource maps */
+            promiseArr.push(
+              redisOps.executeCommand(redisOps.getSubjAspMapMembers(oldAbsPath))
+              .map((aspectName) => cmds.push(
+                redisOps.addSubjectAbsPathInAspectSet(aspectName, newAbsPath)))
+            );
+          }
+
           // remove all the related samples
           promiseArr.push(
-            subjectUtils.removeRelatedSamples(inst._previousDataValues, seq)
-          );
+            subjectUtils.removeRelatedSamples(inst._previousDataValues, seq));
         }
 
         if (inst.changed('parentAbsolutePath') ||
@@ -257,10 +271,11 @@ module.exports = function subject(seq, dataTypes) {
           instDataObj));
 
         /*
-         * Once all the data related changes are done and the sample realtime
-         * events have been sent. Send the corresponding subject realtime event
+         * Once all the data-related changes are done and the sample realtime
+         * events have been sent, send the corresponding subject realtime event.
          */
         return Promise.all(promiseArr)
+        .then(() => redisOps.executeBatchCmds(cmds))
         .then(() => {
           if (isSubjectUnpublished) {
             // Treat unpublishing a subject as a "delete" event.
@@ -278,7 +293,7 @@ module.exports = function subject(seq, dataTypes) {
               changedKeys, ignoreAttributes);
             publishObject(inst, eventName.add, changedKeys,
                 ignoreAttributes);
-          } else if (inst.isPublished && (inst.changed('tags') ||
+          } else if (inst.isPublished && (common.tagsChanged(inst) ||
             inst.changed('parentId'))) {
             /*
              * If tags OR parent were updated, send a "delete" event followed

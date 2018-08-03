@@ -224,7 +224,6 @@ module.exports = {
       instance.possibleCollectors = _collectors
       return instance.setPossibleCollectors(_collectors);
     })
-    // .then(() => instance.reload())
     .then(() => u.updateInstance(instance, puttableFields, toPut))
     .then(() => instance.reload())
     .then((retVal) =>

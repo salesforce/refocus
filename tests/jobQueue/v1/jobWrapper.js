@@ -17,15 +17,29 @@ const expect = require('chai').expect;
 const tu = require('../../testUtils');
 const u = require('./utils');
 const path = '/v1/samples/upsert/bulk';
+const sinon = require('sinon');
+const activityLogUtil = require('../../../utils/activityLog');
+const MILLISECONDS_EXPRESSION = /^\d*ms/;
 
 describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
+  beforeEach((done) => {
+    sinon.spy(activityLogUtil, 'printActivityLogString');
+    done();
+  });
   before(() => {
     tu.toggleOverride('enableWorkerProcess', true);
+    tu.toggleOverride('enableJobCreateActivityLogs', true);
   });
+  afterEach((done) => {
+    activityLogUtil.printActivityLogString.restore();
+    done();
+  });
+
   after(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => {
     tu.toggleOverride('enableWorkerProcess', false);
+    tu.toggleOverride('enableJobCreateActivityLogs', false);
   });
 
   it('jobQueue should let you create any type of job', (done) => {
@@ -59,6 +73,16 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
       expect(job.type).to.equal(jobType);
       expect(job.data).to.equal(testData);
       expect(job.id).to.be.at.least(1);
+      sinon.assert.calledWith(
+        activityLogUtil.printActivityLogString,
+        sinon.match({
+          jobId: sinon.match.number,
+          jobPriority: 0,
+          jobType: 'myTestJob',
+          process: sinon.match.any,
+          totalTime: sinon.match(MILLISECONDS_EXPRESSION),
+        }),
+        'jobCreate');
       done();
     })
     .catch((err) => done(err));

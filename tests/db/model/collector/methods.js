@@ -135,8 +135,7 @@ describe('tests/db/model/collector/methods.js >', () => {
             Generator.create(generator1, { validate: false, hooks: false }),
             Generator.create(generator2, { validate: false, hooks: false }),
             Generator.create(generator3, { validate: false, hooks: false }),
-          ).spread((gen1, gen2, gen3) => {
-            return Promise.join(
+          ).spread((gen1, gen2, gen3) => Promise.join(
               gen1.setPossibleCollectors(
                 [dbCollector1, dbCollector2, dbCollector3]
               ),
@@ -146,8 +145,7 @@ describe('tests/db/model/collector/methods.js >', () => {
               gen3.setPossibleCollectors(
                 [dbCollector1, dbCollector2, dbCollector3]
               ),
-            );
-          }
+            )
           )));
 
       afterEach(u.forceDelete);

@@ -131,6 +131,9 @@ const queueStatsActivityLogsInterval = 60000;
 // sent to collector.
 const encryptionAlgoForCollector = 'aes-256-cbc';
 
+const kueShutdownTimeout = +pe.KUE_SHUTDOWN_TIMEOUT || 5000;
+const waitingSigKillTimeout = +pe.WAITING_SIG_KILL_TIMEOUT || 60000;
+
 module.exports = {
   api: {
     defaults: {
@@ -288,4 +291,6 @@ module.exports = {
   hiddenRoutes,
   corsRoutes,
   encryptionAlgoForCollector,
+  kueShutdownTimeout,
+  waitingSigKillTimeout,
 };

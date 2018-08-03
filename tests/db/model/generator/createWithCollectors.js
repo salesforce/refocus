@@ -75,7 +75,6 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     localGenerator.isActive = true;
 
     // make collector1 alive
-    debugger;
     collector1.update({ status: 'Running', lastHeartbeat: Date.now() })
     .then(() => Generator.createWithCollectors(localGenerator))
     .then((o) => {

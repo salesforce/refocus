@@ -270,9 +270,9 @@ function heartbeat(req, res, next) {
       throw new apiErrors.ForbiddenError({
         explanation: 'Authentication Failed',
       });
-    } else if (o.status !== 'Running' && o.status !== 'Paused') {
+    } else if (o.status !== 'Running' && o.status !== 'Paused' && o.status !== 'MissedHeartbeat') {
       throw new apiErrors.ForbiddenError({
-        explanation: `Collector must be running or paused. Status: ${o.status}`,
+        explanation: `Collector must be running or paused or missed. Status: ${o.status}`,
       });
     }
 
@@ -410,7 +410,6 @@ function startCollector(req, res, next) {
   .then((coll) => {
     collToReturn = coll;
     /* TODO: change to use currentGenerators once that includes current gens only */
-
     return Generator.findAll({ where: { collectorId: coll.id } });
   })
   /* Add all the attributes necessary to send back to collector. */

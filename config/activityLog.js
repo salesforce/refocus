@@ -35,6 +35,22 @@ module.exports = {
     process: 'None',
     totalTime: '0ms',
   },
+  jobCleanup: {
+    activity: 'jobCleanup',
+    iterations: 0,
+    errors: 0,
+    removed: 0,
+    skipped: 0,
+    totalTime: '0ms',
+  },
+  jobCreate: {
+    activity: 'jobCreate',
+    jobId: 'None',
+    jobPriority: 'None',
+    jobType: 'None',
+    process: 'None',
+    totalTime: '0ms',
+  },
   kueStats: {
     activity: 'kueStats',
     activeCount: 0,
@@ -80,6 +96,11 @@ module.exports = {
     totalTime: 'None',
     user: 'None',
   },
+  sigterm: {
+    activity: 'sigterm',
+    status: 'None',
+    totalTime: '0ms',
+  },
   unauthorized: {
     activity: 'unauthorized',
     ipAddress: 'None',
@@ -103,13 +124,5 @@ module.exports = {
     totalTime: 'None',
     user: 'None',
     workTime: 'None',
-  },
-  jobCleanup: {
-    activity: 'jobCleanup',
-    iterations: 0,
-    errors: 0,
-    removed: 0,
-    skipped: 0,
-    totalTime: '0ms',
   },
 };

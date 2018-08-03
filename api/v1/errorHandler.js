@@ -14,12 +14,41 @@
 'use strict';
 
 const util = require('util');
+const nodeEnv = require('../../config').nodeEnv;
 const featureToggles = require('feature-toggles');
 const apiErrors = require('./apiErrors');
 const constants = require('./constants');
 const dbErrors = require('../../db/dbErrors');
 const cacheErrors = require('../../cache/redisErrors');
 const activityLog = require('../../utils/activityLog');
+
+function stackTraceFilter(ln) {
+  return !ln.includes('/node_modules/') &&
+  !ln.includes('timers.js') &&
+  !ln.includes('next_tick') &&
+  !ln.includes('module.js');
+} // stackTraceFilter
+
+/**
+ * Display additional details from the request, response and error using
+ * console.error. Filters a bunch of node_modules and core node.js lines from
+ * the stack trace so we can focus on *our* code.
+ *
+ * @param {Object} req - the request
+ * @param {Object} errResponse - the error response
+ * @param {Error} - the error
+ * @param {Function} outputFn - the output function, defaults to console.error
+ */
+function displayErrorDetails(req, errResponse, err, outputFn = console.error) {
+  outputFn('\n------------\nerrorHandler\n------------');
+  outputFn(req.method, req.url, req.body);
+  outputFn(errResponse);
+  outputFn(`Status ${err.status}: ${err.message}`);
+  err.stack.split('\n').slice(1) // ignore the first line of the stack trace
+    .filter(stackTraceFilter)
+    .forEach((ln) => outputFn(ln));
+  outputFn('');
+} // displayErrorDetails
 
 /**
  * Indicates whether the error is an API error as defined by our apiErrors
@@ -114,12 +143,12 @@ function constructError(err) {
 }
 
 module.exports = function errorHandler(err, req, res, next) {
-  if (!util.isError(err)) { // If no error is defined, pass to next middleware
-    return next();
-  }
+  /* If no error is defined, pass to next middleware. */
+  if (!util.isError(err)) return next();
 
+  let errResponse;
   try {
-    const errResponse = constructError(err);
+    errResponse = constructError(err);
     if (!isApiError(err) && !isDbError(err) && !isCacheError(err)) {
       if (/Route defined in Swagger specification.*/.test(err.message)) {
         err.status = constants.httpStatus.NOT_ALLOWED;
@@ -136,10 +165,7 @@ module.exports = function errorHandler(err, req, res, next) {
           };
 
           // Add "request_id" if header is set by heroku.
-          if (req.headers && req.headers['x-request-id']) {
-            logObject.request_id = req.headers['x-request-id'];
-          }
-
+          if (req.request_id) logObject.request_id = req.request_id;
           activityLog.printActivityLogString(logObject, 'unauthorized');
         }
       } else {
@@ -147,18 +173,10 @@ module.exports = function errorHandler(err, req, res, next) {
       }
     }
 
-    // console.log('\n-----ERROR HANDLER------------------------------------');
-    // console.log('ERROR STATUS: ', err.status);
-    // console.log('ERROR RESPONSE: ', errResponse);
-    // console.log('REQUEST BODY: ', req.body);
-    // console.log('STACK: ', err.stack);
-    // console.log('------------------------------------------------------\n');
+    if (nodeEnv === 'development') displayErrorDetails(req, errResponse, err);
     res.status(err.status).json(errResponse);
   } catch (err2) {
-    // console.log('\n-----ERROR HANDLER CATCH------------------------------');
-    // console.log(err2);
-    // console.log('STACK: ', util.isError(err2) && err2.stack);
-    // console.log('------------------------------------------------------\n');
-    // return next;
+    if (nodeEnv === 'development') displayErrorDetails(req, errResponse, err);
+    return next;
   }
 };

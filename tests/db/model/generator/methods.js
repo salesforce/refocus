@@ -61,10 +61,6 @@ describe('tests/db/model/generator/methods.js >', () => {
       Collector.create(coll3),
     ))
     .spread((_gen1, _coll1, _coll2, _coll3) => {
-      // gen1.id = _gen1.id;
-      // coll1.id = _coll1.id;
-      // coll2.id = _coll2.id;
-      // coll3.id = _coll3.id;
       generator1 = _gen1;
       collector1 = _coll1;
       collector2 = _coll2;
@@ -138,7 +134,8 @@ describe('tests/db/model/generator/methods.js >', () => {
         generator1.assignToCollector();
         expect(generator1.currentCollector).to.equal(null);
       })
-    );
+      .catch(done);
+    });
 
     it('collectors specified, none available (unassigned)', () =>
       Promise.all([

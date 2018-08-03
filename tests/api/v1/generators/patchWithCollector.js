@@ -273,7 +273,6 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
       // make generator active
       .then(() => generatorInst.update({ isActive: true }))
       .then((gen) => {
-        // currentcollector = collectorAlive1
         expect(gen.currentCollector.name).to.be.equal(collectorAlive1.name);
 
         // set possible collectors = collector1, collectorAlive2

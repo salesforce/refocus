@@ -162,9 +162,7 @@ module.exports = function generator(seq, dataTypes) {
                 throw new dbErrors.SampleGeneratorContextEncryptionError();
               });
           })
-          .then(() => {
-            return inst.assignToCollector();
-          });
+          .then(() => inst.assignToCollector());
       }, // beforeCreate
 
       beforeUpdate(inst /* , opts */) {
