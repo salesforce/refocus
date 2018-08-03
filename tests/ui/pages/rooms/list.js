@@ -1,14 +1,12 @@
-const utils = require('../../utils.js');
-
-var ServerMock = require("mock-http-server");
 const expect = require('chai').expect;
-const setup = require('../../setup.js');
+
+const utils = require('../../utils.js');
 const testUtils = require('../../../testUtils.js');
-const userName = 'UI-Test-User';
+const setup = require('../../setup.js');
+
 const { baseUrl } = setup;
 
 let browser;
-let name;
 
 describe('sample test', function() {
   // These tests seem to take longer than mocha default 2000ms
