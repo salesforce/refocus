@@ -184,7 +184,7 @@
     "istanbul": "^0.4.5",
     "mocha": "^3.1.2",
     "mocha-lcov-reporter": "1.2.0",
-    "puppeteer": "^1.6.0",
+    "puppeteer": "^1.6.2",
     "redbox-react": "^1.6.0",
     "require-dir": "^0.3.2",
     "sinon": "^5.0.10",
