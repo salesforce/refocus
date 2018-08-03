@@ -19,6 +19,7 @@ const gtUtil = u.gtUtil;
 const path = '/v1/generators';
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const expect = require('chai').expect;
+const sinon = require('sinon');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -56,6 +57,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
     .then(() => done())
     .catch(done);
   });
+
   after(u.forceDelete);
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
@@ -160,6 +162,54 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
       expect(res.body.errors[0].source).to.equal('Generator');
       return done();
+    });
+  });
+
+  describe('alive and running collector available >', () => {
+    let clock;
+    const now = Date.now();
+    const collector4 = {
+      name: 'IamAliveAndRunning',
+      version: '1.0.0',
+      status: 'Running',
+      lastHeartbeat: now,
+    };
+
+    before(() => {
+      clock = sinon.useFakeTimers(now);
+    });
+
+    before((done) => {
+      tu.db.Generator.destroy({ where: { name: generator.name }, force: true })
+
+      // creates alive and running collector
+      .then(() => tu.db.Collector.create(collector4))
+      .then(() => done())
+      .catch(done);
+    });
+
+    after(() => clock.restore());
+
+    it('posting generator should set currentCollector', (done) => {
+      const localGenerator = JSON.parse(JSON.stringify(generator));
+      localGenerator.possibleCollectors = [
+        collector1.name, // not alive
+        collector4.name, // alive
+      ];
+      localGenerator.isActive = true; // will make localGenerator active
+      api.post(path)
+      .set('Authorization', token)
+      .send(localGenerator)
+      .expect(constants.httpStatus.CREATED)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.possibleCollectors.length).to.equal(TWO);
+        expect(res.body.currentCollector).to.equal('IamAliveAndRunning');
+        return done();
+      });
     });
   });
 });

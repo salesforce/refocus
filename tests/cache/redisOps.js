@@ -31,7 +31,7 @@ describe('tests/cache/redisOps >', () => {
   let s2;
   let s3;
 
-  before((done) => {
+  beforeEach((done) => {
     tu.toggleOverride(sampleStore.constants.featureName, true);
     Aspect.create({
       isPublished: true,
@@ -78,7 +78,7 @@ describe('tests/cache/redisOps >', () => {
       parentId: s1.id,
     }))
     .then((created) => (s3 = created))
-    .then(() => Sample.create({
+    .then(() => Sample.create({ // name: '___Subject1.___Subject2|Aspect1'
       subjectId: s2.id,
       aspectId: a1.id,
       value: '0',
@@ -86,7 +86,7 @@ describe('tests/cache/redisOps >', () => {
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
       ],
     }))
-    .then(() => Sample.create({
+    .then(() => Sample.create({ // name: '___Subject1.___Subject2|Aspect2'
       subjectId: s2.id,
       aspectId: a2.id,
       value: '50',
@@ -94,7 +94,7 @@ describe('tests/cache/redisOps >', () => {
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
       ],
     }))
-    .then(() => Sample.create({
+    .then(() => Sample.create({ // name: '___Subject1.___Subject3|Aspect1'
       subjectId: s3.id,
       aspectId: a1.id,
       value: '5',
@@ -106,7 +106,7 @@ describe('tests/cache/redisOps >', () => {
     .catch(done);
   });
 
-  after((done) => {
+  afterEach((done) => {
     u.forceDelete(done)
     .then(() => rcli.flushallAsync())
     .then(() => tu.toggleOverride(sampleStore.constants.featureName,
@@ -116,7 +116,35 @@ describe('tests/cache/redisOps >', () => {
   });
 
   describe('deleteSampleKeys tests >', () => {
-    it('should return deleted samples back', (done) => {
+    it('should return deleted samples back, aspsubmap association', (done) => {
+      const aspectName = `${tu.namePrefix}Aspect1`;
+      redisOps.deleteSampleKeys(sampleStore.constants.objectType.aspSubMap,
+        aspectName)
+      .then((samples) => {
+        expect(samples).to.have.a.lengthOf(2);
+        expect(samples[0].name).to.be.oneOf([
+          '___Subject1.___Subject2' + '|' + aspectName,
+          '___Subject1.___Subject3' + '|' + aspectName,
+        ]);
+        expect(samples[1].name).to.be.oneOf([
+          '___Subject1.___Subject2' + '|' + aspectName,
+          '___Subject1.___Subject3' + '|' + aspectName,
+        ]);
+        const cmd = [
+          ['hgetall', '___Subject1.___Subject2' + '|' + aspectName],
+          ['hgetall', '___Subject1.___Subject3' + '|' + aspectName],
+        ];
+        return rcli.batch(cmd).execAsync();
+      })
+      .then((samples) => {
+        expect(samples[0]).to.equal(null);
+        expect(samples[1]).to.equal(null);
+        return done();
+      })
+      .catch((err) => done(err));
+    });
+
+    it('should return deleted samples back, subaspmap association', (done) => {
       const subject2AbsPath = `${tu.namePrefix}Subject1.` +
         `${tu.namePrefix}Subject2`;
       redisOps.deleteSampleKeys(sampleStore.constants.objectType.subAspMap,
@@ -153,6 +181,27 @@ describe('tests/cache/redisOps >', () => {
         expect(samples).to.have.a.lengthOf(0);
         return done();
       })
+      .catch((err) => done(err));
+    });
+  });
+
+  describe('deleteSubjectFromAspectResourceMaps >', () => {
+    it('subject deleted from aspect resource map', (done) => {
+      const aspSubMapAspect2Key = sampleStore.toKey(
+        sampleStore.constants.objectType.aspSubMap, a2.name
+      );
+      rcli.smembersAsync(aspSubMapAspect2Key)
+      .then((subjectNames) => {
+        expect(subjectNames).to.deep.equal(['___subject1.___subject2']);
+        return redisOps.executeCommand(
+          redisOps.deleteSubjectFromAspectResourceMaps(
+            [a2.name], s2.absolutePath));
+      })
+      .then(() => rcli.smembersAsync(aspSubMapAspect2Key))
+      .then((subNames) => {
+        expect(subNames).to.deep.equal([]);
+      })
+      .then(() => done())
       .catch((err) => done(err));
     });
   });

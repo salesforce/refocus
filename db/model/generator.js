@@ -161,13 +161,31 @@ module.exports = function generator(seq, dataTypes) {
               .catch(() => {
                 throw new dbErrors.SampleGeneratorContextEncryptionError();
               });
-          });
+          })
+          .then(() => inst.assignToCollector());
       }, // beforeCreate
 
       beforeUpdate(inst /* , opts */) {
         const gtName = inst.generatorTemplate.name;
         const gtVersion = inst.generatorTemplate.version;
-        if (inst.changed('isActive')) {
+
+        let isCurrentCollectorIncluded = true;
+        if (inst.possibleCollectors && inst.changed('possibleCollectors')) {
+          isCurrentCollectorIncluded = inst.possibleCollectors.some(
+            (coll) => coll.name === inst.currentCollector
+          );
+        }
+
+        /*
+         Assign to collector in following cases:
+         1) isActive is changed.
+         2) If possibleCollectors are changed and this generator current
+          collector is not included in the changed possibleCollectors.
+         3) If possibleCollectors are changed and collector is not assigned
+          to generator
+         */
+        if (inst.changed('isActive') || !isCurrentCollectorIncluded ||
+          (inst.changed('possibleCollectors') && !inst.currentCollector)) {
           inst.assignToCollector();
         }
 
@@ -212,8 +230,8 @@ module.exports = function generator(seq, dataTypes) {
       }, // afterCreate
 
       afterUpdate(inst) {
-        let oldCollector = inst.previous('currentCollector');
-        let newCollector = inst.get('currentCollector');
+        const oldCollector = inst.previous('currentCollector');
+        const newCollector = inst.get('currentCollector');
         return hbUtils.trackGeneratorChanges(inst, oldCollector, newCollector);
       }, //afterUpdate
     },
@@ -413,9 +431,13 @@ module.exports = function generator(seq, dataTypes) {
   Generator.prototype.updateWithCollectors = function (requestBody) {
     return Promise.resolve()
     .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
-    .then((collectors) => this.addPossibleCollectors(collectors))
-    .then(() => this.update(requestBody))
-    .then(() => this.reload());
+    .then((collectors) => {
+      // prevent overwrite of reloaded collectors on update
+      delete requestBody.possibleCollectors;
+      return this.addPossibleCollectors(collectors);
+    })
+    .then(() => this.reload())
+    .then(() => this.update(requestBody));
   };
 
   Generator.prototype.isWritableBy = function (who) {
@@ -461,9 +483,10 @@ module.exports = function generator(seq, dataTypes) {
    * currentCollector field and expects the caller to save later.
    */
   Generator.prototype.assignToCollector = function () {
-    if (this.isActive && this.possibleCollectors && this.possibleCollectors.length) {
-      this.possibleCollectors.sort((c1, c2) => c1.name > c2.name);
-      const newColl = this.possibleCollectors.find((c) => c.isRunning() && c.isAlive());
+    const possibleCollectors = this.possibleCollectors;
+    if (this.isActive && possibleCollectors && possibleCollectors.length) {
+      possibleCollectors.sort((c1, c2) => c1.name > c2.name);
+      const newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive());
       this.currentCollector = newColl ? newColl.name : null;
     } else {
       this.currentCollector = null;

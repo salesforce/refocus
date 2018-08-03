@@ -95,7 +95,16 @@ describe('tests/cache/models/samples/upsert.js, ' +
         expect(user.email).to.be.an('string');
         expect(user.profile).to.be.an('object');
         expect(user.profile.name).to.be.an('string');
-        done();
+
+        // check aspsubmap for added set
+        rcli.smembersAsync(
+          'samsto:aspsubmap:' + aspect.name.toLowerCase()
+        )
+        .then((resCli) => {
+          expect(resCli).to.deep.equal([subject.absolutePath.toLowerCase()]);
+        })
+        .then(() => done())
+        .catch(done);
       });
     });
   });

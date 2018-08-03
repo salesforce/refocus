@@ -172,6 +172,25 @@ function validateContextDef(contextDef, requiredProps) {
   }
 } // validateContextDef
 
+/**
+ * Determine whether the tags have changed by doing a deep comparison
+ * @param  {Object} inst - db instance
+ * @returns {Boolean}
+ */
+function tagsChanged(inst) {
+  let prevTags = inst.previous('tags') || [];
+  let currTags = inst.get('tags') || [];
+  if (!inst.changed('tags')) {
+    return false;
+  } else if (prevTags.length !== currTags.length) {
+    return true;
+  } else {
+    prevTags = prevTags.map(t => t.toLowerCase()).sort();
+    currTags = currTags.map(t => t.toLowerCase()).sort();
+    return !prevTags.every((prevVal, i) => prevVal === currTags[i]);
+  }
+} // tagsChanged
+
 module.exports = {
   checkDuplicatesInStringArray,
   dbconf,
@@ -181,4 +200,5 @@ module.exports = {
   changeType,
   validateObject,
   validateContextDef,
+  tagsChanged,
 }; // exports

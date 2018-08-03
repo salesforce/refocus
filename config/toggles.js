@@ -83,6 +83,10 @@ const longTermToggles = {
   // Activity logging
   enableApiActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'api'),
   enableJobActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'job'),
+  enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'jobCleanup'),
+  enableJobCreateActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'jobCreate'),
   enableKueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'kueStats'),
   enableLimiterActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
@@ -96,8 +100,6 @@ const longTermToggles = {
     'unauthorized'),
   enableWorkerActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'worker'),
-  enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
-    'jobCleanup'),
 
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
@@ -145,20 +147,9 @@ const longTermToggles = {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const shortTermToggles = {
-  /*
-   * Stop making special call to db/redis to attach the subject for real-time
-   * publishing after sample upsert--just use the subject we already got from
-   * redis at the beginning of the upsertOneSample operation.
-   */
-  preAttachSubject: environmentVariableTrue(pe, 'PRE_ATTACH_SUBJECT'),
-
   // get subject and aspect for realtime from database
   attachSubAspFromDB: environmentVariableTrue(pe,
     'ATTACH_SUB_ASP_FROM_DB'),
-
-  // when attaching from db, use scopes?
-  attachSubAspFromDBuseScopes: environmentVariableTrue(pe,
-    'ATTACH_SUB_ASP_FROM_DB_USE_SCOPES'),
 
   // turn on logging to log invalid hmset values
   logInvalidHmsetValues: environmentVariableTrue(pe,
