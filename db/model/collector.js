@@ -198,7 +198,7 @@ module.exports = function collector(seq, dataTypes) {
 
   Collector.postImport = function (models) {
 
-    // This field is not currently needed by collector, but 'GeneratorCollector' 
+    // This field is not currently needed by collector, but 'GeneratorCollector'
     // table already exists because generators have a many-to-many association
     // with possibleCollectors.
     assoc.possibleGenerators = Collector.belongsToMany(models.Generator, {

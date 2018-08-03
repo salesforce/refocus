@@ -135,6 +135,7 @@ module.exports = function generator(seq, dataTypes) {
       type: dataTypes.JSON,
       allowNull: true,
     },
+
     // currentCollector: {
     //   type: dataTypes.STRING(constants.fieldlen.normalName),
     //   allowNull: true,
@@ -464,6 +465,7 @@ module.exports = function generator(seq, dataTypes) {
     .then((collectors) => {
       // prevent overwrite of reloaded collectors on update
       delete requestBody.possibleCollectors;
+
       // mock possibleCollectors on instance so we don't need to reload
       // again to get the currentCollector (this matters if we try to set
       // isActive=true and add a possibleCollector at the same time)
@@ -474,6 +476,7 @@ module.exports = function generator(seq, dataTypes) {
       } else {
         this.possibleCollectors = collectors;
       }
+
       return this.addPossibleCollectors(collectors);
     })
     .then(() => this.update(requestBody))

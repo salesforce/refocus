@@ -119,6 +119,7 @@ function updateGenerator(gen, userToken, collector) {
   if (collector) {
     // mock currentCollector on generator so we don't need to reload
     updateData.currentCollector = collector;
+
     // store collectorId so that currentCollector will be persisted
     updateData.collectorId = collector.id;
   }

@@ -134,8 +134,7 @@ describe('tests/db/model/generator/methods.js >', () => {
         generator1.assignToCollector();
         expect(generator1.currentCollector).to.equal(null);
       })
-      .catch(done);
-    });
+    );
 
     it('collectors specified, none available (unassigned)', () =>
       Promise.all([

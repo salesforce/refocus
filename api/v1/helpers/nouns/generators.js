@@ -25,14 +25,16 @@ const m = 'generator';
  * Sequelize find function
  * @returns {Object} options object with the "where" clause modified
  */
-function modifyWhereClause (params, options) {
+function modifyWhereClause(params, options) {
   if (options.where.currentCollector) {
     const nameStr = options.where.currentCollector;
-    options.include = [{
-      model: Collector,
-      as: 'currentCollector',
-      where: { name: nameStr }
-    }];
+    options.include = [
+      {
+        model: Collector,
+        as: 'currentCollector',
+        where: { name: nameStr, },
+      },
+    ];
     delete options.where.currentCollector;
   }
 
