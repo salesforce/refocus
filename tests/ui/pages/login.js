@@ -1,7 +1,7 @@
 const expect = require('chai').expect;
 const setup = require('../setup.js');
 const testUtils = require('../../testUtils.js');
-const userName = 'UI-Tester-User';
+const userName = 'UI-Test-User';
 const { baseUrl } = setup;
 
 let browser;

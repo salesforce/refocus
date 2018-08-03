@@ -1,18 +1,12 @@
 const puppeteer = require('puppeteer');
-const sinon = require('sinon');
-
-//const authenticate = require('../../api/v1/controllers/authenticate');
-//const authStub = sinon.stub(authenticate, 'authenticateUser')
-//authStub.returns('aaa');
-//authStub.callsArg(2);
-//console.log(authenticate.authenticateUser())
 
 const app = require('./../../index.js').app;
 
+/*
+ * If you would like to see the UI tests happening in the broweser,
+ * add the following fields: headless: false, slowMo: 10
+ */
 const opts = {
-  //headless: false,
-  //slowMo: 10,
-  //timeout: 10000,
   // 'args' option is needed for this to work in travis
   args:['--no-sandbox', '--disable-setuid-sandbox']
 };
