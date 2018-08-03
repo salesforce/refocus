@@ -96,6 +96,8 @@ const longTermToggles = {
     'queueStats'),
   enableRealtimeActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'realtime'),
+  enableSigtermActivityLog: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'sigterm'),
   enableUnauthorizedActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'unauthorized'),
   enableWorkerActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
@@ -164,8 +166,10 @@ const shortTermToggles = {
     'ENABLE_CACHE_PERSPECTIVE'),
 
   // Enable IOREDIS instead of node redis
-  enableIORedis: environmentVariableTrue(pe,
-    'ENABLE_IOREDIS'),
+  enableIORedis: environmentVariableTrue(pe, 'ENABLE_IOREDIS'),
+
+  // Enable graceful shutdown handling event
+  enableSigtermEvent: environmentVariableTrue(pe, 'ENABLE_SIGTERM_EVENT'),
 
   // Enable using worker dyno for hierarchy queries
   enqueueHierarchy: environmentVariableTrue(pe, 'ENQUEUE_HIERARCHY'),
