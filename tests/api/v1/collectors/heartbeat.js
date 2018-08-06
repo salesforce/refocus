@@ -79,6 +79,9 @@ gu.createSGtoSGTMapping(sgt, generator3);
 generator1.name += '1';
 generator2.name += '2';
 generator3.name += '3';
+generator1.possibleCollectors = [collector1.name, collector2.name, collector3.name];
+generator2.possibleCollectors = [collector1.name, collector2.name, collector3.name];
+generator3.possibleCollectors = [collector1.name, collector2.name, collector3.name];
 
 let userToken;
 let userId;
@@ -134,14 +137,22 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
     });
 
     describe('validation >', () => {
-      it('no token', (done) => {
+      beforeEach((done) => {
+        Promise.resolve()
+        .then(() => u.stopCollector(collector1, userToken))
+        .then(() => u.startCollector(collector1, collectorTokens, userToken))
+        .then(() => done())
+        .catch(done);
+      });
+
+      it('no token (forbidden)', (done) => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .send({ timestamp: Date.now() })
         .expect(constants.httpStatus.FORBIDDEN)
         .end(done);
       });
 
-      it('invalid token', (done) => {
+      it('invalid token (forbidden)', (done) => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .set('Authorization', 'aaa')
         .send({ timestamp: Date.now() })
@@ -149,14 +160,14 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .end(done);
       });
 
-      it('invalid path, no token', (done) => {
+      it('invalid path, no token (forbidden)', (done) => {
         api.post('/v1/collectors/AAA/heartbeat')
         .send({ timestamp: Date.now() })
         .expect(constants.httpStatus.FORBIDDEN)
         .end(done);
       });
 
-      it('invalid path, valid token', (done) => {
+      it('invalid path, valid token (not found)', (done) => {
         api.post('/v1/collectors/AAA/heartbeat')
         .set('Authorization', collectorTokens[collector1.name])
         .send({ timestamp: Date.now() })
@@ -164,7 +175,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .end(done);
       });
 
-      it('valid user token but needs collector token', (done) => {
+      it('valid user token but needs collector token (forbidden)', (done) => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .set('Authorization', userToken)
         .send({ timestamp: Date.now() })
@@ -172,7 +183,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .end(done);
       });
 
-      it('valid collector token, doesnt match collector - by name', (done) => {
+      it('valid collector token, mismatch (forbidden) - by name', (done) => {
         api.post(`/v1/collectors/${collector1.name}/heartbeat`)
         .set('Authorization', collectorTokens[collector2.name])
         .send({ timestamp: Date.now() })
@@ -180,7 +191,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .end(done);
       });
 
-      it('valid collector token, doesnt match collector - by id', (done) => {
+      it('valid collector token, mismatch (forbidden) - by id', (done) => {
         api.post(`/v1/collectors/${collector1.id}/heartbeat`)
         .set('Authorization', collectorTokens[collector2.name])
         .send({ timestamp: Date.now() })
@@ -188,7 +199,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .end(done);
       });
 
-      it('valid token, matches collector, collector stopped - by name', (done) => {
+      it('valid token, collector stopped (forbidden) - by name', (done) => {
         u.stopCollector(collector1, userToken)
         .then(() => {
           api.post(`/v1/collectors/${collector1.name}/heartbeat`)
@@ -200,20 +211,16 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .catch(done);
       });
 
-      it('valid token, matches collector, collector stopped - by id', (done) => {
-        u.stopCollector(collector1, userToken)
-        .then(() => {
-          api.post(`/v1/collectors/${collector1.id}/heartbeat`)
-          .set('Authorization', collectorTokens[collector1.name])
-          .send({ timestamp: Date.now() })
-          .expect(constants.httpStatus.FORBIDDEN)
-          .end(done);
-        })
-        .catch(done);
+      it('valid token, collector running (ok)', (done) => {
+        api.post(`/v1/collectors/${collector1.name}/heartbeat`)
+        .set('Authorization', collectorTokens[collector1.name])
+        .send({ timestamp: Date.now() })
+        .expect(constants.httpStatus.OK)
+        .end(done);
       });
 
-      it('valid token, matches collector, collector running - by name', (done) => {
-        u.startCollector(collector1, collectorTokens, userToken)
+      it('valid token, collector paused (ok)', (done) => {
+        u.pauseCollector(collector1, collectorTokens, userToken)
         .then(() => {
           api.post(`/v1/collectors/${collector1.name}/heartbeat`)
           .set('Authorization', collectorTokens[collector1.name])
@@ -224,12 +231,16 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .catch(done);
       });
 
-      it('valid token, matches collector, collector running - by id', (done) => {
-        api.post(`/v1/collectors/${collector1.id}/heartbeat`)
-        .set('Authorization', collectorTokens[collector1.name])
-        .send({ timestamp: Date.now() })
-        .expect(constants.httpStatus.OK)
-        .end(done);
+      it('valid token, collector missed (ok)', (done) => {
+        u.missHeartbeat(collector1)
+        .then(() => {
+          api.post(`/v1/collectors/${collector1.name}/heartbeat`)
+          .set('Authorization', collectorTokens[collector1.name])
+          .send({ timestamp: Date.now() })
+          .expect(constants.httpStatus.OK)
+          .end(done);
+        })
+        .catch(done);
       });
     });
 
@@ -249,24 +260,26 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .then((res) => {
           expect(res.body.collectorConfig).to.have.property('status');
           expect(res.body.collectorConfig.status).to.equal('Running');
-          return u.pauseCollector(_localCollector, userToken);
         })
+        .then(() => u.pauseCollector(_localCollector, userToken))
+        .then(() => u.sendHeartbeat(_localCollector, collectorTokens))
         .then((res) => {
-          expect(res.body.status).to.equal('Paused');
-          return u.sendHeartbeat(_localCollector, collectorTokens);
-        })
-        .then((res) => {
+          expect(res.body.collectorConfig).to.have.property('status');
           expect(res.body.collectorConfig.status).to.equal('Paused');
-          return u.resumeCollector(_localCollector, userToken);
         })
+        .then(() => u.resumeCollector(_localCollector, userToken))
+        .then(() => u.sendHeartbeat(_localCollector, collectorTokens))
         .then((res) => {
-          expect(res.body.status).to.equal('Running');
-          return u.sendHeartbeat(_localCollector, collectorTokens);
-        })
-        .then((res) => {
+          expect(res.body.collectorConfig).to.have.property('status');
           expect(res.body.collectorConfig.status).to.equal('Running');
-          done();
         })
+        .then(() => u.missHeartbeat(_localCollector))
+        .then(() => u.sendHeartbeat(_localCollector, collectorTokens))
+        .then((res) => {
+          expect(res.body.collectorConfig).to.have.property('status');
+          expect(res.body.collectorConfig.status).to.equal('Running');
+        })
+        .then(() => done())
         .catch(done);
       });
     });
@@ -384,6 +397,36 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
+
+        it('changes are not carried over after restart', (done) => {
+          Promise.resolve()
+          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.stopCollector(collector1, userToken))
+          .then(() => u.startCollector(collector1, collectorTokens, userToken))
+          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
+          .then(done).catch(done);
+        });
+
+        it('changes are not carried over after resume', (done) => {
+          Promise.resolve()
+          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.pauseCollector(collector1, userToken))
+          .then(() => u.resumeCollector(collector1, userToken))
+          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
+          .then(done).catch(done);
+        });
+
+        it('changes are not carried over after missed heartbeat', (done) => {
+          Promise.resolve()
+          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.missHeartbeat(collector1))
+          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
+          .then(done).catch(done);
+        });
+
       });
 
       describe('basic changes to multiple generators >', () => {
@@ -493,8 +536,11 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .then(() => u.createGenerator(generator2, userId, collector2))
           .then(() => u.createGenerator(generator3, userId, collector3))
           .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(() => u.sendHeartbeat(collector2, collectorTokens))
+          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(() => u.sendHeartbeat(collector3, collectorTokens))
+          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(() => u.updateGenerator(generator1, userToken))
           .then(() => u.updateGenerator(generator2, userToken))
           .then(() => u.updateGenerator(generator3, userToken))
