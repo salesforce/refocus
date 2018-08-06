@@ -9,14 +9,15 @@
  */
 
 module.exports = {
-  up: (qi, Sequelize) => {
+  up: (qi, Sequelize) =>
+
     // add collectorId column to store foreign key
-    return qi.addColumn(
+    qi.addColumn(
       'Generators',
       'collectorId',
       {
         type: Sequelize.UUID,
-        allowNull: true
+        allowNull: true,
       }
     )
     .then(() => {
@@ -53,17 +54,17 @@ module.exports = {
       });
       return Promise.all(updateGeneratorPromises);
     })
-    .then(() => qi.removeColumn('Generators', 'currentCollector'));
-  },
+    .then(() => qi.removeColumn('Generators', 'currentCollector')),
 
-  down: (qi, Sequelize) => {
+  down: (qi, Sequelize) =>
+
     // add currentCollector column to store name
-    return qi.addColumn(
+    qi.addColumn(
       'Generators',
       'currentCollector',
       {
         type: Sequelize.STRING(60), // length 60
-        allowNull: true
+        allowNull: true,
       }
     )
     .then(() => {
@@ -100,6 +101,5 @@ module.exports = {
       });
       return Promise.all(updateGeneratorPromises);
     })
-    .then(() => qi.removeColumn('Generators', 'collectorId'));
-  }
+    .then(() => qi.removeColumn('Generators', 'collectorId')),
 };
