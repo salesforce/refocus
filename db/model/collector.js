@@ -16,6 +16,7 @@ const ValidationError = require('../dbErrors').ValidationError;
 const u = require('../helpers/collectorUtils');
 const assoc = {};
 const collectorConfig = require('../../config/collectorConfig');
+const heartbeatUtils = require('../../api/v1/helpers/verbs/heartbeatUtils');
 const MS_PER_SEC = 1000;
 const collectorStatus = constants.collectorStatuses;
 
@@ -117,8 +118,8 @@ module.exports = function collector(seq, dataTypes) {
 
       beforeUpdate(inst /* , opts */) {
         // Invalid status transition: [Stopped --> Paused]
-        if (inst.changed('status') && inst.status === 'Paused' &&
-        inst.previous('status') === 'Stopped') {
+        if (inst.changed('status') && inst.status === collectorStatus.Paused &&
+        inst.previous('status') === collectorStatus.Stopped) {
           const msg =
             'This collector cannot be paused because it is not running.';
           throw new ValidationError(msg);
@@ -127,17 +128,16 @@ module.exports = function collector(seq, dataTypes) {
 
       afterUpdate(inst /* , opts */) {
         if (inst.changed('status')) {
-          /* if status is changed to Running, then find and assign unassigned
-           generators */
           if (inst.status === collectorStatus.Running) {
+            /* if status is changed to Running, then find and assign unassigned
+             generators */
             return u.assignUnassignedGenerators();
-          }
-
-          if (inst.status === collectorStatus.Stopped ||
-            inst.status === collectorStatus.Paused) {
-            /* if status is changed to Stopped or Paused, then reassign the
-             generators which were assigned to this collector */
-            return inst.reassignGenerators();
+          } else if (inst.previous('status') === collectorStatus.Running) {
+            /* if status is changed from Running to anything else, reassign the
+            generators which were assigned to this collector, then reset
+            the tracked changes for this collector. */
+            return inst.reassignGenerators()
+              .then(() => heartbeatUtils.resetChanges(inst.name));
           }
         }
 
@@ -191,7 +191,6 @@ module.exports = function collector(seq, dataTypes) {
     .then((deadCollectors) =>
       Promise.all(deadCollectors.map((coll) =>
         coll.update({ status: constants.collectorStatuses.MissedHeartbeat })
-        .then(() => coll.reassignGenerators())
       ))
     );
   }; // checkMissedHeartbeat
@@ -263,10 +262,11 @@ module.exports = function collector(seq, dataTypes) {
   Collector.prototype.isAlive = function () {
     if (!this.lastHeartbeat) return false;
     const tolerance = collectorConfig.heartbeatLatencyToleranceMillis;
+    const interval = collectorConfig.heartbeatIntervalMillis;
     const now = Date.now();
     const lastHeartbeat = this.lastHeartbeat.getTime();
     const elapsed = now - lastHeartbeat;
-    return elapsed < tolerance;
+    return elapsed < (interval + tolerance);
   }; // isAlive
 
   /**

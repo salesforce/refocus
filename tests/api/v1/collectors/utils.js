@@ -16,7 +16,9 @@ const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
 const constants = require('../../../../api/v1/constants');
+const collectorConfig = require('../../../../config/collectorConfig');
 const Generator = tu.db.Generator;
+const Collector = tu.db.Collector;
 const collectorToCreate =  {
   name: tu.namePrefix + 'Coll',
   description: 'This is my collector description.',
@@ -31,25 +33,23 @@ const expectedProps = [
   'aspects', 'collectorId', 'possibleCollectors', 'connection', 'context', 'createdAt', 'createdBy',
   'currentCollector', 'deletedAt', 'description', 'generatorTemplate',
   'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'isDeleted', 'name',
-  'subjectQuery', 'subjects', 'tags', 'token', 'updatedAt', 'user',
+  'subjectQuery', 'tags', 'token', 'updatedAt', 'user',
 ];
 
-const expectedPropsDel = [
-  'aspects', 'collectorId', 'possibleCollectors', 'connection', 'context', 'createdAt', 'createdBy',
-  'currentCollector', 'deletedAt', 'description', 'generatorTemplate',
-  'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'isDeleted', 'name',
-  'subjectQuery', 'subjects', 'tags', 'updatedAt', 'user',
-];
+const expectedPropsDel = expectedProps.filter(p => p !== 'token');
 
 const expectedCtxProps = ['password', 'secretInformation',
   'otherNonSecretInformation',
 ];
 const expectedSGTProps = [
   'author', 'connection', 'contextDefinition',
-  'createdAt', 'createdBy', 'deletedAt', 'description', 'helpEmail', 'helpUrl',
+  'createdAt', 'description', 'helpEmail', 'helpUrl',
   'id', 'isDeleted', 'isPublished', 'name', 'repository', 'tags', 'transform',
-  'updatedAt', 'user', 'version',
+  'updatedAt', 'version',
 ];
+
+const interval = collectorConfig.heartbeatIntervalMillis;
+const tolerance = collectorConfig.heartbeatLatencyToleranceMillis;
 
 function startCollector(collector, collectorTokens, userToken) {
   return api.post('/v1/collectors/start')
@@ -84,6 +84,12 @@ function resumeCollector(collector, userToken) {
   .endAsync();
 }
 
+function missHeartbeat(collector) {
+  const lastHeartbeat = Date.now() - (2 * (interval + tolerance));
+  return Collector.update({ lastHeartbeat }, { where: { name: collector.name } })
+    .then(() => Collector.checkMissedHeartbeat());
+}
+
 function getCollector(userToken, collector) {
   return api.get(`/v1/collectors/${collector.name}`)
   .set('Authorization', userToken)
@@ -103,6 +109,7 @@ function createGenerator(gen, userId, collector) {
 
   if (collector) {
     gen.isActive = true;
+    const possibleCollectors = gen.possibleCollectors;
     gen.possibleCollectors = [collector.name];
     gen.collectorId = collector.id;
     return Generator.createWithCollectors(gen);
@@ -150,26 +157,7 @@ function expectGeneratorArray(res) {
   generatorsDeleted.forEach((gen) => {
     expect(gen).to.be.an('object').that.has.all.keys(expectedPropsDel);
     expect(gen.context).to.be.an('object').that.has.all.keys(expectedCtxProps);
-    expect(gen.generatorTemplate).to.be.an('object').that.has.all.keys(
-      'author',
-      'connection',
-      'contextDefinition',
-      'createdAt',
-      'createdBy',
-      'deletedAt',
-      'description',
-      'helpEmail',
-      'helpUrl',
-      'id',
-      'isDeleted',
-      'isPublished',
-      'name',
-      'repository',
-      'tags',
-      'transform',
-      'updatedAt',
-      'user',
-      'version');
+    expect(gen.generatorTemplate).to.be.an('object').that.has.all.keys(expectedSGTProps);
   });
   generatorsUpdated.forEach((gen) => {
     expect(gen).to.be.an('object').that.has.all.keys(expectedProps);
@@ -215,5 +203,6 @@ module.exports = {
   sendHeartbeat,
   startCollector,
   stopCollector,
+  missHeartbeat,
 
 };

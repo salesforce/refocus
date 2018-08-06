@@ -83,30 +83,36 @@ describe('tests/db/model/collector/methods.js >', () => {
   describe('class methods >', () => {
     describe('missedHeartbeat >', () => {
       it('some over threshold', () => {
-        const threshold = 3000;
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 5000;
+        const fakeNow = new Date('2018-05-22T14:51:22');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         return Collector.missedHeartbeat()
         .should.eventually.be.an('array').with.lengthOf(1);
       });
 
       it('all over threshold', () => {
-        const threshold = 1000;
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 5000;
+        const fakeNow = new Date('2018-05-22T14:51:27');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         return Collector.missedHeartbeat()
         .should.eventually.be.an('array').with.lengthOf(2);
       });
 
       it('none over threshold', () => {
-        const threshold = 10000;
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 5000;
+        const fakeNow = new Date('2018-05-22T14:51:19');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         return Collector.missedHeartbeat()
         .should.eventually.be.an('array').with.lengthOf(0);
@@ -151,13 +157,15 @@ describe('tests/db/model/collector/methods.js >', () => {
       afterEach(u.forceDelete);
 
       it('checkMissedHeartbeat', () => {
-        const threshold = 3000;
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 5000;
+        const fakeNow = new Date('2018-05-22T14:51:21');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         /* checkMissedHeartbeat identifies collector2 as dead because more than
-         3000ms has passed since lastHeartbeat (sinon used to fake time).
+         20000ms has passed since lastHeartbeat (sinon used to fake time).
          As a result, generator2 is reassigned to collector3. */
         return Collector.checkMissedHeartbeat()
         .then(() => Promise.join(
@@ -198,33 +206,39 @@ describe('tests/db/model/collector/methods.js >', () => {
 
     describe('isAlive >', () => {
       it('alive', () => {
-        const threshold = 3000;
-        const lastHeartbeat = new Date('2018-05-22T14:51:05');
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 5000;
+        const lastHeartbeat = new Date('2018-05-22T14:51:00');
+        const fakeNow = new Date('2018-05-22T14:51:19');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         Collector.build({ lastHeartbeat })
         .isAlive().should.be.true;
       });
 
       it('dead', () => {
-        const threshold = 1000;
-        const lastHeartbeat = new Date('2018-05-22T14:51:05');
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 3000;
+        const lastHeartbeat = new Date('2018-05-22T14:51:00');
+        const fakeNow = new Date('2018-05-22T14:51:19');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         Collector.build({ lastHeartbeat })
         .isAlive().should.be.false;
       });
 
       it('undefined', () => {
-        const threshold = 1000;
+        const interval = 15000;
+        const tolerance = 5000;
         const lastHeartbeat = undefined;
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const fakeNow = new Date('2018-05-22T14:51:19');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         Collector.build({ lastHeartbeat })
         .isAlive().should.be.false;
@@ -261,10 +275,12 @@ describe('tests/db/model/collector/methods.js >', () => {
       afterEach(u.forceDelete);
 
       it('reassignGenerators', () => {
-        const threshold = 10000;
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 5000;
+        const fakeNow = new Date('2018-05-22T14:51:10');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         return Promise.resolve()
         .then(() => Collector.find({ where: { name: collector1.name } }))
