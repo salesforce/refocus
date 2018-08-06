@@ -260,7 +260,7 @@ module.exports = function collector(seq, dataTypes) {
     const now = Date.now();
     const lastHeartbeat = this.lastHeartbeat.getTime();
     const elapsed = now - lastHeartbeat;
-    return elapsed < interval + tolerance;
+    return elapsed < (interval + tolerance);
   }; // isAlive
 
   /**
