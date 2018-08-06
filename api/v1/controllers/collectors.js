@@ -25,6 +25,7 @@ const doPatch = require('../helpers/verbs/doPatch');
 const u = require('../helpers/verbs/utils');
 const heartbeatUtils = require('../helpers/verbs/heartbeatUtils');
 const httpStatus = require('../constants').httpStatus;
+const status = require('../../../db/constants').collectorStatuses;
 const decryptSGContextValues = require('../../../utils/cryptUtils')
   .decryptSGContextValues;
 const encrypt = require('../../../utils/cryptUtils').encrypt;
@@ -270,10 +271,14 @@ function heartbeat(req, res, next) {
       throw new apiErrors.ForbiddenError({
         explanation: 'Authentication Failed',
       });
-    } else if (o.status !== 'Running' && o.status !== 'Paused' && o.status !== 'MissedHeartbeat') {
+    } else if (o.status === status.Stopped) {
       throw new apiErrors.ForbiddenError({
-        explanation: `Collector must be running or paused or missed. Status: ${o.status}`,
+        explanation: `Collector cannot send a heartbeat if stopped. Status: ${o.status}`,
       });
+    }
+
+    if (o.status !== status.Running) {
+      o.set('status', status.Running);
     }
 
     retval.collectorConfig.status = o.status;
@@ -355,7 +360,7 @@ function heartbeat(req, res, next) {
   .then((updated) => retval.generatorsUpdated = updated)
   .then(() => {
     u.logAPI(req, resultObj, retval);
-    res.status(httpStatus.OK).json(retval);
+    res.status(httpStatus.OK).json(u.cleanAndStripNulls(retval));
   })
   .catch((err) => u.handleError(next, err, helper.modelName));
 } // heartbeat
@@ -374,7 +379,7 @@ function heartbeat(req, res, next) {
 function startCollector(req, res, next) {
   const resultObj = { reqStartTime: req.timestamp };
   const body = req.swagger.params.queryBody.value;
-  body.status = 'Running';
+  body.status = status.Running;
   body.createdBy = req.user.id;
 
   // Set lastHeartbeat to make collector alive for generators to be assigned
@@ -389,7 +394,7 @@ function startCollector(req, res, next) {
   /* Already exists and is running or paused? Error! */
   .then((coll) => {
     if (coll) {
-      if (coll.status === 'Running' || coll.status === 'Paused') {
+      if (coll.status === status.Running || coll.status === status.Paused) {
         throw new apiErrors.ForbiddenError({
           explanation: 'Cannot start--only a stopped collector can start',
         });
@@ -453,7 +458,7 @@ function startCollector(req, res, next) {
  */
 function stopCollector(req, res, next) {
   req.swagger.params.queryBody = {
-    value: { status: 'Stopped' },
+    value: { status: status.Stopped },
   };
   doPatch(req, res, next, helper);
 } // stopCollector
@@ -470,7 +475,7 @@ function stopCollector(req, res, next) {
  */
 function pauseCollector(req, res, next) {
   req.swagger.params.queryBody = {
-    value: { status: 'Paused' },
+    value: { status: status.Paused },
   };
   doPatch(req, res, next, helper);
 } // pauseCollector
@@ -487,7 +492,7 @@ function pauseCollector(req, res, next) {
  */
 function resumeCollector(req, res, next) {
   req.swagger.params.queryBody = {
-    value: { status: 'Running' },
+    value: { status: status.Running },
   };
   doPatch(req, res, next, helper);
 } // resumeCollector
