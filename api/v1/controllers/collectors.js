@@ -277,7 +277,7 @@ function heartbeat(req, res, next) {
       });
     }
 
-    if (o.status !== status.Running) {
+    if (o.status === status.MissedHeartbeat) {
       o.set('status', status.Running);
     }
 

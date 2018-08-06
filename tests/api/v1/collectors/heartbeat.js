@@ -265,7 +265,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .then(() => u.sendHeartbeat(_localCollector, collectorTokens))
         .then((res) => {
           expect(res.body.collectorConfig).to.have.property('status');
-          expect(res.body.collectorConfig.status).to.equal('Running');
+          expect(res.body.collectorConfig.status).to.equal('Paused');
         })
         .then(() => u.resumeCollector(_localCollector, userToken))
         .then(() => u.sendHeartbeat(_localCollector, collectorTokens))

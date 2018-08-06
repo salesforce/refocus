@@ -66,7 +66,7 @@ describe('tests/api/v1/collectors/getStatus.js >', () => {
     .then(() => u.pauseCollector(collectorObj, token))
     .then(() => expectStatus(collectorObj.name, collectorStatus.Paused))
     .then(() => u.sendHeartbeat(collectorObj, collectorTokens))
-    .then(() => expectStatus(collectorObj.name, collectorStatus.Running))
+    .then(() => expectStatus(collectorObj.name, collectorStatus.Paused))
     .then(() => done())
     .catch(done);
   });
@@ -91,7 +91,7 @@ describe('tests/api/v1/collectors/getStatus.js >', () => {
     .then(() => u.pauseCollector(collectorObj, token))
     .then(() => expectStatus(collectorObj.name, collectorStatus.Paused))
     .then(() => u.sendHeartbeat(collectorObj, collectorTokens))
-    .then(() => expectStatus(collectorObj.name, collectorStatus.Running))
+    .then(() => expectStatus(collectorObj.name, collectorStatus.Paused))
     .then(() => done())
     .catch(done);
   });
