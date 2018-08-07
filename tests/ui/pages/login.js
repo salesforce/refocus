@@ -59,7 +59,8 @@ describe('sample test', function() {
       input => input.placeholder)).to.eql('Enter username');
     await page.click('input[name=username]');
     await page.type('input[name=username]', 'potatoes');
-    expect(await page.$eval('[name=username]', input => input.value)).to.eql('potatoes');
+    expect(await page.$eval('[name=username]',
+      input => input.value)).to.eql('potatoes');
   });
 
   it('ok, /logging in with test user', async function () {

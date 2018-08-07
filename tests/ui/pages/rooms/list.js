@@ -15,10 +15,6 @@ const utils = require('../../utils.js');
 const testUtils = require('../../../testUtils.js');
 const setup = require('../../setup.js');
 
-const request = require('superagent');
-
-let getRequest;
-
 const { baseUrl } = setup;
 
 let browser;
@@ -39,16 +35,6 @@ describe('sample test', function() {
       });
     });
   });
-
-  // before(() => {
-  //   getRequest = sinon.stub(request, 'get');
-
-  //   getRequest.returns({
-  //     end: (cb) => {
-  //       cb(null, {ok: true, body: { "status" : "OK" }});
-  //     }
-  //   });
-  // });
 
   after(testUtils.forceDeleteUser);
 

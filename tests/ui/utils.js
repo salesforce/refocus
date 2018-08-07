@@ -13,6 +13,7 @@ const userName = 'UI-Test-User';
 const testUtils = require('../testUtils.js');
 
 module.exports = {
+
   /**
    * Creates a new user and then logs into that user with a given browser
    * and redirects to a given url.

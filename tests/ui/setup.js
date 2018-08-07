@@ -10,7 +10,9 @@
  * tests/ui/setup.js
  */
 const puppeteer = require('puppeteer');
+
 const app = require('./../../index.js').app;
+const { port } = require('./../../config.js');
 
 /*
  * If you would like to see the UI tests happening in the broweser,
@@ -22,7 +24,7 @@ const opts = {
 };
 
 module.exports = {
-  baseUrl: 'http://localhost:3000',
+  baseUrl: `http://localhost:${port}`,
   puppeteer() {
     // Promise which returns a browser object
     return puppeteer.launch(opts);
