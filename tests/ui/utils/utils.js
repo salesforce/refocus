@@ -7,10 +7,11 @@
  */
 
 /**
- * tests/ui/utils.js
+ * tests/ui/utils/utils.js
  */
 const userName = 'UI-Test-User';
-const testUtils = require('../testUtils.js');
+const testUtils = require('../../testUtils.js');
+const loginPom = require('./pageObjectModels/login.js')
 
 module.exports = {
 
@@ -30,12 +31,12 @@ module.exports = {
       return browser.newPage();
     }).then((page) => {
       return page.goto(url)
-      .then(() => page.waitForSelector('input[name=username]'))
-      .then(() => page.click('input[name=username]'))
-      .then(() => page.type('input[name=username]', name))
-      .then(() => page.click('input[name=password]'))
-      .then(() => page.type('input[name=password]', userName))
-      .then(() => page.click('button[type=submit]'))
+      .then(() => page.waitForSelector(loginPom.title))
+      .then(() => page.click(loginPom.usernameInput))
+      .then(() => page.type(loginPom.usernameInput, name))
+      .then(() => page.click(loginPom.passwordInput))
+      .then(() => page.type(loginPom.passwordInput, userName))
+      .then(() => page.click(loginPom.loginButton))
       .then(() => {
         return page.waitForNavigation();
       });

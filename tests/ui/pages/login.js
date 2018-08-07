@@ -13,14 +13,13 @@ const expect = require('chai').expect;
 const setup = require('../setup.js');
 const testUtils = require('../../testUtils.js');
 const userName = 'UI-Test-User';
+const pom = require('../utils/pageObjectModels/login.js');
 const { baseUrl } = setup;
 
-let browser;
-let name;
-
-describe('sample test', function() {
+describe('tests/ui/pages/login.js >', function() {
+  // These tests seem to take longer than mocha default 2000ms
   this.timeout(5000);
-  let page;
+  let browser, page, name;
 
   before((done) => {
     testUtils.createUser(userName)
@@ -50,32 +49,25 @@ describe('sample test', function() {
     await page.close();
   });
 
-  it('ok, /login componants load and work', async function () {
-    await page.waitFor('h1');
-    expect(await page.$eval('h1',
-      heading => heading.innerText)).to.eql('Refocus');
-    await page.waitForSelector('input[name=username]');
-    expect(await page.$eval('[name=username]',
-      input => input.placeholder)).to.eql('Enter username');
-    await page.click('input[name=username]');
-    await page.type('input[name=username]', 'potatoes');
-    expect(await page.$eval('[name=username]',
-      input => input.value)).to.eql('potatoes');
-  });
-
-  it('ok, /logging in with test user', async function () {
-    await page.waitFor('h1');
-    expect(await page.$eval('h1',
-      heading => heading.innerText)).to.eql('Refocus');
-    await page.waitForSelector('input[name=username]');
-    expect(await page.$eval('[name=username]',
-      input => input.placeholder)).to.eql('Enter username');
-    await page.click('input[name=username]');
-    await page.type('input[name=username]', name);
-    await page.click('input[name=password]');
-    await page.type('input[name=password]', userName);
-    await page.click('button[type=submit]');
+  it('ok, logging in with test user', async function () {
+    await page.waitFor(pom.title);
+    await page.click(pom.usernameInput);
+    await page.type(pom.usernameInput, name);
+    await page.click(pom.passwordInput);
+    await page.type(pom.passwordInput, userName);
+    await page.click(pom.loginButton);
     await page.waitForNavigation();
     expect(page.url()).to.equal(`${baseUrl}/perspectives`);
+  });
+
+  it('fail, invalid login details', async function () {
+    await page.waitFor(pom.title);
+    await page.click(pom.usernameInput);
+    await page.type(pom.usernameInput, 'potatoes');
+    await page.click(pom.passwordInput);
+    await page.type(pom.passwordInput, 'potatoes');
+    await page.click(pom.loginButton);
+    expect(await page.$eval(pom.loginErrorLabel,
+      label => label.innerText)).to.eql('An unexpected error occurred');
   });
 });
