@@ -36,41 +36,45 @@ describe('sample test', function() {
   });
 
   after(testUtils.forceDeleteUser);
-  
-  after (() => {
+
+  after(() => {
     browser.close();
   });
 
-  beforeEach (async () => {
+  beforeEach(async () => {
     page = await browser.newPage();
     await page.goto(baseUrl + '/login');
   });
 
-  afterEach (async () => {
+  afterEach(async () => {
     await page.close();
   });
 
   it('ok, /login componants load and work', async function () {
     await page.waitFor('h1');
-    expect(await page.$eval('h1', heading => heading.innerText)).to.eql('Refocus');
-    await page.waitForSelector("input[name=username]");
-    expect(await page.$eval('[name=username]', input => input.placeholder)).to.eql('Enter username');
-    await page.click("input[name=username]");
-    await page.type("input[name=username]", 'potatoes');
+    expect(await page.$eval('h1',
+      heading => heading.innerText)).to.eql('Refocus');
+    await page.waitForSelector('input[name=username]');
+    expect(await page.$eval('[name=username]',
+      input => input.placeholder)).to.eql('Enter username');
+    await page.click('input[name=username]');
+    await page.type('input[name=username]', 'potatoes');
     expect(await page.$eval('[name=username]', input => input.value)).to.eql('potatoes');
   });
 
   it('ok, /logging in with test user', async function () {
     await page.waitFor('h1');
-    expect(await page.$eval('h1', heading => heading.innerText)).to.eql('Refocus');
-    await page.waitForSelector("input[name=username]");
-    expect(await page.$eval('[name=username]', input => input.placeholder)).to.eql('Enter username');
-    await page.click("input[name=username]");
-    await page.type("input[name=username]", name);
-    await page.click("input[name=password]");
-    await page.type("input[name=password]", userName);
-    await page.click("button[type=submit]");
+    expect(await page.$eval('h1',
+      heading => heading.innerText)).to.eql('Refocus');
+    await page.waitForSelector('input[name=username]');
+    expect(await page.$eval('[name=username]',
+      input => input.placeholder)).to.eql('Enter username');
+    await page.click('input[name=username]');
+    await page.type('input[name=username]', name);
+    await page.click('input[name=password]');
+    await page.type('input[name=password]', userName);
+    await page.click('button[type=submit]');
     await page.waitForNavigation();
-      expect(page.url()).to.equal(`${baseUrl}/perspectives`);
+    expect(page.url()).to.equal(`${baseUrl}/perspectives`);
   });
 });

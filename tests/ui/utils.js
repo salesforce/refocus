@@ -16,9 +16,10 @@ module.exports = {
   /**
    * Creates a new user and then logs into that user with a given browser
    * and redirects to a given url.
-   * 
+   *
    * @param {Browser} browser
-   * @param {String} url 
+   * @param {String} url
+   * @returns {Promise} Resolves to a page.
    */
   loginAndGoToUrl(browser, url) {
     let name;
@@ -28,15 +29,15 @@ module.exports = {
       return browser.newPage();
     }).then((page) => {
       return page.goto(url)
-      .then(() => page.waitForSelector("input[name=username]"))
-      .then(() => page.click("input[name=username]"))
-      .then(() => page.type("input[name=username]", name))
-      .then(() => page.click("input[name=password]"))
-      .then(() => page.type("input[name=password]", userName))
-      .then(() => page.click("button[type=submit]"))
+      .then(() => page.waitForSelector('input[name=username]'))
+      .then(() => page.click('input[name=username]'))
+      .then(() => page.type('input[name=username]', name))
+      .then(() => page.click('input[name=password]'))
+      .then(() => page.type('input[name=password]', userName))
+      .then(() => page.click('button[type=submit]'))
       .then(() => {
-        return page.waitForNavigation()
+        return page.waitForNavigation();
       });
     });
   },
-}
+};

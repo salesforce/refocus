@@ -31,19 +31,19 @@ describe('sample test', function() {
       utils.loginAndGoToUrl(browser, `${baseUrl}/rooms/`)
       .then((p) => {
         page = p;
-        done()
-        })
+        done();
+      });
     });
   });
 
   after(testUtils.forceDeleteUser);
 
-  after (() => {
+  after(() => {
     browser.close();
   });
 
 
   it('ok, room renders', async function () {
-    expect(page.url()).to.equal(`${baseUrl}/rooms/`)
+    expect(page.url()).to.equal(`${baseUrl}/rooms/`);
   });
 });
