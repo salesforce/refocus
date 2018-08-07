@@ -96,6 +96,11 @@ module.exports = {
     totalTime: 'None',
     user: 'None',
   },
+  sigterm: {
+    activity: 'sigterm',
+    status: 'None',
+    totalTime: '0ms',
+  },
   unauthorized: {
     activity: 'unauthorized',
     ipAddress: 'None',

@@ -18,9 +18,12 @@ const conf = require('../config');
 const featureToggles = require('feature-toggles');
 const urlParser = require('url');
 const kue = require('kue');
+const activityLogUtil = require('../utils/activityLog');
+
 const redisOptions = {
   redis: conf.redis.instanceUrl.queue,
 };
+
 const redisInfo = urlParser.parse(redisOptions.redis, true);
 if (redisInfo.protocol !== PROTOCOL_PREFIX) {
   redisOptions.redis = 'redis:' + redisOptions.redis;
@@ -28,9 +31,27 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
 
 const jobQueue = kue.createQueue(redisOptions);
 
+/**
+ * Kue's Queue graceful shutdown.
+ */
+function gracefulShutdown() {
+  const start = Date.now();
+  jobQueue.shutdown(conf.kueShutdownTimeout, (err) => {
+    if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
+      const status = '"Job queue shutdown: ' + (err || 'OK') + '"';
+      const logWrapper = {
+        status,
+        totalTime: `${Date.now() - start}ms`,
+      };
+      activityLogUtil.printActivityLogString(logWrapper, 'sigterm');
+    }
+  });
+}
+
 jobQueue.on('error', (err) => {
   console.error('Kue Error!', err); // eslint-disable-line no-console
 });
+
 if (featureToggles.isFeatureEnabled('instrumentKue')) {
   jobQueue.on('job enqueue', (id, type) => {
     console.log('[KJI] enqueued: ' + // eslint-disable-line no-console
@@ -50,6 +71,7 @@ module.exports = {
     CHECK_MISSED_COLLECTOR_HEARTBEAT: 1,
   },
   jobQueue,
+  gracefulShutdown,
   jobType: {
     BULK_CREATE_AUDIT_EVENTS: 'BULK_CREATE_AUDIT_EVENTS',
     BULKUPSERTSAMPLES: 'bulkUpsertSamples',

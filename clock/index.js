@@ -75,4 +75,4 @@ setInterval(jobCleanup.resetCounter, conf.JOB_COUNTER_RESET_INTERVAL);
 
 // Check missed collector heartbeats
 setInterval(checkMissedCollectorHeartbeatJob.enqueue,
-  collectorConf.heartbeatLatencyToleranceMillis);
+  collectorConf.heartbeatIntervalMillis);
