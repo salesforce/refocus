@@ -456,6 +456,7 @@ function startCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function stopCollector(req, res, next) {
+  // console.log('querybody>>>', req.swagger.params)
   req.swagger.params.queryBody = {
     value: { status: status.Stopped },
   };

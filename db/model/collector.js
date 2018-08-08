@@ -277,15 +277,21 @@ module.exports = function collector(seq, dataTypes) {
    */
   Collector.prototype.reassignGenerators = function () {
     /* TODO: change to use currentGenerators once that includes current gens only */
-    return seq.models.Generator.findAll()
-    .then((gens) => {
-      gens.filter((gen) =>
-      gen.currentCollector && (gen.currentCollector.name === this.name))
+    return seq.models.Generator.findAll({
+      include: [{
+        model: Collector,
+        as: 'currentCollector',
+        where: { name: this.name, },
+      }],
+    })
+    // .then((gens) => {
+    //   gens.filter((gen) =>
+    //   gen.currentCollector && (gen.currentCollector.name === this.name))
       .map((g) => {
         g.assignToCollector();
         return g.save();
       });
-    });
+    // });
   };
 
   Collector.prototype.isWritableBy = function (who) {

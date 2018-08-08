@@ -30,13 +30,13 @@ const collectorToCreate =  {
 };
 
 const expectedProps = [
-  'aspects', 'collectorId', 'possibleCollectors', 'connection', 'context', 'createdAt', 'createdBy',
-  'currentCollector', 'deletedAt', 'description', 'generatorTemplate',
+  'aspects', 'collectorId', 'possibleCollectors', 'context', 'createdAt', 'createdBy',
+  'currentCollector', 'description', 'generatorTemplate',
   'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'isDeleted', 'name',
   'subjectQuery', 'tags', 'token', 'updatedAt', 'user',
 ];
 
-const expectedPropsDel = expectedProps.filter(p => p !== 'token');
+const expectedPropsDel = expectedProps.filter((p) => p !== 'token');
 
 const expectedCtxProps = ['password', 'secretInformation',
   'otherNonSecretInformation',
@@ -110,9 +110,11 @@ function createGenerator(gen, userId, collector) {
   if (collector) {
     gen.isActive = true;
     const possibleCollectors = gen.possibleCollectors;
+    // console.log(possibleCollectors)
     gen.possibleCollectors = [collector.name];
-    gen.collectorId = collector.id;
-    return Generator.createWithCollectors(gen);
+    // gen.collectorId = collector.id;
+    return Generator.createWithCollectors(gen)
+    .then((g) => g.updateWithCollectors({ possibleCollectors }));
   }
 
   gen.collectorId = null;
@@ -168,6 +170,7 @@ function expectGeneratorArray(res) {
 
 function expectLengths(expected, res) {
   expectGeneratorArray(res);
+  // console.log(res.body)
   const { generatorsAdded, generatorsDeleted, generatorsUpdated } = res.body;
   const { added, deleted, updated } = expected;
   expect(generatorsAdded).to.be.an('array').with.lengthOf(added);
