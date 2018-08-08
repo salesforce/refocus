@@ -2172,7 +2172,7 @@ paths:
           description: >-
             Success, returns specified bot
           schema:
-            $ref: "#/definitions/BotResponse"
+            $ref: "#/definitions/BotKeyResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -11443,6 +11443,50 @@ definitions:
       url:
         type: string
         description: The URL of the bot server
+      active:
+        type: boolean
+        description: Flag for if a bot is active with communication
+      actions:
+        type: array
+        description: A list of actions that a bot can perform
+        items:
+          type: object
+      data:
+        type: array
+        description: A list of data that a bot can provide
+        items:
+          type: object
+      lastHeartbeat: 
+        type: string
+        description: Timestamp at which the last heartbeat was received sent from bot
+      version:
+        type: string
+        description: Current version of the bot
+      createdAt: 
+        type: string
+        description: Timestamp at which the bot was created
+      updatedAt:
+        type: string
+        description: Timestamp at which the bot was last updated
+      apiLinks: 
+        type: array
+        items:
+          type: object
+        description: List of api links to make different requests to this bot
+
+  BotKeyResponse:
+    type: object
+    description: A response for information about a bot
+    properties:
+      id:
+        type: string
+        description: The UUID for the bot
+      name:
+        type: string
+        description: The unique readable name for the bot
+      url:
+        type: string
+        description: The URL of the bot server
       ui:
         type: object
         description: The UI of the bot
@@ -11466,6 +11510,23 @@ definitions:
         description: A list of data that a bot can provide
         items:
           type: object
+      lastHeartbeat: 
+        type: string
+        description: Timestamp at which the last heartbeat was received sent from bot
+      version:
+        type: string
+        description: Current version of the bot
+      createdAt: 
+        type: string
+        description: Timestamp at which the bot was created
+      updatedAt:
+        type: string
+        description: Timestamp at which the bot was last updated
+      apiLinks: 
+        type: array
+        items:
+          type: object
+        description: List of api links to make different requests to this bot
 
   EventResponse:
     type: object
@@ -11526,6 +11587,19 @@ definitions:
       userId:
         type: string
         description: The user ID in which the bot action deals with
+      createdAt:
+        type: string
+        description:
+          Timestamp at which the bot action was created
+      updatedAt:
+        type: string
+        description:
+          Timestamp at which the bot action was modified
+      apiLinks: 
+        type: array
+        items:
+          type: object
+        description: List of api links to make different requests to this bot action
 
   CollectorResponse:
     type: "object"
@@ -11960,12 +12034,34 @@ definitions:
       name:
         type: string
         description: The unique readable name for the room
+      externalId:
+        type: string
+        description: The external ID of the specified room
+      settings:
+        type: object
+        description: Key-value pairs used to configure bots and rooms intial state
       active:
         type: boolean
         description: Flag for whether the room is still active or closed
+      bots:
+        type: array
+        items: 
+          type: string
+        description: List of the bots installed in the room
+      createdAt: 
+        type: string
+        description: Timestamp at which the room was created
+      updatedAt:
+        type: string
+        description: Timestamp at which the room was last updated
       type:
         type: string
         description: The roomType being used in the specified room
+      apiLinks: 
+        type: array
+        items:
+          type: object
+        description: List of api links to make different requests to this room
 
   RoomTypeResponse:
     type: object
@@ -11993,7 +12089,18 @@ definitions:
         items:
           type: string
         description: Array containing the bots to be used for rooms of this type
-
+      createdAt: 
+        type: string
+        description: Timestamp at which the room type was created
+      updatedAt:
+        type: string
+        description: Timestamp at which the room type was last updated
+      apiLinks:
+        type: array
+        items:
+          type: object
+        description: List of api links to make different requests to this roomType
+        
   BotDataResponse:
     type: object
     description: A response for information about a room
@@ -12007,12 +12114,23 @@ definitions:
       value:
         type: string
         description: Current value of the bot data
+      createdAt: 
+        type: string
+        description: Timestamp at which the botData was created
+      updatedAt:
+        type: string
+        description: Timestamp at which  the botData was last updated
       roomId:
         type: integer
         description: The room number of the room of the bot data
       botId:
         type: string
         description: UUID of the specified bot in that room
+      apiLinks:
+        type: array
+        items:
+          type: object
+        description: List of api links to make different requests to this room
 
   BulkSubjectDeleteResponse:
     type: object
