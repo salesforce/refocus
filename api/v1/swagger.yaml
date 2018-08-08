@@ -2172,7 +2172,7 @@ paths:
           description: >-
             Success, returns specified bot
           schema:
-            $ref: "#/definitions/BotKeyResponse"
+            $ref: "#/definitions/BotResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -11431,50 +11431,6 @@ definitions:
           Timestamp at which the the write permission was modified
 
   BotResponse:
-    type: object
-    description: A response for information about a bot
-    properties:
-      id:
-        type: string
-        description: The UUID for the bot
-      name:
-        type: string
-        description: The unique readable name for the bot
-      url:
-        type: string
-        description: The URL of the bot server
-      active:
-        type: boolean
-        description: Flag for if a bot is active with communication
-      actions:
-        type: array
-        description: A list of actions that a bot can perform
-        items:
-          type: object
-      data:
-        type: array
-        description: A list of data that a bot can provide
-        items:
-          type: object
-      lastHeartbeat: 
-        type: string
-        description: Timestamp at which the last heartbeat was received sent from bot
-      version:
-        type: string
-        description: Current version of the bot
-      createdAt: 
-        type: string
-        description: Timestamp at which the bot was created
-      updatedAt:
-        type: string
-        description: Timestamp at which the bot was last updated
-      apiLinks: 
-        type: array
-        items:
-          type: object
-        description: List of api links to make different requests to this bot
-
-  BotKeyResponse:
     type: object
     description: A response for information about a bot
     properties:
