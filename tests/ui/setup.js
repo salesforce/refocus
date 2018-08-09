@@ -12,7 +12,6 @@
 const puppeteer = require('puppeteer');
 
 const app = require('./../../index.js').app;
-const { port } = require('./../../config.js');
 
 /*
  * If you would like to see the UI tests happening in the broweser,
@@ -20,11 +19,11 @@ const { port } = require('./../../config.js');
  */
 const opts = {
   // 'args' option is needed for this to work in travis
+  headless: false, slowMo: 10,
   args: ['--no-sandbox', '--disable-setuid-sandbox']
 };
 
 module.exports = {
-  baseUrl: `http://localhost:${port}`,
   puppeteer() {
     // Promise which returns a browser object
     return puppeteer.launch(opts);

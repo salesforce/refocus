@@ -11,9 +11,14 @@
  */
 const userName = 'UI-Test-User';
 const testUtils = require('../../testUtils.js');
-const loginPom = require('./pageObjectModels/login.js')
+const loginPom = require('./pageObjectModels/login.js');
+
+const { port } = require('./../../../config.js');
+const baseUrl = `http://localhost:${port}`;
 
 module.exports = {
+
+  baseUrl,
 
   /**
    * Creates a new user and then logs into that user with a given browser
@@ -23,14 +28,14 @@ module.exports = {
    * @param {String} url
    * @returns {Promise} Resolves to a page.
    */
-  loginAndGoToUrl(browser, url) {
+  loginInBrowser(browser) {
     let name;
     return testUtils.createUser(userName)
     .then((user) => {
       name = user.dataValues.name;
       return browser.newPage();
     }).then((page) => {
-      return page.goto(url)
+      return page.goto(`${baseUrl}/login`)
       .then(() => page.waitForSelector(loginPom.title))
       .then(() => page.click(loginPom.usernameInput))
       .then(() => page.type(loginPom.usernameInput, name))

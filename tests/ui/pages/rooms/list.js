@@ -15,7 +15,7 @@ const utils = require('../../utils/utils.js');
 const testUtils = require('../../../testUtils.js');
 const setup = require('../../setup.js');
 
-const { baseUrl } = setup;
+const { baseUrl } = utils;
 
 describe('tests/ui/pages/rooms/list.js >', function() {
   // These tests seem to take longer than mocha default 2000ms
@@ -26,7 +26,7 @@ describe('tests/ui/pages/rooms/list.js >', function() {
     setup.puppeteer()
     .then((b) => {
       browser = b;
-      utils.loginAndGoToUrl(browser, `${baseUrl}/rooms/`)
+      utils.loginInBrowser(browser)
       .then((p) => {
         page = p;
         done();
@@ -40,8 +40,13 @@ describe('tests/ui/pages/rooms/list.js >', function() {
     browser.close();
   });
 
+  beforeEach(async () => {
+    page = await browser.newPage();
+    await page.goto(baseUrl + '/rooms');
+  });
+
 
   it('ok, room renders', async function () {
-    expect(page.url()).to.equal(`${baseUrl}/rooms/`);
+    expect(page.url()).to.equal(`${baseUrl}/rooms`);
   });
 });

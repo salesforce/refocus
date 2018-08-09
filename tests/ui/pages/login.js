@@ -14,7 +14,7 @@ const setup = require('../setup.js');
 const testUtils = require('../../testUtils.js');
 const userName = 'UI-Test-User';
 const pom = require('../utils/pageObjectModels/login.js');
-const { baseUrl } = setup;
+const { baseUrl } = require('./../utils/utils.js');
 
 describe('tests/ui/pages/login.js >', function() {
   // These tests seem to take longer than mocha default 2000ms
