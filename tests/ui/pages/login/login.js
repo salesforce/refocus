@@ -11,11 +11,11 @@
  */
 const expect = require('chai').expect;
 
-const setup = require('../setup.js');
-const testUtils = require('../../testUtils.js');
+const setup = require('../../setup.js');
+const testUtils = require('../../../testUtils.js');
+const pom = require('../../utils/pageObjectModels/login.js');
+const { baseUrl } = require('../../utils/utils.js');
 const userName = 'UI-Test-User';
-const pom = require('../utils/pageObjectModels/login.js');
-const { baseUrl } = require('./../utils/utils.js');
 
 describe('tests/ui/pages/login.js >', function() {
   let browser, name, page;
