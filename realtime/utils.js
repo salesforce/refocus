@@ -378,38 +378,35 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   let nameParts = sample.name.split('|');
   const subAbsPath = nameParts[0];
   const aspName = nameParts[1];
-  let promiseArr = [];
-  if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const subOpts = {
-      where: {
-        absolutePath: { [Op.iLike]: subAbsPath },
-      },
-    };
-    const aspOpts = {
-      where: {
-        name: { [Op.iLike]: aspName },
-      },
-    };
-    let getAspectPromise;
-    getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-      aspectModel.findOne(aspOpts);
+  const subOpts = {
+    where: {
+      absolutePath: { [Op.iLike]: subAbsPath },
+    },
+  };
+  const aspOpts = {
+    where: {
+      name: { [Op.iLike]: aspName },
+    },
+  };
 
-    let getSubjectPromise;
-    getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-      subjectModel.findOne(subOpts);
-
-    promiseArr = [getAspectPromise, getSubjectPromise];
-  } else {
-    const subKey = redisStore.toKey('subject', subAbsPath);
-    const aspKey = redisStore.toKey('aspect', aspName);
-    const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-    redisClient.hgetallAsync(aspKey);
-    const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-    redisClient.hgetallAsync(subKey);
-    promiseArr = [getAspectPromise, getSubjectPromise];
+  if (sample.aspect) {
+    redisStore.arrayObjsStringsToJson(
+      sample.aspect,
+      redisStore.constants.fieldsToStringify.aspect
+    );
   }
 
-  return Promise.all(promiseArr)
+  if (sample.subject) {
+    redisStore.arrayObjsStringsToJson(
+      sample.subject,
+      redisStore.constants.fieldsToStringify.subject
+    );
+  }
+
+  return Promise.all([
+    sample.aspect ? sample.aspect : aspectModel.findOne(aspOpts),
+    sample.subject ? sample.subject : subjectModel.findOne(subOpts),
+  ])
   .then((response) => {
     let asp = response[0];
     let sub = response[1];
@@ -419,12 +416,8 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     delete asp.writers;
     delete sub.writers;
 
-    sample.aspect = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
-      asp : redisStore.arrayObjsStringsToJson(asp,
-        redisStore.constants.fieldsToStringify.aspect);
-    sample.subject = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
-      sub : redisStore.arrayObjsStringsToJson(sub,
-        redisStore.constants.fieldsToStringify.subject);
+    sample.aspect = asp;
+    sample.subject = sub;
     /*
      * attach absolutePath field to the sample. This is done to simplify the
      * filtering done on the subject absolutePath
