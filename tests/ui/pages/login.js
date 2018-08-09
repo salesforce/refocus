@@ -10,6 +10,7 @@
  * tests/ui/pages/login.js
  */
 const expect = require('chai').expect;
+
 const setup = require('../setup.js');
 const testUtils = require('../../testUtils.js');
 const userName = 'UI-Test-User';

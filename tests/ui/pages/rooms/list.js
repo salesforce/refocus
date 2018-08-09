@@ -11,22 +11,15 @@
  */
 const expect = require('chai').expect;
 
-
 const utils = require('../../utils/utils.js');
 const tu = require('../../../testUtils.js');
+const setup = require('../../setup.js');
+const ru = require('../../../db/model/room/utils.js');
+const rtu = require('../../../db/model/roomType/utils.js');
+const pom = require('../../utils/pageObjectModels/rooms');
 
 const Room = tu.db.Room;
 const RoomType = tu.db.RoomType;
-
-const setup = require('../../setup.js');
-
-const ru = require('../../../db/model/room/utils.js');
-const rtu = require('../../../db/model/roomType/utils.js');
-
-const pom = require('../../utils/pageObjectModels/rooms');
-
-
-
 const { baseUrl } = utils;
 
 describe('tests/ui/pages/rooms/list.js >', function() {
@@ -65,7 +58,6 @@ describe('tests/ui/pages/rooms/list.js >', function() {
     page = await browser.newPage();
     await page.goto(baseUrl + '/rooms');
   });
-
 
   it('ok, rooms list page renders', async function () {
     expect(page.url()).to.equal(`${baseUrl}/rooms`);
