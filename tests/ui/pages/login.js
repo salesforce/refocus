@@ -17,9 +17,7 @@ const pom = require('../utils/pageObjectModels/login.js');
 const { baseUrl } = require('./../utils/utils.js');
 
 describe('tests/ui/pages/login.js >', function() {
-  // These tests seem to take longer than mocha default 2000ms
-  this.timeout(5000);
-  let browser, page, name;
+  let browser, name, page;
 
   before((done) => {
     testUtils.createUser(userName)

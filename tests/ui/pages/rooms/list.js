@@ -30,8 +30,6 @@ const pom = require('../../utils/pageObjectModels/rooms');
 const { baseUrl } = utils;
 
 describe('tests/ui/pages/rooms/list.js >', function() {
-  // These tests seem to take longer than mocha default 2000ms
-  this.timeout(5000);
   let browser, page;
 
   // Setting up browser, creating roomType, creating room

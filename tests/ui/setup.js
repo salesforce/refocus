@@ -19,7 +19,6 @@ const app = require('./../../index.js').app;
  */
 const opts = {
   // 'args' option is needed for this to work in travis
-  headless: false, slowMo: 10,
   args: ['--no-sandbox', '--disable-setuid-sandbox']
 };
 
