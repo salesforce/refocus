@@ -461,13 +461,8 @@ module.exports = function generator(seq, dataTypes) {
       // mock possibleCollectors on instance so we don't need to reload
       // again to get the currentCollector (this matters if we try to set
       // isActive=true and add a possibleCollector at the same time)
-      if (this.possibleCollectors) {
-        collectors.forEach((coll) => {
-          this.possibleCollectors.push(coll);
-        });
-      } else {
-        this.possibleCollectors = collectors;
-      }
+      this.possibleCollectors = this.possibleCollectors || [];
+      this.possibleCollectors = this.possibleCollectors.concat(collectors);
 
       return this.addPossibleCollectors(collectors);
     })
@@ -519,14 +514,16 @@ module.exports = function generator(seq, dataTypes) {
    */
   Generator.prototype.assignToCollector = function () {
     const possibleCollectors = this.possibleCollectors;
-    let newColl = null;
+    let newColl;
     if (this.isActive && possibleCollectors && possibleCollectors.length) {
       possibleCollectors.sort((c1, c2) => c1.name > c2.name);
-      newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive()) || null;
+      newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive());
     }
 
     // since currentCollector is an association we need to set the collectorId
-    // for this generator object.
+    // for this generator object. We could use setCurrentCollector, but that would
+    // result in database saves that would be unnecessary and complicate our
+    // logic in the db hooks.
     this.collectorId = newColl ? newColl.id : null;
 
     // Even though collectorId has been set on the instance, the currentCollector
@@ -535,7 +532,7 @@ module.exports = function generator(seq, dataTypes) {
     // This assignment saves us from doing the reload, as we are mocking the
     // same behavior (going to the db and getting the currentCollector obj).
     // Instead, we just attach the newColl directly on this instance.
-    this.currentCollector = newColl;
+    this.currentCollector = newColl || null;
   };
 
   return Generator;

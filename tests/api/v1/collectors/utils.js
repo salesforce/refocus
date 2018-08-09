@@ -110,9 +110,7 @@ function createGenerator(gen, userId, collector) {
   if (collector) {
     gen.isActive = true;
     const possibleCollectors = gen.possibleCollectors;
-    // console.log(possibleCollectors)
     gen.possibleCollectors = [collector.name];
-    // gen.collectorId = collector.id;
     return Generator.createWithCollectors(gen)
     .then((g) => g.updateWithCollectors({ possibleCollectors }));
   }
@@ -170,7 +168,6 @@ function expectGeneratorArray(res) {
 
 function expectLengths(expected, res) {
   expectGeneratorArray(res);
-  // console.log(res.body)
   const { generatorsAdded, generatorsDeleted, generatorsUpdated } = res.body;
   const { added, deleted, updated } = expected;
   expect(generatorsAdded).to.be.an('array').with.lengthOf(added);

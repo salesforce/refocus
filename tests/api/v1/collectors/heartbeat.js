@@ -399,29 +399,12 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         });
 
         it('changes are not carried over after restart', (done) => {
-          let gen;
-          let coll;
-          console.log(collector1)
           Promise.resolve()
           .then(() => u.createGenerator(generator1, userId, collector1))
-          .then((g) => {
-            gen = g
-            console.log('currentCollector>>> ', gen.currentCollector.status)
-            return u.stopCollector(collector1, userToken)
-          })
-          .then(() => {
-            console.log('currentCollector>>> ', gen.currentCollector.status)
-            // console.log('collector1>>> ', collector1)
-            return u.startCollector(collector1, collectorTokens, userToken)
-          })
-          .then(() => {
-            console.log('currentCollector>>> ', gen.currentCollector.status)
-            return u.sendHeartbeat(collector1, collectorTokens)
-          })
-          .then((res) => {
-            console.log('currentCollector>>> ', gen.currentCollector.status)
-            return u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res)
-          })
+          .then(() => u.stopCollector(collector1, userToken))
+          .then(() => u.startCollector(collector1, collectorTokens, userToken))
+          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
 
