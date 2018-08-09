@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/ui/pages/rooms/list.js
+ * tests/ui/pages/rooms/roomsList.js
  */
 const expect = require('chai').expect;
 
@@ -16,13 +16,13 @@ const tu = require('../../../testUtils.js');
 const setup = require('../../utils/setup.js');
 const ru = require('../../../db/model/room/utils.js');
 const rtu = require('../../../db/model/roomType/utils.js');
-const pom = require('../../utils/pageObjectModels/rooms');
+const pom = require('../../utils/pageObjectModels/roomsList.js');
 
 const Room = tu.db.Room;
 const RoomType = tu.db.RoomType;
 const { baseUrl } = utils;
 
-describe('tests/ui/pages/rooms/list.js >', function() {
+describe('tests/ui/pages/rooms/roomsList.js >', function() {
   let browser, page;
 
   // Setting up browser, creating roomType, creating room
