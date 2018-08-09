@@ -9,6 +9,10 @@
 /**
  * tests/ui/utils/pageObjectModels/rooms.js
  */
-module.exports = {
 
+subTitleId = 'subTitle';
+
+module.exports = {
+  subTitleId,
+  subTitle: `p[id=${subTitleId}]`
 }

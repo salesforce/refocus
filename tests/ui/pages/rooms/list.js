@@ -11,9 +11,21 @@
  */
 const expect = require('chai').expect;
 
+
 const utils = require('../../utils/utils.js');
-const testUtils = require('../../../testUtils.js');
+const tu = require('../../../testUtils.js');
+
+const Room = tu.db.Room;
+const RoomType = tu.db.RoomType;
+
 const setup = require('../../setup.js');
+
+const ru = require('../../../db/model/room/utils.js');
+const rtu = require('../../../db/model/roomType/utils.js');
+
+const pom = require('../../utils/pageObjectModels/rooms');
+
+
 
 const { baseUrl } = utils;
 
@@ -22,19 +34,30 @@ describe('tests/ui/pages/rooms/list.js >', function() {
   this.timeout(5000);
   let browser, page;
 
+  // Setting up browser, creating roomType, creating room
   before((done) => {
     setup.puppeteer()
     .then((b) => {
       browser = b;
-      utils.loginInBrowser(browser)
-      .then((p) => {
-        page = p;
-        done();
-      });
-    });
+      return utils.loginInBrowser(browser);
+    })
+    .then((p) => {
+      page = p;
+      return RoomType.create(rtu.getStandard());
+    })
+    .then((roomType) => {
+      const room = ru.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then(() => {
+      done();
+    })
+    .catch(done);
   });
 
-  after(testUtils.forceDeleteUser);
+  after(tu.forceDeleteUser);
+  after(ru.forceDelete);
 
   after(() => {
     browser.close();
@@ -46,7 +69,14 @@ describe('tests/ui/pages/rooms/list.js >', function() {
   });
 
 
-  it('ok, room renders', async function () {
+  it('ok, rooms list page renders', async function () {
     expect(page.url()).to.equal(`${baseUrl}/rooms`);
+    // Wait for the DOM to render subtitle
+    await page.waitFor((args) => {
+      return document.querySelector(`#${args}`).innerText.length;
+    }, {}, pom.subTitleId);
+
+    expect(await page.$eval(pom.subTitle,
+      label => label.innerText)).to.contain('Number of rooms: 1');
   });
 });

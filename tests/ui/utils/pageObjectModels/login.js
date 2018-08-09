@@ -9,10 +9,14 @@
 /**
  * tests/ui/utils/pageObjectModels/login.js
  */
+
+loginErrorLabelId = 'errorInfo';
+
 module.exports = {
+  loginErrorLabelId,
   title: 'h1',
   usernameInput: 'input[name=username]',
   passwordInput: 'input[name=password]',
   loginButton: 'button[type=submit]',
-  loginErrorLabel: 'label[id=errorInfo]'
+  loginErrorLabel: `label[id=${loginErrorLabelId}]`
 }
