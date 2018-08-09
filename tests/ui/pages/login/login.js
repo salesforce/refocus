@@ -11,7 +11,7 @@
  */
 const expect = require('chai').expect;
 
-const setup = require('../../setup.js');
+const setup = require('../../utils/setup.js');
 const testUtils = require('../../../testUtils.js');
 const pom = require('../../utils/pageObjectModels/login.js');
 const { baseUrl } = require('../../utils/utils.js');

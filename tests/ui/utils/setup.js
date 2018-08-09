@@ -11,7 +11,7 @@
  */
 const puppeteer = require('puppeteer');
 
-const app = require('./../../index.js').app;
+const app = require('./../../../index.js').app;
 
 /*
  * If you would like to see the UI tests happening in the broweser,

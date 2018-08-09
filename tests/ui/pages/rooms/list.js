@@ -13,7 +13,7 @@ const expect = require('chai').expect;
 
 const utils = require('../../utils/utils.js');
 const tu = require('../../../testUtils.js');
-const setup = require('../../setup.js');
+const setup = require('../../utils/setup.js');
 const ru = require('../../../db/model/room/utils.js');
 const rtu = require('../../../db/model/roomType/utils.js');
 const pom = require('../../utils/pageObjectModels/rooms');
