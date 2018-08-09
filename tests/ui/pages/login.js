@@ -67,6 +67,9 @@ describe('tests/ui/pages/login.js >', function() {
     await page.click(pom.passwordInput);
     await page.type(pom.passwordInput, 'potatoes');
     await page.click(pom.loginButton);
+    // Waiting for DOM to change error message
+    await page.waitFor(() =>
+      document.querySelector('#errorInfo').innerText.length);
     expect(await page.$eval(pom.loginErrorLabel,
       label => label.innerText)).to.eql('An unexpected error occurred');
   });
