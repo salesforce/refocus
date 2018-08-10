@@ -520,18 +520,12 @@ module.exports = function generator(seq, dataTypes) {
       newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive());
     }
 
-    // since currentCollector is an association we need to set the collectorId
-    // for this generator object. We could use setCurrentCollector, but that would
-    // result in database saves that would be unnecessary and complicate our
-    // logic in the db hooks.
+    // We could use setCurrentCollector, but that would result in database saves
+    // that would be unnecessary and complicate our logic in the db hooks.
+    // Instead, we set the foreign key (collectorId) from collector model.
+    // We also mock the currentCollector on the instance to avoid a needing
+    // a database reload.
     this.collectorId = newColl ? newColl.id : null;
-
-    // Even though collectorId has been set on the instance, the currentCollector
-    // will not be attached to this instance until it's saved and
-    // loaded from the db.
-    // This assignment saves us from doing the reload, as we are mocking the
-    // same behavior (going to the db and getting the currentCollector obj).
-    // Instead, we just attach the newColl directly on this instance.
     this.currentCollector = newColl || null;
   };
 
