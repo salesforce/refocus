@@ -251,7 +251,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
         expect(collectors.length).to.equal(TWO);
         const collectorNames = collectors.map((collector) => collector.name);
         expect(collectorNames).to.deep.equal(['hello', 'IamAliveAndRunning1']);
-        expect(res.body.currentCollector).to.equal('IamAliveAndRunning1');
+        expect(res.body.currentCollector.name).to.equal('IamAliveAndRunning1');
         return done();
       });
     });
@@ -259,9 +259,10 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
     it('already assigned generator, put generator should not change ' +
       'currentCollector if currentCollector exists in updated collector list',
       (done) => {
-        generatorInst.update({ currentCollector: collectorAlive1.name })
+        generatorInst.update({ collectorId: collectorAlive1.id })
+        .then((gen) => gen.reload())
         .then((updatedGenInst) => {
-          expect(updatedGenInst.currentCollector)
+          expect(updatedGenInst.currentCollector.name)
             .to.be.equal('IamAliveAndRunning1');
           const requestBody = JSON.parse(JSON.stringify(toPut));
           requestBody.possibleCollectors =
@@ -286,7 +287,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
             expect(collectorNames).to.deep.equal(
               ['beautiful', 'IamAliveAndRunning1']
             );
-            expect(res.body.currentCollector).to.equal('IamAliveAndRunning1');
+            expect(res.body.currentCollector.name).to.equal('IamAliveAndRunning1');
             return done();
           });
         })
@@ -296,9 +297,10 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
     it('already assigned generator, put generator should set ' +
       'currentCollector to null if currentCollector does not exist in ' +
       'updated collector list', (done) => {
-      generatorInst.update({ currentCollector: collectorAlive1.name })
+      generatorInst.update({ collectorId: collectorAlive1.id })
+      .then((gen) => gen.reload())
       .then((updatedGenInst) => {
-        expect(updatedGenInst.currentCollector)
+        expect(updatedGenInst.currentCollector.name)
           .to.be.equal('IamAliveAndRunning1');
         const requestBody = JSON.parse(JSON.stringify(toPut));
         requestBody.possibleCollectors = [collector2.name, collector3.name];
@@ -326,9 +328,10 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
     it('already assigned generator, put generator should set ' +
       'currentCollector to another alive collector if currentCollector ' +
       'does not exist in updated collector list', (done) => {
-      generatorInst.update({ currentCollector: collectorAlive1.name })
+      generatorInst.update({ collectorId: collectorAlive1.id })
+      .then((gen) => gen.reload())
       .then((updatedGenInst) => {
-        expect(updatedGenInst.currentCollector)
+        expect(updatedGenInst.currentCollector.name)
           .to.be.equal('IamAliveAndRunning1');
         const requestBody = JSON.parse(JSON.stringify(toPut));
         requestBody.possibleCollectors =
@@ -350,7 +353,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
           expect(collectorNames).to.deep.equal(
             ['beautiful', 'IamAliveAndRunning2']
           );
-          expect(res.body.currentCollector).to.equal('IamAliveAndRunning2');
+          expect(res.body.currentCollector.name).to.equal('IamAliveAndRunning2');
           return done();
         });
       });

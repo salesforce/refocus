@@ -151,9 +151,9 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
 
       expect(res.body).to.have.lengthOf(TWO);
       expect(res.body[0].name).to.equal(genWithThreeCollectors.name);
-      expect(res.body[0].currentCollector).to.equal(collector1.name);
+      expect(res.body[0].currentCollector.name).to.equal(collector1.name);
       expect(res.body[1].name).to.equal(genWithOneCollector.name);
-      expect(res.body[1].currentCollector).to.equal(collector1.name);
+      expect(res.body[1].currentCollector.name).to.equal(collector1.name);
       return done();
     });
   });

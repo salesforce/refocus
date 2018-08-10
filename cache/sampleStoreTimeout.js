@@ -168,7 +168,6 @@ module.exports = {
         }
       }
 
-      // console.log(samples, aspects, curr);
       const retObj = getSampleTimeoutComponents(samples, aspects, curr);
       timedOutSamples = retObj.timedOutSamples;
       const sampCmds = retObj.sampCmds;

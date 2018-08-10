@@ -96,9 +96,6 @@ module.exports = function collector(seq, dataTypes) {
       },
     },
   }, {
-    defaultScope: {
-      order: ['name'],
-    },
     hooks: {
       beforeDestroy(inst /* , opts */) {
         return common.setIsDeleted(seq.Promise, inst);
@@ -200,17 +197,20 @@ module.exports = function collector(seq, dataTypes) {
 
   Collector.postImport = function (models) {
 
-    // This field is not currently needed by collector, but table already exists
-    // because generator needs to access its possible collectors.
+    // This field is not currently needed by collector, but 'GeneratorCollector'
+    // table already exists because generators have a many-to-many association
+    // with possibleCollectors.
     assoc.possibleGenerators = Collector.belongsToMany(models.Generator, {
       as: 'possibleGenerators',
       through: 'GeneratorCollectors',
       foreignKey: 'collectorId',
     });
 
+    // TODO: add this association
     // assoc.currentGenerators = Collector.hasMany(models.Generator, {
     //   as: 'currentGenerators',
     //   foreignKey: 'collectorId',
+    //   // scope: ['withoutCollectors'],
     // });
 
     assoc.createdBy = Collector.belongsTo(models.User, {
@@ -221,6 +221,12 @@ module.exports = function collector(seq, dataTypes) {
       as: 'writers',
       through: 'CollectorWriters',
       foreignKey: 'collectorId',
+    });
+
+    Collector.addScope('defaultScope', {
+      order: ['name'],
+    }, {
+      override: true,
     });
 
     Collector.addScope('status', {
@@ -271,8 +277,15 @@ module.exports = function collector(seq, dataTypes) {
    */
   Collector.prototype.reassignGenerators = function () {
     /* TODO: change to use currentGenerators once that includes current gens only */
-    return seq.models.Generator.findAll({ where: { currentCollector: this.name } })
-    .map((g) => {
+    return seq.models.Generator.findAll({
+      include: [
+        {
+          model: Collector,
+          as: 'currentCollector',
+          where: { name: this.name, },
+        },
+      ],
+    }).map((g) => {
       g.assignToCollector();
       return g.save();
     });
