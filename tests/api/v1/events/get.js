@@ -33,7 +33,9 @@ describe('tests/api/v1/events/get.js >', () => {
   let testEvent = u.getStandard();
   let testEventOutput;
   let testEvent2 = u.getStandard();
+  testEvent2.log = 'Sample Event 2';
   let testEvent3 = u.getStandard();
+  testEvent3.log = 'Sample Event 3';
   let token;
 
   before((done) => {
@@ -155,6 +157,22 @@ describe('tests/api/v1/events/get.js >', () => {
         expect(res.body.length).to.equal(TOTAL_EVENTS);
         done();
       });
+    });
+  });
+
+  it('Pass, events should be sorted by createdAt', (done) => {
+    api.get(`${path}?sort=-createdAt`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body[0].log).to.equal(testEvent3.log);
+      expect(res.body[1].log).to.equal(testEvent2.log);
+      expect(res.body[2].log).to.equal(testEvent.log);
+      done();
     });
   });
 

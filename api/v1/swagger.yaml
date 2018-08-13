@@ -3136,6 +3136,15 @@ paths:
           required: false
           type: string
         -
+          name: sort
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          in: query
+          required: false
+          type: string
+        -
           name: botDataId
           description: Get events from specific botData
           in: query
@@ -3405,7 +3414,7 @@ paths:
           in: query
           type: string
           description: >-
-            Filter by the name of the current collector assigned to the generator.
+            Filter by the name of current collector assigned to the generator.
           maxLength: 60
       responses:
         200:
@@ -3652,7 +3661,7 @@ paths:
                 type: string
                 readOnly: true
                 description: >-
-                  Filter by the name of the current collector assigned to the generator.
+                  Filter by the name of current collector assigned to the generator.
               isActive:
                 type: boolean
                 description: >-
@@ -3779,7 +3788,7 @@ paths:
                 type: string
                 readOnly: true
                 description: >-
-                  Name of the current collector assigned to the generator.
+                  Name of current collector assigned to the generator.
               isActive:
                 type: boolean
                 description: >-
@@ -11778,8 +11787,8 @@ definitions:
         description: >
           Variables accessible inside the transform function.
       currentCollector:
-        type: object
-        description: Current collector assigned to the generator.
+        type: string
+        description: Name of current collector assigned to the generator.
         maxLength: 60
       generatorTemplate:
         $ref: "#/definitions/GeneratorTemplateResponse"
@@ -11864,8 +11873,8 @@ definitions:
         description: >
           Variables accessible inside the transform function.
       currentCollector:
-        type: object
-        description: Current collector assigned to the generator.
+        type: string
+        description: Name of current collector assigned to the generator.
         maxLength: 60
       generatorTemplate:
         $ref: "#/definitions/GeneratorTemplateResponse"
