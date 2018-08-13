@@ -135,13 +135,6 @@ module.exports = function generator(seq, dataTypes) {
       type: dataTypes.JSON,
       allowNull: true,
     },
-    currentCollector: {
-      type: dataTypes.STRING(constants.fieldlen.normalName),
-      allowNull: true,
-      validate: {
-        is: constants.nameRegex,
-      },
-    },
   }, {
     hooks: {
 
@@ -170,9 +163,12 @@ module.exports = function generator(seq, dataTypes) {
         const gtVersion = inst.generatorTemplate.version;
 
         let isCurrentCollectorIncluded = true;
+
+        // if possibleCollectors have changed, check if the currentCollector
+        // is still included
         if (inst.possibleCollectors && inst.changed('possibleCollectors')) {
           isCurrentCollectorIncluded = inst.possibleCollectors.some(
-            (coll) => coll.name === inst.currentCollector
+            (coll) => coll.name === inst.currentCollector.name
           );
         }
 
@@ -184,8 +180,11 @@ module.exports = function generator(seq, dataTypes) {
          3) If possibleCollectors are changed and collector is not assigned
           to generator
          */
-        if (inst.changed('isActive') || !isCurrentCollectorIncluded ||
-          (inst.changed('possibleCollectors') && !inst.currentCollector)) {
+        if (
+            inst.changed('isActive') ||
+            !isCurrentCollectorIncluded ||
+            (inst.changed('possibleCollectors') && !inst.currentCollector)
+           ) {
           inst.assignToCollector();
         }
 
@@ -217,7 +216,7 @@ module.exports = function generator(seq, dataTypes) {
         return Promise.all([
           Promise.resolve().then(() => {
             if (inst.currentCollector) {
-              const newCollector = inst.currentCollector;
+              const newCollector = inst.currentCollector.name;
               return hbUtils.trackGeneratorChanges(inst, null, newCollector);
             }
           }),
@@ -230,9 +229,11 @@ module.exports = function generator(seq, dataTypes) {
       }, // afterCreate
 
       afterUpdate(inst) {
-        const oldCollector = inst.previous('currentCollector');
-        const newCollector = inst.get('currentCollector');
-        return hbUtils.trackGeneratorChanges(inst, oldCollector, newCollector);
+        const oldCollectorName = inst.previous('currentCollector') ?
+                                 inst.previous('currentCollector').name : null;
+        const newCollectorName = inst.get('currentCollector') ?
+                                 inst.get('currentCollector').name : null;
+        return hbUtils.trackGeneratorChanges(inst, oldCollectorName, newCollectorName);
       }, //afterUpdate
     },
     validate: {
@@ -291,10 +292,10 @@ module.exports = function generator(seq, dataTypes) {
       foreignKey: 'generatorId',
     });
 
-    // assoc.currentCollector = Generator.belongsTo(models.Collector, {
-    //   as: 'currentCollector',
-    //   foreignKey: 'collectorId',
-    // });
+    assoc.currentCollector = Generator.belongsTo(models.Collector, {
+      as: 'currentCollector',
+      foreignKey: 'collectorId',
+    });
 
     assoc.writers = Generator.belongsToMany(models.User, {
       as: 'writers',
@@ -314,6 +315,19 @@ module.exports = function generator(seq, dataTypes) {
         },
         {
           association: assoc.possibleCollectors,
+          attributes: [
+            'id',
+            'name',
+            'registered',
+            'status',
+            'lastHeartbeat',
+            'isDeleted',
+            'createdAt',
+            'updatedAt',
+          ],
+        },
+        {
+          association: assoc.currentCollector,
           attributes: [
             'id',
             'name',
@@ -394,6 +408,7 @@ module.exports = function generator(seq, dataTypes) {
    * @param {Object} requestBody From API
    * @returns {Promise} created generator with collectors (if any)
    */
+
   Generator.createWithCollectors = function (requestBody) {
     let createdGenerator;
     let collectors;
@@ -402,10 +417,18 @@ module.exports = function generator(seq, dataTypes) {
     .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
     .then((_collectors) => collectors = _collectors)
     .then(() => createdGenerator = Generator.build(requestBody))
-    .then(() => createdGenerator.possibleCollectors = collectors) // mock for validation
-    .then(() => createdGenerator.save())
-    .then((gen) => createdGenerator = gen)
-    .then(() => createdGenerator.addPossibleCollectors(collectors))
+    .then(() => {
+      // when createdGen gets saved, it will validate that possible collectors
+      // exist on the instance being saved. This line mocks the presence of the
+      // possibleCollectors on the instance, but since this is an association,
+      // we still have to use the addPossibleCollectors later to save in the db.
+      createdGenerator.possibleCollectors = collectors;
+      return createdGenerator.save();
+    })
+    .then((gen) => {
+      createdGenerator = gen;
+      return createdGenerator.addPossibleCollectors(collectors);
+    })
     .then(() => createdGenerator.reload());
   };
 
@@ -434,10 +457,17 @@ module.exports = function generator(seq, dataTypes) {
     .then((collectors) => {
       // prevent overwrite of reloaded collectors on update
       delete requestBody.possibleCollectors;
+
+      // mock possibleCollectors on instance so we don't need to reload
+      // again to get the currentCollector (this matters if we try to set
+      // isActive=true and add a possibleCollector at the same time)
+      this.possibleCollectors = this.possibleCollectors || [];
+      this.possibleCollectors = this.possibleCollectors.concat(collectors);
+
       return this.addPossibleCollectors(collectors);
     })
-    .then(() => this.reload())
-    .then(() => this.update(requestBody));
+    .then(() => this.update(requestBody))
+    .then(() => this.reload());
   };
 
   Generator.prototype.isWritableBy = function (who) {
@@ -484,12 +514,20 @@ module.exports = function generator(seq, dataTypes) {
    */
   Generator.prototype.assignToCollector = function () {
     const possibleCollectors = this.possibleCollectors;
+    let newColl;
     if (this.isActive && possibleCollectors && possibleCollectors.length) {
       possibleCollectors.sort((c1, c2) => c1.name > c2.name);
-      const newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive());
-      this.currentCollector = newColl ? newColl.name : null;
-    } else {
-      this.currentCollector = null;
+      newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive());
     }
+
+    // We could use setCurrentCollector, but that would result in database saves
+    // that would be unnecessary and complicate our logic in the db hooks.
+    // Instead, we set the foreign key (collectorId) from collector model.
+    // We also mock the currentCollector on the instance to avoid a needing
+    // a database reload.
+    this.collectorId = newColl ? newColl.id : null;
+    this.currentCollector = newColl || null;
   };
+
+  return Generator;
 };

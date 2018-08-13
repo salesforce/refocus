@@ -12,8 +12,34 @@
 'use strict';  // eslint-disable-line strict
 
 const Generator = require('../../../../db/index').Generator;
+const Collector = require('../../../../db/index').Collector;
 
 const m = 'generator';
+
+/**
+ * Function to modify the where clause passed to the database model.
+ * We want to lookup a Generators currentCollector by name, so we need
+ * to add a include.where instead of the default where clause.
+ * @param  {Object} params  - The request params
+ * @param  {Object} options - The options object that will be passed to the
+ * Sequelize find function
+ * @returns {Object} options object with the "where" clause modified
+ */
+function modifyWhereClause(params, options) {
+  if (options.where.currentCollector) {
+    const nameStr = options.where.currentCollector;
+    options.include = [
+      {
+        model: Collector,
+        as: 'currentCollector',
+        where: { name: nameStr, },
+      },
+    ];
+    delete options.where.currentCollector;
+  }
+
+  return options;
+}
 
 module.exports = {
   apiLinks: {
@@ -26,6 +52,7 @@ module.exports = {
   baseUrl: '/v1/generators',
   model: Generator,
   modelName: 'Generator',
+  modifyWhereClause,
 
   // define the associations that are to be deleted here
   belongsToManyAssoc: {
@@ -36,6 +63,7 @@ module.exports = {
   fieldScopeMap: {
     user: 'user',
     possibleCollectors: 'possibleCollectors',
+    currentCollector: 'currentCollector',
   },
 
   /*

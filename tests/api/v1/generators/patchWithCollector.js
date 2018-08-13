@@ -229,7 +229,7 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
           expect(collectorNames).to.deep.equal(
             ['hello', 'IamAliveAndRunning1']
           );
-          expect(res.body.currentCollector).to.equal('IamAliveAndRunning1');
+          expect(res.body.currentCollector.name).to.equal('IamAliveAndRunning1');
           return done();
         });
       })
@@ -256,7 +256,7 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
         expect(collectors.length).to.equal(TWO);
         const collectorNames = collectors.map((collector) => collector.name);
         expect(collectorNames).to.deep.equal(['hello', 'IamAliveAndRunning1']);
-        expect(res.body.currentCollector).to.equal('IamAliveAndRunning1');
+        expect(res.body.currentCollector.name).to.equal('IamAliveAndRunning1');
         return done();
       });
     });
@@ -273,8 +273,7 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
       // make generator active
       .then(() => generatorInst.update({ isActive: true }))
       .then((gen) => {
-        // currentcollector = collectorAlive1
-        expect(gen.currentCollector).to.be.equal(collectorAlive1.name);
+        expect(gen.currentCollector.name).to.be.equal(collectorAlive1.name);
 
         // set possible collectors = collector1, collectorAlive2
         const requestBody = {};
@@ -298,7 +297,7 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
           expect(collectorNames).to.deep.equal(
             ['hello', 'IamAliveAndRunning1', 'IamAliveAndRunning2']
           );
-          expect(res.body.currentCollector).to.equal('IamAliveAndRunning1');
+          expect(res.body.currentCollector.name).to.equal('IamAliveAndRunning1');
           return done();
         });
       }).catch(done);

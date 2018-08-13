@@ -30,13 +30,13 @@ const collectorToCreate =  {
 };
 
 const expectedProps = [
-  'aspects', 'possibleCollectors', 'context', 'createdAt', 'createdBy',
+  'aspects', 'collectorId', 'possibleCollectors', 'context', 'createdAt', 'createdBy',
   'currentCollector', 'description', 'generatorTemplate',
   'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'isDeleted', 'name',
   'subjectQuery', 'tags', 'token', 'updatedAt', 'user',
 ];
 
-const expectedPropsDel = expectedProps.filter(p => p !== 'token');
+const expectedPropsDel = expectedProps.filter((p) => p !== 'token');
 
 const expectedCtxProps = ['password', 'secretInformation',
   'otherNonSecretInformation',
@@ -111,12 +111,11 @@ function createGenerator(gen, userId, collector) {
     gen.isActive = true;
     const possibleCollectors = gen.possibleCollectors;
     gen.possibleCollectors = [collector.name];
-    gen.currentCollector = collector.name;
     return Generator.createWithCollectors(gen)
-      .then((gen) => gen.updateWithCollectors({ possibleCollectors }));
+    .then((g) => g.updateWithCollectors({ possibleCollectors }));
   }
 
-  gen.currentCollector = undefined;
+  gen.collectorId = null;
   return Generator.create(gen);
 }
 
@@ -125,7 +124,11 @@ function updateGenerator(gen, userToken, collector) {
   const updateData = { description: 'UPDATED' };
 
   if (collector) {
-    updateData.currentCollector = collector.name;
+    // mock currentCollector on generator so we don't need to reload
+    updateData.currentCollector = collector;
+
+    // store collectorId so that currentCollector will be persisted
+    updateData.collectorId = collector.id;
   }
 
   return Generator.findOne({ where: { name: gen.name } })

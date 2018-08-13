@@ -73,7 +73,6 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       collector3.name,
     ];
     localGenerator.isActive = true;
-    localGenerator.currentCollector = collector1.name;
 
     // make collector1 alive
     collector1.update({ status: 'Running', lastHeartbeat: Date.now() })
@@ -100,7 +99,8 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       expect(o.generatorTemplate.version).to.equal('1.0.0');
       expect(typeof o.getWriters).to.equal('function');
       expect(typeof o.getPossibleCollectors).to.equal('function');
-      expect(o.currentCollector).to.equal(collector1.name);
+      expect(o.currentCollector.name).to.equal(collector1.name);
+      expect(o.currentCollector.id).to.equal(collector1.id);
       done();
     })
     .catch(done);

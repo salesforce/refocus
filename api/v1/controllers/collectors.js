@@ -415,8 +415,7 @@ function startCollector(req, res, next) {
   .then((coll) => {
     collToReturn = coll;
     /* TODO: change to use currentGenerators once that includes current gens only */
-
-    return Generator.findAll({ where: { currentCollector: coll.name } });
+    return Generator.findAll({ where: { collectorId: coll.id } });
   })
   /* Add all the attributes necessary to send back to collector. */
   .then((gens) => Promise.all(gens.map((g) => g.updateForHeartbeat())))
