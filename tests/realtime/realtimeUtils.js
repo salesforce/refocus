@@ -743,7 +743,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           const sampleObj = JSON.parse(JSON.stringify(sampleInstNA));
 
           // Changing the abs path to force an error.
-          sampleObj.name = sampleObj.name.split('|')[0] +'_blah|' +
+          sampleObj.name = sampleObj.name.split('|')[0] + '_blah|' +
             sampleObj.name.split('|')[1];
 
           realtimeUtils.attachAspectSubject(sampleObj, tu.db.Subject,
