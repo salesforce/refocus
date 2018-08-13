@@ -631,7 +631,13 @@ module.exports = {
 
       const ret = {};
       ret.status = job._state;
-      ret.errors = job.result ? job.result.errors : [];
+
+      if (job._state === 'complete' && job.result.errors) {
+        ret.errors = job.result.errors;
+      } else if (job._state === 'failed') {
+        ret.error = job._error;
+      }
+
       u.logAPI(req, resultObj, ret);
       return res.status(httpStatus.OK).json(ret);
     });
