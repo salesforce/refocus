@@ -375,7 +375,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     return Promise.resolve(null);
   }
 
-  let nameParts = sample.name.split('|');
+  const nameParts = sample.name.split('|');
   const subAbsPath = nameParts[0];
   const aspName = nameParts[1];
   const subOpts = {
@@ -408,16 +408,30 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     sample.subject ? sample.subject : subjectModel.findOne(subOpts),
   ])
   .then((response) => {
-    let asp = response[0];
-    let sub = response[1];
-    asp = asp.get ? asp.get() : asp;
+    const ASPECT_INDEX = 0;
+    const SUBJECT_INDEX = 1;
+    let asp = response[ASPECT_INDEX];
+    let sub = response[SUBJECT_INDEX];
+
+    if (!sub) {
+      /*
+       throw error when trying to attach the subject to a sample and
+       no subject is found for the absolute path in the sample name.
+       */
+      const message = `- attachAspectSubject - Failed to find subject by
+       sample abs path ${subAbsPath}`;
+      throw new Error(message);
+    }
+
     sub = sub.get ? sub.get() : sub;
+    asp = asp.get ? asp.get() : asp;
 
     delete asp.writers;
     delete sub.writers;
 
     sample.aspect = asp;
     sample.subject = sub;
+
     /*
      * attach absolutePath field to the sample. This is done to simplify the
      * filtering done on the subject absolutePath
