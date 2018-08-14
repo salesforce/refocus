@@ -34,10 +34,9 @@ describe('tests/api/v1/events/get.js >', () => {
   let testEventOutput;
   let testEvent2 = u.getStandard();
   testEvent2.context.type = 'Comment';
-  let testEvent3 = u.getStandard();
-  testEvent3.context.type = 'Comment';
   testEvent2.log = 'Sample Event 2';
   let testEvent3 = u.getStandard();
+  testEvent3.context.type = 'Comment';
   testEvent3.log = 'Sample Event 3';
   let token;
 
