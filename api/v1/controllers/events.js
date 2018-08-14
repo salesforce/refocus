@@ -37,8 +37,8 @@ module.exports = {
     // Extracting type from params to filter by context.type
     if (req.swagger.params.type && req.swagger.params.type.value) {
       req.swagger.params.context = {
-        'value': {
-          'type': req.swagger.params.type.value
+        value: {
+          type: req.swagger.params.type.value
         }
       };
 
