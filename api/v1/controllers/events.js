@@ -34,6 +34,17 @@ module.exports = {
       req.swagger.params.limit.value = DEFAULT_LIMIT;
     }
 
+    // console.log(req.swagger.params.type.value);
+    if (req.swagger.params.type && req.swagger.params.type.value) {
+      req.swagger.params.context = {
+        'value': {
+          'type': req.swagger.params.type.value
+        }
+      };
+
+      delete req.swagger.params.type;
+    }
+
     doFind(req, res, next, helper);
   },
 

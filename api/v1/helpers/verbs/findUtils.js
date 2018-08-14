@@ -202,6 +202,8 @@ function toSequelizeWhere(filter, props) {
           if (typeof v === 'boolean') {
             values.push(v);
           } else if (typeof v === 'number') {
+            console.log("num")
+            console.log(v);
             values.push(v);
           } else if (u.looksLikeId(v)) {
             values.push(v);
@@ -210,6 +212,8 @@ function toSequelizeWhere(filter, props) {
             for (let k = ZERO; k < arr.length; k++) {
               values.push(toWhereClause(arr[k]));
             }
+          } else if (typeof v === 'object') {
+            values.push(v);
           }
         }
 
@@ -222,6 +226,9 @@ function toSequelizeWhere(filter, props) {
       }
     }
   }
+
+  console.log("where")
+  console.log(where)
 
   return where;
 }
@@ -305,6 +312,8 @@ function applyLimitIfUniqueField(opts, props) {
  */
 function options(params, props) {
   const opts = u.buildFieldList(params);
+  console.log("these are opts")
+  console.log(opts);
 
   // Specify the sort order. If defaultOrder is defined in props or sort value
   // then update sort order otherwise take value from model defination
@@ -340,12 +349,16 @@ function options(params, props) {
 
   if (filter) {
     opts.where = toSequelizeWhere(filter, props);
+    console.log(opts.where)
     if (props.modifyWhereClause) {
       props.modifyWhereClause(params, opts);
     }
 
     applyLimitIfUniqueField(opts, props);
   }
+
+  console.log("these are opts at end")
+  console.log(opts);
 
   return opts;
 } // options
