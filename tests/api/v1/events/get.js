@@ -33,7 +33,9 @@ describe('tests/api/v1/events/get.js >', () => {
   let testEvent = u.getStandard();
   let testEventOutput;
   let testEvent2 = u.getStandard();
+  testEvent2.context.type = 'Comment';
   let testEvent3 = u.getStandard();
+  testEvent3.context.type = 'Comment';
   let token;
 
   before((done) => {
@@ -210,6 +212,20 @@ describe('tests/api/v1/events/get.js >', () => {
       }
 
       expect(res.body.log).to.equal(u.log);
+      done();
+    });
+  });
+
+  it('Pass, get by context type', (done) => {
+    api.get(`${path}?type=Comment`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(TWO);
       done();
     });
   });
