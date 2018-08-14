@@ -17,7 +17,7 @@ const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
 const Sample = tu.Sample;
 const publisher = require('../../realtime/redisPublisher');
-const sampleEvent = require('../../realtime/constants').events.sample;
+const event = require('../../realtime/constants').events.sample;
 const rtu = require('../cache/models/redisTestUtil');
 const samstoinit = require('../../cache/sampleStoreInit');
 
@@ -67,13 +67,13 @@ describe('tests/realtime/redisPublisher.js >', () => {
     it('certain fields in aspect should be array, and others ' +
     'should be undefined', (done) => {
       Sample.findOne(sampleName)
-      .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
+      .then((sam) => publisher.publishSample(sam, Subject, event.upd, Aspect))
       .then((pubObj) => {
         expect(pubObj.aspect).to.not.equal(null);
         expect(pubObj.aspect.name).to.equal(aspectName);
         expect(pubObj.aspect.writers).to.be.undefined;
         expect(Array.isArray(pubObj.aspect.relatedLinks)).to.be.true;
-        expect(pubObj.subject.helpEmail).to.be.undefined;
+        expect(pubObj.subject.helpEmail).to.be.null;
         done();
       })
       .catch(done);
@@ -82,12 +82,12 @@ describe('tests/realtime/redisPublisher.js >', () => {
     it('certain fields in subject should be array, and others ' +
     'should be undefined', (done) => {
       Sample.findOne(sampleName)
-      .then((sam) => publisher.publishSample(sam, null, sampleEvent.upd))
+      .then((sam) => publisher.publishSample(sam, Subject, event.upd, Aspect))
       .then((pubObj) => {
         expect(pubObj.subject).to.not.equal(null);
         expect(pubObj.subject.name).to.equal(subjectName);
         expect(Array.isArray(pubObj.subject.relatedLinks)).to.be.true;
-        expect(pubObj.subject.helpEmail).to.be.undefined;
+        expect(pubObj.subject.helpEmail).to.be.null;
         done();
       })
       .catch(done);
@@ -99,21 +99,21 @@ describe('tests/realtime/redisPublisher.js >', () => {
       .then((sam) => {
         const sampInst = sam;
         delete sampInst.aspect;
-        return publisher.publishSample(sam, null, sampleEvent.upd);
+        return publisher.publishSample(sam, Subject, event.upd, Aspect);
       })
       .then((pubObj) => {
         expect(pubObj.aspect).to.not.equal(null);
         expect(pubObj.aspect.name).to.equal(aspectName);
         expect(pubObj.aspect.writers).to.be.undefined;
         expect(Array.isArray(pubObj.aspect.relatedLinks)).to.be.true;
-        expect(pubObj.subject.helpEmail).to.be.undefined;
+        expect(pubObj.subject.helpEmail).to.be.null;
 
         // check subject is still there
         expect(pubObj.subject).to.not.equal(null);
         expect(pubObj.subject.name).to.equal(subjectName);
         expect(pubObj.subject.writers).to.be.undefined;
         expect(Array.isArray(pubObj.subject.relatedLinks)).to.be.true;
-        expect(pubObj.subject.helpEmail).to.be.undefined;
+        expect(pubObj.subject.helpEmail).to.be.null;
         done();
       })
       .catch(done);
@@ -156,11 +156,11 @@ describe('tests/realtime/redisPublisher.js >', () => {
       it('with EventType argument: sample should be published with subject ' +
       'object and asbolutePath field', (done) => {
         Sample.findOne(sampleName)
-        .then((sam) => publisher.publishSample(sam, Subject, sampleEvent.upd))
+        .then((sam) => publisher.publishSample(sam, Subject, event.upd, Aspect))
         .then((pubObj) => {
           expect(pubObj.subject).to.not.equal(null);
           expect(pubObj.subject.name).to.equal(subjectNA.name);
-          expect(pubObj.subject.helpEmail).to.be.undefined;
+          expect(pubObj.subject.helpEmail).to.be.null;
           expect(pubObj.subject.tags.length).to.equal(0);
           expect(pubObj.absolutePath).to.equal(subjectNA.name);
           expect(pubObj.aspect.tags.length).to.equal(0);
@@ -177,7 +177,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
         .then((pubObj) => {
           expect(pubObj.subject).to.not.equal(null);
           expect(pubObj.subject.name).to.equal(subjectNA.name);
-          expect(pubObj.subject.helpEmail).to.be.undefined;
+          expect(pubObj.subject.helpEmail).to.be.null;
           expect(pubObj.subject.tags.length).to.equal(0);
           expect(pubObj.absolutePath).to.equal(subjectNA.name);
           expect(pubObj.aspect.tags.length).to.equal(0);
@@ -193,12 +193,12 @@ describe('tests/realtime/redisPublisher.js >', () => {
         .then((sam) => {
           const sampInst = sam;
           delete sampInst.aspect;
-          return publisher.publishSample(sam, Subject, sampleEvent.upd, Aspect);
+          return publisher.publishSample(sam, Subject, event.upd, Aspect);
         })
         .then((pubObj) => {
           expect(pubObj.aspect).to.not.equal(null);
           expect(pubObj.aspect.name).to.equal(humidity.name);
-          expect(pubObj.subject.helpEmail).to.be.undefined;
+          expect(pubObj.subject.helpEmail).to.be.null;
           expect(pubObj.aspect.tags.length).to.equal(0);
           expect(pubObj.subject).to.not.equal(null);
           expect(pubObj.subject.name).to.equal(subjectNA.name);
@@ -219,11 +219,11 @@ describe('tests/realtime/redisPublisher.js >', () => {
         .then((updSample) => {
           // pass sequelize object
           let eventType = publisher.getSampleEventType(updSample);
-          expect(eventType).to.equal(sampleEvent.upd);
+          expect(eventType).to.equal(event.upd);
 
           // pass plain object
           eventType = publisher.getSampleEventType(updSample);
-          expect(eventType).to.equal(sampleEvent.upd);
+          expect(eventType).to.equal(event.upd);
           done();
         })
         .catch(done);
@@ -237,11 +237,11 @@ describe('tests/realtime/redisPublisher.js >', () => {
         .then((sam) => {
           // pass sequelize object
           let eventType = publisher.getSampleEventType(sam);
-          expect(eventType).to.equal(sampleEvent.add);
+          expect(eventType).to.equal(event.add);
 
           // pass plain object
           eventType = publisher.getSampleEventType(sam);
-          expect(eventType).to.equal(sampleEvent.add);
+          expect(eventType).to.equal(event.add);
           done();
         })
         .catch(done);

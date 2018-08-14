@@ -107,13 +107,13 @@ function getKey(collectorName, changeType) {
  * @param {Array} newCollector - The name of the Collector this Generator is
  *  assigned to after the update.
  */
-function trackGeneratorChanges(generator, oldCollector, newCollector) {
-  if (oldCollector === newCollector) {
-    return trackChangesForCollector(oldCollector, UPDATED, generator);
+function trackGeneratorChanges(generator, oldCollectorName, newCollectorName) {
+  if (oldCollectorName === newCollectorName) {
+    return trackChangesForCollector(oldCollectorName, UPDATED, generator);
   } else {
     return Promise.all([
-      trackChangesForCollector(oldCollector, DELETED, generator),
-      trackChangesForCollector(newCollector, ADDED, generator),
+      trackChangesForCollector(oldCollectorName, DELETED, generator),
+      trackChangesForCollector(newCollectorName, ADDED, generator),
     ]);
   }
 
