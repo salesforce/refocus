@@ -38,8 +38,8 @@ module.exports = {
     if (req.swagger.params.type && req.swagger.params.type.value) {
       req.swagger.params.context = {
         value: {
-          type: req.swagger.params.type.value
-        }
+          type: req.swagger.params.type.value,
+        },
       };
 
       delete req.swagger.params.type;
