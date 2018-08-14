@@ -3142,6 +3142,15 @@ paths:
           required: false
           type: string
         -
+          name: sort
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=createdAt'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          in: query
+          required: false
+          type: string
+        -
           name: botDataId
           description: Get events from specific botData
           in: query
