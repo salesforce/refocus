@@ -418,8 +418,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
        throw error when trying to attach the subject to a sample and
        no subject is found for the absolute path in the sample name.
        */
-      const message = `- attachAspectSubject - Failed to find subject by
-       sample abs path ${subAbsPath}`;
+      const message = `Failed to find subject by sample abs path ${subAbsPath}`;
       throw new Error(message);
     }
 

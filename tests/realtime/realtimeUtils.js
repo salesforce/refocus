@@ -742,6 +742,9 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         (done) => {
           const sampleObj = JSON.parse(JSON.stringify(sampleInstNA));
 
+          delete sampleObj.aspect;
+          delete sampleObj.subject;
+
           // Changing the abs path to force an error.
           sampleObj.name = sampleObj.name.split('|')[0] + '_blah|' +
             sampleObj.name.split('|')[1];
@@ -749,11 +752,12 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           realtimeUtils.attachAspectSubject(sampleObj, tu.db.Subject,
             tu.db.Aspect)
             .catch((err) => {
-              const expectedFailure = '- attachAspectSubject - ' +
-                'Failed to find subject by\n sample abs path ___NA_blah';
-              expect(err.message).equal(expectedFailure);
-            });
-          done();
+              const expectedFailure =
+                'Failed to find subject by sample abs path ___NA_blah';
+              expect(err.message).to.equal(expectedFailure);
+              done();
+            })
+            .catch(done);
         });
     });
   });

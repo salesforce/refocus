@@ -19,7 +19,8 @@ const Sample = tu.Sample;
 const publisher = require('../../realtime/redisPublisher');
 const event = require('../../realtime/constants').events.sample;
 const rtu = require('../cache/models/redisTestUtil');
-const samstoinit = require('../../cache/sampleStoreInit');
+const realTimeUtils = require('../../realtime/utils');
+const sinon = require('sinon');
 
 describe('tests/realtime/redisPublisher.js >', () => {
   describe('publishSample with redis cache on >', () => {
@@ -247,5 +248,24 @@ describe('tests/realtime/redisPublisher.js >', () => {
         .catch(done);
       });
     });
+
+    it('Must be able to handle when Error from real time attachAspectSubject',
+      (done) => {
+        sinon.stub(realTimeUtils, 'attachAspectSubject')
+          .throws(new Error('mocked'));
+        const publishObjectSpy = sinon.spy(publisher, 'publishObject');
+
+        Sample.findOne(sampleName)
+          .then((sam) => publisher
+            .publishSample(sam, Subject, event.upd, Aspect))
+          .catch((err) => {
+            expect(err.message).to.equal('mocked');
+            expect(publishObjectSpy.callCount).to.equal(0);
+            done();
+          }).finally(() => {
+            realTimeUtils.attachAspectSubject.restore();
+            publisher.publishObject.restore();
+          });
+      });
   });
 });

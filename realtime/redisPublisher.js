@@ -126,7 +126,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
 
   // No need to attachAspectSubject if subject and aspect are already attached
   if (sampleInst.hasOwnProperty('subject') &&
-  sampleInst.hasOwnProperty('aspect')) {
+    sampleInst.hasOwnProperty('aspect')) {
     prom = Promise.resolve(sampleInst);
   } else {
     prom = rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel);
@@ -137,7 +137,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
       sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
       publishObject(sample, eventType);
       return sample;
-    }
+    } // What happend here if is invalid??
   });
 } // publishSample
 
