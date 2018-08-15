@@ -73,8 +73,7 @@ module.exports = (job, done) => {
          * because we are looking up the subject info and including that in
          * the payload of the real-time event.
          */
-        publisher.publishSample(result, subHelper.model)
-          .catch((err) => logger.error('Error to publish sample - ' + err));
+        publisher.publishSample(result, subHelper.model);
         return Promise.resolve();
       }));
     })
