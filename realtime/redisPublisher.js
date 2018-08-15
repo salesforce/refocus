@@ -137,7 +137,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
       sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
       publishObject(sample, eventType);
       return sample;
-    } // What happend here if is invalid??
+    }
   });
 } // publishSample
 

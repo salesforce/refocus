@@ -56,21 +56,17 @@ module.exports = (job, done) => {
           return Promise.resolve();
         }
 
+        successCount++;
         if (featureToggles.isFeatureEnabled('publishSampleInPromiseChain')) {
           // Wait for publish to complete before resolving the promise.
-          return publisher
-            .publishSample(result, subHelper.model)
-            .then((sample) => {
-              successCount++;
-              return Promise.resolve(sample);
-            }).catch((err) => {
-              errors.push({ isFailed: true,
-                explanation: err.message, });
+          return publisher.publishSample(result, subHelper.model)
+            .catch((err) => {
+              // Any failure on publish sample don't stop the next promise.
+              logger.error('Error to publish sample - ' + err);
               return Promise.resolve();
             });
         }
 
-        successCount++;
         /*
          * Resolve the promise right away, *before* we actually publish
          * the sample. Under heavy load, publish a sample can get backed up
