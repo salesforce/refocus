@@ -126,7 +126,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
 
   // No need to attachAspectSubject if subject and aspect are already attached
   if (sampleInst.hasOwnProperty('subject') &&
-  sampleInst.hasOwnProperty('aspect')) {
+    sampleInst.hasOwnProperty('aspect')) {
     prom = Promise.resolve(sampleInst);
   } else {
     prom = rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel);
