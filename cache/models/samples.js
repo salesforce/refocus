@@ -1028,7 +1028,7 @@ module.exports = {
    */
   bulkUpsertByName(sampleQueryBody, user, readOnlyFields) {
     if (!sampleQueryBody || !Array.isArray(sampleQueryBody)) {
-      Promise.resolve([]);
+      return Promise.resolve([]);
     }
 
     const promises = sampleQueryBody.map((sampleReq) => {

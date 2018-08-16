@@ -250,19 +250,19 @@ module.exports = {
     const params = req.swagger.params;
     u.findByKey(helper, params)
     .then((o) => u.isWritable(req, o))
-      .then((o) => redisOps.getValue('aspect', o.name))
-      .then((cachedAspect) => {
-        if (cachedAspect) {
-          cachedAspect.writers = [];
-          return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
-        }
+    .then((o) => redisOps.getValue('aspect', o.name))
+    .then((cachedAspect) => {
+      if (cachedAspect) {
+        cachedAspect.writers = [];
+        return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
+      }
 
-        // reject the promise if the aspect is not found in the cache
-        return Promise.reject(new apiErrors.ResourceNotFoundError());
-      })
-      .then(() => doDeleteAllAssoc(req, res, next, helper,
-            helper.belongsToManyAssoc.users))
-      .catch((err) => u.handleError(next, err, helper.modelName));
+      // reject the promise if the aspect is not found in the cache
+      return Promise.reject(new apiErrors.ResourceNotFoundError());
+    })
+    .then(() => doDeleteAllAssoc(req, res, next, helper,
+          helper.belongsToManyAssoc.users))
+    .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**
