@@ -17,6 +17,7 @@ const pubPerspective = client.pubPerspective;
 const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const featureToggles = require('feature-toggles');
+const logger = require('winston');
 
 /**
  * When passed an sample object, either a sequelize sample object or
@@ -132,13 +133,19 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     prom = rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel);
   }
 
-  return prom.then((sample) => {
-    if (sample) {
-      sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
-      publishObject(sample, eventType);
-      return sample;
-    }
-  });
+  return prom
+    .then((sample) => {
+      if (sample) {
+        sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
+        publishObject(sample, eventType);
+        return sample;
+      }
+    })
+    .catch((err) => {
+      // Any failure on publish sample must not stop the next promise.
+      logger.error('Error to publish sample - ' + err);
+      return Promise.resolve();
+    });
 } // publishSample
 
 /**

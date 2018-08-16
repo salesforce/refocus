@@ -59,12 +59,7 @@ module.exports = (job, done) => {
         successCount++;
         if (featureToggles.isFeatureEnabled('publishSampleInPromiseChain')) {
           // Wait for publish to complete before resolving the promise.
-          return publisher.publishSample(result, subHelper.model)
-            .catch((err) => {
-              // Any failure on publish sample don't stop the next promise.
-              logger.error('Error to publish sample - ' + err);
-              return Promise.resolve();
-            });
+          return publisher.publishSample(result, subHelper.model);
         }
 
         /*
