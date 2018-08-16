@@ -294,7 +294,11 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
       }))
     );
 
-    // causes subsequent tests to fail
+    /*
+     * Skipping for now. The test passes on it's own, but shutting down the
+     * queue causes subsequent tests to fail. This is the only way to simulate a
+     * job failure that I've been able to get working. Will revisit this soon.
+     */
     it.skip('failed job', () =>
       doBulkDelete([blah.id, foo.id], false)
 
