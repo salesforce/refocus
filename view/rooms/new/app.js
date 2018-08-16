@@ -17,16 +17,21 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import FormController from './FormController';
 
-const request = require('superagent');
 const url = require('url');
 const ADDRESS = window.location.href;
-const ZERO = 0;
 const ONE = 1;
 const NAME_PATH = 3;
 const DEFAULT_ROOM_NAME = 'AUTO_GENERATED';
+const uNewRoom = require('../utils/newRoom');
 const uPage = require('./../utils/page');
 const formContainer = document.getElementById('formContainer');
 
+/**
+ * Gets variables from an address
+ *
+ * @param {String} addr - Address to get the variables from
+ * @returns {Object} - An object containing variables from the path
+ */
 function getPathVariables(addr){
   const pathName = url.parse(addr, true).pathname ?
     url.parse(addr, true).pathname.split('/') :
@@ -69,45 +74,6 @@ function getPathVariables(addr){
   };
 }
 
-function autoCreateRoomOrRedirect(paramaters) {
-  const q = url.parse(ADDRESS, true);
-  const qdata = q.query ? q.query : {};
-  const getRoomReq = request.get(`/v1/rooms?name=${paramaters.name}`);
-  const postRoomReq = request.post('/v1/rooms');
-
-  return getRoomReq.then((res, err) => {
-    if (err) {
-      console.error(err);
-    }
-
-    if (res.body && res.body[ZERO]) {
-      // Room already exists, just redirect to it
-      window.location.replace(`/rooms/${paramaters.name}`);
-    } else {
-      // Room doesn't exist, create one based on params
-      const obj = {
-        name: paramaters.name,
-        type: paramaters.roomType,
-        externalId: paramaters.externalId,
-        active: paramaters.active,
-      };
-
-      return postRoomReq.send(obj)
-      .then((response, error) => {
-        if (error) {
-          console.error(err);
-        } else if (qdata.keepParams) {
-          window.location.replace(
-            `/rooms/${response.body.id}?${ADDRESS.split('?')[ONE]}`
-          );
-        } else {
-          window.location.replace(`/rooms/${response.body.id}`);
-        }
-      });
-    }
-  });
-}
-
 window.onload = () => {
   const paramaters = getPathVariables(ADDRESS);
   ReactDOM.render(
@@ -121,9 +87,27 @@ window.onload = () => {
     />,
     formContainer
   );
+
   if (paramaters.name &&
     paramaters.roomType) {
-    autoCreateRoomOrRedirect(paramaters);
+    uNewRoom.checkIfRoomExistsFromName(paramaters.name)
+    .then((roomExists) => {
+      if (roomExists) {
+        window.location.replace(`/rooms/${paramaters.name}`);
+      } else {
+        const q = url.parse(ADDRESS, true);
+        const qdata = q.query ? q.query : {};
+        uNewRoom.createRoomFromParameters(paramaters)
+        .then(() => {
+          if (qdata.keepParams) {
+            window.location.replace(
+              `/rooms/${paramaters.name}?${ADDRESS.split('?')[ONE]}`);
+          } else {
+            window.location.replace(`/rooms/${paramaters.name}`);
+          }
+        });
+      }
+    });
   } else {
     uPage.removeSpinner();
   }
