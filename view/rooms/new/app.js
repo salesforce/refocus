@@ -20,6 +20,8 @@ import FormController from './FormController';
 const request = require('superagent');
 const url = require('url');
 const ADDRESS = window.location.href;
+const ZERO = 0;
+const ONE = 1;
 const NAME_PATH = 3;
 const DEFAULT_ROOM_NAME = 'AUTO_GENERATED';
 const uPage = require('./../utils/page');
@@ -67,32 +69,43 @@ function getPathVariables(addr){
   };
 }
 
-function createRoom(paramaters) {
+function autoCreateRoomOrRedirect(paramaters) {
   const q = url.parse(ADDRESS, true);
   const qdata = q.query ? q.query : {};
-  const req = request.post('/v1/rooms');
-  const obj = {
-    name: paramaters.name,
-    type: paramaters.roomType,
-    externalId: paramaters.externalId,
-    active: paramaters.active,
-  };
-  req
-    .send(obj)
-    .end((error, res) => {
-      if (error) {
-        if (error.response.text.includes('SequelizeUniqueConstraintError')) {
-          window.location.href = `/rooms/${paramaters.name}`;
+  const getRoomReq = request.get(`/v1/rooms?name=${paramaters.name}`);
+  const postRoomReq = request.post('/v1/rooms');
+
+  return getRoomReq.then((res, err) => {
+    if (err) {
+      console.error(err);
+    }
+
+    if (res.body && res.body[ZERO]) {
+      // Room already exists, just redirect to it
+      window.location.replace(`/rooms/${paramaters.name}`);
+    } else {
+      // Room doesn't exist, create one based on params
+      const obj = {
+        name: paramaters.name,
+        type: paramaters.roomType,
+        externalId: paramaters.externalId,
+        active: paramaters.active,
+      };
+
+      return postRoomReq.send(obj)
+      .then((response, error) => {
+        if (error) {
+          console.error(err);
+        } else if (qdata.keepParams) {
+          window.location.replace(
+            `/rooms/${response.body.id}?${ADDRESS.split('?')[ONE]}`
+          );
+        } else {
+          window.location.replace(`/rooms/${response.body.id}`);
         }
-        console.error(error.response.text);
-      } else if (qdata.keepParams) {
-        window.location.replace(
-          `/rooms/${res.body.id}?${ADDRESS.split('?')[1]}
-        `);
-      } else {
-        window.location.replace(`/rooms/${res.body.id}`);
-      }
-    });
+      });
+    }
+  });
 }
 
 window.onload = () => {
@@ -110,7 +123,7 @@ window.onload = () => {
   );
   if (paramaters.name &&
     paramaters.roomType) {
-    createRoom(paramaters);
+    autoCreateRoomOrRedirect(paramaters);
   } else {
     uPage.removeSpinner();
   }
