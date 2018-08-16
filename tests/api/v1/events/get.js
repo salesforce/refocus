@@ -248,6 +248,20 @@ describe('tests/api/v1/events/get.js >', () => {
     });
   });
 
+  it('Pass, get by context type is not case sensitive', (done) => {
+    api.get(`${path}?type=comment`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(TWO);
+      done();
+    });
+  });
+
   it('Fail, id not found', (done) => {
     api.get(`${path}/INVALID_ID`)
     .set('Authorization', token)
