@@ -210,6 +210,10 @@ function toSequelizeWhere(filter, props) {
             for (let k = ZERO; k < arr.length; k++) {
               values.push(toWhereClause(arr[k]));
             }
+          } else if (typeof v === 'object') {
+            for (const p in v) {
+              values.push({ [p]: toWhereClause(v[p]) });
+            }
           }
         }
 

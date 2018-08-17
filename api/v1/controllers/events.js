@@ -34,6 +34,17 @@ module.exports = {
       req.swagger.params.limit.value = DEFAULT_LIMIT;
     }
 
+    // Extracting type from params to filter by context.type
+    if (req.swagger.params.type && req.swagger.params.type.value) {
+      req.swagger.params.context = {
+        value: {
+          type: req.swagger.params.type.value,
+        },
+      };
+
+      delete req.swagger.params.type;
+    }
+
     doFind(req, res, next, helper);
   },
 

@@ -65,7 +65,7 @@ function bulkDelete(subjectKeys, readOnlyFields, user) {
     try {
       return deleteByKey(key, user);
     } catch (err) {
-      return Promise.reject({ isFailed: true, explanation: err });
+      return Promise.resolve({ isFailed: true, explanation: err });
     }
   });
   return Promise.all(subjectDeletePromise);
@@ -95,7 +95,16 @@ module.exports = (job, done) => {
       dbEndTime = Date.now();
       return Promise.all(results.map((result) => {
         if (result.isFailed) {
-          errors.push(result.explanation);
+          let error = result.explanation;
+
+          // Kue doesn't handle native errors properly because they have
+          // non-enumerable properties. Need to clone to a plain object.
+          if (typeof error === 'object') {
+            const props = ['name', ...Object.getOwnPropertyNames(error)];
+            error = JSON.parse(JSON.stringify(error, props));
+          }
+
+          errors.push(error);
           return Promise.resolve();
         }
 
@@ -107,7 +116,10 @@ module.exports = (job, done) => {
     .then(() => {
       const jobResultData = {};
       jobResultData.jobId = job.id;
-      jobResultData.errors = errors;
+      if (errors.length) {
+        jobResultData.errors = errors;
+      }
+
       if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
         const jobEndTime = Date.now();
         jobResultData.recordCount = successCount;

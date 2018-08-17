@@ -736,6 +736,29 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         })
         .catch(done);
       });
+
+      it('Fail when no subject is found for the absolute path' +
+        ' in the sample name',
+        (done) => {
+          const sampleObj = JSON.parse(JSON.stringify(sampleInstNA));
+
+          delete sampleObj.aspect;
+          delete sampleObj.subject;
+
+          // Changing the abs path to force an error.
+          sampleObj.name = sampleObj.name.split('|')[0] + '_blah_|' +
+            sampleObj.name.split('|')[1];
+
+          realtimeUtils.attachAspectSubject(sampleObj, tu.db.Subject,
+            tu.db.Aspect)
+            .catch((err) => {
+              const expectedFailure =
+                'Subject not found by Sample abs path ___NA_blah_';
+              expect(err.message).to.equal(expectedFailure);
+              done();
+            })
+            .catch(done);
+        });
     });
   });
 });

@@ -30,6 +30,9 @@ const filters = [
 ];
 const botAbsolutePath = '/Bots';
 
+const ASPECT_INDEX = 0;
+const SUBJECT_INDEX = 1;
+
 /**
  * A function to see if an object is a subject object or not. It returns true
  * if an object passed has 'parentAbsolutePath' as one of its property.
@@ -375,7 +378,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     return Promise.resolve(null);
   }
 
-  let nameParts = sample.name.split('|');
+  const nameParts = sample.name.split('|');
   const subAbsPath = nameParts[0];
   const aspName = nameParts[1];
   const subOpts = {
@@ -408,16 +411,23 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     sample.subject ? sample.subject : subjectModel.findOne(subOpts),
   ])
   .then((response) => {
-    let asp = response[0];
-    let sub = response[1];
-    asp = asp.get ? asp.get() : asp;
+    let asp = response[ASPECT_INDEX];
+    let sub = response[SUBJECT_INDEX];
+
+    if (!sub) {
+      const message = `Subject not found by Sample abs path ${subAbsPath}`;
+      throw new Error(message);
+    }
+
     sub = sub.get ? sub.get() : sub;
+    asp = asp.get ? asp.get() : asp;
 
     delete asp.writers;
     delete sub.writers;
 
     sample.aspect = asp;
     sample.subject = sub;
+
     /*
      * attach absolutePath field to the sample. This is done to simplify the
      * filtering done on the subject absolutePath
