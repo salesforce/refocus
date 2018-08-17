@@ -47,6 +47,8 @@ See the [Quickstart](https://salesforce.github.io/refocus/docs/01-quickstart.htm
 1. New users are assigned to the "RefocusUser" profile by default. This profile has read/write permission to all resource types. If you would like to restrict a class of users to have only read access to certain resource types, you can update the ____Access fields in the "RefocusUser" profile record.
 <!-- 1. Invite other users. Note: by default, only users with the `Admin` profile will be able to invite other users. If you want to let users register themselves as Refocus users, an Admin must set the config parameter `SELF_REGISTRATION_ENABLED` to `true`. -->
 1. If you *only* want SSO users (no "Local Authentation" users), set environment variable `REJECT_LOCAL_USER_REGISTRATION` to `true`. This disables the `POST /v1/register` endpoint.
+1. Set environment variable `SESSION_SECRET` to sign the session ID cookie. (When deploying on Heroku, this will be generated automatically for you.)
+1. Set environment variable `SECRET_TOKEN` to create jwt tokens used for authentication. (When deploying on Heroku, this will be generated automatically for you.)
 
 ### IP Restrictions
 By default, there are no IP restrictions for Refocus access. An admin can configure IP restrictions by adding a config var in Heroku with name ```IP_WHITELIST``` and value array of IP ranges, eg. ```[ [1.2.3.4, 1.2.3.8], [7.6.5.4, 7.6.9.9], [8.8.8.8, 9.9.9.9] ]```. Only the specified IP ranges will be allowed access to Refocus.
