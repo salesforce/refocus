@@ -12,35 +12,47 @@
 
 const expect = require('chai').expect;
 const sinon = require('sinon');
-//const request = require('superagent');
-let request;
-
+const vUtils = require('../../../../view/utils.js');
 const uRoom = require('../../../../view/rooms/utils/newRoom.js');
+
+let getPromiseWithUrl;
+let postPromiseWithUrl;
 
 describe('tests/view/rooms/utils/newRoom.js', () => {
 	beforeEach(() => {
-		request = sinon.stub();
+    getPromiseWithUrl = sinon.stub(vUtils, 'getPromiseWithUrl');
+    postPromiseWithUrl = sinon.stub(vUtils, 'postPromiseWithUrl');
   });
 
   afterEach(() => {
-    sinon.restore();
+    getPromiseWithUrl.restore();
+    postPromiseWithUrl.restore();
   });
 
   it('ok, room already exists with name given', (done) => {
-  	request.returns(Promise.resolve("aaa"));
-
-    uRoom.checkIfRoomExistsFromName('doesNotExist')
+  	getPromiseWithUrl.resolves( {body: [ { name: 'room_name' }, ] })
+    uRoom.checkIfRoomExistsFromName('roomExists')
     .then((res) => {
-    	console.log(res);
+      expect(res).to.equal(true);
     	done();
     })
   });
 
-  it('ok, room does not exist with name given', () => {
-
+  it('ok, room does not exist with name given', (done) => {
+    getPromiseWithUrl.resolves( {body: [] })
+    uRoom.checkIfRoomExistsFromName('roomDoesNotExist')
+    .then((res) => {
+      expect(res).to.equal(false);
+    	done();
+    });
   });
 
-  it('ok, room created with parameters', () => {
-
+  it('ok, room created with parameters', (done) => {
+    postPromiseWithUrl.resolves(room);
+    uRoom.createRoomFromParameters(room)
+    .then((res) => {
+      expect(res).to.equal(room);
+      done();
+    })
   });
 });
