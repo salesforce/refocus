@@ -215,16 +215,20 @@ describe('tests/realtime/redisPublisher.js >', () => {
       });
     });
 
-    it('Must be able to handle when Error from real time attachAspectSubject',
-    (done) => {
+    it('Must return an undefined promise when Error from real time ' +
+      'attachAspectSubject', (done) => {
       sinon.stub(realTimeUtils, 'attachAspectSubject')
-        .throws(new Error('mocked'));
+        .returns(
+          new Promise(() => {
+            throw new Error();
+          })
+        );
 
       Sample.findOne(sampleName)
         .then((sam) => redisPublisher
           .publishSample(sam, Subject, event.upd, Aspect))
-        .catch((err) => {
-          expect(err.message).to.equal('mocked');
+        .then((sample) => {
+          expect(sample).to.equal(undefined);
           done();
         }).finally(() => {
           realTimeUtils.attachAspectSubject.restore();
