@@ -149,7 +149,7 @@ module.exports = {
         validateResponse: true,
       },
     },
-    sessionSecret: 'refocusrockswithgreenowls',
+    sessionSecret: pe.SESSION_SECRET || 'refocusrockswithgreenowls',
   },
   db: {
     adminProfile: {
