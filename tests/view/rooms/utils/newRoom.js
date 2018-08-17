@@ -19,7 +19,7 @@ let getPromiseWithUrl;
 let postPromiseWithUrl;
 
 describe('tests/view/rooms/utils/newRoom.js', () => {
-	beforeEach(() => {
+  beforeEach(() => {
     getPromiseWithUrl = sinon.stub(vUtils, 'getPromiseWithUrl');
     postPromiseWithUrl = sinon.stub(vUtils, 'postPromiseWithUrl');
   });
@@ -30,29 +30,30 @@ describe('tests/view/rooms/utils/newRoom.js', () => {
   });
 
   it('ok, room already exists with name given', (done) => {
-  	getPromiseWithUrl.resolves( {body: [ { name: 'room_name' }, ] })
+    getPromiseWithUrl.resolves({ body: [{ name: 'room_name' }] });
     uRoom.checkIfRoomExistsFromName('roomExists')
     .then((res) => {
       expect(res).to.equal(true);
-    	done();
-    })
+      done();
+    });
   });
 
   it('ok, room does not exist with name given', (done) => {
-    getPromiseWithUrl.resolves( {body: [] })
+    getPromiseWithUrl.resolves({ body: [] });
     uRoom.checkIfRoomExistsFromName('roomDoesNotExist')
     .then((res) => {
       expect(res).to.equal(false);
-    	done();
+      done();
     });
   });
 
   it('ok, room created from parameters', (done) => {
+    const room = { name: 'room_name', type: 'room_type' };
     postPromiseWithUrl.resolves(room);
     uRoom.createRoomFromParameters(room)
     .then((res) => {
       expect(res).to.equal(room);
       done();
-    })
+    });
   });
 });
