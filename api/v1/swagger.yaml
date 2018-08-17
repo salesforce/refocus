@@ -3136,6 +3136,12 @@ paths:
           required: false
           type: string
         -
+          name: type
+          description: Get events that are a specific type
+          in: query
+          required: false
+          type: string
+        -
           name: sort
           description: >
             Specify the sort order using a field name, e.g. '...?sort=createdAt'. Prepend the
