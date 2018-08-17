@@ -56,8 +56,15 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
   describe('Create subjects and check status', () => {
     before(() => testUtils.toggleOverride('enableWorkerProcess', true));
 
-    // Start JobQueue
-    jobQueue.process(jobType.BULK_DELETE_SUBJECTS, bulkDeleteSubjectsJob);
+    // Start JobQueue, with the option to simulate a failed job
+    let simulateFailure = false;
+    jobQueue.process(jobType.BULK_DELETE_SUBJECTS, (job, done) => {
+      if (simulateFailure) {
+        done('Job Failed');
+      } else {
+        bulkDeleteSubjectsJob(job, done);
+      }
+    });
 
     const blah = { name: `${testUtils.namePrefix}Blah`, isPublished: true, };
     const foo = { name: `${testUtils.namePrefix}Foo`, isPublished: true, };
@@ -107,7 +114,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
     after(testUtils.forceDeleteUser);
     after(() => testUtils.toggleOverride('enableWorkerProcess', false));
 
-    function doBulkDelete(subKeys, waitToComplete=true) {
+    function doBulkDelete(subKeys) {
       return api.post(DELETE_PATH)
       .set(AUTHORIZATION, token)
       .send(subKeys)
@@ -117,7 +124,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
         return res.body.jobId;
       })
       .end()
-      .tap(() => waitToComplete ? wait(TIMEOUT) : Promise.resolve());
+      .tap(() => wait(TIMEOUT));
     }
 
     function wait(timeout) {
@@ -294,29 +301,22 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
       }))
     );
 
-    /*
-     * Skipping for now. The test passes on it's own, but shutting down the
-     * queue causes subsequent tests to fail. This is the only way to simulate a
-     * job failure that I've been able to get working. Will revisit this soon.
-     */
-    it.skip('failed job', () =>
-      doBulkDelete([blah.id, foo.id], false)
-
-      // shutdown the worker process
-      .tap(() => new Promise((resolve) => {
-        jobQueue.shutdown(1, resolve);
-      }))
+    it('failed job', () => {
+      simulateFailure = true;
+      return doBulkDelete([blah.id, foo.id])
 
       // { status: failed, error: 'Shutdown' }
       .then((res) => checkJobStatus({
         jobId: res.body.jobId,
         expectedStatus: 'failed',
-        expectedError: 'Shutdown',
+        expectedError: 'Job Failed',
       }))
 
-      // deleted behavior: undefined, depending on whether the db request
-      // went through before the job was shut down.
-      .then(() => checkSubjectsExist({}))
-    );
+      // not deleted
+      .then(() => checkSubjectsExist({
+        [blah.id]: true,
+        [foo.id]: true,
+      }));
+    });
   });
 });
