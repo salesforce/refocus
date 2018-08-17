@@ -47,7 +47,7 @@ describe('tests/view/rooms/utils/newRoom.js', () => {
     });
   });
 
-  it('ok, room created with parameters', (done) => {
+  it('ok, room created from parameters', (done) => {
     postPromiseWithUrl.resolves(room);
     uRoom.createRoomFromParameters(room)
     .then((res) => {
