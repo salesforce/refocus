@@ -417,6 +417,8 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
   const iframeJS =
   `
   <script>
+    window.top = window.parent = null;
+
     function outputSize() {
       const el = document.getElementById("${bot.name}");
       // Sometimes clientHeight was > scrollHeight so we need to get the max
@@ -455,9 +457,9 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
 
   const iframeContent = iframeCss +
       `<script>var user = "${currentUser}"</script>
+      ${iframeJS}
       ${contentSection}
-      <script>${botScript}</script>` +
-      iframeJS;
+      <script>${botScript}</script>`;
 
   uPage.writeInIframedoc(iframedoc, iframeContent);
 }
@@ -536,6 +538,8 @@ function displayBot(bot, botIndex) {
   // We don't want to scroll the iframe, just the bot inside it
   iframe.scrolling = 'no';
   iframe.frameBorder = 0;
+  iframe.sandbox = `allow-scripts allow-same-origin
+    allow-pointer-lock allow-forms`;
 
   headerSection.appendChild(iframe);
   headerSection.appendChild(footerSection);
