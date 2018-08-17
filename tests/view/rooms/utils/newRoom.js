@@ -12,11 +12,28 @@
 
 const expect = require('chai').expect;
 const sinon = require('sinon');
+//const request = require('superagent');
+let request;
+
 const uRoom = require('../../../../view/rooms/utils/newRoom.js');
 
 describe('tests/view/rooms/utils/newRoom.js', () => {
-  it('ok, room already exists with name given', () => {
+	beforeEach(() => {
+		request = sinon.stub();
+  });
 
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it('ok, room already exists with name given', (done) => {
+  	request.returns(Promise.resolve("aaa"));
+
+    uRoom.checkIfRoomExistsFromName('doesNotExist')
+    .then((res) => {
+    	console.log(res);
+    	done();
+    })
   });
 
   it('ok, room does not exist with name given', () => {
