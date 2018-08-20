@@ -31,11 +31,19 @@ const GENERATOR_TEMPLATE_SIMPLE = {
     url: 'http://www.bbb.com',
     bulk: false,
   },
-  transform: { default: 'return [{ name: "S1|A1", value: 10 }, ' +
+  transform: {
+    default: 'return [{ name: "S1|A1", value: 10 }, ' +
     '{ name: "S2|A1", value: 2 }] ',
     errorHandlers: {
       404: 'return [{ name: "S1|A1", messageBody: "NOT FOUND" },' +
       ' { name: "S2|A1", messageBody: "NOT FOUND" }]',
+    },
+    responseSchema: {
+      type: 'object',
+      required: ['body'],
+      properties: {
+        body: { type: 'object' },
+      },
     },
   },
   isPublished: true,
