@@ -32,7 +32,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
   let token2;
   const AUTHORIZATION = 'Authorization';
   const DELETE_PATH = '/v1/subjects/delete/bulk';
-  const TIMEOUT = 100;
+  const TIMEOUT = 50;
 
   before((done) => {
     testUtils.createToken()
@@ -123,19 +123,33 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
         expect(res.body.jobId).to.not.be.empty;
         return res.body.jobId;
       })
-      .end()
-      .tap(() => wait(TIMEOUT));
+      .end();
     }
 
     function wait(timeout) {
       return new Promise((resolve) => setTimeout(resolve, timeout));
     }
 
+    function getStatus(jobId) {
+      return wait(TIMEOUT)
+      .then(() =>
+        api.get(`/v1/subjects/delete/bulk/${jobId}/status`)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .end()
+      )
+      .then((res) => {
+        if (res.body.status === 'active') {
+          return getStatus(jobId);
+        } else {
+          return res;
+        }
+      });
+    }
+
     function checkJobStatus({ jobId, expectedStatus, expectedErrors, expectedError }) {
-      return api.get(`/v1/subjects/delete/bulk/${jobId}/status`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .expect((res) => {
+      return getStatus(jobId)
+      .then((res) => {
         expect(res.body.status).to.equal(expectedStatus);
 
         if (expectedErrors) {
@@ -154,8 +168,7 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
         } else {
           expect(res.body.error).to.not.exist;
         }
-      })
-      .end();
+      });
     }
 
     function checkSubjectsExist(expectMap) {
