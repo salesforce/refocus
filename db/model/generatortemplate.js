@@ -58,6 +58,8 @@ const transformSchema = joi.object().keys({
     'function as a string'),
   errorHandlers: joi.object().description('Optional errorhandlers to handle ' +
     'the errors from remote collection'),
+  responseSchema: joi.object().description('Optional JSON Schema to validate' +
+    ' the response from remote collection'),
 });
 
 const ctxDefRequiredProps = ['description'];
