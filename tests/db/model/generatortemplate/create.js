@@ -133,6 +133,17 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     .catch(done);
   });
 
+  it('ok, can create templates without responseSchema', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    delete _gt.transform.responseSchema;
+    GeneratorTemplate.create(_gt)
+    .then((o) => {
+      expect(o.transform).to.deep.equal(_gt.transform);
+      done();
+    })
+    .catch(done);
+  });
+
   it('not ok, create with additional properties not part of the schema ' +
     'error', (done) => {
     const _gt = u.getGeneratorTemplate();
@@ -347,6 +358,19 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     .then(() => done('Error: Expecting validation error'))
     .catch((err) => {
       expect(err.message).to.contain('"errorHandlers" must be an object');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors[0].path).to.equal('transform');
+      done();
+    });
+  });
+
+  it('not ok, when responseSchema is not an object', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    _gt.transform.responseSchema = '...';
+    GeneratorTemplate.create(_gt)
+    .then(() => done('Error: Expecting validation error'))
+    .catch((err) => {
+      expect(err.message).to.contain('"responseSchema" must be an object');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('transform');
       done();
