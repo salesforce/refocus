@@ -41,6 +41,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   // SegfaultHandler.registerHandler('crash.log');
 
   const featureToggles = require('feature-toggles');
+  const logEnvVars = require('./utils/logEnvVars');
 
   if (conf.newRelicKey) {
     require('newrelic');
@@ -68,6 +69,14 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   const enforcesSSL = require('express-enforces-ssl');
 
   const app = express();
+
+  if (featureToggles.isFeatureEnabled('enableEnvActivityLogs')) {
+    /*
+     * Environment variables are the same for every worker in the cluster so
+     * log them just once, just for the first worker in the cluster.
+     */
+    if (clusterProcessId === 0) logEnvVars.log(process.env);
+  }
 
   /*
    * Call this *before* the static pages and the API routes so that both the
