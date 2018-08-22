@@ -31,6 +31,7 @@ const redisCache = require('../../../cache/redisCache').client.cache;
 const RADIX = 10;
 const COUNT_HEADER_NAME = require('../constants').COUNT_HEADER_NAME;
 const logger = require('winston');
+const generators = require('../helpers/nouns/generators');
 
 /**
  * Find sample (from redis sample store). If cache is on then cache the
@@ -51,8 +52,10 @@ function doFindSample(req, res, next, resultObj, cacheKey, cacheExpiry) {
      * store).
      */
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
     /* Add response header with record count. */
     res.set(COUNT_HEADER_NAME, response.length);
+
     /* Delete any attributes designated for exclusion from the response. */
     if (helper.fieldsToExclude) {
       for (let i = response.length - 1; i >= 0; i--) {
@@ -78,6 +81,46 @@ function doFindSample(req, res, next, resultObj, cacheKey, cacheExpiry) {
     return u.handleError(next, err, helper.modelName);
   });
 } // doFindSample
+
+/**
+ * Avoid non-running Collectors to send in Samples.
+ *
+ * Rejects if it's a Generator request (header.IsGenerator) and its current
+ * Collector has status != RUNNING - response back as 403 Forbidden.
+ *
+ * Resolves when it's a valid Generator or request is not from a Generator.
+ *
+ * @param req
+ * @returns {Promise}
+ */
+function validateNonRunningCollectors(req) {
+  return new Promise((resolve, reject) => {
+    if (!req.headers.IsGenerator) return resolve();
+
+    const param = { key: { value: req.headers.TokenName } };
+    u.findByKey(generators, param)
+    .then((generator) => {
+      if (!generator.currentCollector) {
+        const noCurrentCollector = 'Cannot accept Generator ' +
+          generator.name + ' samples without current collector';
+        return reject(
+          new apiErrors.ForbiddenError(
+            { explanation: noCurrentCollector, }
+          ));
+      } else if (generator.currentCollector &&
+        generator.currentCollector.status !== 'Running') {
+        const notRunning = 'Cannot accept samples from Collector ' +
+            generator.currentCollector.name + ' with status "' +
+            generator.currentCollector.status + '"';
+        return reject(new apiErrors.ForbiddenError(
+            { explanation: notRunning, })
+          );
+      }
+
+      return resolve();
+    });
+  });
+}
 
 module.exports = {
 
@@ -400,24 +443,25 @@ module.exports = {
           return res.status(httpStatus.OK).json(body);
         })
         .catch((err) => u.handleError(next, err, helper.modelName));
-      } else {
-        /*
-         * Send the upserted sample to the client by publishing it to the redis
-         * channel
-         */
-        sampleModel.bulkUpsertByName(value, user, readOnlyFields)
-        .then((samples) => samples.forEach((sample) => {
-          if (!sample.isFailed) {
-            publisher.publishSample(sample, subHelper.model);
-          }
-        }));
-        u.logAPI(req, resultObj, body, value.length);
-        return Promise.resolve(res.status(httpStatus.OK).json(body));
       }
+
+      /*
+       * Send the upserted sample to the client by publishing it to the
+       * redis channel
+       */
+      sampleModel.bulkUpsertByName(value, user, readOnlyFields)
+      .then((samples) => samples.forEach((sample) => {
+        if (!sample.isFailed) {
+          publisher.publishSample(sample, subHelper.model);
+        }
+      }));
+      u.logAPI(req, resultObj, body, value.length);
+      return Promise.resolve(res.status(httpStatus.OK).json(body));
     } // bulkUpsert
 
-    return bulkUpsert(req.user)
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    return validateNonRunningCollectors(req)
+      .then(() => bulkUpsert(req.user))
+      .catch((err) => u.handleError(next, err, helper.modelName));
   }, // bulkUpsertSample
 
   /**
