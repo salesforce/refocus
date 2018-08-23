@@ -118,7 +118,14 @@ function validateNonRunningCollectors(req) {
         }
 
         return resolve();
-      }).catch((err) => reject(err));
+      }).catch((err) =>
+        /*
+          Must re-throw the error if there an is exception from findByKey
+          otherwise (removing this catch) the caller is not able to catch the
+          original error and handle the response status properly.
+         */
+        reject(err)
+      );
   });
 }
 
