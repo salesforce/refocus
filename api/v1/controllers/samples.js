@@ -94,39 +94,30 @@ function doFindSample(req, res, next, resultObj, cacheKey, cacheExpiry) {
  * @returns {Promise}
  */
 function validateNonRunningCollectors(req) {
-  return new Promise((resolve, reject) => {
-    if (!req.headers.IsGenerator) return resolve();
+  if (!req.headers.IsGenerator) return Promise.resolve();
 
-    const param = { key: { value: req.headers.TokenName } };
-    u.findByKey(generators, param)
-      .then((generator) => {
-        if (!generator.currentCollector) {
-          const noCurrentCollector = 'Cannot accept Generator ' +
-            generator.name + ' samples without current collector';
-          return reject(
-            new apiErrors.ForbiddenError(
-              { explanation: noCurrentCollector, }
-            ));
-        } else if (generator.currentCollector &&
-          generator.currentCollector.status !== 'Running') {
-          const notRunning = 'Cannot accept samples from Collector ' +
-            generator.currentCollector.name + ' with status "' +
-            generator.currentCollector.status + '"';
-          return reject(new apiErrors.ForbiddenError(
-            { explanation: notRunning, })
-          );
-        }
+  const param = { key: { value: req.headers.TokenName } };
+  return u.findByKey(generators, param)
+    .then((generator) => {
+      if (!generator.currentCollector) {
+        const noCurrentCollector = 'Cannot accept Generator ' +
+          generator.name + ' samples without current collector';
+        return Promise.reject(
+          new apiErrors.ForbiddenError(
+            { explanation: noCurrentCollector, }
+          ));
+      } else if (generator.currentCollector &&
+        generator.currentCollector.status !== 'Running') {
+        const notRunning = 'Cannot accept samples from Collector ' +
+          generator.currentCollector.name + ' with status "' +
+          generator.currentCollector.status + '"';
+        return Promise.reject(new apiErrors.ForbiddenError(
+          { explanation: notRunning, })
+        );
+      }
 
-        return resolve();
-      }).catch((err) =>
-        /*
-          Must re-throw the error if there an is exception from findByKey
-          otherwise (removing this catch) the caller is not able to catch the
-          original error and handle the response status properly.
-         */
-        reject(err)
-      );
-  });
+      return Promise.resolve();
+    });
 }
 
 module.exports = {
