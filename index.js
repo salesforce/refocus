@@ -70,17 +70,15 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
 
   const app = express();
 
-  if (featureToggles.isFeatureEnabled('enableEnvActivityLogs')) {
-    /*
-     * If clusterProcessId is 0, we're running in single-process mode (i.e.
-     * non-throng), so log the env vars out.
-     * If clusterProcessId > 0, we have multiple throng workers, and in that
-     * case we only want to log out the env vars once, since they're all the
-     * same across all the throng workers, so in this case just do the logging
-     * if clusterProcessId is 1.
-     */
-    if (clusterProcessId < 2) logEnvVars.log(process.env);
-  }
+  /*
+   * If clusterProcessId is 0, we're running in single-process mode (i.e.
+   * non-throng), so log the env vars out.
+   * If clusterProcessId > 0, we have multiple throng workers, and in that case
+   * we only want to log out the env vars once, since they're all the same
+   * across all the throng workers, so in this case just do the logging if
+   * clusterProcessId is 1.
+   */
+  if (clusterProcessId < 2) logEnvVars.log(process.env);
 
   /*
    * Call this *before* the static pages and the API routes so that both the

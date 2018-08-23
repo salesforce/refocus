@@ -26,6 +26,7 @@ if (conf.newRelicKey) {
 }
 
 const featureToggles = require('feature-toggles');
+const logEnvVars = require('../utils/logEnvVars');
 const kueStatsActivityLogs = require('./scheduledJobs/kueStatsActivityLogs');
 const pubStatsLogs = require('./scheduledJobs/pubStatsLogs');
 const persistSampleStoreJob = require('./scheduledJobs/persistSampleStoreJob');
@@ -36,6 +37,8 @@ const jobCleanup = require('./scheduledJobs/jobCleanup');
 const deactivateRooms = require('./scheduledJobs/deactivateRooms');
 const checkMissedCollectorHeartbeatJob =
   require('./scheduledJobs/checkMissedCollectorHeartbeatJob');
+
+logEnvVars.log(process.env); // eslint-disable-line no-process-env
 
 /*
  * Add all the scheduled work here.

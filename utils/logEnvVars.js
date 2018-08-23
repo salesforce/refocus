@@ -10,8 +10,16 @@
  * ./utils/logEnvVars.js
  */
 'use strict'; // eslint-disable-line strict
+const featureToggles = require('feature-toggles');
 const activityLog = require('./activityLog');
-const HIDE_ME_LIST = ['SECRET_TOKEN', 'SESSION_SECRET', 'SECURITYSESSIONID'];
+const HIDE_ME_LIST = [
+  'DATABASE_BASTION_KEY',
+  'DATABASE_URL',
+  'REDIS_URL',
+  'SECRET_TOKEN',
+  'SESSION_SECRET',
+  'SECURITYSESSIONID',
+];
 const SKIP_ME_REGEX = /^(HEROKU_|REDIS_BASTION|npm_).*/;
 
 /**
@@ -31,8 +39,10 @@ function prepareObjectsToLog(env) {
 } // prepareObjectsToLog
 
 function log(env) {
-  prepareObjectsToLog(env)
-  .forEach((obj) => activityLog.printActivityLogString(obj, 'env'));
+  if (featureToggles.isFeatureEnabled('enableEnvActivityLogs')) {
+    prepareObjectsToLog(env)
+    .forEach((obj) => activityLog.printActivityLogString(obj, 'env'));
+  }
 } // log
 
 module.exports = {
