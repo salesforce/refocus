@@ -72,10 +72,14 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
 
   if (featureToggles.isFeatureEnabled('enableEnvActivityLogs')) {
     /*
-     * Environment variables are the same for every worker in the cluster so
-     * log them just once, just for the first worker in the cluster.
+     * If clusterProcessId is 0, we're running in single-process mode (i.e.
+     * non-throng), so log the env vars out.
+     * If clusterProcessId > 0, we have multiple throng workers, and in that
+     * case we only want to log out the env vars once, since they're all the
+     * same across all the throng workers, so in this case just do the logging
+     * if clusterProcessId is 1.
      */
-    if (clusterProcessId === 0) logEnvVars.log(process.env);
+    if (clusterProcessId < 2) logEnvVars.log(process.env);
   }
 
   /*
