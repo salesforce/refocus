@@ -80,7 +80,7 @@ describe('tests/api/v1/samples/upsertBulkAsGenerator.js >', () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  describe('> with generator and collector running', () => {
+  describe('with generator and collector running >', () => {
     // Starts the collector
     beforeEach((done) => {
       api.post('/v1/collectors/start')
@@ -93,7 +93,7 @@ describe('tests/api/v1/samples/upsertBulkAsGenerator.js >', () => {
         }).catch(done);
     });
 
-    it('> must be able to send sample properly', (done) => {
+    it('must be able to send sample properly', (done) => {
       const tokenGen = tu.createGeneratorToken(
         generatorWithCollector.name,
         { IsGenerator: true }
@@ -108,9 +108,9 @@ describe('tests/api/v1/samples/upsertBulkAsGenerator.js >', () => {
     });
   });
 
-  describe('> With a valid generator and current collector with status' +
-    ' different of Running', () => {
-    it('> must return a forbidden access with invalid status', (done) => {
+  describe('With a valid generator and current collector with status' +
+    ' different of Running >', () => {
+    it('must return a forbidden access with invalid status', (done) => {
       const tokenGen = tu.createGeneratorToken(
         generatorWithCollector.name,
         { IsGenerator: true }
@@ -130,8 +130,8 @@ describe('tests/api/v1/samples/upsertBulkAsGenerator.js >', () => {
     });
   });
 
-  describe('> With a valid generator and no current collector', () => {
-    it('> must return a forbidden and invalid collector', (done) => {
+  describe('With a valid generator and no current collector >', () => {
+    it('must return a forbidden and invalid collector', (done) => {
       const tokenGen = tu.createGeneratorToken(
         generatorWithoutCollector.name,
         { IsGenerator: true }
@@ -152,8 +152,8 @@ describe('tests/api/v1/samples/upsertBulkAsGenerator.js >', () => {
     });
   });
 
-  describe('> Given a non Generator ', () => {
-    it('> must be able to send sample', (done) => {
+  describe('Given a non Generator >', () => {
+    it('must be able to send sample', (done) => {
       api.post('/v1/samples/upsert/bulk')
         .set('Authorization', token)
         .send([{ name: '_Subject|_Aspect1', value: '2', }])

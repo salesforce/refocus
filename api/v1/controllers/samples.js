@@ -99,26 +99,26 @@ function validateNonRunningCollectors(req) {
 
     const param = { key: { value: req.headers.TokenName } };
     u.findByKey(generators, param)
-    .then((generator) => {
-      if (!generator.currentCollector) {
-        const noCurrentCollector = 'Cannot accept Generator ' +
-          generator.name + ' samples without current collector';
-        return reject(
-          new apiErrors.ForbiddenError(
-            { explanation: noCurrentCollector, }
-          ));
-      } else if (generator.currentCollector &&
-        generator.currentCollector.status !== 'Running') {
-        const notRunning = 'Cannot accept samples from Collector ' +
+      .then((generator) => {
+        if (!generator.currentCollector) {
+          const noCurrentCollector = 'Cannot accept Generator ' +
+            generator.name + ' samples without current collector';
+          return reject(
+            new apiErrors.ForbiddenError(
+              { explanation: noCurrentCollector, }
+            ));
+        } else if (generator.currentCollector &&
+          generator.currentCollector.status !== 'Running') {
+          const notRunning = 'Cannot accept samples from Collector ' +
             generator.currentCollector.name + ' with status "' +
             generator.currentCollector.status + '"';
-        return reject(new apiErrors.ForbiddenError(
+          return reject(new apiErrors.ForbiddenError(
             { explanation: notRunning, })
           );
-      }
+        }
 
-      return resolve();
-    });
+        return resolve();
+      }).catch((err) => reject(err));
   });
 }
 
