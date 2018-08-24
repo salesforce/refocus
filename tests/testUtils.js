@@ -260,6 +260,14 @@ module.exports = {
     .then(() => jwtUtil.createToken(userName, userName));
   }, // createToken
 
+  createGeneratorToken(tokenName) {
+    return jwtUtil.createToken(
+      tokenName,
+      userName,
+      { IsGenerator: true }
+    );
+  },
+
   // create admin token
   createAdminToken() {
     return jwtUtil.createToken(
