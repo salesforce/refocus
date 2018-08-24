@@ -21,6 +21,8 @@ if (conf.newRelicKey) {
 }
 
 const logger = require('winston');
+const featureToggles = require('feature-toggles');
+const logEnvVars = require('../utils/logEnvVars');
 const jobSetup = require('../jobQueue/setup');
 const jobConcurrency = jobSetup.jobConcurrency;
 const jobType = jobSetup.jobType;
@@ -37,6 +39,8 @@ const checkMissedCollectorHeartbeatJob =
 
 const workerStarted = 'Worker Process Started';
 logger.info(workerStarted);
+
+logEnvVars.log(process.env); // eslint-disable-line no-process-env
 
 jobQueue.process(jobType.BULKUPSERTSAMPLES, jobConcurrency.BULKUPSERTSAMPLES,
   bulkUpsertSamplesJob);

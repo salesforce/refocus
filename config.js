@@ -274,6 +274,11 @@ module.exports = {
   expressLimiterExpire2,
   botEventLimit,
   deactivateRoomsInterval,
+  logEnvVars: {
+    MASK_LIST: pe.LOG_ENV_VARS_MASK_LIST ?
+      pe.LOG_ENV_VARS_MASK_LIST.split(',') : [],
+    MAX_LEN: +pe.LOG_ENV_VARS_MAX_LEN || 512,
+  },
   minRoomDeactivationAge,
   kueStatsInactiveWarning: pe.KUESTATS_INACTIVE_WARNING,
   newRelicKey,
