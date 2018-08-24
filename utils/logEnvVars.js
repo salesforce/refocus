@@ -14,11 +14,11 @@ const featureToggles = require('feature-toggles');
 const config = require('../config');
 const activityLog = require('./activityLog');
 
- /**
-  * Note: with node 8, assigning a property on process.env will implicitly
-  * convert the value to a string so we do not need to worry about non-string
-  * types here.
-  */
+/**
+ * Note: with node 8, assigning a property on process.env will implicitly
+ * convert the value to a string so we do not need to worry about non-string
+ * types here.
+ */
 function truncate(str = '', max) {
   if (!str) return '';
   if (str.length > max) {
@@ -60,7 +60,7 @@ function prepareConfOpts(conf, opts) {
  */
 function prepareObjectsToLog(env, opts) {
   /* Short circuit - do nothing if env is false-y or if it's an array. */
-  if (!env || Array.isArray(env)) return []; 
+  if (!env || Array.isArray(env)) return [];
 
   opts = prepareConfOpts(config.logEnvVars, opts);
   return Object.keys(env || {})
