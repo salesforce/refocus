@@ -14,6 +14,7 @@ const common = require('../helpers/common');
 const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
 const u = require('../helpers/collectorUtils');
+const Promise = require('bluebird');
 const assoc = {};
 const collectorConfig = require('../../config/collectorConfig');
 const heartbeatUtils = require('../../api/v1/helpers/verbs/heartbeatUtils');
@@ -63,8 +64,8 @@ module.exports = function collector(seq, dataTypes) {
       defaultValue: true,
     },
     status: {
-      type: dataTypes.ENUM(Object.keys(constants.collectorStatuses)),
-      defaultValue: constants.collectorStatuses.Stopped,
+      type: dataTypes.ENUM(Object.keys(collectorStatus)),
+      defaultValue: collectorStatus.Stopped,
       allowNull: false,
     },
     isDeleted: {
@@ -154,6 +155,15 @@ module.exports = function collector(seq, dataTypes) {
         ],
       },
     ],
+
+    // defined here to be accessible in Generator.postImport()
+    scopes: {
+      embed: {
+        attributes: ['id', 'name', 'status', 'lastHeartbeat'],
+        order: ['name'],
+      },
+    },
+
     paranoid: true,
   });
 
@@ -188,30 +198,23 @@ module.exports = function collector(seq, dataTypes) {
    */
   Collector.checkMissedHeartbeat = function () {
     return Collector.missedHeartbeat()
-    .then((deadCollectors) =>
-      Promise.all(deadCollectors.map((coll) =>
-        coll.update({ status: constants.collectorStatuses.MissedHeartbeat })
-      ))
+    .map((coll) =>
+      coll.update({ status: collectorStatus.MissedHeartbeat })
     );
   }; // checkMissedHeartbeat
 
   Collector.postImport = function (models) {
 
-    // This field is not currently needed by collector, but 'GeneratorCollector'
-    // table already exists because generators have a many-to-many association
-    // with possibleCollectors.
+    assoc.currentGenerators = Collector.hasMany(models.Generator, {
+      as: 'currentGenerators',
+      foreignKey: 'collectorId',
+    });
+
     assoc.possibleGenerators = Collector.belongsToMany(models.Generator, {
       as: 'possibleGenerators',
       through: 'GeneratorCollectors',
       foreignKey: 'collectorId',
     });
-
-    // TODO: add this association
-    // assoc.currentGenerators = Collector.hasMany(models.Generator, {
-    //   as: 'currentGenerators',
-    //   foreignKey: 'collectorId',
-    //   // scope: ['withoutCollectors'],
-    // });
 
     assoc.createdBy = Collector.belongsTo(models.User, {
       foreignKey: 'createdBy',
@@ -223,10 +226,8 @@ module.exports = function collector(seq, dataTypes) {
       foreignKey: 'collectorId',
     });
 
-    Collector.addScope('defaultScope', {
+    Collector.addScope('baseScope', {
       order: ['name'],
-    }, {
-      override: true,
     });
 
     Collector.addScope('status', {
@@ -235,9 +236,38 @@ module.exports = function collector(seq, dataTypes) {
 
     Collector.addScope('running', {
       where: {
-        status: constants.collectorStatuses.Running,
+        status: collectorStatus.Running,
       },
     });
+
+    Collector.addScope('currentGenerators', {
+      include: [
+        {
+          model: models.Generator.scope('embed'),
+          as: 'currentGenerators',
+        },
+      ],
+    });
+
+    Collector.addScope('possibleGenerators', {
+      include: [
+        {
+          model: models.Generator.scope('embed'),
+          as: 'possibleGenerators',
+          through: { attributes: [] },
+        },
+      ],
+    });
+
+    Collector.addScope('defaultScope',
+      Collector.scope(
+        'baseScope',
+        'currentGenerators',
+        'possibleGenerators',
+      )._scope,
+      { override: true },
+    );
+
   };
 
   /**
@@ -250,7 +280,7 @@ module.exports = function collector(seq, dataTypes) {
    * @returns {Boolean}
    */
   Collector.prototype.isRunning = function () {
-    return this.status === constants.collectorStatuses.Running;
+    return this.status === collectorStatus.Running;
   }; // isRunning
 
   /**
@@ -276,16 +306,8 @@ module.exports = function collector(seq, dataTypes) {
    * @returns {Promise<Array<Generator>>}
    */
   Collector.prototype.reassignGenerators = function () {
-    /* TODO: change to use currentGenerators once that includes current gens only */
-    return seq.models.Generator.findAll({
-      include: [
-        {
-          model: Collector,
-          as: 'currentCollector',
-          where: { name: this.name, },
-        },
-      ],
-    }).map((g) => {
+    return this.getCurrentGenerators()
+    .map((g) => {
       g.assignToCollector();
       return g.save();
     });

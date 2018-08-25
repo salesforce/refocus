@@ -265,6 +265,15 @@ module.exports = function generator(seq, dataTypes) {
         ],
       },
     ],
+
+    // defined here to be accessible in Collector.postImport()
+    scopes: {
+      embed: {
+        attributes: ['id', 'name', 'description', 'isActive'],
+        order: ['name'],
+      },
+    },
+
     paranoid: true,
   });
 
@@ -286,15 +295,15 @@ module.exports = function generator(seq, dataTypes) {
       as: 'user',
     });
 
+    assoc.currentCollector = Generator.belongsTo(models.Collector, {
+      as: 'currentCollector',
+      foreignKey: 'collectorId',
+    });
+
     assoc.possibleCollectors = Generator.belongsToMany(models.Collector, {
       as: 'possibleCollectors',
       through: 'GeneratorCollectors',
       foreignKey: 'generatorId',
-    });
-
-    assoc.currentCollector = Generator.belongsTo(models.Collector, {
-      as: 'currentCollector',
-      foreignKey: 'collectorId',
     });
 
     assoc.writers = Generator.belongsToMany(models.User, {
@@ -307,44 +316,6 @@ module.exports = function generator(seq, dataTypes) {
       order: ['name'],
     });
 
-    Generator.addScope('defaultScope', {
-      include: [
-        {
-          association: assoc.user,
-          attributes: ['name', 'email', 'fullName'],
-        },
-        {
-          association: assoc.possibleCollectors,
-          attributes: [
-            'id',
-            'name',
-            'registered',
-            'status',
-            'lastHeartbeat',
-            'isDeleted',
-            'createdAt',
-            'updatedAt',
-          ],
-        },
-        {
-          association: assoc.currentCollector,
-          attributes: [
-            'id',
-            'name',
-            'registered',
-            'status',
-            'lastHeartbeat',
-            'isDeleted',
-            'createdAt',
-            'updatedAt',
-          ],
-        },
-      ],
-      order: ['name'],
-    }, {
-      override: true,
-    });
-
     Generator.addScope('user', {
       include: [
         {
@@ -354,38 +325,34 @@ module.exports = function generator(seq, dataTypes) {
       ],
     });
 
-    Generator.addScope('possibleCollectors', {
+    Generator.addScope('currentCollector', {
       include: [
         {
-          /*
-            According to Sequelize team when limits are set, they enforce the
-            usage of sub-queries, however, when Generator has multiple
-            associations (ie.: Collectors and User) the sub-query does not
-            expose foreign keys (Generator.createdBy).
-
-            Sequelize by default will try to create subQuery even when there is
-            no subQuery configured because the duplication flag is true by
-            default.
-
-            So, flagging duplication=false makes Sequelize avoid cartesian
-            product not generating sub-queries (further check in:
-            /sequelize/model.js, line 441).
-          */
-          duplicating: false,
-          association: assoc.possibleCollectors,
-          attributes: [
-            'id',
-            'name',
-            'registered',
-            'status',
-            'lastHeartbeat',
-            'isDeleted',
-            'createdAt',
-            'updatedAt',
-          ],
+          model: models.Collector.scope('embed'),
+          as: 'currentCollector',
         },
       ],
     });
+
+    Generator.addScope('possibleCollectors', {
+      include: [
+        {
+          model: models.Collector.scope('embed'),
+          as: 'possibleCollectors',
+          through: { attributes: [] },
+        },
+      ],
+    });
+
+    Generator.addScope('defaultScope',
+      Generator.scope(
+        'baseScope',
+        'user',
+        'currentCollector',
+        'possibleCollectors',
+      )._scope,
+      { override: true },
+    );
   };
 
   /**
