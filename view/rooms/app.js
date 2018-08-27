@@ -660,7 +660,8 @@ function setupSocketIOClient(bots) {
     botInfo[bot.body.id] = bot.body.name;
   });
 
-  const socket = _io('/', { transports: ['websocket'] });
+  const namespace = `/refocus.room?room=${ROOM_ID}&roomtype=${_roomTypeName}`;
+  const socket = _io(namespace, { transports: ['websocket'] });
 
   // Socket Event Names
   const settingsChangedEventName =
