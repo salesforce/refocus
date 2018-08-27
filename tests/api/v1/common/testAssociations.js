@@ -112,7 +112,6 @@ function testAssociations(path, associations, joiSchema, conf) {
     });
   });
 
-
   /*
     These tests fail because of a bug in sequelize.
     It doesn't properly handle multiple associations when a limit is applied:
