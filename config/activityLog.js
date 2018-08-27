@@ -27,6 +27,11 @@ module.exports = {
     uri: 'None',
     user: 'None',
   },
+  env: {
+    activity: 'env',
+    name: 'None',
+    value: 'None',
+  },
   job: {
     activity: 'job',
     description: 'None',
