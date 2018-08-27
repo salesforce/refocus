@@ -417,20 +417,6 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
   const iframeJS =
   `
   <script>
-    window.top = window.parent = null;
-
-    function outputSize() {
-      const el = document.getElementById("${bot.name}");
-      // Sometimes clientHeight was > scrollHeight so we need to get the max
-      const botHeight =  Math.max(el.clientHeight, el.scrollHeight);
-      parent.postMessage(
-        {
-          "name": "${bot.name}",
-          "height": Math.max(botHeight, "${MIN_BOT_HEIGHT}")
-        }, "*"
-      );
-    }
-
     outputSize();
     if( navigator.userAgent.toLowerCase().indexOf('chrome') > -1 ){
       new ResizeObserver(
@@ -456,10 +442,28 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
   </script>`;
 
   const iframeContent = iframeCss +
-      `<script>var user = "${currentUser}"</script>
-      ${iframeJS}
+      `<script>
+        var user = "${currentUser}";
+        {
+          const oldParent = window.parent;        
+          function outputSize() {
+            const el = document.getElementById("${bot.name}");
+            // Sometimes clientHeight was > scrollHeight
+            // so we need to get the max
+            const botHeight =  Math.max(el.clientHeight, el.scrollHeight);
+            oldParent.postMessage(
+              {
+                "name": "${bot.name}",
+                "height": Math.max(botHeight, "${MIN_BOT_HEIGHT}")
+              }, "*"
+            );
+          }
+        }
+        window.top = window.parent = null;   
+      </script>
       ${contentSection}
-      <script>${botScript}</script>`;
+      <script>${botScript}</script>` +
+      iframeJS;
 
   uPage.writeInIframedoc(iframedoc, iframeContent);
 }
@@ -538,8 +542,6 @@ function displayBot(bot, botIndex) {
   // We don't want to scroll the iframe, just the bot inside it
   iframe.scrolling = 'no';
   iframe.frameBorder = 0;
-  iframe.sandbox = `allow-scripts allow-same-origin
-    allow-pointer-lock allow-forms`;
 
   headerSection.appendChild(iframe);
   headerSection.appendChild(footerSection);
