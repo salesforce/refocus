@@ -75,7 +75,7 @@ const DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS = 120000; // 2min
 const botEventLimit = pe.BOT_EVENT_LIMIT || 100;
 
 const deactivateRoomsInterval = +pe.DEACTIVATE_ROOMS_INTERVAL || 300000; // 5min
-const minRoomDeactivationAge = 120; // 2 hours
+const minRoomDeactivationAge = +pe.MIN_ROOM_DEACTIVATION_AGE || 120; // 2 hours
 
 /*
  * name of the environment variable containing the read-only
