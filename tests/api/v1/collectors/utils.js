@@ -65,19 +65,19 @@ function startCollector(collector, collectorTokens, userToken) {
 function stopCollector(collector, userToken) {
   return api.post(`/v1/collectors/${collector.name}/stop`)
   .set('Authorization', userToken)
-  .send({})
+  .send({});
 }
 
 function pauseCollector(collector, userToken) {
   return api.post(`/v1/collectors/${collector.name}/pause`)
   .set('Authorization', userToken)
-  .send({})
+  .send({});
 }
 
 function resumeCollector(collector, userToken) {
   return api.post(`/v1/collectors/${collector.name}/resume`)
   .set('Authorization', userToken)
-  .send({})
+  .send({});
 }
 
 function missHeartbeat(collector) {
@@ -88,7 +88,7 @@ function missHeartbeat(collector) {
 
 function getCollector(userToken, collector) {
   return api.get(`/v1/collectors/${collector.name}`)
-  .set('Authorization', userToken)
+  .set('Authorization', userToken);
 }
 
 /**
