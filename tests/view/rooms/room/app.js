@@ -81,7 +81,6 @@ describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
     expect(output).to.contain('function test()');
     expect(output).to.contain('<div id="Test-Bot"></div>');
     expect(output).not.contain('index_bundle');
-    expect(output).to.contain('observe(document.getElementById("test-bot")');
   });
 
   it('ok, place content into iframe', () => {
