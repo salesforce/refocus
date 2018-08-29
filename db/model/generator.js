@@ -350,7 +350,7 @@ module.exports = function generator(seq, dataTypes) {
         'baseScope',
         'user',
         'currentCollector',
-        'possibleCollectors'
+        'possibleCollectors',
       ], Generator),
       { override: true },
     );

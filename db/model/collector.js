@@ -264,7 +264,7 @@ module.exports = function collector(seq, dataTypes) {
       dbUtils.combineScopes([
         'baseScope',
         'currentGenerators',
-        'possibleGenerators'
+        'possibleGenerators',
       ], Collector),
       { override: true },
     );
