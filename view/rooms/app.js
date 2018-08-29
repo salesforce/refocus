@@ -767,6 +767,7 @@ function setupSocketIOClient(bots) {
   socket.on('disconnect', (reason) => {
     debugMessage('Socket Disconnected');
     if (reason === 'io server disconnect') {
+      debugMessage('IO Server Disconnect');
       const elem = document.createElement('div');
       elem.id = 'snackbar';
       elem.className = 'slds-notify slds-notify_toast slds-theme_offline show';
