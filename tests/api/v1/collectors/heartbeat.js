@@ -27,10 +27,9 @@ const Promise = require('bluebird');
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
-supertest.Test.prototype.endAsync =
-  Promise.promisify(supertest.Test.prototype.end);
+supertest.Test.prototype.end = Promise.promisify(supertest.Test.prototype.end);
 supertest.Test.prototype.then = function (resolve, reject) {
-  return this.endAsync().then(resolve).catch(reject);
+  return this.end().then(resolve).catch(reject);
 };
 
 const password = 'superlongandsupersecretpassword';

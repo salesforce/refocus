@@ -56,7 +56,6 @@ function startCollector(collector, collectorTokens, userToken) {
   .set('Authorization', userToken)
   .send(collector)
   .expect(status.OK)
-  .endAsync()
   .then((res) => {
     collectorTokens[res.body.name] = res.body.token;
     collector.id = res.body.id;
@@ -67,21 +66,18 @@ function stopCollector(collector, userToken) {
   return api.post(`/v1/collectors/${collector.name}/stop`)
   .set('Authorization', userToken)
   .send({})
-  .endAsync();
 }
 
 function pauseCollector(collector, userToken) {
   return api.post(`/v1/collectors/${collector.name}/pause`)
   .set('Authorization', userToken)
   .send({})
-  .endAsync();
 }
 
 function resumeCollector(collector, userToken) {
   return api.post(`/v1/collectors/${collector.name}/resume`)
   .set('Authorization', userToken)
   .send({})
-  .endAsync();
 }
 
 function missHeartbeat(collector) {
@@ -93,7 +89,6 @@ function missHeartbeat(collector) {
 function getCollector(userToken, collector) {
   return api.get(`/v1/collectors/${collector.name}`)
   .set('Authorization', userToken)
-  .endAsync();
 }
 
 /**

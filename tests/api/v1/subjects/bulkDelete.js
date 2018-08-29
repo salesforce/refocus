@@ -25,7 +25,7 @@ const bulkDeleteSubjectsJob = require(
 const Promise = require('bluebird');
 supertest.Test.prototype.end = Promise.promisify(supertest.Test.prototype.end);
 supertest.Test.prototype.then = function (resolve, reject) {
-  return this.endAsync().then(resolve).catch(reject);
+  return this.end().then(resolve).catch(reject);
 };
 
 describe('tests/api/v1/subjects/bulkDelete.js', () => {
