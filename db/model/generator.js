@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const common = require('../helpers/common');
+const dbUtils = require('../utils');
 const sgUtils = require('../helpers/generatorUtil');
 const cryptUtils = require('../../utils/cryptUtils');
 const constants = require('../constants');
@@ -345,12 +346,12 @@ module.exports = function generator(seq, dataTypes) {
     });
 
     Generator.addScope('defaultScope',
-      Generator.scope(
+      dbUtils.combineScopes([
         'baseScope',
         'user',
         'currentCollector',
-        'possibleCollectors',
-      )._scope,
+        'possibleCollectors'
+      ], Generator),
       { override: true },
     );
   };

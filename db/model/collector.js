@@ -14,6 +14,7 @@ const common = require('../helpers/common');
 const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
 const u = require('../helpers/collectorUtils');
+const dbUtils = require('../utils');
 const Promise = require('bluebird');
 const assoc = {};
 const collectorConfig = require('../../config/collectorConfig');
@@ -260,11 +261,11 @@ module.exports = function collector(seq, dataTypes) {
     });
 
     Collector.addScope('defaultScope',
-      Collector.scope(
+      dbUtils.combineScopes([
         'baseScope',
         'currentGenerators',
-        'possibleGenerators',
-      )._scope,
+        'possibleGenerators'
+      ], Collector),
       { override: true },
     );
 
