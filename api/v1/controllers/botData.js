@@ -19,6 +19,10 @@ const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doDelete = require('../helpers/verbs/doDelete');
+const doGetWriters = require('../helpers/verbs/doGetWriters');
+const doPostWriters = require('../helpers/verbs/doPostWriters');
+const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
+const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const u = require('../../../utils/common');
 const v = require('../helpers/verbs/utils');
 const bdUtils = require('../../../db/helpers/botDataUtils');
@@ -159,6 +163,73 @@ module.exports = {
    */
   getBotData(req, res, next) {
     doGet(req, res, next, helper);
+  },
+      /**
+   * GET /botData/{key}/writers
+   *
+   * Retrieves all the writers associated with the bot
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getBotDataWriters(req, res, next) {
+    doGetWriters.getWriters(req, res, next, helper);
+  }, // getSubjectWriters
+
+  /**
+   * GET /botData/{key}/writers/userNameOrId
+   *
+   * Determine whether a user is an authorized writer for a bot and returns
+   * the user record if so.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getBotDataWriter(req, res, next) {
+    doGetWriters.getWriter(req, res, next, helper);
+  }, // getSubjectWriter
+
+  /**
+   * POST /botData/{key}/writers
+   *
+   * Add one or more users to an bots list of authorized writers
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  postBotDataWriters(req, res, next) {
+    doPostWriters(req, res, next, helper);
+  }, // postSubjectWriters
+
+  /**
+   * DELETE /botData/{keys}/writers
+   *
+   * Deletes all the writers associated with this resource.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  deleteBotDataWriters(req, res, next) {
+    doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
+  },
+
+  /**
+   * DELETE /botData/{keys}/writers/userNameOrId
+   *
+   * Deletes a user from an botAction's list of authorized writers.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  deleteBotDataWriter(req, res, next) {
+    const userNameOrId = req.swagger.params.userNameOrId.value;
+    doDeleteOneAssoc(req, res, next, helper,
+        helper.belongsToManyAssoc.users, userNameOrId);
   },
 
 }; // exports
