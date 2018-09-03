@@ -377,13 +377,12 @@ function createFooter(bot) {
   linkedElement.href = bot.url;
   linkedElement.target = '_blank';
   linkedElement.rel = 'noopener noreferrer';
-  gitHubImage.height = '15px';
+  gitHubImage.height = '15';
   gitHubImage.width = '15';
   gitHubImage.src = GITHUB_LOGO;
   linkedElement.appendChild(gitHubImage);
   footer.appendChild(linkedElement);
   footer.appendChild(botVersion);
-
   return footer;
 }
 
