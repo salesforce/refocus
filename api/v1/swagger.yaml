@@ -3325,7 +3325,6 @@ paths:
               - description
               - intervalSecs
               - name
-              - currentCollector
               - updatedAt
               - -isActive
               - -aspects
@@ -3336,7 +3335,6 @@ paths:
               - -intervalSecs
               - -name
               - -updatedAt
-              - -currentCollector
         -
           $ref: "#/parameters/limitParam"
         -
@@ -3415,13 +3413,6 @@ paths:
              include result set.
           type: array
           required: false
-        -
-          name: currentCollector
-          in: query
-          type: string
-          description: >-
-            Filter by the name of the current collector assigned to the generator.
-          maxLength: 60
       responses:
         200:
           description: >-
@@ -3663,11 +3654,11 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
-              currentCollector:
-                type: string
-                readOnly: true
-                description: >-
-                  Filter by the name of the current collector assigned to the generator.
+              possibleCollectors:
+                description: Collectors to append to the list of collectors this Sample Generator should try to use.
+                type: array
+                items:
+                  type: string
               isActive:
                 type: boolean
                 description: >-
@@ -3790,11 +3781,11 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
-              currentCollector:
-                type: string
-                readOnly: true
-                description: >-
-                  Name of the current collector assigned to the generator.
+              possibleCollectors:
+                description: List of collectors this Sample Generator should try to use.
+                type: array
+                items:
+                  type: string
               isActive:
                 type: boolean
                 description: >-
@@ -11555,12 +11546,18 @@ definitions:
       name:
         type: "string"
         description: "Should be unique."
-      possibleGenerators:
+      currentGenerators:
         readOnly: true
         type: "array"
         items:
           type: "object"
         description: "Generators assigned to this collector."
+      possibleGenerators:
+        readOnly: true
+        type: "array"
+        items:
+          type: "object"
+        description: "Generators that could potentially be assigned to this collector."
       registered:
         type: boolean
         description: "Boolean. If false, means deregistered. Changed by the DEREGISTER command"
@@ -12086,6 +12083,7 @@ parameters:
         - id
         - status
         - registered
+        - currentGenerators
         - possibleGenerators
         - lastHeartbeat
         - lastModifiedAt

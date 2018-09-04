@@ -7,21 +7,21 @@
  */
 
 /**
- * tests/api/v1/generators/associations.js
+ * tests/api/v1/collectors/associations.js
  */
 'use strict';
 const tu = require('../../../testUtils');
-const cu = require('../collectors/utils');
-const gu = require('./utils');
+const cu = require('./utils');
+const gu = require('../generators/utils');
 const gtUtil = gu.gtUtil;
 const testAssociations = require('../common/testAssociations.js').testAssociations;
 const Collector = tu.db.Collector;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
-const path = '/v1/generators';
+const path = '/v1/collectors';
 const Joi = require('joi');
 
-describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
+describe(`tests/api/v1/collectors/associations.js, GET ${path} >`, () => {
   let conf = {};
 
   const generatorTemplate = gtUtil.getGeneratorTemplate();
@@ -79,28 +79,22 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['user', 'currentCollector', 'possibleCollectors'];
+  const associations = ['currentGenerators', 'possibleGenerators'];
   const schema = {
-    user: Joi.object({
-      name: Joi.string().required(),
-      fullName: Joi.string().optional().allow(null),
-      email: Joi.string().required(),
-      profile: Joi.object().keys({
-        name: Joi.string().required(),
-      }).required(),
-    }),
-    currentCollector: Joi.object({
-      id: Joi.string().required(),
-      name: Joi.string().required(),
-      status: Joi.string().required(),
-      lastHeartbeat: Joi.string().required(),
-    }),
-    possibleCollectors: Joi.array().length(2).items(
+    currentGenerators: Joi.array().length(1).items(
       Joi.object({
         id: Joi.string().required(),
         name: Joi.string().required(),
-        status: Joi.string().required(),
-        lastHeartbeat: Joi.string().required(),
+        description: Joi.string().required(),
+        isActive: Joi.boolean().required(),
+      })
+    ),
+    possibleGenerators: Joi.array().length(2).items(
+      Joi.object({
+        id: Joi.string().required(),
+        name: Joi.string().required(),
+        description: Joi.string().required(),
+        isActive: Joi.boolean().required(),
       })
     ),
   };
