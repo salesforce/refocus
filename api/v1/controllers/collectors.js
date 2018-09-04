@@ -271,10 +271,6 @@ function heartbeat(req, res, next) {
       throw new apiErrors.ForbiddenError({
         explanation: 'Authentication Failed',
       });
-    } else if (o.status === status.Stopped) {
-      throw new apiErrors.ForbiddenError({
-        explanation: `Collector cannot send a heartbeat if stopped. Status: ${o.status}`,
-      });
     }
 
     if (o.status === status.MissedHeartbeat) {
