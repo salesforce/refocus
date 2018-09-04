@@ -12412,9 +12412,9 @@ definitions:
   BotActionWriterResponse:
     type: object
     description: >
-      Users having write permission to the subject
+      Users having write permission to the botAction
     properties:
-      subjectId:
+      botActionId:
         type: string
         readOnly: true
         description: >
@@ -12424,6 +12424,110 @@ definitions:
         readOnly: true
         description: >
           Id of a user having write permission to the botAction
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
+  BotDataWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the botData
+    properties:
+      botDataId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a write-protected botData
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the botData
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
+  BotWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the bot
+    properties:
+      botId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a write-protected bot
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the bot
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
+  RoomWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the room
+    properties:
+      roomId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a write-protected room
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the room
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
+  RoomTypeWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the roomType
+    properties:
+      roomTypeId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a write-protected roomType
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the roomType
       createdAt:
         readOnly: true
         type: string

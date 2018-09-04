@@ -171,6 +171,7 @@ module.exports = {
     const reqObj = req.swagger.params;
     const uiObj = {};
     u.findByKey(helper, req.swagger.params)
+    .then((o) => u.isWritable(req, o))
     .then((o) => {
       for (const param in reqObj) {
         if (reqObj[param].value) {
