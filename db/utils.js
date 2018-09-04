@@ -365,6 +365,22 @@ if (!Array.prototype.includes) {
   };
 }
 
+/**
+ * Combine multiple scopes into a single scope object.
+ * This is necessary because Sequelize doesn't provide a way to combine
+ * scopes directly (the only place this happens is in Model.scope()), and
+ * the scope-combining logic is non-trivial.
+ *
+ * @param {Model} model - Sequelize model object
+ * @param {Array} scopes - The names of scopes to be combined
+ * @returns {Object} the resulting scope
+ */
+function combineScopes(scopes, model) {
+  const scopedModel = model.scope(scopes);
+  const combinedScope = scopedModel._scope;
+  return combinedScope;
+} //combineScopes
+
 module.exports = {
   clog,
   createOrDropDb,
@@ -378,4 +394,5 @@ module.exports = {
   Sequelize,
   getDBReplicationObject,
   getReadOnlyDBConfig,
+  combineScopes,
 };
