@@ -386,11 +386,13 @@ function startCollector(req, res, next) {
   body.lastHeartbeat = Date.now();
   let collToReturn;
   return helper.model.findOne({ where: { name: body.name } })
+
   /* Already exists? Verify that this user has write permission. */
   .then((coll) => {
     if (coll) return u.isWritable(req, coll);
     return coll;
   })
+
   /* Already exists and is running or paused? Error! */
   .then((coll) => {
     if (coll) {
@@ -410,15 +412,18 @@ function startCollector(req, res, next) {
 
     return coll;
   })
-  /* Update or create */
+
+  /* Update or create. Generators will be assigned in db hooks */
   .then((coll) => coll ? coll.update(body) : helper.model.create(body))
+
+  /* Format assigned generators to send back to collector */
   .then((coll) => {
     collToReturn = coll;
-    /* TODO: change to use currentGenerators once that includes current gens only */
-    return Generator.findAll({ where: { collectorId: coll.id } });
+    return coll.getCurrentGenerators();
   })
+
   /* Add all the attributes necessary to send back to collector. */
-  .then((gens) => Promise.all(gens.map((g) => g.updateForHeartbeat())))
+  .map((g) => g.updateForHeartbeat())
   .then((gens) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     collToReturn.dataValues.generatorsAdded = gens.map((g) => {
