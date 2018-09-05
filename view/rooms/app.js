@@ -417,18 +417,6 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
   const iframeJS =
   `
   <script>
-    function outputSize() {
-      const el = document.getElementById("${bot.name}");
-      // Sometimes clientHeight was > scrollHeight so we need to get the max
-      const botHeight =  Math.max(el.clientHeight, el.scrollHeight);
-      parent.postMessage(
-        {
-          "name": "${bot.name}",
-          "height": Math.max(botHeight, "${MIN_BOT_HEIGHT}")
-        }, "*"
-      );
-    }
-
     outputSize();
     if( navigator.userAgent.toLowerCase().indexOf('chrome') > -1 ){
       new ResizeObserver(
@@ -454,7 +442,25 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
   </script>`;
 
   const iframeContent = iframeCss +
-      `<script>var user = "${currentUser}"</script>
+      `<script>
+        var user = "${currentUser}";
+        {
+          const oldParent = window.parent;        
+          function outputSize() {
+            const el = document.getElementById("${bot.name}");
+            // Sometimes clientHeight was > scrollHeight
+            // so we need to get the max
+            const botHeight =  Math.max(el.clientHeight, el.scrollHeight);
+            oldParent.postMessage(
+              {
+                "name": "${bot.name}",
+                "height": Math.max(botHeight, "${MIN_BOT_HEIGHT}")
+              }, "*"
+            );
+          }
+        }
+        window.top = window.parent = null;   
+      </script>
       ${contentSection}
       <script>${botScript}</script>` +
       iframeJS;

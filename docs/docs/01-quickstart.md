@@ -111,7 +111,11 @@ Note: API docs are available at `[YOUR_REFOCUS_HOST_AND_PORT]/v1/docs/`.
 
 Remember that a subject represents anything that you’re monitoring.
 
-Using your favorite API client , send a POST request to `/v1/subjects`. In the body of the request, use the following:
+Using your favorite API client , send a POST request to `/v1/subjects`. 
+
+API requests need an `Authorization` header with an API token. Generate an API token from the UI by logging in with your username/password and going to [HOST:PORT]/tokens/new.
+
+In the body of the request, use the following:
 
 ```json
 {
@@ -186,9 +190,7 @@ POST to `/v1/aspects` using the following body:
   "warningRange": [2000000001, 4000000000],
   "infoRange": [4000000001, 5500000000],
   "okRange": [5500000001, 10000000000],
-  "tags": [
-    { "name": "economic" }
-  ],
+  "tags": [ "economic" ],
   "timeout": "1d",
   "valueType": "NUMERIC"
 }
