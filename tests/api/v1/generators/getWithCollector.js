@@ -139,22 +139,4 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
       return done();
     });
   });
-
-  it('find by currentCollector, found', (done) => {
-    api.get(`${path}?currentCollector=${collector1.name}`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body).to.have.lengthOf(TWO);
-      expect(res.body[0].name).to.equal(genWithThreeCollectors.name);
-      expect(res.body[0].currentCollector.name).to.equal(collector1.name);
-      expect(res.body[1].name).to.equal(genWithOneCollector.name);
-      expect(res.body[1].currentCollector.name).to.equal(collector1.name);
-      return done();
-    });
-  });
 });
