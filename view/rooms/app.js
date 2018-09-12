@@ -44,7 +44,7 @@ GET_ROOM += isNaN(ROOM_ID) ? `?name=${ROOM_ID}` : ROOM_ID;
 const GET_EVENTS = '/v1/events';
 const GET_ACTIONS = '/v1/botActions';
 const GET_ROOMTYPES = '/v1/roomTypes';
-const GITHUB_LOGO = '../static/images/GitHub-Mark.png';
+const iconStandardClass = 'footer-icon slds-icon_container slds-m-around--xx-small';
 const BOT_LOGO = '../static/images/refocus-bot.png';
 const BOT_REQ_HEADERS = {
   'X-Requested-With': 'XMLHttpRequest',
@@ -365,23 +365,37 @@ function createHeader(bot) {
  */
 function createFooter(bot) {
   const footer = document.createElement('h3');
-  const linkedElement = document.createElement('a');
-  const gitHubImage = document.createElement('img');
+  const linkToCode = document.createElement('a');
+  const linkToDocs = document.createElement('a');
+  const linkToOwner = document.createElement('a');
+  const codeImage = document.createElement('img');
+  const docsImage = document.createElement('img');
+  const ownerImage = document.createElement('img');
   const botVersion = document.createElement('span');
 
   footer.className = 'slds-p-horizontal_small ' +
     'slds-theme_shade';
-  gitHubImage.className = 'slds-m-around--xx-small';
+  codeImage.className = 'slds-m-around--xx-small';
   botVersion.innerHTML = bot.version;
   botVersion.className = 'slds-float--right slds-m-around--xx-small';
-  linkedElement.href = bot.url;
-  linkedElement.target = '_blank';
-  linkedElement.rel = 'noopener noreferrer';
-  gitHubImage.height = '15';
-  gitHubImage.width = '15';
-  gitHubImage.src = GITHUB_LOGO;
-  linkedElement.appendChild(gitHubImage);
-  footer.appendChild(linkedElement);
+  linkToCode.href = bot.url;
+  linkToCode.target = '_blank';
+  linkToCode.rel = 'noopener noreferrer';
+  codeImage.className = `${iconStandardClass} slds-icon-standard-record`;
+  codeImage.src = '../static/icons/action/apex_60.png';
+  docsImage.src = '../static/icons/standard/document_60.png';
+  docsImage.className = `${iconStandardClass} slds-icon-standard-account`;
+  ownerImage.src = '../static/images/avatar3.jpg';
+  ownerImage.className = `${iconStandardClass} slds-icon-standard-account`;
+
+  linkToCode.appendChild(codeImage);
+  linkToDocs.appendChild(docsImage);
+  linkToOwner.appendChild(ownerImage);
+
+
+  footer.appendChild(linkToCode);
+  footer.appendChild(linkToDocs);
+  footer.appendChild(linkToOwner);
   footer.appendChild(botVersion);
   return footer;
 }

@@ -65,6 +65,11 @@
   animation: fadein 0.5s;
 }
 
+.footer-icon {
+  height: 20px;
+  width: 20px;
+}
+
 @-webkit-keyframes fadein {
   from {top: 0; opacity: 0;} 
   to {top:15px; opacity: 1;}
