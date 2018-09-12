@@ -369,23 +369,20 @@ function createFooter(bot) {
   const gitHubImage = document.createElement('img');
   const botVersion = document.createElement('span');
 
-  footer.className =
-    'slds-section__title ' +
-    'slds-p-horizontal_small ' +
-    'slds-theme_shade ';
-
-  botVersion.innerHTML = 'Version ' + bot.version;
-  botVersion.className = 'slds-p-horizontal--medium';
+  footer.className = 'slds-p-horizontal_small ' +
+    'slds-theme_shade';
+  gitHubImage.className = 'slds-m-around--xx-small';
+  botVersion.innerHTML = bot.version;
+  botVersion.className = 'slds-float--right slds-m-around--xx-small';
   linkedElement.href = bot.url;
   linkedElement.target = '_blank';
   linkedElement.rel = 'noopener noreferrer';
-  gitHubImage.height = '20';
-  gitHubImage.width = '20';
+  gitHubImage.height = '15';
+  gitHubImage.width = '15';
   gitHubImage.src = GITHUB_LOGO;
   linkedElement.appendChild(gitHubImage);
   footer.appendChild(linkedElement);
   footer.appendChild(botVersion);
-
   return footer;
 }
 
