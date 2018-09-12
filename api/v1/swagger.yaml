@@ -2051,7 +2051,17 @@ paths:
         -
           name: url
           in: formData
-          description: The URL of the bot server
+          description: The URL of the code repository
+          type: string
+        -
+          name: docsUrl
+          in: formData
+          description: The URL of the support documentation
+          type: string
+        -
+          name: ownerUrl
+          in: formData
+          description: The URL of the owner of the bot
           type: string
         -
           name: ui
@@ -2213,6 +2223,12 @@ paths:
               url:
                 type: string
                 description: Bot url
+              docsUrl:
+                type: string
+                description: Url of the support documentation for the bot
+              ownerUrl:
+                type: string
+                description: Url of the owner of the bot
               active:
                 type: boolean
                 description: If the bot is active
@@ -2281,6 +2297,16 @@ paths:
           name: url
           in: formData
           description: The URL of the bot server
+          type: string
+        -
+          name: docsUrl
+          in: formData
+          description: The URL of the support documentation
+          type: string
+        -
+          name: ownerUrl
+          in: formData
+          description: The URL of the owner of the bot
           type: string
         -
           name: version
@@ -11449,6 +11475,12 @@ definitions:
       url:
         type: string
         description: The URL of the bot server
+      docsUrl:
+        type: string
+        description: The URL of the support documentation
+      ownerUrl:
+        type: string
+        description: The URL of the owner of the bot
       ui:
         type: object
         description: The UI of the bot

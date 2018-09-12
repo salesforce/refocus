@@ -44,7 +44,8 @@ GET_ROOM += isNaN(ROOM_ID) ? `?name=${ROOM_ID}` : ROOM_ID;
 const GET_EVENTS = '/v1/events';
 const GET_ACTIONS = '/v1/botActions';
 const GET_ROOMTYPES = '/v1/roomTypes';
-const iconStandardClass = 'footer-icon slds-icon_container slds-m-around--xx-small';
+const iconStandardClass =
+  'footer-icon slds-icon_container slds-m-around--xx-small';
 const BOT_LOGO = '../static/images/refocus-bot.png';
 const BOT_REQ_HEADERS = {
   'X-Requested-With': 'XMLHttpRequest',
@@ -364,6 +365,7 @@ function createHeader(bot) {
  * @returns {DOM} footer - Footer section
  */
 function createFooter(bot) {
+  console.log(bot);
   const footer = document.createElement('h3');
   const linkToCode = document.createElement('a');
   const linkToDocs = document.createElement('a');
@@ -391,8 +393,6 @@ function createFooter(bot) {
   linkToCode.appendChild(codeImage);
   linkToDocs.appendChild(docsImage);
   linkToOwner.appendChild(ownerImage);
-
-
   footer.appendChild(linkToCode);
   footer.appendChild(linkToDocs);
   footer.appendChild(linkToOwner);
