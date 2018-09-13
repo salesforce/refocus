@@ -775,7 +775,7 @@ function setupSocketIOClient(bots) {
     }
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', (reason) => {
     debugMessage('Socket Disconnected');
     if (reason === 'io server disconnect') {
       debugMessage('IO Server Disconnect');
