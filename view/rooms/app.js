@@ -45,8 +45,6 @@ const GET_EVENTS = '/v1/events';
 const GET_ACTIONS = '/v1/botActions';
 const GET_ROOMTYPES = '/v1/roomTypes';
 const BOT_LOGO = '../static/images/refocus-bot.png';
-const svgURL = 'http://www.w3.org/2000/svg';
-const xlinkURL = 'http://www.w3.org/1999/xlink';
 const BOT_REQ_HEADERS = {
   'X-Requested-With': 'XMLHttpRequest',
   Expires: '-1',
@@ -278,6 +276,8 @@ function createMinimizeButton(bot) {
     }
   };
 
+  const svgURL = 'http://www.w3.org/2000/svg';
+  const xlinkURL = 'http://www.w3.org/1999/xlink';
   const svgElem = document.createElementNS(svgURL, 'svg');
   svgElem.setAttribute('class',
     'slds-icon slds-icon_xx-small slds-m-top_x-small');
@@ -775,7 +775,7 @@ function setupSocketIOClient(bots) {
     }
   });
 
-  socket.on('disconnect', (reason) => {
+  socket.on('disconnect', () => {
     debugMessage('Socket Disconnected');
     if (reason === 'io server disconnect') {
       debugMessage('IO Server Disconnect');
