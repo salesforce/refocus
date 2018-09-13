@@ -365,7 +365,6 @@ function createHeader(bot) {
  * @returns {DOM} footer - Footer section
  */
 function createFooter(bot) {
-  console.log(bot);
   const footer = document.createElement('h3');
   const linkToCode = document.createElement('a');
   const linkToDocs = document.createElement('a');
@@ -394,7 +393,11 @@ function createFooter(bot) {
   linkToDocs.appendChild(docsImage);
   linkToOwner.appendChild(ownerImage);
   footer.appendChild(linkToCode);
-  footer.appendChild(linkToDocs);
+
+  if (bot.docsUrl) {
+    footer.appendChild(linkToDocs);
+  }
+
   footer.appendChild(linkToOwner);
   footer.appendChild(botVersion);
   return footer;
