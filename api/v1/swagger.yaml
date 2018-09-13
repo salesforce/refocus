@@ -11477,12 +11477,6 @@ definitions:
       url:
         type: string
         description: The URL of the bot server
-      helpUrl:
-        type: string
-        description: The URL of the support documentation
-      ownerUrl:
-        type: string
-        description: The URL of the owner of the bot
       ui:
         type: object
         description: The UI of the bot
