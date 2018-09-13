@@ -44,8 +44,6 @@ GET_ROOM += isNaN(ROOM_ID) ? `?name=${ROOM_ID}` : ROOM_ID;
 const GET_EVENTS = '/v1/events';
 const GET_ACTIONS = '/v1/botActions';
 const GET_ROOMTYPES = '/v1/roomTypes';
-const iconStandardClass =
-  'footer-icon slds-icon-text-default slds-m-around--xx-small';
 const BOT_LOGO = '../static/images/refocus-bot.png';
 const svgURL = 'http://www.w3.org/2000/svg';
 const xlinkURL = 'http://www.w3.org/1999/xlink';
@@ -358,25 +356,6 @@ function createHeader(bot) {
   return section;
 }
 
-function createFooterLinkedSvg(img, link) {
-  const linkEl = document.createElement('a');
-  linkEl.href = link;
-  linkEl.target = '_blank';
-  linkEl.rel = 'noopener noreferrer';
-  const svgElem = document.createElementNS(svgURL, 'svg');
-  svgElem.setAttribute('class', iconStandardClass);
-  const useElemUp = document.createElementNS(svgURL, 'use');
-  useElemUp.setAttributeNS(
-    xlinkURL,
-    'xlink:href',
-    `../static/icons/utility-sprite/svg/symbols-updated.svg#${img}`
-  );
-
-  svgElem.appendChild(useElemUp);
-  linkEl.appendChild(svgElem);
-  return linkEl;
-}
-
 /**
  * Creates footers for each bot added to the UI
  *
@@ -393,19 +372,20 @@ function createFooter(bot) {
   botVersion.className = 'slds-float--right slds-m-around--xx-small';
 
   if (bot.url) {
-    const codeLinkedSvg = createFooterLinkedSvg('apex', bot.url);
+    const codeLinkedSvg = uPage.createFooterLinkedSvg('apex', bot.url);
     codeLinkedSvg.title = 'Code';
     footer.appendChild(codeLinkedSvg);
   }
 
   if (bot.helpUrl) {
-    const helpLinkedSvg = createFooterLinkedSvg('description', bot.helpUrl);
+    const helpLinkedSvg =
+      uPage.createFooterLinkedSvg('description', bot.helpUrl);
     helpLinkedSvg.title = 'Documentation';
     footer.appendChild(helpLinkedSvg);
   }
 
   if (bot.ownerUrl) {
-    const ownerLinkedSvg = createFooterLinkedSvg('groups', bot.ownerUrl);
+    const ownerLinkedSvg = uPage.createFooterLinkedSvg('groups', bot.ownerUrl);
     ownerLinkedSvg.title = 'Owner';
     footer.appendChild(ownerLinkedSvg);
   }
