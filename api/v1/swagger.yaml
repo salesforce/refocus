@@ -2058,11 +2058,13 @@ paths:
           in: formData
           description: The URL of the support documentation
           type: string
+          required: false
         -
           name: ownerUrl
           in: formData
           description: The URL of the owner of the bot
           type: string
+          required: false
         -
           name: ui
           description: The zipped HTML and Javascript needed to run the UI of the bot

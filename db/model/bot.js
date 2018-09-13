@@ -53,13 +53,13 @@ module.exports = function bot(seq, dataTypes) {
     },
     helpUrl: {
       type: dataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       validate: { isUrl: true },
       comment: 'The URL to load bot',
     },
     ownerUrl: {
       type: dataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       validate: { isUrl: true },
       comment: 'The URL to load bot',
     },
