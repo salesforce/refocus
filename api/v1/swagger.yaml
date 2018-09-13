@@ -2054,7 +2054,7 @@ paths:
           description: The URL of the code repository
           type: string
         -
-          name: docsUrl
+          name: helpUrl
           in: formData
           description: The URL of the support documentation
           type: string
@@ -2223,7 +2223,7 @@ paths:
               url:
                 type: string
                 description: Bot url
-              docsUrl:
+              helpUrl:
                 type: string
                 description: Url of the support documentation for the bot
               ownerUrl:
@@ -2299,7 +2299,7 @@ paths:
           description: The URL of the bot server
           type: string
         -
-          name: docsUrl
+          name: helpUrl
           in: formData
           description: The URL of the support documentation
           type: string
@@ -11475,7 +11475,7 @@ definitions:
       url:
         type: string
         description: The URL of the bot server
-      docsUrl:
+      helpUrl:
         type: string
         description: The URL of the support documentation
       ownerUrl:

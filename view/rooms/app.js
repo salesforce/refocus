@@ -394,13 +394,17 @@ function createFooter(bot) {
   linkToOwner.appendChild(ownerImage);
   footer.appendChild(linkToCode);
 
-  if (bot.docsUrl) {
+  if (bot.helpUrl) {
     footer.appendChild(linkToDocs);
   }
 
   footer.appendChild(linkToOwner);
   footer.appendChild(botVersion);
   return footer;
+}
+
+function createFooterLinkedImg(imgSrc, link) {
+
 }
 
 /**

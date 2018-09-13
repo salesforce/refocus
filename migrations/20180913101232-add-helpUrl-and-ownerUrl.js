@@ -21,7 +21,7 @@ module.exports = {
 
     */
     return qi.sequelize.transaction(() =>
-      qi.addColumn(TBL, 'docsUrl', {
+      qi.addColumn(TBL, 'helpUrl', {
         type: Sequelize.STRING(),
         allowNull: true,
         validate: { isUrl: true },
@@ -36,7 +36,7 @@ module.exports = {
 
   down(qi) {
     return qi.sequelize.transaction(() =>
-      qi.removeColumn(TBL, 'docsUrl')
+      qi.removeColumn(TBL, 'helpUrl')
       .then(() => qi.removeColumn(TBL, 'ownerUrl'))
     );
   },
