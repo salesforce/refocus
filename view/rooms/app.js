@@ -45,8 +45,10 @@ const GET_EVENTS = '/v1/events';
 const GET_ACTIONS = '/v1/botActions';
 const GET_ROOMTYPES = '/v1/roomTypes';
 const iconStandardClass =
-  'footer-icon slds-icon_container slds-m-around--xx-small';
+  'footer-icon slds-icon-text-default slds-m-around--xx-small';
 const BOT_LOGO = '../static/images/refocus-bot.png';
+const svgURL = 'http://www.w3.org/2000/svg';
+const xlinkURL = 'http://www.w3.org/1999/xlink';
 const BOT_REQ_HEADERS = {
   'X-Requested-With': 'XMLHttpRequest',
   Expires: '-1',
@@ -278,8 +280,6 @@ function createMinimizeButton(bot) {
     }
   };
 
-  const svgURL = 'http://www.w3.org/2000/svg';
-  const xlinkURL = 'http://www.w3.org/1999/xlink';
   const svgElem = document.createElementNS(svgURL, 'svg');
   svgElem.setAttribute('class',
     'slds-icon slds-icon_xx-small slds-m-top_x-small');
@@ -358,6 +358,25 @@ function createHeader(bot) {
   return section;
 }
 
+function createFooterLinkedSvg(img, link) {
+  const linkEl = document.createElement('a');
+  linkEl.href = link;
+  linkEl.target = '_blank';
+  linkEl.rel = 'noopener noreferrer';
+  const svgElem = document.createElementNS(svgURL, 'svg');
+  svgElem.setAttribute('class', iconStandardClass);
+  const useElemUp = document.createElementNS(svgURL, 'use');
+  useElemUp.setAttributeNS(
+    xlinkURL,
+    'xlink:href',
+    `../static/icons/utility-sprite/svg/symbols-updated.svg#${img}`
+  );
+
+  svgElem.appendChild(useElemUp);
+  linkEl.appendChild(svgElem);
+  return linkEl;
+}
+
 /**
  * Creates footers for each bot added to the UI
  *
@@ -366,45 +385,33 @@ function createHeader(bot) {
  */
 function createFooter(bot) {
   const footer = document.createElement('h3');
-  const linkToCode = document.createElement('a');
-  const linkToDocs = document.createElement('a');
-  const linkToOwner = document.createElement('a');
-  const codeImage = document.createElement('img');
-  const docsImage = document.createElement('img');
-  const ownerImage = document.createElement('img');
   const botVersion = document.createElement('span');
 
   footer.className = 'slds-p-horizontal_small ' +
     'slds-theme_shade';
-  codeImage.className = 'slds-m-around--xx-small';
   botVersion.innerHTML = bot.version;
   botVersion.className = 'slds-float--right slds-m-around--xx-small';
-  linkToCode.href = bot.url;
-  linkToCode.target = '_blank';
-  linkToCode.rel = 'noopener noreferrer';
-  codeImage.className = `${iconStandardClass} slds-icon-standard-record`;
-  codeImage.src = '../static/icons/action/apex_60.png';
-  docsImage.src = '../static/icons/standard/document_60.png';
-  docsImage.className = `${iconStandardClass} slds-icon-standard-account`;
-  ownerImage.src = '../static/images/avatar3.jpg';
-  ownerImage.className = `${iconStandardClass} slds-icon-standard-account`;
 
-  linkToCode.appendChild(codeImage);
-  linkToDocs.appendChild(docsImage);
-  linkToOwner.appendChild(ownerImage);
-  footer.appendChild(linkToCode);
-
-  if (bot.helpUrl) {
-    footer.appendChild(linkToDocs);
+  if (bot.url) {
+    const codeLinkedSvg = createFooterLinkedSvg('apex', bot.url);
+    codeLinkedSvg.title = 'Code';
+    footer.appendChild(codeLinkedSvg);
   }
 
-  footer.appendChild(linkToOwner);
+  if (bot.helpUrl) {
+    const helpLinkedSvg = createFooterLinkedSvg('description', bot.helpUrl);
+    helpLinkedSvg.title = 'Documentation';
+    footer.appendChild(helpLinkedSvg);
+  }
+
+  if (bot.ownerUrl) {
+    const ownerLinkedSvg = createFooterLinkedSvg('groups', bot.ownerUrl);
+    ownerLinkedSvg.title = 'Owner';
+    footer.appendChild(ownerLinkedSvg);
+  }
+
   footer.appendChild(botVersion);
   return footer;
-}
-
-function createFooterLinkedImg(imgSrc, link) {
-
 }
 
 /**
