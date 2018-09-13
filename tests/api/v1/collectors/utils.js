@@ -15,7 +15,7 @@ const testStartTime = new Date();
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
-const constants = require('../../../../api/v1/constants');
+const status = require('../../../../api/v1/constants').httpStatus;
 const collectorConfig = require('../../../../config/collectorConfig');
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
@@ -55,8 +55,7 @@ function startCollector(collector, collectorTokens, userToken) {
   return api.post('/v1/collectors/start')
   .set('Authorization', userToken)
   .send(collector)
-  .expect(constants.httpStatus.OK)
-  .endAsync()
+  .expect(status.OK)
   .then((res) => {
     collectorTokens[res.body.name] = res.body.token;
     collector.id = res.body.id;
@@ -66,22 +65,19 @@ function startCollector(collector, collectorTokens, userToken) {
 function stopCollector(collector, userToken) {
   return api.post(`/v1/collectors/${collector.name}/stop`)
   .set('Authorization', userToken)
-  .send({})
-  .endAsync();
+  .send({});
 }
 
 function pauseCollector(collector, userToken) {
   return api.post(`/v1/collectors/${collector.name}/pause`)
   .set('Authorization', userToken)
-  .send({})
-  .endAsync();
+  .send({});
 }
 
 function resumeCollector(collector, userToken) {
   return api.post(`/v1/collectors/${collector.name}/resume`)
   .set('Authorization', userToken)
-  .send({})
-  .endAsync();
+  .send({});
 }
 
 function missHeartbeat(collector) {
@@ -92,8 +88,7 @@ function missHeartbeat(collector) {
 
 function getCollector(userToken, collector) {
   return api.get(`/v1/collectors/${collector.name}`)
-  .set('Authorization', userToken)
-  .endAsync();
+  .set('Authorization', userToken);
 }
 
 /**
@@ -135,13 +130,14 @@ function updateGenerator(gen, userToken, collector) {
   .then((o) => o.update(updateData));
 }
 
-function sendHeartbeat(collector, collectorTokens, body) {
+function sendHeartbeat({ collector, collName, tokens, token, body }) {
+  if (collector && !collName) collName = collector.name;
+  if (tokens && !token) token = tokens[collName];
   if (!body) body = { timestamp: Date.now() };
-  return api.post(`/v1/collectors/${collector.name}/heartbeat`)
-  .set('Authorization', collectorTokens[collector.name])
-  .send(body)
-  .expect(constants.httpStatus.OK)
-  .endAsync();
+
+  const req = api.post(`/v1/collectors/${collName}/heartbeat`);
+  if (token) req.set('Authorization', token);
+  return req.send(body);
 }
 
 function expectGeneratorArray(res) {
@@ -167,6 +163,7 @@ function expectGeneratorArray(res) {
 }
 
 function expectLengths(expected, res) {
+  expect(res.status).to.equal(status.OK);
   expectGeneratorArray(res);
   const { generatorsAdded, generatorsDeleted, generatorsUpdated } = res.body;
   const { added, deleted, updated } = expected;
