@@ -35,6 +35,8 @@ describe('tests/db/model/bot/create.js >', () => {
       expect(o.settings.length).to.equal(1);
       expect(o).to.have.property('version').to.equal('1.0.0');
       expect(o).to.have.property('displayName').to.equal(u.displayName);
+      expect(o).to.have.property('docsUrl').to.equal(u.docsUrl);
+      expect(o).to.have.property('ownerUrl').to.equal(u.ownerUrl);
       done();
     })
   .catch(done);
