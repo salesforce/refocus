@@ -101,7 +101,9 @@ This guide uses the Refocus API extensively to show you how to get data into you
 
 We’ve outlined the API endpoints and body for each step. But to simplify it even further, you can use our [sample Postman collection](https://www.getpostman.com/collections/ee282b22f7b566eb437e) with the requests already set up. All you need to do is change each request’s URL to your own Refocus domain.
 
-Note: API docs are available at `[YOUR_REFOCUS_HOST_AND_PORT]/v1/docs/`.
+Note #1: You'll need an API token for all your API operations--see https://opensource.salesforce.com/refocus/docs/10-security.html#api-tokens.
+
+Note #2: API docs are available at `[YOUR_REFOCUS_HOST_AND_PORT]/v1/docs/`.
 
 *Got it? OK, let's get started.*
 
@@ -111,11 +113,7 @@ Note: API docs are available at `[YOUR_REFOCUS_HOST_AND_PORT]/v1/docs/`.
 
 Remember that a subject represents anything that you’re monitoring.
 
-Using your favorite API client , send a POST request to `/v1/subjects`. 
-
-API requests need an `Authorization` header with an API token. Generate an API token from the UI by logging in with your username/password and going to [HOST:PORT]/tokens/new.
-
-In the body of the request, use the following:
+Using your favorite API client , send a POST request to `/v1/subjects`. In the body of the request, use the following:
 
 ```json
 {

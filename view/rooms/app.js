@@ -770,29 +770,32 @@ function setupSocketIOClient(bots) {
     }
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', (reason) => {
     debugMessage('Socket Disconnected');
-    const elem = document.createElement('div');
-    elem.id = 'snackbar';
-    elem.className = 'slds-notify slds-notify_toast slds-theme_offline show';
-    elem.innerHTML = '<div class="snackContent">You have ' +
-      'lost connection with Refocus so bot data and bot actions ' +
-      'may be unreliable. Please save any unfinished work and ' +
-      'click <a href="javascript:window.location.reload(true)">' +
-      'reconnect</a> to continue</div>';
-    const divs = document.getElementsByTagName('div');
-    for (let i = divs.length; i;) {
-      const circle = divs[--i];
-      if (circle.id.indexOf('status-') > NEG_ONE) {
-        circle.setAttribute(
-          'style',
-          'background:#ffb75d;' +
-            'width:8px;height:8px;border-radius:50%;margin:5px;'
-        );
+    if (reason === 'io server disconnect') {
+      debugMessage('IO Server Disconnect');
+      const elem = document.createElement('div');
+      elem.id = 'snackbar';
+      elem.className = 'slds-notify slds-notify_toast slds-theme_offline show';
+      elem.innerHTML = '<div class="snackContent">You have ' +
+        'lost connection with Refocus so bot data and bot actions ' +
+        'may be unreliable. Please save any unfinished work and ' +
+        'click <a href="javascript:window.location.reload(true)">' +
+        'reconnect</a> to continue</div>';
+      const divs = document.getElementsByTagName('div');
+      for (let i = divs.length; i;) {
+        const circle = divs[--i];
+        if (circle.id.indexOf('status-') > NEG_ONE) {
+          circle.setAttribute(
+            'style',
+            'background:#ffb75d;' +
+              'width:8px;height:8px;border-radius:50%;margin:5px;'
+          );
+        }
       }
+      document.body.appendChild(elem);
+      confirmUserExit();
     }
-    document.body.appendChild(elem);
-    confirmUserExit();
   });
 } // setupSocketIOClient
 
