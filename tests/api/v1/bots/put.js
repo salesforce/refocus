@@ -68,11 +68,13 @@ describe('tests/api/v1/bots/put.js >', () => {
     });
   });
 
-  it('Pass, put bot version & url', (done) => {
+  it('Pass, put bot version, url & docsUrl', (done) => {
+    const newUrl = 'https://newUrl.com';
     api.put(`${path}/${testBot.id}`)
     .set('Authorization', token)
     .field('version', '9.9.9')
-    .field('url', 'https://newUrl.com')
+    .field('url', newUrl)
+    .field('docsUrl', newUrl
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
@@ -80,7 +82,8 @@ describe('tests/api/v1/bots/put.js >', () => {
       }
 
       expect(res.body.version).to.equal('9.9.9');
-      expect(res.body.url).to.equal('https://newUrl.com');
+      expect(res.body.url).to.equal(newUrl);
+      expect(res.body.docsUrl).to.equal(newUrl)
       done();
     });
   });

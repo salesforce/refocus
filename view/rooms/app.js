@@ -371,20 +371,20 @@ function createFooter(bot) {
   botVersion.innerHTML = bot.version;
   botVersion.className = 'slds-float--right slds-m-around--xx-small';
 
-  if (bot.url) {
+  if (bot.url && bot.url.length) {
     const codeLinkedSvg = uPage.createFooterLinkedSvg('apex', bot.url);
     codeLinkedSvg.title = 'Code';
     footer.appendChild(codeLinkedSvg);
   }
 
-  if (bot.helpUrl) {
+  if (bot.helpUrl && bot.helpUrl.length) {
     const helpLinkedSvg =
       uPage.createFooterLinkedSvg('description', bot.helpUrl);
     helpLinkedSvg.title = 'Documentation';
     footer.appendChild(helpLinkedSvg);
   }
 
-  if (bot.ownerUrl) {
+  if (bot.ownerUrl && bot.ownerUrl.length) {
     const ownerLinkedSvg = uPage.createFooterLinkedSvg('groups', bot.ownerUrl);
     ownerLinkedSvg.title = 'Owner';
     footer.appendChild(ownerLinkedSvg);

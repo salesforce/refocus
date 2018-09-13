@@ -60,6 +60,8 @@ const standard = {
 const nonActive = {
   name: n2,
   url: 'http://www.bar.com',
+  helpUrl: 'http://www.bar.com',
+  ownerUrl: 'http://www.bar.com',
   ui: uiBlob,
   active: false,
   actions: [

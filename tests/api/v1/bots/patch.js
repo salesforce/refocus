@@ -92,11 +92,48 @@ describe('tests/api/v1/bots/patch.js >', () => {
       });
   });
 
+  it('Pass, patch bot docsUrl & ownerUrl', (done) => {
+    const newUrl = 'http://newUrl.com';
+    api.patch(`${path}/${testBot.id}`)
+      .set('Authorization', token)
+      .send({
+        docsUrl: newUrl,
+        ownerUrl: newUrl
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.docsUrl).to.equal(newUrl);
+        expect(res.body.ownerUrl).to.equal(newUrl);
+        done();
+      });
+  });
+
   it('Fail, patch bot invalid name', (done) => {
     const newName = '~!invalidName';
     api.patch(`${path}/${testBot.id}`)
     .set('Authorization', token)
     .send({ name: newName })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+      .to.contain(tu.schemaValidationErrorName);
+      done();
+    });
+  });
+
+  it('Fail, patch bot invalid docsUrl', (done) => {
+    const newDocsUrl = 'Not a Url';
+    api.patch(`${path}/${testBot.id}`)
+    .set('Authorization', token)
+    .send({ docsUrl: newDocsUrl })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
