@@ -25,6 +25,8 @@ const standard = {
   name: n,
   displayName,
   url: 'http://www.bar.com',
+  helpUrl: 'http://www.bar.com',
+  ownerUrl: 'http://www.bar.com',
   ui: uiBlob,
   active: true,
   actions: [
