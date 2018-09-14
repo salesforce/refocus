@@ -141,7 +141,7 @@ describe('tests/api/v1/bots/post.js >', () => {
       }
 
       expect(res.body.errors[ZERO].type)
-      .to.contain(tu.schemaValidationErrorName);
+      .to.contain(tu.valErrorName);
       done();
     });
   });
