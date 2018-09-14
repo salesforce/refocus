@@ -99,6 +99,7 @@ const nonActive = {
 module.exports = {
   name: n,
   displayName,
+  standard,
 
   nameNonActive: n2,
 

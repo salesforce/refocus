@@ -82,8 +82,8 @@ describe('tests/api/v1/bots/put.js >', () => {
       }
 
       expect(res.body.version).to.equal('9.9.9');
-      expect(res.body.url).to.equal(standard.newUrl);
-      expect(res.body.docsUrl).to.equal(standard.newUrl);
+      expect(res.body.url).to.equal(u.standard.newUrl);
+      expect(res.body.docsUrl).to.equal(u.standard.newUrl);
       done();
     });
   });

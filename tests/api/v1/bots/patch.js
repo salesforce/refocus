@@ -92,7 +92,7 @@ describe('tests/api/v1/bots/patch.js >', () => {
       });
   });
 
-  it('Pass, patch bot docsUrl & ownerUrl', (done) => {
+  it('Pass, patch bot helpUrl & ownerUrl', (done) => {
     const newUrl = 'http://newUrl.com';
     api.patch(`${path}/${testBot.id}`)
       .set('Authorization', token)
@@ -106,7 +106,7 @@ describe('tests/api/v1/bots/patch.js >', () => {
           return done(err);
         }
 
-        expect(res.body.docsUrl).to.equal(newUrl);
+        expect(res.body.helpUrl).to.equal(newUrl);
         expect(res.body.ownerUrl).to.equal(newUrl);
         done();
       });
@@ -130,10 +130,9 @@ describe('tests/api/v1/bots/patch.js >', () => {
   });
 
   it('Fail, patch bot invalid docsUrl', (done) => {
-    const newDocsUrl = 'Not a Url';
     api.patch(`${path}/${testBot.id}`)
     .set('Authorization', token)
-    .send({ docsUrl: newDocsUrl })
+    .send({ docsUrl: 'Not a Url' })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
