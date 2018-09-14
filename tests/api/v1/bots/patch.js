@@ -98,7 +98,7 @@ describe('tests/api/v1/bots/patch.js >', () => {
       .set('Authorization', token)
       .send({
         docsUrl: newUrl,
-        ownerUrl: newUrl
+        ownerUrl: newUrl,
       })
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
