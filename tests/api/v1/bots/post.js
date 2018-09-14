@@ -125,4 +125,24 @@ describe('tests/api/v1/bots/post.js >', () => {
       done();
     });
   });
+
+  it('Fail, helpUrl field is an invalid url', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .field('name', u.name)
+    .field('url', 'https://www.foo.com')
+    .field('helpUrl', 'Not A Url')
+    .field('version', '1.0.0')
+    .attach('ui', 'tests/api/v1/bots/uiBlob')
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+      .to.contain(tu.schemaValidationErrorName);
+      done();
+    });
+  });
 });
