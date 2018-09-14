@@ -97,7 +97,7 @@ describe('tests/api/v1/bots/patch.js >', () => {
     api.patch(`${path}/${testBot.id}`)
       .set('Authorization', token)
       .send({
-        docsUrl: newUrl,
+        helpUrl: newUrl,
         ownerUrl: newUrl,
       })
       .expect(constants.httpStatus.OK)
@@ -132,7 +132,7 @@ describe('tests/api/v1/bots/patch.js >', () => {
   it('Fail, patch bot invalid docsUrl', (done) => {
     api.patch(`${path}/${testBot.id}`)
     .set('Authorization', token)
-    .send({ docsUrl: 'Not a Url' })
+    .send({ helpUrl: 'Not a Url' })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {
@@ -140,7 +140,7 @@ describe('tests/api/v1/bots/patch.js >', () => {
       }
 
       expect(res.body.errors[ZERO].type)
-      .to.contain(tu.schemaValidationErrorName);
+      .to.contain(tu.valErrorName);
       done();
     });
   });

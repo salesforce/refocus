@@ -23,7 +23,7 @@ const uiBlob = fs.readFileSync(mt);
 const standard = {
   name: n,
   url: 'http://www.bar.com',
-  docsUrl: 'http://www.bar.com',
+  helpUrl: 'http://www.bar.com',
   ownerUrl: 'http://www.bar.com',
   ui: uiBlob,
   active: true,

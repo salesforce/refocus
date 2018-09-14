@@ -74,7 +74,7 @@ describe('tests/api/v1/bots/put.js >', () => {
     .set('Authorization', token)
     .field('version', '9.9.9')
     .field('url', newUrl)
-    .field('docsUrl', newUrl)
+    .field('helpUrl', newUrl)
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
       if (err) {
@@ -82,8 +82,8 @@ describe('tests/api/v1/bots/put.js >', () => {
       }
 
       expect(res.body.version).to.equal('9.9.9');
-      expect(res.body.url).to.equal(u.standard.newUrl);
-      expect(res.body.docsUrl).to.equal(u.standard.newUrl);
+      expect(res.body.url).to.equal(newUrl);
+      expect(res.body.helpUrl).to.equal(newUrl);
       done();
     });
   });

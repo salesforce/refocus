@@ -61,8 +61,8 @@ describe('tests/api/v1/bots/post.js >', () => {
       expect(res.body.ui.name).to.equal('uiBlob');
       expect(res.body.version).to.equal('1.0.0');
       expect(res.body.displayName).to.equal(u.displayName);
-      expect(res.body.helpUrl).to.equal(u.helpUrl);
-      expect(res.body.docsUrl).to.equal(u.docsUrl);
+      expect(res.body.helpUrl).to.equal(u.standard.helpUrl);
+      expect(res.body.ownerUrl).to.equal(u.standard.ownerUrl);
       done();
     });
   });
