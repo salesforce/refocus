@@ -759,6 +759,26 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
             })
             .catch(done);
         });
+
+      it('Fail when no aspect is found by sample name', (done) => {
+        const sampleObj = JSON.parse(JSON.stringify(sampleInstNA));
+
+        delete sampleObj.aspect;
+        delete sampleObj.subject;
+
+        // Changing the abs path to force an error.
+        sampleObj.name = sampleObj.name.split('|')[0] + '|blah_' +
+          sampleObj.name.split('|')[1];
+
+        realtimeUtils.attachAspectSubject(sampleObj, tu.db.Subject,
+          tu.db.Aspect)
+          .catch((err) => {
+            const expectedFailure =
+              'Aspect not found by Aspect name blah____temperature';
+            expect(err.message).to.equal(expectedFailure);
+            done();
+          });
+      });
     });
   });
 });
