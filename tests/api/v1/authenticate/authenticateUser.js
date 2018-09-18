@@ -142,6 +142,7 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
         }
 
         expect(user.fullName).to.equal(expectedFullName);
+        expect(user.lastLogin).to.be.instanceof(Date);
         done();
       });
     });
@@ -162,6 +163,7 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
         }
 
         expect(newUser.fullName).to.equal(expectedFullName);
+        expect(newUser.lastLogin).to.be.instanceof(Date);
         done();
       });
     });

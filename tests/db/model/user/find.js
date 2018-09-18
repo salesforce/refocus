@@ -36,6 +36,7 @@ describe('tests/db/model/user/find.js, db: user: find >', () => {
     User.find({ name: `${tu.namePrefix}1` })
     .then((found) => {
       expect(found.dataValues).to.not.have.property('password');
+      expect(found.lastLogin).to.be.instanceof(Date);
       done();
     })
     .catch(done);
@@ -45,6 +46,7 @@ describe('tests/db/model/user/find.js, db: user: find >', () => {
     User.scope('withSensitiveInfo').find({ name: `${tu.namePrefix}1` })
     .then((found) => {
       expect(found.dataValues).to.have.property('password');
+      expect(found.lastLogin).to.be.instanceof(Date);
       done();
     })
     .catch(done);

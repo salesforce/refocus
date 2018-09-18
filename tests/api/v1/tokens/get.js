@@ -27,6 +27,7 @@ describe('tests/api/v1/tokens/get.js >', () => {
   const username = `${tu.namePrefix}test@refocus.com`;
 
   let token;
+  let originalLastUsed;
 
   before((done) => {
     tu.createToken()
@@ -54,6 +55,7 @@ describe('tests/api/v1/tokens/get.js >', () => {
     })
     .then((token) => {
       tid = token.id;
+      originalLastUsed = token.lastUsed;
       done();
     })
     .catch(done);
@@ -72,6 +74,7 @@ describe('tests/api/v1/tokens/get.js >', () => {
 
       expect(res.body.user.name).to.equal(username);
       expect(res.body.createdBy).to.be.defined;
+      expect(new Date(res.body.lastUsed)).to.be.instanceof(Date);
       done();
     });
   });
@@ -87,6 +90,7 @@ describe('tests/api/v1/tokens/get.js >', () => {
 
       expect(res.body.name).to.equal(`${tu.namePrefix}Voldemort`);
       expect(res.body.isRevoked).to.equal('0');
+      expect(new Date(res.body.lastUsed)).to.be.instanceof(Date);
       done();
     });
   });

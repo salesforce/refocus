@@ -36,6 +36,7 @@ describe('tests/api/v1/register/registerUser.js >', () => {
 
         expect(res.body.email).to.be.equal(u.toCreate.email);
         expect(res.body.name).to.be.equal(u.toCreate.username);
+        expect(new Date(res.body.lastLogin)).to.be.instanceof(Date);
         Token.findAll({ where: { name: res.body.name } })
         .then((tokens) => {
           expect(tokens.length).to.be.equal(0);
@@ -126,6 +127,7 @@ describe('tests/api/v1/register/registerUser.js >', () => {
         expect(res.body.name).to.be.equal(`${tu.namePrefix}1`);
         expect(res.body.email).to.be.equal('user@example.com');
         expect(res.body.sso).to.be.equal(false);
+        expect(new Date(res.body.lastLogin)).to.be.instanceof(Date);
         done();
       });
     });
