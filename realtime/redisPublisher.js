@@ -16,7 +16,6 @@ const client = require('../cache/redisCache').client;
 const pubPerspective = client.pubPerspective;
 const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
-const featureToggles = require('feature-toggles');
 const logger = require('winston');
 
 /**
@@ -116,10 +115,8 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  * @returns {Promise} - which resolves to a sample object
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
-  if (featureToggles.isFeatureEnabled('publishSampleNoChange')) {
-    if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
-      return publishSampleNoChange(sampleInst);
-    }
+  if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
+    return publishSampleNoChange(sampleInst);
   }
 
   const eventType = event || getSampleEventType(sampleInst);
