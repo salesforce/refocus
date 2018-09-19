@@ -766,7 +766,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         delete sampleObj.aspect;
         delete sampleObj.subject;
 
-        // Changing the abs path to force an error.
+        // Changing the aspect name to force an error.
         sampleObj.name = sampleObj.name.split('|')[0] + '|blah_' +
           sampleObj.name.split('|')[1];
 
