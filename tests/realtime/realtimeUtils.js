@@ -774,7 +774,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           tu.db.Aspect)
           .catch((err) => {
             const expectedFailure =
-              'Aspect not found by Aspect name blah____temperature';
+              'Aspect blah____temperature not found';
             expect(err.message).to.equal(expectedFailure);
             done();
           });

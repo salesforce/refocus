@@ -420,7 +420,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     }
 
     if (!asp) {
-      const message = `Aspect not found by Aspect name ${aspName}`;
+      const message = `Aspect ${aspName} not found`;
       throw new Error(message);
     }
 
