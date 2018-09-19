@@ -108,7 +108,7 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
 
           expect(res2.body.lastLogin).to.be.above(createTime);
           done();
-        });        
+        });
       });
     });
   });
