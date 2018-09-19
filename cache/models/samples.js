@@ -10,7 +10,6 @@
  * cache/models/samples.js
  */
 'use strict'; // eslint-disable-line strict
-const featureToggles = require('feature-toggles');
 const logInvalidHmsetValues = require('../../utils/common')
   .logInvalidHmsetValues;
 const helper = require('../../api/v1/helpers/nouns/samples');
@@ -355,11 +354,9 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     return checkWritePermission(aspectObj, userName, isBulk);
   })
   .then(() => {
-    if (featureToggles.isFeatureEnabled('publishSampleNoChange')) {
-      if (sample && !isSampleChanged(sampleQueryBodyObj, sample)) {
-        /* Sample is not new AND nothing has changed */
-        noChange = true;
-      }
+    if (sample && !isSampleChanged(sampleQueryBodyObj, sample)) {
+      /* Sample is not new AND nothing has changed */
+      noChange = true;
     }
 
     // sampleQueryBodyObj updated with fields
@@ -415,34 +412,31 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       updatedSamp.name = subject.absolutePath + '|' + aspectObj.name;
     }
 
-    if (featureToggles.isFeatureEnabled('publishSampleNoChange')) {
-      // Publish the sample.nochange event
-      if (noChange) {
-        updatedSamp.noChange = true;
-        updatedSamp.absolutePath = subject.absolutePath;
-        updatedSamp.aspectName = aspectObj.name;
-        updatedSamp.aspectTags = aspectObj.tags || [];
-        updatedSamp.aspectTimeout = aspectObj.timeout;
+    // Publish the sample.nochange event
+    if (noChange) {
+      updatedSamp.noChange = true;
+      updatedSamp.absolutePath = subject.absolutePath;
+      updatedSamp.aspectName = aspectObj.name;
+      updatedSamp.aspectTags = aspectObj.tags || [];
+      updatedSamp.aspectTimeout = aspectObj.timeout;
 
-        if (Array.isArray(subject.tags)) {
-          updatedSamp.subjectTags = subject.tags;
-        } else {
-          try {
-            updatedSamp.subjectTags = JSON.parse(subject.tags);
-          } catch (err) {
-            updatedSamp.subjectTags = [];
-          }
+      if (Array.isArray(subject.tags)) {
+        updatedSamp.subjectTags = subject.tags;
+      } else {
+        try {
+          updatedSamp.subjectTags = JSON.parse(subject.tags);
+        } catch (err) {
+          updatedSamp.subjectTags = [];
         }
-
-        return updatedSamp; // skip cleanAdd...
       }
+
+      return updatedSamp; // skip cleanAdd...
     }
 
     return cleanAddAspectToSample(updatedSamp, aspectObj);
   })
   .then((updatedSamp) => {
-    if (featureToggles.isFeatureEnabled('publishSampleNoChange') &&
-    updatedSamp.hasOwnProperty(noChange) && updatedSamp.noChange === true) {
+    if (updatedSamp.hasOwnProperty(noChange) && updatedSamp.noChange === true) {
       return updatedSamp;
     }
 
