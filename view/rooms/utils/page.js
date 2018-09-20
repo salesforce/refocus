@@ -21,6 +21,11 @@ const ROOM_TYPES_TAB = 'roomTypesTab';
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
 
+const svgURL = 'http://www.w3.org/2000/svg';
+const xlinkURL = 'http://www.w3.org/1999/xlink';
+const iconStandardClass =
+  'footer-icon slds-icon-text-default slds-m-around--xx-small';
+
 module.exports = {
 
   /**
@@ -74,5 +79,31 @@ module.exports = {
     } else if (DEBUG_REALTIME) {
       console.log('Cannot inject dynamic contents into iframe.');
     }
+  },
+
+  /**
+   * Creates an svg wrapped in a link for use in the footer.
+   *
+   * @param {String} img - Name of svg image.
+   * @param {String} link - Link used when svg is clicked.
+   * @returns {DOM} - An svg element wrapped in a link element.
+   */
+  createFooterLinkedSvg(img, link) {
+    const linkEl = document.createElement('a');
+    linkEl.href = link;
+    linkEl.target = '_blank';
+    linkEl.rel = 'noopener noreferrer';
+    const svgElem = document.createElementNS(svgURL, 'svg');
+    svgElem.setAttribute('class', iconStandardClass);
+    const useElemUp = document.createElementNS(svgURL, 'use');
+    useElemUp.setAttributeNS(
+      xlinkURL,
+      'xlink:href',
+      `../static/icons/utility-sprite/svg/symbols-updated.svg#${img}`
+    );
+
+    svgElem.appendChild(useElemUp);
+    linkEl.appendChild(svgElem);
+    return linkEl;
   },
 };

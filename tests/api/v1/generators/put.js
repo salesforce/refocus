@@ -79,7 +79,6 @@ describe('tests/api/v1/generators/put.js >', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.subjectQuery).to.equal('?absolutePath=Foo.*');
-      expect(res.body.subjects).to.not.exist;
 
       // aspect names are saved lowercase
       expect(res.body.aspects).to.be.an('array').with.lengthOf(2);
@@ -89,7 +88,7 @@ describe('tests/api/v1/generators/put.js >', () => {
     .end(done);
   });
 
-  it('replace subjectQuery with subjects', (done) => {
+  it('put without subjectQuery (error)', (done) => {
     const toPut = {
       name: 'refocus-ok-generator',
       description: 'Collect status data',
@@ -108,42 +107,6 @@ describe('tests/api/v1/generators/put.js >', () => {
           description: 'An ok sample\'s value, e.g. \'0\'',
         },
       },
-      subjects: ['US'],
-      aspects: ['Temperature', 'Weather'],
-    };
-
-    api.put(`${path}/${generatorId}`)
-    .set('Authorization', token)
-    .send(toPut)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.subjectQuery).to.not.exist;
-      expect(res.body.subjects).to.deep.equal(toPut.subjects);
-    })
-    .end(done);
-  });
-
-  it('put with both subjectQuery and subjects (error)', (done) => {
-    const toPut = {
-      name: 'refocus-ok-generator',
-      description: 'Collect status data',
-      tags: [
-        'status',
-        'STATUS',
-      ],
-      generatorTemplate: {
-        name: generatorTemplate.name,
-        version: generatorTemplate.version,
-      },
-      context: {
-        okValue: {
-          required: false,
-          default: '0',
-          description: 'An ok sample\'s value, e.g. \'0\'',
-        },
-      },
-      subjects: ['US'],
-      subjectQuery: '?absolutePath=Foo.*',
       aspects: ['Temperature', 'Weather'],
     };
 
@@ -154,7 +117,7 @@ describe('tests/api/v1/generators/put.js >', () => {
     .expect((res) => {
       expect(res.body.errors[0].type).to.equal('SequelizeValidationError');
       expect(res.body.errors[0].message).to.equal(
-        'Only one of ["subjects", "subjectQuery"] is required'
+        'Generator.subjectQuery cannot be null'
       );
     })
     .end(done);
@@ -175,7 +138,7 @@ describe('tests/api/v1/generators/put.js >', () => {
           description: 'An ok sample\'s value, e.g. \'0\'',
         },
       },
-      subjects: ['US'],
+      subjectQuery: '?absolutePath=Foo.*',
       aspects: ['Temperature', 'Weather'],
     };
 
@@ -210,7 +173,7 @@ describe('tests/api/v1/generators/put.js >', () => {
           description: 'An ok sample\'s value, e.g. \'0\'',
         },
       },
-      subjects: ['US'],
+      subjectQuery: '?absolutePath=Foo.*',
       aspects: ['Temperature', 'Weather'],
     };
 
@@ -246,7 +209,7 @@ describe('tests/api/v1/generators/put.js >', () => {
           description: 'An ok sample\'s value, e.g. \'0\'',
         },
       },
-      subjects: ['US'],
+      subjectQuery: '?absolutePath=Foo.*',
       aspects: ['Temperature', 'Weather'],
     };
 
@@ -282,7 +245,7 @@ describe('tests/api/v1/generators/put.js >', () => {
           description: 'An ok sample\'s value, e.g. \'0\'',
         },
       },
-      subjects: ['US'],
+      subjectQuery: '?absolutePath=Foo.*',
       aspects: ['Temperature', 'Weather'],
     };
 
@@ -318,7 +281,7 @@ describe('tests/api/v1/generators/put.js >', () => {
           description: 'An ok sample\'s value, e.g. \'0\'',
         },
       },
-      subjects: ['US'],
+      subjectQuery: '?absolutePath=Foo.*',
       aspects: ['Temperature', 'Weather'],
     };
 
@@ -328,40 +291,6 @@ describe('tests/api/v1/generators/put.js >', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.description).to.equal(toPut.description);
-    })
-    .end(done);
-  });
-
-  it('replace subjectQuery with subjects', (done) => {
-    const toPut = {
-      name: 'refocus-ok-generator',
-      description: 'Collect status data',
-      tags: [
-        'status',
-        'STATUS',
-      ],
-      generatorTemplate: {
-        name: generatorTemplate.name,
-        version: generatorTemplate.version,
-      },
-      context: {
-        okValue: {
-          required: false,
-          default: '0',
-          description: 'An ok sample\'s value, e.g. \'0\'',
-        },
-      },
-      subjects: ['US'],
-      aspects: ['Temperature', 'Weather'],
-    };
-
-    api.put(`${path}/${generatorId}`)
-    .set('Authorization', token)
-    .send(toPut)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.subjectQuery).to.not.exist;
-      expect(res.body.subjects).to.deep.equal(toPut.subjects);
     })
     .end(done);
   });
@@ -385,7 +314,7 @@ describe('tests/api/v1/generators/put.js >', () => {
           description: 'An ok sample\'s value, e.g. \'0\'',
         },
       },
-      subjects: ['US'],
+      subjectQuery: '?absolutePath=Foo.*',
     };
 
     api.put(`${path}/${generatorId}`)

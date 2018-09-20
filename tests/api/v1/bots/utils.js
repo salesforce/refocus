@@ -25,6 +25,8 @@ const standard = {
   name: n,
   displayName,
   url: 'http://www.bar.com',
+  helpUrl: 'http://www.helpUrl.com',
+  ownerUrl: 'http://www.ownerUrl.com',
   ui: uiBlob,
   active: true,
   actions: [
@@ -60,6 +62,8 @@ const standard = {
 const nonActive = {
   name: n2,
   url: 'http://www.bar.com',
+  helpUrl: 'http://www.bar.com',
+  ownerUrl: 'http://www.bar.com',
   ui: uiBlob,
   active: false,
   actions: [
@@ -122,6 +126,7 @@ const nonActive = {
 module.exports = {
   name: n,
   displayName,
+  standard,
 
   nameNonActive: n2,
 
