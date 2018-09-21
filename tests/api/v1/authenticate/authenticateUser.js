@@ -25,14 +25,22 @@ const samlAuthentication =
 
 describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
   describe(`authenticateUser >`, () => {
+    let defaultToken;
+    let createTime;
     before((done) => {
       api.post(registerPath)
       .send(u.fakeUserCredentials)
-      .end(done);
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        defaultToken = res.body.token;
+        createTime = res.body.lastLogin;
+        done();
+      });
     });
-
     after(u.forceDelete);
-
     it('no user found', (done) => {
       api.post(authPath)
       .send({
@@ -78,7 +86,7 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
       .end(done);
     });
 
-    it('sucessful authentication', (done) => {
+    it('sucessful authentication, lastLogin is updated', (done) => {
       api.post(authPath)
       .send(u.fakeUserCredentials)
       .expect(constants.httpStatus.OK)
@@ -89,7 +97,18 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
 
         expect(res.body.success).to.be.true;
         expect(res.body.token).to.be.equal(undefined);
-        done();
+
+        api.get(`/v1/users/${u.fakeUserCredentials.username}`)
+        .set('Authorization', defaultToken)
+        .expect(constants.httpStatus.OK)
+        .end((err2, res2) => {
+          if (err2) {
+            return done(err2);
+          }
+
+          expect(res2.body.lastLogin).to.be.above(createTime);
+          done();
+        });
       });
     });
   });
@@ -142,6 +161,7 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
         }
 
         expect(user.fullName).to.equal(expectedFullName);
+        expect(user.lastLogin).to.be.instanceof(Date);
         done();
       });
     });
@@ -162,6 +182,7 @@ describe('tests/api/v1/authenticate/authenticateUser.js >', () => {
         }
 
         expect(newUser.fullName).to.equal(expectedFullName);
+        expect(newUser.lastLogin).to.be.instanceof(Date);
         done();
       });
     });

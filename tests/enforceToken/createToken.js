@@ -52,6 +52,7 @@ describe('tests/enforceToken/createToken.js, api: createToken >', () => {
   });
 
   it('sucessful authentication, create token for user', (done) => {
+    let tok;
     api.post(tokenPath)
     .set('Authorization', defaultToken)
     .send({ name: 'newToken' })
@@ -61,9 +62,34 @@ describe('tests/enforceToken/createToken.js, api: createToken >', () => {
         return done(err);
       }
 
-      expect(res.body.name).to.be.equal('newToken');
-      expect(res.body.isRevoked).to.be.equal('0');
-      done();
+      tok = res.body;
+      expect(tok.name).to.be.equal('newToken');
+      expect(new Date(tok.lastUsed)).to.be.instanceof(Date);
+      expect(tok.isRevoked).to.be.equal('0');
+
+      // Now use this token to make some other API call...
+      api.get(`/v1/users/${u.fakeUserCredentials.username}`)
+      .set('Authorization', tok.token)
+      .expect(constants.httpStatus.OK)
+      .end((err2, res2) => {
+        if (err2) {
+          return done(err2);
+        }
+
+        // And make sure that token's lastUsed attribute got updated
+        api.get(`/v1/users/${u.fakeUserCredentials.username}/tokens/${tok.name}`)
+        .set('Authorization', defaultToken)
+        .expect(constants.httpStatus.OK)
+        .end((err3, res3) => {
+          if (err3) {
+            return done(err3);
+          }
+
+          expect(new Date(res3.body.lastUsed))
+          .to.be.above(new Date(tok.lastUsed));
+          done();
+        });
+      });
     });
   });
 });

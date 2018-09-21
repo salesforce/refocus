@@ -66,7 +66,8 @@ function ensureAuthenticated(req, res, next) {
 /**
  * Authentication for validation SAML responses
  * Used in SAML SSO Stategy
- * Will provision user if no matching user is found
+ * Will provision user if no matching user is found.
+ * Updates user lastLogin upon successful login.
  *
  * @param  {Object}   userProfile - User profile parameters
  * @param  {Function} done - Callback function
@@ -110,19 +111,21 @@ function samlAuthentication(userProfile, done) {
       });
     }
 
+    // profile already attached - default scope applied on find
     if (user.fullName) {
-      // profile already attached - default scope applied on find
-      return done(null, user);
+      return user.setLastLogin()
+      .then(() => done(null, user));
     }
 
-    user.update({ // user.fullName doesn't exist, update user
+    // user.fullName doesn't exist, update user
+    return user.update({
       fullName: userFullName,
-    }).then(() => done(null, user));
+      lastLogin: Date.now(),
+    })
+    .then(() => done(null, user));
   })
-  .catch((error) => {
-    done(error);
-  });
-}
+  .catch((error) => done(error));
+} // samlAuthentication
 
 /**
  * Creates redirect url for sso.
