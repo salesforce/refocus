@@ -40,6 +40,8 @@ describe('tests/api/v1/bots/post.js >', () => {
     .set('Authorization', token)
     .field('name', u.name)
     .field('displayName', u.displayName)
+    .field('helpUrl', u.standard.helpUrl)
+    .field('ownerUrl', u.standard.ownerUrl)
     .field('url', 'https://www.foo.com')
     .field('version', '1.0.0')
     .attach('ui', 'tests/api/v1/bots/uiBlob')
@@ -59,6 +61,8 @@ describe('tests/api/v1/bots/post.js >', () => {
       expect(res.body.ui.name).to.equal('uiBlob');
       expect(res.body.version).to.equal('1.0.0');
       expect(res.body.displayName).to.equal(u.displayName);
+      expect(res.body.helpUrl).to.equal(u.standard.helpUrl);
+      expect(res.body.ownerUrl).to.equal(u.standard.ownerUrl);
       done();
     });
   });
@@ -118,6 +122,26 @@ describe('tests/api/v1/bots/post.js >', () => {
       }
 
       expect(res.body.errors[ZERO].message).to.contain('too long');
+      done();
+    });
+  });
+
+  it('Fail, helpUrl field is an invalid url', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .field('name', u.name)
+    .field('url', 'https://www.foo.com')
+    .field('helpUrl', 'Not A Url')
+    .field('version', '1.0.0')
+    .attach('ui', 'tests/api/v1/bots/uiBlob')
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+      .to.contain(tu.valErrorName);
       done();
     });
   });

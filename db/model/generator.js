@@ -97,14 +97,12 @@ module.exports = function generator(seq, dataTypes) {
     },
     subjectQuery: {
       type: dataTypes.STRING,
+      allowNull: false,
       validate: {
         validateSQ(value) {
           sgUtils.validateSubjectQuery(value);
         },
       },
-    },
-    subjects: {
-      type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
     },
     aspects: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
@@ -238,14 +236,6 @@ module.exports = function generator(seq, dataTypes) {
       }, //afterUpdate
     },
     validate: {
-      eitherSubjectsORsubjectQuery() {
-        if (this.subjects && this.subjectQuery ||
-            (!this.subjects && !this.subjectQuery)) {
-          throw new ValidationError('Only one of ["subjects", ' +
-            '"subjectQuery"] is required');
-        }
-      },
-
       isActiveAndCollectors() {
         const isActiveSet = this.changed('isActive') && this.isActive;
         const existingCollectors = this.possibleCollectors && this.possibleCollectors.length;

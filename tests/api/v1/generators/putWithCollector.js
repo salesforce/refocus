@@ -59,7 +59,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
         description: 'An ok sample\'s value, e.g. \'0\'',
       },
     },
-    subjects: ['US'],
+    subjectQuery: '?absolutePath=Foo.*',
     aspects: ['Temperature', 'Weather'],
   };
 
