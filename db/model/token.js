@@ -36,6 +36,10 @@ module.exports = function token(seq, dataTypes) {
       defaultValue: 0,
       allowNull: false,
     },
+    lastUsed: {
+      type: dataTypes.DATE,
+      defaultValue: Date.now(),
+    },
   }, {
     hooks: {
       beforeDestroy(inst /* , opts */) {
@@ -122,6 +126,13 @@ module.exports = function token(seq, dataTypes) {
       .then(resolve)
       .catch(reject));
   }; // revoke
+
+  Token.prototype.setLastUsed = function (lastUsed) {
+    return new Promise((resolve, reject) =>
+      this.update({ lastUsed: lastUsed || Date.now() })
+      .then(resolve)
+      .catch(reject));
+  }; // setLastUsed
 
   return Token;
 };

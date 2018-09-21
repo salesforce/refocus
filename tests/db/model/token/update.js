@@ -50,4 +50,23 @@ describe('tests/db/model/token/update.js >', () => {
     })
     .catch(done);
   });
+
+  it('setLastUsed', (done) => {
+    let orig;
+    let ts = new Date();
+    Token.findById(tokenObj.id)
+    .then((returnedToken) => {
+      orig = returnedToken.lastUsed;
+      return returnedToken.setLastUsed(ts);
+    })
+    .then(() => Token.findById(tokenObj.id))
+    .then((returnedToken) => {
+      expect(returnedToken.lastUsed).to.be.greaterThan(orig);
+      expect(returnedToken.lastUsed).to.be.instanceof(Date);
+      expect(ts).to.be.instanceof(Date);
+      expect(returnedToken.lastUsed.getTime()).to.equal(ts.getTime());
+      done();
+    })
+    .catch(done);
+  });
 });

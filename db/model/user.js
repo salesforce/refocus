@@ -41,6 +41,10 @@ module.exports = function user(seq, dataTypes) {
       defaultValue: 0,
       allowNull: false,
     },
+    lastLogin: {
+      type: dataTypes.DATE,
+      defaultValue: Date.now(),
+    },
     name: {
       type: dataTypes.STRING(usernameLength),
       allowNull: false,
@@ -320,6 +324,13 @@ module.exports = function user(seq, dataTypes) {
       order: ['name'],
     });
   };
+
+  User.prototype.setLastLogin = function (lastLogin) {
+    return new Promise((resolve, reject) =>
+      this.update({ lastLogin: lastLogin || Date.now() })
+      .then(resolve)
+      .catch(reject));
+  }; // setLastLogin
 
   return User;
 };

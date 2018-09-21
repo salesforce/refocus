@@ -46,6 +46,7 @@ describe('tests/db/model/user/create.js, db: User: create >', () => {
     expect(user).to.have.property('email').to.equal('user@example.com');
     expect(user.password).to.not.equal('user123password');
     expect(user.fullName).to.equal('user fullName');
+    expect(user.lastLogin).to.be.instanceof(Date);
     bcrypt.compare('user123password', user.password, (err, res) => {
       if (err) {
         throw err;
