@@ -54,10 +54,6 @@ describe('tests/db/model/collector/methods.js >', () => {
   generator2.name += '2';
   generator3.name += '3';
 
-  generator1.currentCollector = collector1.name;
-  generator2.currentCollector = collector2.name;
-  generator3.currentCollector = collector3.name;
-
   generator1.possibleCollectors = [collector1.name, collector2.name, collector3.name];
   generator2.possibleCollectors = [collector1.name, collector2.name, collector3.name];
   generator3.possibleCollectors = [collector1.name, collector2.name, collector3.name];
@@ -74,6 +70,11 @@ describe('tests/db/model/collector/methods.js >', () => {
     dbCollector1 = col1;
     dbCollector2 = col2;
     dbCollector3 = col3;
+
+    // set currentCollector by setting collectorId
+    generator1.collectorId = col1.id;
+    generator2.collectorId = col2.id;
+    generator3.collectorId = col3.id;
   }));
 
   afterEach(() => clock.restore());
@@ -82,30 +83,36 @@ describe('tests/db/model/collector/methods.js >', () => {
   describe('class methods >', () => {
     describe('missedHeartbeat >', () => {
       it('some over threshold', () => {
-        const threshold = 3000;
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 5000;
+        const fakeNow = new Date('2018-05-22T14:51:22');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         return Collector.missedHeartbeat()
         .should.eventually.be.an('array').with.lengthOf(1);
       });
 
       it('all over threshold', () => {
-        const threshold = 1000;
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 5000;
+        const fakeNow = new Date('2018-05-22T14:51:27');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         return Collector.missedHeartbeat()
         .should.eventually.be.an('array').with.lengthOf(2);
       });
 
       it('none over threshold', () => {
-        const threshold = 10000;
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 5000;
+        const fakeNow = new Date('2018-05-22T14:51:19');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         return Collector.missedHeartbeat()
         .should.eventually.be.an('array').with.lengthOf(0);
@@ -150,13 +157,15 @@ describe('tests/db/model/collector/methods.js >', () => {
       afterEach(u.forceDelete);
 
       it('checkMissedHeartbeat', () => {
-        const threshold = 3000;
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 5000;
+        const fakeNow = new Date('2018-05-22T14:51:21');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         /* checkMissedHeartbeat identifies collector2 as dead because more than
-         3000ms has passed since lastHeartbeat (sinon used to fake time).
+         20000ms has passed since lastHeartbeat (sinon used to fake time).
          As a result, generator2 is reassigned to collector3. */
         return Collector.checkMissedHeartbeat()
         .then(() => Promise.join(
@@ -166,9 +175,9 @@ describe('tests/db/model/collector/methods.js >', () => {
           Collector.find({ where: { name: collector2.name } }),
         ))
         .spread((gen1, gen2, gen3, coll2) => {
-          expect(gen1.currentCollector).to.equal(collector1.name);
-          expect(gen2.currentCollector).to.equal(collector3.name);
-          expect(gen3.currentCollector).to.equal(collector3.name);
+          expect(gen1.currentCollector.name).to.equal(collector1.name);
+          expect(gen2.currentCollector.name).to.equal(collector3.name);
+          expect(gen3.currentCollector.name).to.equal(collector3.name);
           expect(coll2.status).to.equal(collectorStatuses.MissedHeartbeat);
         });
       });
@@ -197,33 +206,39 @@ describe('tests/db/model/collector/methods.js >', () => {
 
     describe('isAlive >', () => {
       it('alive', () => {
-        const threshold = 3000;
-        const lastHeartbeat = new Date('2018-05-22T14:51:05');
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 5000;
+        const lastHeartbeat = new Date('2018-05-22T14:51:00');
+        const fakeNow = new Date('2018-05-22T14:51:19');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         Collector.build({ lastHeartbeat })
         .isAlive().should.be.true;
       });
 
       it('dead', () => {
-        const threshold = 1000;
-        const lastHeartbeat = new Date('2018-05-22T14:51:05');
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 3000;
+        const lastHeartbeat = new Date('2018-05-22T14:51:00');
+        const fakeNow = new Date('2018-05-22T14:51:19');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         Collector.build({ lastHeartbeat })
         .isAlive().should.be.false;
       });
 
       it('undefined', () => {
-        const threshold = 1000;
+        const interval = 15000;
+        const tolerance = 5000;
         const lastHeartbeat = undefined;
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const fakeNow = new Date('2018-05-22T14:51:19');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         Collector.build({ lastHeartbeat })
         .isAlive().should.be.false;
@@ -260,10 +275,12 @@ describe('tests/db/model/collector/methods.js >', () => {
       afterEach(u.forceDelete);
 
       it('reassignGenerators', () => {
-        const threshold = 10000;
-        const fakeNow = new Date('2018-05-22T14:51:07');
+        const interval = 15000;
+        const tolerance = 5000;
+        const fakeNow = new Date('2018-05-22T14:51:10');
         clock = sinon.useFakeTimers(fakeNow);
-        collectorConfig.heartbeatLatencyToleranceMillis = threshold;
+        collectorConfig.heartbeatIntervalMillis = interval;
+        collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         return Promise.resolve()
         .then(() => Collector.find({ where: { name: collector1.name } }))
@@ -276,9 +293,9 @@ describe('tests/db/model/collector/methods.js >', () => {
           Generator.find({ where: { name: generator3.name } }),
         ))
         .spread((gen1, gen2, gen3) => {
-          expect(gen1.currentCollector).to.equal(collector2.name);
-          expect(gen2.currentCollector).to.equal(collector2.name);
-          expect(gen3.currentCollector).to.equal(collector3.name);
+          expect(gen1.currentCollector.name).to.equal(collector2.name);
+          expect(gen2.currentCollector.name).to.equal(collector2.name);
+          expect(gen3.currentCollector.name).to.equal(collector3.name);
         });
       });
 

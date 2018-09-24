@@ -82,7 +82,12 @@ function envVarIncludes(env, envVarName, str) {
 const longTermToggles = {
   // Activity logging
   enableApiActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'api'),
+  enableEnvActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'env'),
   enableJobActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'job'),
+  enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'jobCleanup'),
+  enableJobCreateActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'jobCreate'),
   enableKueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'kueStats'),
   enableLimiterActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
@@ -92,12 +97,12 @@ const longTermToggles = {
     'queueStats'),
   enableRealtimeActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'realtime'),
+  enableSigtermActivityLog: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'sigterm'),
   enableUnauthorizedActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'unauthorized'),
   enableWorkerActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'worker'),
-  enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
-    'jobCleanup'),
 
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
@@ -145,21 +150,6 @@ const longTermToggles = {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const shortTermToggles = {
-  /*
-   * Stop making special call to db/redis to attach the subject for real-time
-   * publishing after sample upsert--just use the subject we already got from
-   * redis at the beginning of the upsertOneSample operation.
-   */
-  preAttachSubject: environmentVariableTrue(pe, 'PRE_ATTACH_SUBJECT'),
-
-  // get subject and aspect for realtime from database
-  attachSubAspFromDB: environmentVariableTrue(pe,
-    'ATTACH_SUB_ASP_FROM_DB'),
-
-  // when attaching from db, use scopes?
-  attachSubAspFromDBuseScopes: environmentVariableTrue(pe,
-    'ATTACH_SUB_ASP_FROM_DB_USE_SCOPES'),
-
   // turn on logging to log invalid hmset values
   logInvalidHmsetValues: environmentVariableTrue(pe,
     'LOG_INVALID_HMSET_VALUES'),
@@ -173,8 +163,10 @@ const shortTermToggles = {
     'ENABLE_CACHE_PERSPECTIVE'),
 
   // Enable IOREDIS instead of node redis
-  enableIORedis: environmentVariableTrue(pe,
-    'ENABLE_IOREDIS'),
+  enableIORedis: environmentVariableTrue(pe, 'ENABLE_IOREDIS'),
+
+  // Enable graceful shutdown handling event
+  enableSigtermEvent: environmentVariableTrue(pe, 'ENABLE_SIGTERM_EVENT'),
 
   // Enable using worker dyno for hierarchy queries
   enqueueHierarchy: environmentVariableTrue(pe, 'ENQUEUE_HIERARCHY'),
@@ -185,13 +177,6 @@ const shortTermToggles = {
   // Look up the subject inside the promise chain when publishing sample
   publishSampleInPromiseChain: environmentVariableTrue(pe,
     'PUBLISH_SAMPLE_IN_PROMISE_CHAIN'),
-
-  /*
-   * Use new 'refocus.internal.realtime.sample.nochange' events if sample did
-   * not change.
-   */
-  publishSampleNoChange: environmentVariableTrue(pe,
-    'PUBLISH_SAMPLE_NO_CHANGE'),
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 

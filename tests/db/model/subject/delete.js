@@ -16,6 +16,7 @@ const u = require('./utils');
 const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
 const Sample = tu.Sample;
+const redisOps = require('../../../../cache/redisOps');
 
 describe('tests/db/model/subject/delete.js >', () => {
   describe('no children >', () => {
@@ -364,11 +365,29 @@ describe('tests/db/model/subject/delete.js >', () => {
     after(u.forceDelete);
 
     it('samples deleted when subject is deleted', (done) => {
-      Subject.findById(subject.id)
+      // asp-to-subj map will have one element
+      redisOps.executeCommand(redisOps.getAspSubjMapMembers(aspectToCreate.name))
+      .then((res) => {
+        expect(res).to.deep.equal(['___subject']);
+      }).then(() => redisOps.executeCommand(redisOps.getSubjAspMapMembers(subject.absolutePath)))
+      .then((res) => {
+        // subj-to-asp map will have one element
+        expect(res).to.deep.equal(['___aspect']);
+        return Subject.findById(subject.id);
+      })
       .then((subj) => subj.destroy())
       .then(() => Sample.findOne(sample))
       .then((samp) => {
         expect(samp).to.equal(null);
+        return redisOps.executeCommand(redisOps.getAspSubjMapMembers(aspectToCreate.name));
+      })
+      .then((res) => {
+        // asp-to-subj map should be empty now
+        expect(res).to.be.empty;
+        return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subject.absolutePath));
+      }).then((res) => {
+        // subj-to-asp map should be empty now
+        expect(res).to.be.empty;
         done();
       })
       .catch(done);

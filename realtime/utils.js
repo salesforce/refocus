@@ -30,6 +30,9 @@ const filters = [
 ];
 const botAbsolutePath = '/Bots';
 
+const ASPECT_INDEX = 0;
+const SUBJECT_INDEX = 1;
+
 /**
  * A function to see if an object is a subject object or not. It returns true
  * if an object passed has 'parentAbsolutePath' as one of its property.
@@ -375,71 +378,56 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
     return Promise.resolve(null);
   }
 
-  let nameParts = sample.name.split('|');
+  const nameParts = sample.name.split('|');
   const subAbsPath = nameParts[0];
   const aspName = nameParts[1];
-  let promiseArr = [];
-  if (featureToggles.isFeatureEnabled('attachSubAspFromDB')) {
-    const subOpts = {
-      where: {
-        absolutePath: { [Op.iLike]: subAbsPath },
-      },
-    };
-    const aspOpts = {
-      where: {
-        name: { [Op.iLike]: aspName },
-      },
-    };
-    let getAspectPromise;
-    if (featureToggles.isFeatureEnabled('attachSubAspFromDBuseScopes')) {
-      getAspectPromise =
-        aspectModel.scope({ method: ['forRealTime', aspName] }).findOne();
-    } else {
-      getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-        aspectModel.findOne(aspOpts);
-    }
+  const subOpts = {
+    where: {
+      absolutePath: { [Op.iLike]: subAbsPath },
+    },
+  };
+  const aspOpts = {
+    where: {
+      name: { [Op.iLike]: aspName },
+    },
+  };
 
-    let getSubjectPromise;
-    if (featureToggles.isFeatureEnabled('attachSubAspFromDBuseScopes')) {
-      getSubjectPromise =
-        subjectModel.scope({ method: ['forRealTime', subAbsPath] }).findOne();
-    } else {
-      getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-        subjectModel.findOne(subOpts);
-    }
-
-    promiseArr = [getAspectPromise, getSubjectPromise];
-  } else {
-    const subKey = redisStore.toKey('subject', subAbsPath);
-    const aspKey = redisStore.toKey('aspect', aspName);
-    const getAspectPromise = sample.aspect ? Promise.resolve(sample.aspect) :
-    redisClient.hgetallAsync(aspKey);
-    const getSubjectPromise = sample.subject ? Promise.resolve(sample.subject) :
-    redisClient.hgetallAsync(subKey);
-    promiseArr = [getAspectPromise, getSubjectPromise];
+  if (sample.aspect) {
+    redisStore.arrayObjsStringsToJson(
+      sample.aspect,
+      redisStore.constants.fieldsToStringify.aspect
+    );
   }
 
-  return Promise.all(promiseArr)
+  if (sample.subject) {
+    redisStore.arrayObjsStringsToJson(
+      sample.subject,
+      redisStore.constants.fieldsToStringify.subject
+    );
+  }
+
+  return Promise.all([
+    sample.aspect ? sample.aspect : aspectModel.findOne(aspOpts),
+    sample.subject ? sample.subject : subjectModel.findOne(subOpts),
+  ])
   .then((response) => {
-    let asp = response[0];
-    let sub = response[1];
-    if (featureToggles.isFeatureEnabled('attachSubAspFromDBuseScopes')) {
-      asp = asp.dataValues ? asp.dataValues : asp;
-      sub = sub.dataValues ? sub.dataValues : sub;
-    } else {
-      asp = asp.get ? asp.get() : asp;
-      sub = sub.get ? sub.get() : sub;
+    let asp = response[ASPECT_INDEX];
+    let sub = response[SUBJECT_INDEX];
+
+    if (!sub) {
+      const message = `Subject not found by Sample abs path ${subAbsPath}`;
+      throw new Error(message);
     }
+
+    sub = sub.get ? sub.get() : sub;
+    asp = asp.get ? asp.get() : asp;
 
     delete asp.writers;
     delete sub.writers;
 
-    sample.aspect = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
-      asp : redisStore.arrayObjsStringsToJson(asp,
-        redisStore.constants.fieldsToStringify.aspect);
-    sample.subject = featureToggles.isFeatureEnabled('attachSubAspFromDB') ?
-      sub : redisStore.arrayObjsStringsToJson(sub,
-        redisStore.constants.fieldsToStringify.subject);
+    sample.aspect = asp;
+    sample.subject = sub;
+
     /*
      * attach absolutePath field to the sample. This is done to simplify the
      * filtering done on the subject absolutePath

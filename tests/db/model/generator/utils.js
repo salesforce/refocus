@@ -63,19 +63,6 @@ function getGenerator() {
   return JSON.parse(JSON.stringify(GENERATOR_SIMPLE));
 } // getGenerator
 
-/**
- * Function to get a generator with an array of subject absolutePaths.
- *
- * @returns {Object} - Generator object
- */
-function getGeneratorWithSubjectArray() {
-  const g = JSON.parse(JSON.stringify(GENERATOR_SIMPLE));
-  delete g.subjectQuery;
-  g.subjects = ['foo.bar', 'foo.baz'];
-  g.name = 'refocus-ok2-generator';
-  return g;
-} // getGeneratorWithSubjectArray
-
 function createGeneratorAspects() {
   return tu.db.Aspect.create({
     name: GENERATOR_SIMPLE.aspects[0],
@@ -134,7 +121,6 @@ module.exports = {
   },
 
   getGenerator,
-  getGeneratorWithSubjectArray,
   gtUtil,
   BAD_REQUEST_STATUS_CODE,
   NOT_FOUND_STATUS_CODE,

@@ -46,4 +46,70 @@ describe('tests/db/helpers/common.js >', () => {
       expect(common.checkDuplicatesInStringArray(dupesArr)).to.be.true;
     });
   });
+
+  describe('tagsChanged', () => {
+    let sub;
+
+    beforeEach(() => {
+      const s = u.getSubjectPrototype(`${tu.namePrefix}1`, null);
+      s.tags = ['tag1', 'tag2'];
+      return Subject.create(s)
+      .then((s) => sub = s);
+    });
+
+    afterEach(u.forceDelete);
+
+    it('not updated', () => {
+      sub.set({ description: '...' });
+      expect(common.tagsChanged(sub)).to.be.false;
+    });
+
+    it('exactly the same', () => {
+      sub.set({ tags: ['tag1', 'tag2'] });
+      expect(common.tagsChanged(sub)).to.be.false;
+    });
+
+    it('different order', () => {
+      sub.set({ tags: ['tag2', 'tag1'] });
+      expect(common.tagsChanged(sub)).to.be.false;
+    });
+
+    it('different capitalization', () => {
+      sub.set({ tags: ['Tag1', 'Tag2'] });
+      expect(common.tagsChanged(sub)).to.be.false;
+    });
+
+    it('changed', () => {
+      sub.set({ tags: ['tag1', 'tag3'] });
+      expect(common.tagsChanged(sub)).to.be.true;
+    });
+
+    it('appended', () => {
+      sub.set({ tags: ['tag1', 'tag2', 'tag3'] });
+      expect(common.tagsChanged(sub)).to.be.true;
+    });
+
+    it('set to empty', () => {
+      sub.set({ tags: [] });
+      expect(common.tagsChanged(sub)).to.be.true;
+    });
+
+    it('no previous tags', () => {
+      const s = u.getSubjectPrototype(`${tu.namePrefix}2`, null);
+      return Subject.create(s)
+      .then((sub) => {
+        sub.set({ tags: ['tag1', 'tag2'] });
+        expect(common.tagsChanged(sub)).to.be.true;
+      });
+    });
+
+    it('no previous tags, not updated', () => {
+      const s = u.getSubjectPrototype(`${tu.namePrefix}2`, null);
+      return Subject.create(s)
+      .then((sub) => {
+        sub.set({ description: '...' });
+        expect(common.tagsChanged(sub)).to.be.false;
+      });
+    });
+  });
 });

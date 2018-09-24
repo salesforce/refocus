@@ -15,8 +15,10 @@ const testStartTime = new Date();
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
-const constants = require('../../../../api/v1/constants');
+const status = require('../../../../api/v1/constants').httpStatus;
+const collectorConfig = require('../../../../config/collectorConfig');
 const Generator = tu.db.Generator;
+const Collector = tu.db.Collector;
 const collectorToCreate =  {
   name: tu.namePrefix + 'Coll',
   description: 'This is my collector description.',
@@ -28,35 +30,32 @@ const collectorToCreate =  {
 };
 
 const expectedProps = [
-  'aspects', 'possibleCollectors', 'connection', 'context', 'createdAt', 'createdBy',
-  'currentCollector', 'deletedAt', 'description', 'generatorTemplate',
+  'aspects', 'collectorId', 'possibleCollectors', 'context', 'createdAt', 'createdBy',
+  'currentCollector', 'description', 'generatorTemplate',
   'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'isDeleted', 'name',
-  'subjectQuery', 'subjects', 'tags', 'token', 'updatedAt', 'user',
+  'subjectQuery', 'tags', 'token', 'updatedAt', 'user',
 ];
 
-const expectedPropsDel = [
-  'aspects', 'possibleCollectors', 'connection', 'context', 'createdAt', 'createdBy',
-  'currentCollector', 'deletedAt', 'description', 'generatorTemplate',
-  'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'isDeleted', 'name',
-  'subjectQuery', 'subjects', 'tags', 'updatedAt', 'user',
-];
+const expectedPropsDel = expectedProps.filter((p) => p !== 'token');
 
 const expectedCtxProps = ['password', 'secretInformation',
   'otherNonSecretInformation',
 ];
 const expectedSGTProps = [
   'author', 'connection', 'contextDefinition',
-  'createdAt', 'createdBy', 'deletedAt', 'description', 'helpEmail', 'helpUrl',
+  'createdAt', 'description', 'helpEmail', 'helpUrl',
   'id', 'isDeleted', 'isPublished', 'name', 'repository', 'tags', 'transform',
-  'updatedAt', 'user', 'version',
+  'updatedAt', 'version',
 ];
+
+const interval = collectorConfig.heartbeatIntervalMillis;
+const tolerance = collectorConfig.heartbeatLatencyToleranceMillis;
 
 function startCollector(collector, collectorTokens, userToken) {
   return api.post('/v1/collectors/start')
   .set('Authorization', userToken)
   .send(collector)
-  .expect(constants.httpStatus.OK)
-  .endAsync()
+  .expect(status.OK)
   .then((res) => {
     collectorTokens[res.body.name] = res.body.token;
     collector.id = res.body.id;
@@ -66,28 +65,30 @@ function startCollector(collector, collectorTokens, userToken) {
 function stopCollector(collector, userToken) {
   return api.post(`/v1/collectors/${collector.name}/stop`)
   .set('Authorization', userToken)
-  .send({})
-  .endAsync();
+  .send({});
 }
 
 function pauseCollector(collector, userToken) {
   return api.post(`/v1/collectors/${collector.name}/pause`)
   .set('Authorization', userToken)
-  .send({})
-  .endAsync();
+  .send({});
 }
 
 function resumeCollector(collector, userToken) {
   return api.post(`/v1/collectors/${collector.name}/resume`)
   .set('Authorization', userToken)
-  .send({})
-  .endAsync();
+  .send({});
+}
+
+function missHeartbeat(collector) {
+  const lastHeartbeat = Date.now() - (2 * (interval + tolerance));
+  return Collector.update({ lastHeartbeat }, { where: { name: collector.name } })
+    .then(() => Collector.checkMissedHeartbeat());
 }
 
 function getCollector(userToken, collector) {
   return api.get(`/v1/collectors/${collector.name}`)
-  .set('Authorization', userToken)
-  .endAsync();
+  .set('Authorization', userToken);
 }
 
 /**
@@ -103,12 +104,13 @@ function createGenerator(gen, userId, collector) {
 
   if (collector) {
     gen.isActive = true;
+    const possibleCollectors = gen.possibleCollectors;
     gen.possibleCollectors = [collector.name];
-    gen.currentCollector = collector.name;
-    return Generator.createWithCollectors(gen);
+    return Generator.createWithCollectors(gen)
+    .then((g) => g.updateWithCollectors({ possibleCollectors }));
   }
 
-  gen.currentCollector = undefined;
+  gen.collectorId = null;
   return Generator.create(gen);
 }
 
@@ -117,20 +119,25 @@ function updateGenerator(gen, userToken, collector) {
   const updateData = { description: 'UPDATED' };
 
   if (collector) {
-    updateData.currentCollector = collector.name;
+    // mock currentCollector on generator so we don't need to reload
+    updateData.currentCollector = collector;
+
+    // store collectorId so that currentCollector will be persisted
+    updateData.collectorId = collector.id;
   }
 
   return Generator.findOne({ where: { name: gen.name } })
   .then((o) => o.update(updateData));
 }
 
-function sendHeartbeat(collector, collectorTokens, body) {
+function sendHeartbeat({ collector, collName, tokens, token, body }) {
+  if (collector && !collName) collName = collector.name;
+  if (tokens && !token) token = tokens[collName];
   if (!body) body = { timestamp: Date.now() };
-  return api.post(`/v1/collectors/${collector.name}/heartbeat`)
-  .set('Authorization', collectorTokens[collector.name])
-  .send(body)
-  .expect(constants.httpStatus.OK)
-  .endAsync();
+
+  const req = api.post(`/v1/collectors/${collName}/heartbeat`);
+  if (token) req.set('Authorization', token);
+  return req.send(body);
 }
 
 function expectGeneratorArray(res) {
@@ -146,26 +153,7 @@ function expectGeneratorArray(res) {
   generatorsDeleted.forEach((gen) => {
     expect(gen).to.be.an('object').that.has.all.keys(expectedPropsDel);
     expect(gen.context).to.be.an('object').that.has.all.keys(expectedCtxProps);
-    expect(gen.generatorTemplate).to.be.an('object').that.has.all.keys(
-      'author',
-      'connection',
-      'contextDefinition',
-      'createdAt',
-      'createdBy',
-      'deletedAt',
-      'description',
-      'helpEmail',
-      'helpUrl',
-      'id',
-      'isDeleted',
-      'isPublished',
-      'name',
-      'repository',
-      'tags',
-      'transform',
-      'updatedAt',
-      'user',
-      'version');
+    expect(gen.generatorTemplate).to.be.an('object').that.has.all.keys(expectedSGTProps);
   });
   generatorsUpdated.forEach((gen) => {
     expect(gen).to.be.an('object').that.has.all.keys(expectedProps);
@@ -175,6 +163,7 @@ function expectGeneratorArray(res) {
 }
 
 function expectLengths(expected, res) {
+  expect(res.status).to.equal(status.OK);
   expectGeneratorArray(res);
   const { generatorsAdded, generatorsDeleted, generatorsUpdated } = res.body;
   const { added, deleted, updated } = expected;
@@ -211,5 +200,6 @@ module.exports = {
   sendHeartbeat,
   startCollector,
   stopCollector,
+  missHeartbeat,
 
 };

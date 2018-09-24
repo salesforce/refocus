@@ -314,6 +314,30 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
     });
   });
 
+  it('bulkUpsert undefined sample query body', (done) => {
+    bulkUpsert(undefined)
+    .then((response) => {
+      expect(response).to.be.empty;
+      done();
+    });
+  });
+
+  it('bulkUpsert empty sample query body array', (done) => {
+    bulkUpsert([])
+    .then((response) => {
+      expect(response).to.be.empty;
+      done();
+    });
+  });
+
+  it('bulkUpsert null sample query body', (done) => {
+    bulkUpsert(null)
+    .then((response) => {
+      expect(response).to.be.empty;
+      done();
+    });
+  });
+
   describe('when sample already exists >', () => {
     it('check that duplication of sample is not happening', (done) => {
       api.post(path)

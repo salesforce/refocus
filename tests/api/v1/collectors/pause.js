@@ -142,7 +142,7 @@ describe('tests/api/v1/collectors/pause.js >', () => {
     it('pause collector, reassigns corresponding active generator to another ' +
       'running collector', (done) => {
       expect(collector1.status).to.equal('Running');
-      expect(generator1.currentCollector).to.be.equal(collector1.name);
+      expect(generator1.currentCollector.name).to.be.equal(collector1.name);
       api.post(pausePath.replace('{key}', collector1.id))
       .set('Authorization', token)
       .send({})
@@ -155,7 +155,7 @@ describe('tests/api/v1/collectors/pause.js >', () => {
         expect(res.body.status).to.equal('Paused');
         return Generator.find({ where: { name: generator1.name } })
         .then((gen) => {
-          expect(gen.currentCollector).to.be.equal(collector2.name);
+          expect(gen.currentCollector.name).to.be.equal(collector2.name);
           return done();
         })
         .catch(done);

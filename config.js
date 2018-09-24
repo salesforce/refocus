@@ -75,7 +75,7 @@ const DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS = 120000; // 2min
 const botEventLimit = pe.BOT_EVENT_LIMIT || 100;
 
 const deactivateRoomsInterval = +pe.DEACTIVATE_ROOMS_INTERVAL || 300000; // 5min
-const minRoomDeactivationAge = 120; // 2 hours
+const minRoomDeactivationAge = +pe.MIN_ROOM_DEACTIVATION_AGE || 120; // 2 hours
 
 /*
  * name of the environment variable containing the read-only
@@ -131,6 +131,9 @@ const queueStatsActivityLogsInterval = 60000;
 // sent to collector.
 const encryptionAlgoForCollector = 'aes-256-cbc';
 
+const kueShutdownTimeout = +pe.KUE_SHUTDOWN_TIMEOUT || 5000;
+const waitingSigKillTimeout = +pe.WAITING_SIG_KILL_TIMEOUT || 60000;
+
 module.exports = {
   api: {
     defaults: {
@@ -146,7 +149,7 @@ module.exports = {
         validateResponse: true,
       },
     },
-    sessionSecret: 'refocusrockswithgreenowls',
+    sessionSecret: pe.SESSION_SECRET || 'refocusrockswithgreenowls',
   },
   db: {
     adminProfile: {
@@ -271,6 +274,11 @@ module.exports = {
   expressLimiterExpire2,
   botEventLimit,
   deactivateRoomsInterval,
+  logEnvVars: {
+    MASK_LIST: pe.LOG_ENV_VARS_MASK_LIST ?
+      pe.LOG_ENV_VARS_MASK_LIST.split(',') : [],
+    MAX_LEN: +pe.LOG_ENV_VARS_MAX_LEN || 512,
+  },
   minRoomDeactivationAge,
   kueStatsInactiveWarning: pe.KUESTATS_INACTIVE_WARNING,
   newRelicKey,
@@ -288,4 +296,6 @@ module.exports = {
   hiddenRoutes,
   corsRoutes,
   encryptionAlgoForCollector,
+  kueShutdownTimeout,
+  waitingSigKillTimeout,
 };

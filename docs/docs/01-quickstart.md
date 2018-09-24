@@ -101,7 +101,9 @@ This guide uses the Refocus API extensively to show you how to get data into you
 
 We’ve outlined the API endpoints and body for each step. But to simplify it even further, you can use our [sample Postman collection](https://www.getpostman.com/collections/ee282b22f7b566eb437e) with the requests already set up. All you need to do is change each request’s URL to your own Refocus domain.
 
-Note: API docs are available at `[YOUR_REFOCUS_HOST_AND_PORT]/v1/docs/`.
+Note #1: You'll need an API token for all your API operations--see https://opensource.salesforce.com/refocus/docs/10-security.html#api-tokens.
+
+Note #2: API docs are available at `[YOUR_REFOCUS_HOST_AND_PORT]/v1/docs/`.
 
 *Got it? OK, let's get started.*
 
@@ -186,9 +188,7 @@ POST to `/v1/aspects` using the following body:
   "warningRange": [2000000001, 4000000000],
   "infoRange": [4000000001, 5500000000],
   "okRange": [5500000001, 10000000000],
-  "tags": [
-    { "name": "economic" }
-  ],
+  "tags": [ "economic" ],
   "timeout": "1d",
   "valueType": "NUMERIC"
 }

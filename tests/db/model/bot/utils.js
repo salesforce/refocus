@@ -23,6 +23,8 @@ const uiBlob = fs.readFileSync(mt);
 const standard = {
   name: n,
   url: 'http://www.bar.com',
+  helpUrl: 'http://www.bar.com',
+  ownerUrl: 'http://www.bar.com',
   ui: uiBlob,
   active: true,
   displayName,
@@ -97,6 +99,7 @@ const nonActive = {
 module.exports = {
   name: n,
   displayName,
+  standard,
 
   nameNonActive: n2,
 

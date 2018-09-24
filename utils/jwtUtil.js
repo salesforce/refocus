@@ -222,6 +222,7 @@ function verifyUserToken(payload, req, cb) {
     .findOne()
     .then((found) => {
       if (!found) throw new apiErrors.ForbiddenError();
+      return found.setLastUsed(new Date());
     })
     .then(() => cb());
   });

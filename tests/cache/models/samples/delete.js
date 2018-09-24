@@ -65,12 +65,14 @@ describe('tests/cache/models/samples/delete.js >', () => {
         cmds.push(redisOps.getHashCmd(objectType.sample, sampleName));
         cmds.push(redisOps.keyExistsInIndexCmd(objectType.sample, sampleName));
         cmds.push(redisOps.aspExistsInSubjSetCmd(subjAspArr[0], subjAspArr[1]));
+        cmds.push(redisOps.subjAbsPathExistsInAspSetCmd(subjAspArr[1], subjAspArr[0]));
 
         redisOps.executeBatchCmds(cmds)
         .then((response) => {
           expect(response[0]).to.be.equal(null);
           expect(response[1]).to.be.equal(0);
           expect(response[2]).to.be.equal(0);
+          expect(response[3]).to.be.equal(0);
         });
         done();
       });
