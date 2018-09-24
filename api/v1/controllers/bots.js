@@ -208,7 +208,7 @@ module.exports = {
     .catch((err) => u.handleError(next, err, helper.modelName));
   }, // heartbeat
 
-    /**
+  /**
    * GET /bots/{key}/writers
    *
    * Retrieves all the writers associated with the bot

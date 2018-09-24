@@ -103,7 +103,7 @@ module.exports = {
     doPut(req, res, next, helper);
   },
 
-      /**
+  /**
    * GET /botActions/{key}/writers
    *
    * Retrieves all the writers associated with the bot

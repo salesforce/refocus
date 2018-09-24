@@ -164,7 +164,7 @@ module.exports = {
   getBotData(req, res, next) {
     doGet(req, res, next, helper);
   },
-      /**
+  /**
    * GET /botData/{key}/writers
    *
    * Retrieves all the writers associated with the bot

@@ -28,7 +28,6 @@ const path = '/v1/botData';
 const expect = require('chai').expect;
 const pfx = '___';
 
-
 describe('tests/api/v1/botData/patchWithoutPerms.js >', () => {
   let testBotData;
   let validToken;
@@ -91,7 +90,7 @@ describe('tests/api/v1/botData/patchWithoutPerms.js >', () => {
     api.patch(`${path}/${testBotData.id}`)
     .set('Authorization', invalidToken)
     .send({
-      value: "lemons",
+      value: 'lemons',
     })
     .expect(constants.httpStatus.FORBIDDEN)
     .end(done);
@@ -101,7 +100,7 @@ describe('tests/api/v1/botData/patchWithoutPerms.js >', () => {
     api.patch(`${path}/${testBotData.id}`)
     .set('Authorization', validToken)
     .send({
-      value: "apples",
+      value: 'apples',
     })
     .expect(constants.httpStatus.OK)
     .end(done);
