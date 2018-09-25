@@ -419,6 +419,11 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
       throw new Error(message);
     }
 
+    if (!asp) {
+      const message = `Aspect ${aspName} not found`;
+      throw new Error(message);
+    }
+
     sub = sub.get ? sub.get() : sub;
     asp = asp.get ? asp.get() : asp;
 
