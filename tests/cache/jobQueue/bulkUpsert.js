@@ -10,10 +10,11 @@
  * tests/cache/jobQueue/bulkUpsert.js
  */
 'use strict';
-const jobQueue = require('../../../jobQueue/setup').jobQueue;
-const jobType = require('../../../jobQueue/setup').jobType;
-const bulkUpsertSamplesJob = require('../../../worker/jobs/bulkUpsertSamplesJob');
-const getHierarchyJob = require('../../../worker/jobs/getHierarchyJob');
+const jobSetup = require('../../../jobQueue/setup');
+const jobQueue = jobSetup.jobQueue;
+const jobType = jobSetup.jobType;
+const bulkUpsertSamplesJob = require('../../../worker/jobs/bulkUpsertSamples');
+const getHierarchyJob = require('../../../worker/jobs/getHierarchy');
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../index').app);
@@ -29,13 +30,15 @@ const RADIX = 10;
 
 describe('tests/cache/jobQueue/bulkUpsert.js, ' +
 'redisStore: POST using worker process, ' + path + ' >', () => {
-  let token;
+  before(() => jobSetup.resetJobQueue());
+  after(() => jobSetup.resetJobQueue());
 
+  let token;
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enableApiActivityLogs', false);
     tu.toggleOverride('enableWorkerActivityLogs', false);
-    jobQueue.process(jobType.BULKUPSERTSAMPLES, bulkUpsertSamplesJob);
+    jobQueue.process(jobType.bulkUpsertSamples, bulkUpsertSamplesJob);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {

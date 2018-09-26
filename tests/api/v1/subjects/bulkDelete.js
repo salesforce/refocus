@@ -17,11 +17,12 @@ const testUtils = require('../../../testUtils');
 const Subject = testUtils.db.Subject;
 const utils = require('./utils');
 const constants = require('../../../../api/v1/constants');
-const jobQueue = require('../../../../jobQueue/setup').jobQueue;
-const jobType = require('../../../../jobQueue/setup').jobType;
+const jobSetup = require('../../../../jobQueue/setup');
+const jobQueue = jobSetup.jobQueue;
+const jobType = jobSetup.jobType;
 const status = constants.httpStatus;
 const bulkDeleteSubjectsJob = require(
-  '../../../../worker/jobs/bulkDeleteSubjectsJob');
+  '../../../../worker/jobs/bulkDeleteSubjects');
 const Promise = require('bluebird');
 supertest.Test.prototype.end = Promise.promisify(supertest.Test.prototype.end);
 supertest.Test.prototype.then = function (resolve, reject) {
@@ -57,15 +58,19 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
 
   describe('Create subjects and check status', () => {
     before(() => testUtils.toggleOverride('enableWorkerProcess', true));
+    before(() => jobSetup.resetJobQueue());
+    after(() => jobSetup.resetJobQueue());
 
     // Start JobQueue, with the option to simulate a failed job
     let simulateFailure = false;
-    jobQueue.process(jobType.BULK_DELETE_SUBJECTS, (job, done) => {
-      if (simulateFailure) {
-        done('Job Failed');
-      } else {
-        bulkDeleteSubjectsJob(job, done);
-      }
+    before(() => {
+      jobQueue.process(jobType.bulkDeleteSubjects, (job, done) => {
+        if (simulateFailure) {
+          done('Job Failed');
+        } else {
+          bulkDeleteSubjectsJob(job, done);
+        }
+      });
     });
 
     const blah = { name: `${testUtils.namePrefix}Blah`, isPublished: true, };
