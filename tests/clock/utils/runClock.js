@@ -45,6 +45,6 @@ process.on('message', (msg) => {
       });
       return results;
     })
-    .then((results) => process.send({done: true, results}));
+    .then((results) => process.send({ done: true, results }));
   }
 });

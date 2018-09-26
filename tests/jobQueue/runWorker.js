@@ -17,12 +17,12 @@ const { jobQueue } = require('../../jobQueue/jobWrapper');
 process.on('message', (msg) => {
   if (msg.start) {
     require('../../worker/index.js');
-    process.send({workerCount: countWorkers()});
+    process.send({ workerCount: countWorkers() });
   }
 
   function countWorkers() {
     const counts = {};
-    jobQueue.workers.forEach(({type}) => {
+    jobQueue.workers.forEach(({ type }) => {
       counts[type] = counts[type] ? ++counts[type] : 1;
     });
     return counts;

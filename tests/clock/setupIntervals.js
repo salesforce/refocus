@@ -78,7 +78,7 @@ describe('tests/clock/setupIntervals.js >', () => {
       .then(() => {
         u.expectCalledAt('job1', ['5m', '10m', '15m', '20m']);
         u.expectCalledAt('job2', ['3m', '6m', '9m', '12m', '15m', '18m']);
-      })
+      });
     });
 
     it('new interval takes effect when restarted (scheduled run)', () =>
