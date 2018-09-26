@@ -14,8 +14,6 @@
 const featureToggles = require('feature-toggles');
 const Promise = require('bluebird');
 const kue = require('kue');
-const jobType = require('../../jobQueue/setup').jobType;
-const jobWrapper = require('../../jobQueue/jobWrapper');
 const conf = require('../../config');
 kue.Job.rangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
 kue.Job.prototype.removeAsync = Promise.promisify(kue.Job.prototype.remove);
@@ -40,12 +38,11 @@ function logActivity(log) {
  * Get batchSize completed jobs, delete those jobs, and repeat until there are
  * no jobs left, skipping any that are younger than delay ms.
  *
- * @param {Number} batchSize - the number of jobs to delete in each batch
- * @param {Number} delay - the delay, in ms, before completed jobs should be
- *  deleted
  * @returns {Promise}
  */
-function execute(batchSize, delay) {
+function execute() {
+  const batchSize = conf.JOB_REMOVAL_BATCH_SIZE;
+  const delay = conf.JOB_REMOVAL_DELAY;
   let now;
   let removedJobCount = 0;
   let skippedJobCount = 0;
@@ -115,32 +112,6 @@ function execute(batchSize, delay) {
   }
 } // execute
 
-/**
- * Send the job to the worker or execute directly
- */
-function enqueue() {
-  if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
-    const job = jobWrapper.createJob(
-      jobType.JOB_CLEANUP, { reqStartTime: Date.now() }
-    );
-    return Promise.resolve(job);
-  }
-
-  // If not using worker process, execute directly;
-  return execute(conf.JOB_REMOVAL_BATCH_SIZE, conf.JOB_REMOVAL_DELAY);
-} // enqueue
-
-/**
- * Reset the job counter so job ids will be assigned starting from zero again
- */
-function resetCounter() {
-  const client = kue.Job.client;
-  const key = client.getKey('ids');
-  client.del(key);
-} // resetCounter
-
 module.exports = {
-  enqueue,
-  resetCounter,
   execute,
 };
