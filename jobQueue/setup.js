@@ -18,6 +18,7 @@ const conf = require('../config');
 const featureToggles = require('feature-toggles');
 const urlParser = require('url');
 const kue = require('kue');
+const Promise = require('bluebird');
 const activityLogUtil = require('../utils/activityLog');
 
 const redisOptions = {
@@ -30,6 +31,13 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
 }
 
 const jobQueue = kue.createQueue(redisOptions);
+
+function resetJobQueue() {
+  return Promise.map(jobQueue.workers, (w) =>
+    new Promise((resolve) => w.shutdown(resolve))
+  )
+  .then(() => jobQueue.workers = []);
+}
 
 /**
  * Kue's Queue graceful shutdown.
@@ -60,28 +68,10 @@ if (featureToggles.isFeatureEnabled('instrumentKue')) {
 }
 
 module.exports = {
-  jobConcurrency: {
-    BULK_CREATE_AUDIT_EVENTS: conf.getBulkCreateAuditEventJobConcurrency,
-    BULKUPSERTSAMPLES: conf.bulkUpsertSampleJobConcurrency,
-    GET_HIERARCHY: conf.getHierarchyJobConcurrency,
-    BULK_DELETE_SUBJECTS: conf.getBulkDeleteSubjectsJobConcurrency,
-    JOB_CLEANUP: 1,
-    PERSIST_SAMPLE_STORE: 1,
-    SAMPLE_TIMEOUT: 1,
-    CHECK_MISSED_COLLECTOR_HEARTBEAT: 1,
-  },
+  jobType: conf.jobType,
   jobQueue,
+  resetJobQueue,
   gracefulShutdown,
-  jobType: {
-    BULK_CREATE_AUDIT_EVENTS: 'BULK_CREATE_AUDIT_EVENTS',
-    BULKUPSERTSAMPLES: 'bulkUpsertSamples',
-    GET_HIERARCHY: 'GET_HIERARCHY',
-    JOB_CLEANUP: 'JOB_CLEANUP',
-    PERSIST_SAMPLE_STORE: 'PERSIST_SAMPLE_STORE',
-    SAMPLE_TIMEOUT: 'SAMPLE_TIMEOUT',
-    BULK_DELETE_SUBJECTS: 'bulkDeleteSubjects',
-    CHECK_MISSED_COLLECTOR_HEARTBEAT: 'CHECK_MISSED_COLLECTOR_HEARTBEAT',
-  },
   ttlForJobsAsync: conf.JOB_QUEUE_TTL_SECONDS_ASYNC,
   ttlForJobsSync: conf.JOB_QUEUE_TTL_SECONDS_SYNC,
   delayToRemoveJobs: conf.JOB_REMOVAL_DELAY_SECONDS,

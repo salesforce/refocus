@@ -7,31 +7,31 @@
  */
 
 /**
- * /worker/jobs/checkMissedCollectorHeartbeatJob.js
+ * /worker/jobs/executeClockJob.js
  */
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
-const scheduledJob =
-  require('../../clock/scheduledJobs/checkMissedCollectorHeartbeatJob');
 const activityLogUtil = require('../../utils/activityLog');
-const ZERO = 0;
 const jobLog = require('../jobLog');
 
 module.exports = (job, done) => {
+  const { reqStartTime, clockJobName } = job.data;
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
-    const msg = '[KJI] Entered checkMissedCollectorHeartbeatJob.js';
+    const msg = `[KJI] Entered executeClockJob.js (${clockJobName})`;
     console.log(msg); // eslint-disable-line no-console
   }
 
   const jobStartTime = Date.now();
-  const reqStartTime = job.data.reqStartTime;
+  const clockJob = require(`../../clock/scheduledJobs/${clockJobName}`);
   const dbStartTime = Date.now();
-  scheduledJob.execute()
-  .then(() => {
+
+  return Promise.resolve()
+  .then(clockJob.execute)
+  .then((res) => {
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const dbEndTime = Date.now();
       const jobEndTime = Date.now();
-      const objToReturn = {};
+      const objToReturn = res || {};
 
       const tempObj = {
         jobStartTime,
@@ -51,9 +51,7 @@ module.exports = (job, done) => {
     return done();
   })
   .catch((err) => {
-    logger.error(
-      'Caught error from /worker/jobs/checkMissedCollectorHeartbeatJob:', err
-    );
+    logger.error(`Caught error from /worker/jobs/executeClockJob (${clockJobName}):`, err);
     jobLog(jobStartTime, job, err.message || '');
     return done(err);
   });
