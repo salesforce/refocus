@@ -74,8 +74,6 @@ describe('tests/clock/setupIntervals.js >', () => {
       .then(() => u.restartClockProcess(intervals))
       .then(() => u.waitUntil('13m'))
       .then(() => u.restartClockProcess(intervals))
-      .then(() => u.waitUntil('14m'))
-      .then(() => u.restartClockProcess(intervals))
       .then(() => u.waitUntil('20m'))
       .then(() => {
         u.expectCalledAt('job1', ['5m', '10m', '15m', '20m']);
