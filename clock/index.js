@@ -19,7 +19,8 @@
  * If a separate clock dyno is NOT enabled, this module is just loaded from
  * inside the main web process.
  *
- * To define a new clock job: create a new job file in clock/jobs, update the clockJobConfig object in config.js.
+ * To define a new clock job: create a new job file in clock/jobs, update the
+ * clockJobConfig object in config.js.
  */
 const conf = require('../config');
 if (conf.newRelicKey) require('newrelic');
