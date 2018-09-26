@@ -65,8 +65,9 @@ describe('tests/clock/setupIntervals.js >', () => {
       })
     );
 
-    it('multiple restarts, still follows schedule', () =>
-      u.runSetupIntervals(intervals)
+    it('multiple restarts, still follows schedule', function () {
+      this.timeout(10000);
+      return u.runSetupIntervals(intervals)
       .then(() => u.waitUntil('11m'))
       .then(() => u.restartClockProcess(intervals))
       .then(() => u.waitUntil('12m'))
@@ -80,7 +81,7 @@ describe('tests/clock/setupIntervals.js >', () => {
         u.expectCalledAt('job1', ['5m', '10m', '15m', '20m']);
         u.expectCalledAt('job2', ['3m', '6m', '9m', '12m', '15m', '18m']);
       })
-    );
+    });
 
     it('new interval takes effect when restarted (scheduled run)', () =>
       u.runSetupIntervals({ job1: ms('3m') })
