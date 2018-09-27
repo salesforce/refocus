@@ -968,7 +968,7 @@ window.onload = () => {
     }
 
     if (parseInt(ROOM_ID, 10) !== response.id) {
-      window.location.replace(`/rooms/${response.id}`);
+      window.location.replace(`/rooms/${response.id}?${urlParameters}`);
     }
 
     uPage.setTitle(`Room # ${ROOM_ID}`);
