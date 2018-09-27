@@ -92,6 +92,26 @@ describe('tests/api/v1/bots/patch.js >', () => {
       });
   });
 
+  it('Pass, patch bot helpUrl & ownerUrl', (done) => {
+    const newUrl = 'http://newUrl.com';
+    api.patch(`${path}/${testBot.id}`)
+      .set('Authorization', token)
+      .send({
+        helpUrl: newUrl,
+        ownerUrl: newUrl,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.helpUrl).to.equal(newUrl);
+        expect(res.body.ownerUrl).to.equal(newUrl);
+        done();
+      });
+  });
+
   it('Fail, patch bot invalid name', (done) => {
     const newName = '~!invalidName';
     api.patch(`${path}/${testBot.id}`)
@@ -105,6 +125,22 @@ describe('tests/api/v1/bots/patch.js >', () => {
 
       expect(res.body.errors[ZERO].type)
       .to.contain(tu.schemaValidationErrorName);
+      done();
+    });
+  });
+
+  it('Fail, patch bot invalid docsUrl', (done) => {
+    api.patch(`${path}/${testBot.id}`)
+    .set('Authorization', token)
+    .send({ helpUrl: 'Not a Url' })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+      .to.contain(tu.valErrorName);
       done();
     });
   });

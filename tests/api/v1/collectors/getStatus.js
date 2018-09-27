@@ -47,8 +47,9 @@ describe('tests/api/v1/collectors/getStatus.js >', () => {
   }
 
   it('get status by name', (done) => {
+    const tokens = {};
     Promise.resolve()
-    .then(() => u.startCollector(collectorObj, {}, token))
+    .then(() => u.startCollector(collectorObj, tokens, token))
     .then(() => expectStatus(collectorObj.name, collectorStatus.Running))
     .then(() => u.pauseCollector(collectorObj, token))
     .then(() => expectStatus(collectorObj.name, collectorStatus.Paused))
@@ -56,11 +57,22 @@ describe('tests/api/v1/collectors/getStatus.js >', () => {
     .then(() => expectStatus(collectorObj.name, collectorStatus.Running))
     .then(() => u.stopCollector(collectorObj, token))
     .then(() => expectStatus(collectorObj.name, collectorStatus.Stopped))
+    .then(() => u.startCollector(collectorObj, tokens, token))
+    .then(() => expectStatus(collectorObj.name, collectorStatus.Running))
+    .then(() => u.missHeartbeat(collectorObj))
+    .then(() => expectStatus(collectorObj.name, collectorStatus.MissedHeartbeat))
+    .then(() => u.sendHeartbeat({ collector: collectorObj, tokens: tokens }))
+    .then(() => expectStatus(collectorObj.name, collectorStatus.Running))
+    .then(() => u.pauseCollector(collectorObj, token))
+    .then(() => expectStatus(collectorObj.name, collectorStatus.Paused))
+    .then(() => u.sendHeartbeat({ collector: collectorObj, tokens: tokens }))
+    .then(() => expectStatus(collectorObj.name, collectorStatus.Paused))
     .then(() => done())
     .catch(done);
   });
 
   it('get status by id', (done) => {
+    const tokens = {};
     Promise.resolve()
     .then(() => u.startCollector(collectorObj, {}, token))
     .then(() => expectStatus(collectorObj.id, collectorStatus.Running))
@@ -70,6 +82,16 @@ describe('tests/api/v1/collectors/getStatus.js >', () => {
     .then(() => expectStatus(collectorObj.id, collectorStatus.Running))
     .then(() => u.stopCollector(collectorObj, token))
     .then(() => expectStatus(collectorObj.id, collectorStatus.Stopped))
+    .then(() => u.startCollector(collectorObj, tokens, token))
+    .then(() => expectStatus(collectorObj.name, collectorStatus.Running))
+    .then(() => u.missHeartbeat(collectorObj))
+    .then(() => expectStatus(collectorObj.id, collectorStatus.MissedHeartbeat))
+    .then(() => u.sendHeartbeat({ collector: collectorObj, tokens: tokens }))
+    .then(() => expectStatus(collectorObj.id, collectorStatus.Running))
+    .then(() => u.pauseCollector(collectorObj, token))
+    .then(() => expectStatus(collectorObj.name, collectorStatus.Paused))
+    .then(() => u.sendHeartbeat({ collector: collectorObj, tokens: tokens }))
+    .then(() => expectStatus(collectorObj.name, collectorStatus.Paused))
     .then(() => done())
     .catch(done);
   });

@@ -90,7 +90,7 @@ module.exports = {
     doPost(req, res, next, helper);
   },
 
-    /**
+  /**
    * GET /rooms/{key}/writers
    *
    * Retrieves all the writers associated with the room

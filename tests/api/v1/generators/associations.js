@@ -11,9 +11,11 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
-const u = require('./utils');
-const gtUtil = u.gtUtil;
+const cu = require('../collectors/utils');
+const gu = require('./utils');
+const gtUtil = gu.gtUtil;
 const testAssociations = require('../common/testAssociations.js').testAssociations;
+const Collector = tu.db.Collector;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const path = '/v1/generators';
@@ -23,17 +25,28 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
   let conf = {};
 
   const generatorTemplate = gtUtil.getGeneratorTemplate();
-  const generatorOk = u.getGenerator();
-  u.createSGtoSGTMapping(generatorTemplate, generatorOk);
-  const generatorInfo = u.getGenerator();
+  const generatorOk = gu.getGenerator();
+  gu.createSGtoSGTMapping(generatorTemplate, generatorOk);
+  const generatorInfo = gu.getGenerator();
   generatorInfo.name = 'refocus-info-generator';
-  u.createSGtoSGTMapping(generatorTemplate, generatorInfo);
-  let collector1 = { name: 'hello', version: '1.0.0' };
+  gu.createSGtoSGTMapping(generatorTemplate, generatorInfo);
+  let coll1 = cu.getCollectorToCreate();
+  let coll2 = cu.getCollectorToCreate();
+  coll1.name += '1';
+  coll1.status = 'Running';
+  coll1.lastHeartbeat = Date.now();
+  coll2.name += '2';
+  coll2.status = 'Running';
+  coll2.lastHeartbeat = Date.now();
 
   before((done) => {
-    tu.db.Collector.create(collector1)
+    Collector.create(coll1)
     .then((created) => {
-      collector1 = created;
+      coll1 = created;
+      return Collector.create(coll2);
+    })
+    .then((created) => {
+      coll2 = created;
       return tu.createUser('assocUser');
     })
     .then((user) => {
@@ -45,24 +58,30 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
     .then(() => Generator.create(generatorOk))
     .then((gen) => {
       generatorOk.id = gen.id;
-      return gen.addPossibleCollectors([collector1]);
+      return Promise.all([
+        gen.setPossibleCollectors([coll1, coll2]),
+        gen.setCurrentCollector(coll1),
+      ]);
     })
     .then(() => Generator.create(generatorInfo))
     .then((gen) => {
       generatorInfo.id = gen.id;
-      return gen.addPossibleCollectors([collector1]);
+      return Promise.all([
+        gen.setPossibleCollectors([coll1, coll2]),
+        gen.setCurrentCollector(coll2),
+      ]);
     })
     .then(() => done())
     .catch(done);
   });
 
-  after(u.forceDelete);
+  after(gu.forceDelete);
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['user', 'possibleCollectors'];
+  const associations = ['user', 'currentCollector', 'possibleCollectors'];
   const schema = {
-    user: Joi.object().keys({
+    user: Joi.object({
       name: Joi.string().required(),
       fullName: Joi.string().optional().allow(null),
       email: Joi.string().required(),
@@ -70,17 +89,20 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
         name: Joi.string().required(),
       }).required(),
     }),
-    possibleCollectors: Joi.array().length(1).items(
-      Joi.object().keys({
+    currentCollector: Joi.object({
+      id: Joi.string().required(),
+      name: Joi.string().required(),
+      status: Joi.string().required(),
+      lastHeartbeat: Joi.string().required(),
+    }),
+    possibleCollectors: Joi.array().length(2).items(
+      Joi.object({
         id: Joi.string().required(),
         name: Joi.string().required(),
-        registered: Joi.boolean().required(),
         status: Joi.string().required(),
-        isDeleted: Joi.string().required(),
-        createdAt: Joi.string().required(),
-        updatedAt: Joi.string().required(),
-        GeneratorCollectors: Joi.object().required(),
-      })),
+        lastHeartbeat: Joi.string().required(),
+      })
+    ),
   };
 
   testAssociations(path, associations, schema, conf);

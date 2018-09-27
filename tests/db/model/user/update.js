@@ -62,4 +62,15 @@ describe('tests/db/model/user/update.js, db: user: update >', () => {
     })
     .catch(done);
   });
+
+  it('setLastLogin', (done) => {
+    let orig = user.lastLogin;
+    user.setLastLogin()
+    .then(() => User.findById(user.id))
+    .then((found) => {
+      expect(found.lastLogin).to.be.greaterThan(orig);
+      done();
+    })
+    .catch(done);
+  });
 });

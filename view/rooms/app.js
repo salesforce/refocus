@@ -44,7 +44,6 @@ GET_ROOM += isNaN(ROOM_ID) ? `?name=${ROOM_ID}` : ROOM_ID;
 const GET_EVENTS = '/v1/events';
 const GET_ACTIONS = '/v1/botActions';
 const GET_ROOMTYPES = '/v1/roomTypes';
-const GITHUB_LOGO = '../static/images/GitHub-Mark.png';
 const BOT_LOGO = '../static/images/refocus-bot.png';
 const BOT_REQ_HEADERS = {
   'X-Requested-With': 'XMLHttpRequest',
@@ -365,27 +364,33 @@ function createHeader(bot) {
  */
 function createFooter(bot) {
   const footer = document.createElement('h3');
-  const linkedElement = document.createElement('a');
-  const gitHubImage = document.createElement('img');
   const botVersion = document.createElement('span');
 
-  footer.className =
-    'slds-section__title ' +
-    'slds-p-horizontal_small ' +
-    'slds-theme_shade ';
+  footer.className = 'slds-p-horizontal_small ' +
+    'slds-theme_shade';
+  botVersion.innerHTML = bot.version;
+  botVersion.className = 'slds-float--right slds-m-around--xx-small';
 
-  botVersion.innerHTML = 'Version ' + bot.version;
-  botVersion.className = 'slds-p-horizontal--medium';
-  linkedElement.href = bot.url;
-  linkedElement.target = '_blank';
-  linkedElement.rel = 'noopener noreferrer';
-  gitHubImage.height = '20';
-  gitHubImage.width = '20';
-  gitHubImage.src = GITHUB_LOGO;
-  linkedElement.appendChild(gitHubImage);
-  footer.appendChild(linkedElement);
+  if (bot.url && bot.url.length) {
+    const codeLinkedSvg = uPage.createFooterLinkedSvg('apex', bot.url);
+    codeLinkedSvg.title = 'Code';
+    footer.appendChild(codeLinkedSvg);
+  }
+
+  if (bot.helpUrl && bot.helpUrl.length) {
+    const helpLinkedSvg =
+      uPage.createFooterLinkedSvg('description', bot.helpUrl);
+    helpLinkedSvg.title = 'Documentation';
+    footer.appendChild(helpLinkedSvg);
+  }
+
+  if (bot.ownerUrl && bot.ownerUrl.length) {
+    const ownerLinkedSvg = uPage.createFooterLinkedSvg('groups', bot.ownerUrl);
+    ownerLinkedSvg.title = 'Owner';
+    footer.appendChild(ownerLinkedSvg);
+  }
+
   footer.appendChild(botVersion);
-
   return footer;
 }
 
@@ -417,18 +422,6 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
   const iframeJS =
   `
   <script>
-    function outputSize() {
-      const el = document.getElementById("${bot.name}");
-      // Sometimes clientHeight was > scrollHeight so we need to get the max
-      const botHeight =  Math.max(el.clientHeight, el.scrollHeight);
-      parent.postMessage(
-        {
-          "name": "${bot.name}",
-          "height": Math.max(botHeight, "${MIN_BOT_HEIGHT}")
-        }, "*"
-      );
-    }
-
     outputSize();
     if( navigator.userAgent.toLowerCase().indexOf('chrome') > -1 ){
       new ResizeObserver(
@@ -454,7 +447,25 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
   </script>`;
 
   const iframeContent = iframeCss +
-      `<script>var user = "${currentUser}"</script>
+      `<script>
+        var user = "${currentUser}";
+        {
+          const oldParent = window.parent;        
+          function outputSize() {
+            const el = document.getElementById("${bot.name}");
+            // Sometimes clientHeight was > scrollHeight
+            // so we need to get the max
+            const botHeight =  Math.max(el.clientHeight, el.scrollHeight);
+            oldParent.postMessage(
+              {
+                "name": "${bot.name}",
+                "height": Math.max(botHeight, "${MIN_BOT_HEIGHT}")
+              }, "*"
+            );
+          }
+        }
+        window.top = window.parent = null;   
+      </script>
       ${contentSection}
       <script>${botScript}</script>` +
       iframeJS;
@@ -660,7 +671,8 @@ function setupSocketIOClient(bots) {
     botInfo[bot.body.id] = bot.body.name;
   });
 
-  const socket = _io('/', { transports: ['websocket'] });
+  const namespace = `/refocus.room?room=${ROOM_ID}&roomType=${_roomTypeName}`;
+  const socket = _io(namespace, { transports: ['websocket'] });
 
   // Socket Event Names
   const settingsChangedEventName =
@@ -764,29 +776,32 @@ function setupSocketIOClient(bots) {
     }
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', (reason) => {
     debugMessage('Socket Disconnected');
-    const elem = document.createElement('div');
-    elem.id = 'snackbar';
-    elem.className = 'slds-notify slds-notify_toast slds-theme_offline show';
-    elem.innerHTML = '<div class="snackContent">You have ' +
-      'lost connection with Refocus so bot data and bot actions ' +
-      'may be unreliable. Please save any unfinished work and ' +
-      'click <a href="javascript:window.location.reload(true)">' +
-      'reconnect</a> to continue</div>';
-    const divs = document.getElementsByTagName('div');
-    for (let i = divs.length; i;) {
-      const circle = divs[--i];
-      if (circle.id.indexOf('status-') > NEG_ONE) {
-        circle.setAttribute(
-          'style',
-          'background:#ffb75d;' +
-            'width:8px;height:8px;border-radius:50%;margin:5px;'
-        );
+    if (reason === 'io server disconnect') {
+      debugMessage('IO Server Disconnect');
+      const elem = document.createElement('div');
+      elem.id = 'snackbar';
+      elem.className = 'slds-notify slds-notify_toast slds-theme_offline show';
+      elem.innerHTML = '<div class="snackContent">You have ' +
+        'lost connection with Refocus so bot data and bot actions ' +
+        'may be unreliable. Please save any unfinished work and ' +
+        'click <a href="javascript:window.location.reload(true)">' +
+        'reconnect</a> to continue</div>';
+      const divs = document.getElementsByTagName('div');
+      for (let i = divs.length; i;) {
+        const circle = divs[--i];
+        if (circle.id.indexOf('status-') > NEG_ONE) {
+          circle.setAttribute(
+            'style',
+            'background:#ffb75d;' +
+              'width:8px;height:8px;border-radius:50%;margin:5px;'
+          );
+        }
       }
+      document.body.appendChild(elem);
+      confirmUserExit();
     }
-    document.body.appendChild(elem);
-    confirmUserExit();
   });
 } // setupSocketIOClient
 

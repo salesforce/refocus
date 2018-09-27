@@ -28,7 +28,6 @@ const path = '/v1/botData';
 const expect = require('chai').expect;
 const pfx = '___';
 
-
 describe('tests/api/v1/botData/deleteWithoutPerms.js >', () => {
   let testBotData;
   let validToken;

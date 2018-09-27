@@ -19,18 +19,22 @@ const utils = require('./utils');
 const constants = require('../../../../api/v1/constants');
 const jobQueue = require('../../../../jobQueue/setup').jobQueue;
 const jobType = require('../../../../jobQueue/setup').jobType;
+const status = constants.httpStatus;
 const bulkDeleteSubjectsJob = require(
   '../../../../worker/jobs/bulkDeleteSubjectsJob');
+const Promise = require('bluebird');
+supertest.Test.prototype.end = Promise.promisify(supertest.Test.prototype.end);
+supertest.Test.prototype.then = function (resolve, reject) {
+  return this.end().then(resolve).catch(reject);
+};
 
 describe('tests/api/v1/subjects/bulkDelete.js', () => {
   let token;
+  let user2;
+  let token2;
   const AUTHORIZATION = 'Authorization';
   const DELETE_PATH = '/v1/subjects/delete/bulk';
-
-  const parentAndChildIdStore = [];
-  const fooAndBlahIdStore = [];
-
-  const TIMEOUT = 100;
+  const TIMEOUT = 50;
 
   before((done) => {
     testUtils.createToken()
@@ -40,121 +44,294 @@ describe('tests/api/v1/subjects/bulkDelete.js', () => {
       }).catch(done);
   });
 
+  before(() =>
+    testUtils.createSecondUser()
+    .then((createdUser) => {
+      user2 = createdUser;
+      return testUtils.createTokenFromUserName(user2.name);
+    })
+    .then((createdToken) => {
+      token2 = createdToken;
+    })
+  );
+
   describe('Create subjects and check status', () => {
     before(() => testUtils.toggleOverride('enableWorkerProcess', true));
 
-    // Start JobQueue
-    jobQueue.process(jobType.BULK_DELETE_SUBJECTS, bulkDeleteSubjectsJob);
+    // Start JobQueue, with the option to simulate a failed job
+    let simulateFailure = false;
+    jobQueue.process(jobType.BULK_DELETE_SUBJECTS, (job, done) => {
+      if (simulateFailure) {
+        done('Job Failed');
+      } else {
+        bulkDeleteSubjectsJob(job, done);
+      }
+    });
+
+    const blah = { name: `${testUtils.namePrefix}Blah`, isPublished: true, };
+    const foo = { name: `${testUtils.namePrefix}Foo`, isPublished: true, };
+    const parent = { name: `${testUtils.namePrefix}ParentName`,
+      isPublished: true, childCount: 1, };
+    const child = { name: `${testUtils.namePrefix}ChildName`,
+      isPublished: true, childCount: 0, };
+    const restricted = { name: `${testUtils.namePrefix}Restricted`, isPublished: true, };
 
     // Create parent and child subject (not able to delete)
-    before((done) => {
-      const subjectParent = { name: `${testUtils.namePrefix}ParentName`,
-        isPublished: true, childCount: 1, };
-      const subjectChild = { name: `${testUtils.namePrefix}ChildName`,
-        isPublished: true, childCount: 0, };
-      Subject.create(subjectParent)
+    beforeEach((done) => {
+      Subject.create(parent)
         .then((createdSubjectParent) => {
-          subjectChild.parentId = createdSubjectParent.id;
-          parentAndChildIdStore.push(createdSubjectParent.id);
-          return Subject.create(subjectChild);
+          child.parentId = createdSubjectParent.id;
+          parent.id = createdSubjectParent.id;
+          return Subject.create(child);
         })
         .then((createdSubjectChild) => {
-          parentAndChildIdStore.push(createdSubjectChild.id);
+          child.id = createdSubjectChild.id;
           done();
         }).catch(done);
     });
 
     // Create not related subjects (able to delete)
-    before((done) => {
-      const blah = { name: `${testUtils.namePrefix}Blah`, isPublished: true, };
-      const foo = { name: `${testUtils.namePrefix}Foo`, isPublished: true, };
+    beforeEach((done) => {
       Subject.create(blah)
         .then((createdBlah) => {
-          fooAndBlahIdStore.push(createdBlah.id);
+          blah.id = createdBlah.id;
           return Subject.create(foo);
         })
         .then((createdFoo) => {
-          fooAndBlahIdStore.push(createdFoo.id);
+          foo.id = createdFoo.id;
           done();
         }).catch(done);
     });
 
-    before(utils.populateRedis);
-    after(utils.forceDelete);
+    beforeEach(() =>
+      Subject.create(restricted)
+      .then((created) => {
+        restricted.id = created.id;
+        return created.addWriter(user2);
+      })
+    );
+
+    beforeEach(utils.populateRedis);
+    afterEach(utils.forceDelete);
     after(testUtils.forceDeleteUser);
     after(() => testUtils.toggleOverride('enableWorkerProcess', false));
 
-    it('Must show status with SubjectDeleteConstraintError ' +
-      'when delete subject with child', (done) => {
-      api.post(DELETE_PATH)
-        .set(AUTHORIZATION, token)
-        .send(parentAndChildIdStore)
-        .expect(constants.httpStatus.OK)
-        .then((res) => {
-          // eslint-disable-next-line no-unused-expressions
-          expect(res.body.jobId).to.not.be.empty;
-          return Promise.resolve(res.body.jobId);
-        })
-        .then((jobId) => {
-          setTimeout(() => {
-            // Job status must show the error
-            api.get(`/v1/subjects/delete/bulk/${jobId}/status`)
-              .set('Authorization', token)
-              .expect(constants.httpStatus.OK)
-              .then((res) => {
-                // eslint-disable-next-line no-unused-expressions
-                expect(res.body.errors).to.not.be.empty;
-                expect(res.body.errors[0].name)
-                  .to.equal('SubjectDeleteConstraintError');
-                return done();
-              });
-          }, TIMEOUT);
-        });
-    });
+    function doBulkDelete(subKeys) {
+      return api.post(DELETE_PATH)
+      .set(AUTHORIZATION, token)
+      .send(subKeys)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.jobId).to.not.be.empty;
+        return res.body.jobId;
+      })
+      .end();
+    }
 
-    it('Must show complete after delete successfully 2 subjects', (done) => {
-      api.post(DELETE_PATH)
-        .set(AUTHORIZATION, token)
-        .send(fooAndBlahIdStore)
-        .expect(constants.httpStatus.OK)
-        .then((res) => {
-          expect(res.body.jobId).to.not.be.empty;
-          return Promise.resolve(res.body.jobId);
-        })
-        .then((jobId) => {
-          setTimeout(() => {
-            // Job complete
-            api.get(`/v1/subjects/delete/bulk/${jobId}/status`)
-              .set('Authorization', token)
-              .expect(constants.httpStatus.OK)
-              .then((res) => {
-                expect(res.body).to.not.be.empty;
-                expect(res.body.status).to.equal('complete');
-                return done();
-              });
-          }, TIMEOUT);
-        })
-        .then(() => {
-          setTimeout(() => {
-            // Must not find Blah
-            api.get(`/v1/subjects/${fooAndBlahIdStore[0]}`)
-              .set('Authorization', token)
-              .expect(constants.httpStatus.NOT_FOUND)
-              .then((res) => {
-                expect(res.body.errors[0].type).to
-                  .equal('ResourceNotFoundError');
-              });
+    function wait(timeout) {
+      return new Promise((resolve) => setTimeout(resolve, timeout));
+    }
 
-            // Must not find Foo
-            api.get(`/v1/subjects/${fooAndBlahIdStore[1]}`)
-              .set('Authorization', token)
-              .expect(constants.httpStatus.NOT_FOUND)
-              .then((res) => {
-                expect(res.body.errors[0].type).to
-                  .equal('ResourceNotFoundError');
-              });
-          }, TIMEOUT);
-        });
+    function getStatus(jobId) {
+      return wait(TIMEOUT)
+      .then(() =>
+        api.get(`/v1/subjects/delete/bulk/${jobId}/status`)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .end()
+      )
+      .then((res) => {
+        if (res.body.status === 'active') {
+          return getStatus(jobId);
+        } else {
+          return res;
+        }
+      });
+    }
+
+    function checkJobStatus({ jobId, expectedStatus, expectedErrors, expectedError }) {
+      return getStatus(jobId)
+      .then((res) => {
+        expect(res.body.status).to.equal(expectedStatus);
+
+        if (expectedErrors) {
+          expect(res.body.errors).to.exist;
+          expect(res.body.errors).to.be.an('array');
+          res.body.errors.forEach(e => expect(e).to.be.an('object'));
+          const errNames = res.body.errors.map((e) => e.name);
+          expect(errNames).to.deep.equal(expectedErrors);
+        } else {
+          expect(res.body.errors).to.not.exist;
+        }
+
+        if (expectedError) {
+          expect(res.body.error).to.exist;
+          expect(res.body.error).to.equal(expectedError);
+        } else {
+          expect(res.body.error).to.not.exist;
+        }
+      });
+    }
+
+    function checkSubjectsExist(expectMap) {
+      return Promise.all(
+        Object.keys(expectMap).map((key) => {
+          const expectExists = expectMap[key];
+          const expectedStatus = expectExists ? status.OK : status.NOT_FOUND;
+          return api.get(`/v1/subjects/${key}`)
+          .set('Authorization', token)
+          .expect(expectedStatus)
+          .expect((res) => {
+            if (expectExists) {
+              expect(res.body.id).to.equal(key);
+            } else {
+              expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
+            }
+          })
+          .end();
+        })
+      );
+    }
+
+    it('delete by id', () =>
+      doBulkDelete([blah.id, foo.id])
+
+      // { status: 'complete' }
+      .then((res) => checkJobStatus({
+        jobId: res.body.jobId,
+        expectedStatus: 'complete',
+      }))
+
+      // "Blah" and "Foo" were deleted
+      .then(() => checkSubjectsExist({
+        [blah.id]: false,
+        [foo.id]: false,
+      }))
+    );
+
+    it('delete by name', () =>
+      doBulkDelete([blah.name, foo.name])
+
+      // { status: 'complete' }
+      .then((res) => checkJobStatus({
+        jobId: res.body.jobId,
+        expectedStatus: 'complete',
+      }))
+
+      // "Blah" and "Foo" were deleted
+      .then(() => checkSubjectsExist({
+        [blah.id]: false,
+        [foo.id]: false,
+      }))
+    );
+
+    it('delete by id and name', () =>
+      doBulkDelete([blah.id, foo.name])
+
+      // { status: 'complete' }
+      .then((res) => checkJobStatus({
+        jobId: res.body.jobId,
+        expectedStatus: 'complete',
+      }))
+
+      // "Blah" and "Foo" were deleted
+      .then(() => checkSubjectsExist({
+        [blah.id]: false,
+        [foo.id]: false,
+      }))
+    );
+
+    it('delete nonexistent subject', () =>
+      doBulkDelete(['aaa'])
+
+      // { status: 'complete', errors: [ ... ] }
+      .then((res) => checkJobStatus({
+        jobId: res.body.jobId,
+        expectedStatus: 'complete',
+        expectedErrors: ['ResourceNotFoundError'],
+      }))
+
+      // subject does not exist
+      .then(() => checkSubjectsExist({
+        aaa: false,
+      }))
+    );
+
+    it('no write permission', () =>
+      doBulkDelete([blah.id, restricted.id])
+
+      // { status: 'complete', errors: [ ... ] }
+      .then((res) => checkJobStatus({
+        jobId: res.body.jobId,
+        expectedStatus: 'complete',
+        expectedErrors: ['ForbiddenError'],
+      }))
+
+      // blah deleted, restricted still exists
+      .then(() => checkSubjectsExist({
+        [blah.id]: false,
+        [restricted.id]: true,
+      }))
+    );
+
+    it('delete parent with child', () =>
+      doBulkDelete([parent.id, child.id])
+
+      // { status: 'complete', errors: [ ... ] }
+      .then((res) => checkJobStatus({
+        jobId: res.body.jobId,
+        expectedStatus: 'complete',
+        expectedErrors: ['SubjectDeleteConstraintError'],
+      }))
+
+      // child deleted, parent still exists
+      .then(() => checkSubjectsExist({
+        [parent.id]: true,
+        [child.id]: false,
+      }))
+    );
+
+    it('multiple errors', () =>
+      doBulkDelete([blah.id, foo.id, 'aaa', parent.id, child.id, restricted.id])
+
+      // { status: 'complete', errors: [ ... ] }
+      .then((res) => checkJobStatus({
+        jobId: res.body.jobId,
+        expectedStatus: 'complete',
+        expectedErrors: [
+          'ResourceNotFoundError',
+          'SubjectDeleteConstraintError',
+          'ForbiddenError',
+        ],
+      }))
+
+      // blah, foo, and child deleted. restricted and parent still exist
+      .then(() => checkSubjectsExist({
+        [blah.id]: false,
+        [foo.id]: false,
+        aaa: false,
+        [parent.id]: true,
+        [child.id]: false,
+        [restricted.id]: true,
+      }))
+    );
+
+    it('failed job', () => {
+      simulateFailure = true;
+      return doBulkDelete([blah.id, foo.id])
+
+      // { status: failed, error: 'Shutdown' }
+      .then((res) => checkJobStatus({
+        jobId: res.body.jobId,
+        expectedStatus: 'failed',
+        expectedError: 'Job Failed',
+      }))
+
+      // not deleted
+      .then(() => checkSubjectsExist({
+        [blah.id]: true,
+        [foo.id]: true,
+      }));
     });
   });
 });

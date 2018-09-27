@@ -118,9 +118,10 @@ function throwNotMatchError(parentId, parentAbsolutePath) {
 /**
  * Deletes all the sample entries related to a subject. The sample delete events
  * are also sent. The following are deleted
- * 1. subject to aspect mapping -> samsto:subaspmap:absolutePath
- * 2. sample entry in samsto:samples (samsto:samples:oldAbsPath|*)
- * 3. sample hash samsto:samples:oldAbsPath|*
+ * 1. subject from aspect to subject mappings
+ * 2. subject to aspect mapping -> samsto:subaspmap:absolutePath
+ * 3. sample entry in samsto:samples (samsto:samples:oldAbsPath|*)
+ * 4. sample hash samsto:samples:oldAbsPath|*
  * @param {Object} subject - The subject object
  * @param {Object} seq - The sequelize object
  * @returns {Promise} which resolves to the deleted samples.
@@ -130,8 +131,15 @@ function removeRelatedSamples(subject, seq) {
   return redisOps.deleteSampleKeys(subAspMapType, subject.absolutePath)
   .then((_samples) => {
     samples = _samples;
-    return redisOps.deleteKey(subAspMapType, subject.absolutePath);
+
+    // get aspects from subaspmap mapping for this subject
+    return redisOps.executeCommand(
+      redisOps.getSubjAspMapMembers(subject.absolutePath));
   })
+  .then((aspectNames) => redisOps.executeBatchCmds(
+    redisOps.deleteSubjectFromAspectResourceMaps(
+      aspectNames, subject.absolutePath)))
+  .then(() => redisOps.deleteKey(subAspMapType, subject.absolutePath))
   .then(() => {
     const promises = [];
 

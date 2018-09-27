@@ -24,7 +24,8 @@ const constants = require('../../../../db/constants');
 
 describe('tests/db/model/generator/find.js >', () => {
   const generator = u.getGenerator();
-  const g2 = u.getGeneratorWithSubjectArray();
+  const g2 = u.getGenerator();
+  g2.name += '2';
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   const gtWithEncryption = gtUtil.getGeneratorTemplate();
   gtWithEncryption.name = 'gtWithEncryption';

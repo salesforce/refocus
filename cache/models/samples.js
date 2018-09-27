@@ -10,7 +10,6 @@
  * cache/models/samples.js
  */
 'use strict'; // eslint-disable-line strict
-const featureToggles = require('feature-toggles');
 const logInvalidHmsetValues = require('../../utils/common')
   .logInvalidHmsetValues;
 const helper = require('../../api/v1/helpers/nouns/samples');
@@ -355,11 +354,9 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     return checkWritePermission(aspectObj, userName, isBulk);
   })
   .then(() => {
-    if (featureToggles.isFeatureEnabled('publishSampleNoChange')) {
-      if (sample && !isSampleChanged(sampleQueryBodyObj, sample)) {
-        /* Sample is not new AND nothing has changed */
-        noChange = true;
-      }
+    if (sample && !isSampleChanged(sampleQueryBodyObj, sample)) {
+      /* Sample is not new AND nothing has changed */
+      noChange = true;
     }
 
     // sampleQueryBodyObj updated with fields
@@ -389,19 +386,25 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       });
     }
 
-    const subaspMapKey = sampleStore.toKey(constants.objectType.subAspMap,
-      absolutePath);
+    const cmds = []; // redis commands for batch processing
 
-    /*
-     * Add aspect name to subject set. Add sample key to sample set.
-     * Create/update hash of sample.
-     */
-    logInvalidHmsetValues(sampleKey, sampleQueryBodyObj);
-    return redisClient.batch([
-      ['sadd', subaspMapKey, aspectName],
-      ['sadd', constants.indexKey.sample, sampleKey],
-      ['hmset', sampleKey, sampleQueryBodyObj],
-    ]).execAsync();
+    // add the aspect name to the subject-to-aspect resource mapping
+    cmds.push(redisOps.addAspectInSubjSetCmd(absolutePath, aspectName));
+
+    // add sample to the master list of sample index
+    cmds.push(redisOps.addKeyToIndexCmd(sampleType, sampleName));
+
+    // create/update hash of sample. Check and log invalid Hmset values
+    cmds.push(
+      redisOps.setHashMultiCmd(sampleType, sampleName, sampleQueryBodyObj)
+    );
+
+    // add subject absolute path to aspect-to-subject resource mapping
+    cmds.push(redisOps.addSubjectAbsPathInAspectSet(
+      aspectObj.name, subject.absolutePath)
+    );
+
+    return redisOps.executeBatchCmds(cmds);
   }))
   .then(() => redisClient.hgetallAsync(sampleKey))
   .then((updatedSamp) => {
@@ -409,42 +412,35 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       updatedSamp.name = subject.absolutePath + '|' + aspectObj.name;
     }
 
-    if (featureToggles.isFeatureEnabled('publishSampleNoChange')) {
-      // Publish the sample.nochange event
-      if (noChange) {
-        updatedSamp.noChange = true;
-        updatedSamp.absolutePath = subject.absolutePath;
-        updatedSamp.aspectName = aspectObj.name;
-        updatedSamp.aspectTags = aspectObj.tags || [];
-        updatedSamp.aspectTimeout = aspectObj.timeout;
+    // Publish the sample.nochange event
+    if (noChange) {
+      updatedSamp.noChange = true;
+      updatedSamp.absolutePath = subject.absolutePath;
+      updatedSamp.aspectName = aspectObj.name;
+      updatedSamp.aspectTags = aspectObj.tags || [];
+      updatedSamp.aspectTimeout = aspectObj.timeout;
 
-        if (Array.isArray(subject.tags)) {
-          updatedSamp.subjectTags = subject.tags;
-        } else {
-          try {
-            updatedSamp.subjectTags = JSON.parse(subject.tags);
-          } catch (err) {
-            updatedSamp.subjectTags = [];
-          }
+      if (Array.isArray(subject.tags)) {
+        updatedSamp.subjectTags = subject.tags;
+      } else {
+        try {
+          updatedSamp.subjectTags = JSON.parse(subject.tags);
+        } catch (err) {
+          updatedSamp.subjectTags = [];
         }
-
-        return updatedSamp; // skip cleanAdd...
       }
+
+      return updatedSamp; // skip cleanAdd...
     }
 
     return cleanAddAspectToSample(updatedSamp, aspectObj);
   })
   .then((updatedSamp) => {
-    if (featureToggles.isFeatureEnabled('publishSampleNoChange') &&
-    updatedSamp.hasOwnProperty(noChange) && updatedSamp.noChange === true) {
+    if (updatedSamp.hasOwnProperty(noChange) && updatedSamp.noChange === true) {
       return updatedSamp;
     }
 
-    if (featureToggles.isFeatureEnabled('preAttachSubject')) {
-      return cleanAddSubjectToSample(updatedSamp, subject);
-    }
-
-    return updatedSamp;
+    return cleanAddSubjectToSample(updatedSamp, subject);
   })
   .catch((err) => {
     if (isBulk) {
@@ -506,15 +502,18 @@ module.exports = {
 
       return checkWritePermission(aspect, userName);
     })
+
     /*
      * Set up and execute the commands to:
      * (1) delete the sample entry from the master list of sample index,
      * (2) delete the aspect from the subAspMap,
-     * (3) delete the sample hash.
+     * (3) delete the subject from aspect-to-subject mapping
+     * (4) delete the sample hash.
      */
     .then(() => {
       cmds.push(redisOps.delKeyFromIndexCmd(sampleType, sampleName));
       cmds.push(redisOps.delAspFromSubjSetCmd(subjAbsPath, aspName));
+      cmds.push(redisOps.delSubFromAspSetCmd(aspName, subjAbsPath));
       cmds.push(redisOps.delHashCmd(sampleType, sampleName));
       return redisOps.executeBatchCmds(cmds);
     })
@@ -770,6 +769,11 @@ module.exports = {
         subject.absolutePath, aspectObj.name)
       );
 
+      // add subject absolute path to aspect-to-subject resource mapping
+      cmds.push(redisOps.addSubjectAbsPathInAspectSet(
+        aspectObj.name, subject.absolutePath)
+      );
+
       // add sample to the master list of sample index
       cmds.push(redisOps.addKeyToIndexCmd(sampleType, sampleName));
 
@@ -1018,7 +1022,7 @@ module.exports = {
    */
   bulkUpsertByName(sampleQueryBody, user, readOnlyFields) {
     if (!sampleQueryBody || !Array.isArray(sampleQueryBody)) {
-      Promise.resolve([]);
+      return Promise.resolve([]);
     }
 
     const promises = sampleQueryBody.map((sampleReq) => {

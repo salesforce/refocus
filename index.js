@@ -16,11 +16,12 @@
 
 /* eslint-disable global-require */
 /* eslint-disable no-process-env */
-
 const throng = require('throng');
 const DEFAULT_WEB_CONCURRENCY = 1;
 const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 const sampleStore = require('./cache/sampleStoreInit');
+const conf = require('./config');
+const signal = require('./signal/signal');
 
 /**
  * Entry point for each clustered process.
@@ -40,7 +41,8 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   // SegfaultHandler.registerHandler('crash.log');
 
   const featureToggles = require('feature-toggles');
-  const conf = require('./config');
+  const logEnvVars = require('./utils/logEnvVars');
+
   if (conf.newRelicKey) {
     require('newrelic');
   }
@@ -67,6 +69,16 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   const enforcesSSL = require('express-enforces-ssl');
 
   const app = express();
+
+  /*
+   * If clusterProcessId is 0, we're running in single-process mode (i.e.
+   * non-throng), so log the env vars out.
+   * If clusterProcessId > 0, we have multiple throng workers, and in that case
+   * we only want to log out the env vars once, since they're all the same
+   * across all the throng workers, so in this case just do the logging if
+   * clusterProcessId is 1.
+   */
+  if (clusterProcessId < 2) logEnvVars.log(process.env);
 
   /*
    * Call this *before* the static pages and the API routes so that both the
@@ -307,6 +319,29 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
 
   // create app routes
   require('./view/loadView').loadView(app, passportModule, '/v1');
+
+  if (featureToggles.isFeatureEnabled('enableSigtermEvent')) {
+    /*
+     After receiving SIGTERM Heroku will give 30 seconds to shutdown cleanly.
+     If any processes remain after that time period, Dyno manager will terminate
+     them forcefully with SIGKILL logging 'Error R12' to indicate that the
+     shutdown process is not behaving correctly.
+     Steps:
+     - Stop accepting new requests;
+     - Handling pending resources;
+     - If not receive any SIGKILL a timeout will be applied killing the app
+     avoiding zombie process.
+
+     @see more about server.close callback:
+     https://nodejs.org/docs/latest-v8.x/api/net.html#net_server_close_callback
+    */
+    process.on('SIGTERM', () => {
+      httpServer.close(() => {
+        signal.gracefulShutdown();
+        signal.forceShutdownTimeout();
+      });
+    });
+  }
 
   module.exports = { app, passportModule };
 } // start

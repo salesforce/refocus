@@ -27,7 +27,6 @@ module.exports = {
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
-   *
    */
   authenticateUser(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
@@ -49,7 +48,8 @@ module.exports = {
           return u.handleError(next, _err, resourceName);
         }
 
-        return Profile.isAdmin(user.profileId)
+        return user.setLastLogin()
+        .then(() => Profile.isAdmin(user.profileId))
         .then((isAdmin) => { // update in token payload if admin
           const payloadObj = {
             ProfileName: user.profile.name,

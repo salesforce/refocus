@@ -2443,8 +2443,20 @@ paths:
         -
           name: url
           in: formData
-          description: The URL of the bot server
+          description: The URL of the code repository
           type: string
+        -
+          name: helpUrl
+          in: formData
+          description: The URL of the support documentation
+          type: string
+          required: false
+        -
+          name: ownerUrl
+          in: formData
+          description: The URL of the owner of the bot
+          type: string
+          required: false
         -
           name: ui
           description: The zipped HTML and Javascript needed to run the UI of the bot
@@ -2605,6 +2617,12 @@ paths:
               url:
                 type: string
                 description: Bot url
+              helpUrl:
+                type: string
+                description: Url of the support documentation for the bot
+              ownerUrl:
+                type: string
+                description: Url of the owner of the bot
               active:
                 type: boolean
                 description: If the bot is active
@@ -2673,6 +2691,16 @@ paths:
           name: url
           in: formData
           description: The URL of the bot server
+          type: string
+        -
+          name: helpUrl
+          in: formData
+          description: The URL of the support documentation
+          type: string
+        -
+          name: ownerUrl
+          in: formData
+          description: The URL of the owner of the bot
           type: string
         -
           name: version
@@ -3724,6 +3752,21 @@ paths:
           required: false
           type: string
         -
+          name: type
+          description: Get events that are a specific type
+          in: query
+          required: false
+          type: string
+        -
+          name: sort
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=createdAt'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          in: query
+          required: false
+          type: string
+        -
           name: botDataId
           description: Get events from specific botData
           in: query
@@ -3892,24 +3935,20 @@ paths:
             enum:
               - isActive
               - aspects
-              - subjects
               - subjectQuery
               - createdAt
               - description
               - intervalSecs
               - name
-              - currentCollector
               - updatedAt
               - -isActive
               - -aspects
-              - -subjects
               - -subjectQuery
               - -createdAt
               - -description
               - -intervalSecs
               - -name
               - -updatedAt
-              - -currentCollector
         -
           $ref: "#/parameters/limitParam"
         -
@@ -3954,14 +3993,6 @@ paths:
           description: >-
             Filter by the query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
         -
-          name: subjects
-          in: query
-          description: >-
-            Filter by the absolutePaths of the subjects.
-          type: array
-          items:
-            type: string
-        -
           name: aspects
           in: query
           description: >-
@@ -3988,13 +4019,6 @@ paths:
              include result set.
           type: array
           required: false
-        -
-          name: currentCollector
-          in: query
-          type: string
-          description: >-
-            Filter by the name of current collector assigned to the generator.
-          maxLength: 60
       responses:
         200:
           description: >-
@@ -4059,11 +4083,6 @@ paths:
                  type: array
                  items:
                    type: string
-              subjects:
-                description: AbsolutePaths of the subjects. Either fill in this or subjectQuery field.
-                type: array
-                items:
-                  type: string
               aspects:
                 description: List of one or more Aspects you want to collect Samples for.
                 type: array
@@ -4209,11 +4228,6 @@ paths:
                 minLength: 7
                 maxLength: 4096
                 description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-              subjects:
-                description: AbsolutePaths of the subjects.
-                type: array
-                items:
-                  type: string
               aspects:
                 description: Names of the aspects.
                 type: array
@@ -4236,11 +4250,11 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
-              currentCollector:
-                type: string
-                readOnly: true
-                description: >-
-                  Filter by the name of current collector assigned to the generator.
+              possibleCollectors:
+                description: Collectors to append to the list of collectors this Sample Generator should try to use.
+                type: array
+                items:
+                  type: string
               isActive:
                 type: boolean
                 description: >-
@@ -4336,11 +4350,6 @@ paths:
                 minLength: 7
                 maxLength: 4096
                 description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-              subjects:
-                description: AbsolutePaths of the subjects.
-                type: array
-                items:
-                  type: string
               aspects:
                 description: Names of the aspects.
                 type: array
@@ -4363,11 +4372,11 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
-              currentCollector:
-                type: string
-                readOnly: true
-                description: >-
-                  Name of current collector assigned to the generator.
+              possibleCollectors:
+                description: List of collectors this Sample Generator should try to use.
+                type: array
+                items:
+                  type: string
               isActive:
                 type: boolean
                 description: >-
@@ -10498,8 +10507,9 @@ paths:
       summary: Delete user
       tags: [ users ]
       description: >-
-        Delete the specified user. Beware! Deleting a user also deletes all the
-        perspectives associated with this user.
+        Delete the specified user. An admin user may delete any user;
+        non-admin users may only delete themselves. Beware! Deleting a user
+        also deletes all the perspectives associated with this user.
       operationId: deleteUser
       parameters:
         -
@@ -12649,12 +12659,18 @@ definitions:
       name:
         type: "string"
         description: "Should be unique."
-      possibleGenerators:
+      currentGenerators:
         readOnly: true
         type: "array"
         items:
           type: "object"
         description: "Generators assigned to this collector."
+      possibleGenerators:
+        readOnly: true
+        type: "array"
+        items:
+          type: "object"
+        description: "Generators that could potentially be assigned to this collector."
       registered:
         type: boolean
         description: "Boolean. If false, means deregistered. Changed by the DEREGISTER command"
@@ -12668,6 +12684,7 @@ definitions:
         - "Stopped"
         - "Running"
         - "Paused"
+        - "MissedHeartbeat"
       lastHeartbeat:
         readOnly: true
         type: string
@@ -12858,11 +12875,6 @@ definitions:
         type: array
         items:
           type: object
-      subjects:
-        description: AbsolutePaths of the subjects.
-        type: array
-        items:
-          type: string
       aspects:
         description: Names of the aspects.
         type: array
@@ -12886,8 +12898,8 @@ definitions:
         description: >
           Variables accessible inside the transform function.
       currentCollector:
-        type: string
-        description: Name of current collector assigned to the generator.
+        type: object
+        description: Current collector assigned to the generator.
         maxLength: 60
       generatorTemplate:
         $ref: "#/definitions/GeneratorTemplateResponse"
@@ -12944,11 +12956,6 @@ definitions:
         type: array
         items:
           type: object
-      subjects:
-        description: Array of subjects.
-        type: array
-        items:
-          type: object
       aspects:
         description: Array of aspects.
         type: array
@@ -12972,8 +12979,8 @@ definitions:
         description: >
           Variables accessible inside the transform function.
       currentCollector:
-        type: string
-        description: Name of current collector assigned to the generator.
+        type: object
+        description: Current collector assigned to the generator.
         maxLength: 60
       generatorTemplate:
         $ref: "#/definitions/GeneratorTemplateResponse"
@@ -13179,6 +13186,7 @@ parameters:
         - id
         - status
         - registered
+        - currentGenerators
         - possibleGenerators
         - lastHeartbeat
         - lastModifiedAt
@@ -13274,7 +13282,6 @@ parameters:
         - isActive
         - tags
         - aspects
-        - subjects
         - subjectQuery
         - createdAt
         - description

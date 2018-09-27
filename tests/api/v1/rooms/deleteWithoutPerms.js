@@ -24,7 +24,6 @@ const path = '/v1/rooms';
 const expect = require('chai').expect;
 const pfx = '___';
 
-
 describe('tests/api/v1/rooms/deleteWithoutPerms.js >', () => {
   let testRoom;
   let validToken;

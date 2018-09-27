@@ -13,7 +13,7 @@
 const featureToggles = require('feature-toggles');
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
-const constants = require('../../../../api/v1/constants');
+const status = require('../../../../api/v1/constants').httpStatus;
 const u = require('./utils');
 const gu = require('../generators/utils');
 const tu = require('../../../testUtils');
@@ -27,8 +27,10 @@ const Promise = require('bluebird');
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
-supertest.Test.prototype.endAsync =
-  Promise.promisify(supertest.Test.prototype.end);
+supertest.Test.prototype.end = Promise.promisify(supertest.Test.prototype.end);
+supertest.Test.prototype.then = function (resolve, reject) {
+  return this.end().then(resolve).catch(reject);
+};
 
 const password = 'superlongandsupersecretpassword';
 const secretInformation = 'asecretthatyoushouldnotknow';
@@ -57,13 +59,13 @@ const context = {
   otherNonSecretInformation,
 };
 
-const collector1 = u.getCollectorToCreate();
-const collector2 = u.getCollectorToCreate();
-const collector3 = u.getCollectorToCreate();
-collector1.name += '1';
-collector2.name += '2';
-collector3.name += '3';
-const collectorTokens = {};
+const coll1 = u.getCollectorToCreate();
+const coll2 = u.getCollectorToCreate();
+const coll3 = u.getCollectorToCreate();
+coll1.name += '1';
+coll2.name += '2';
+coll3.name += '3';
+const collTokens = {};
 
 const sgt = gtUtil.getGeneratorTemplate();
 sgt.contextDefinition = contextDefinition;
@@ -79,6 +81,9 @@ gu.createSGtoSGTMapping(sgt, generator3);
 generator1.name += '1';
 generator2.name += '2';
 generator3.name += '3';
+generator1.possibleCollectors = [coll1.name, coll2.name, coll3.name];
+generator2.possibleCollectors = [coll1.name, coll2.name, coll3.name];
+generator3.possibleCollectors = [coll1.name, coll2.name, coll3.name];
 
 let userToken;
 let userId;
@@ -124,160 +129,189 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
   });
 
   describe('heartbeat >', () => {
-    before((done) => {
-      Promise.resolve()
-      .then(() => u.startCollector(collector1, collectorTokens, userToken))
-      .then(() => u.startCollector(collector2, collectorTokens, userToken))
-      .then(() => u.startCollector(collector3, collectorTokens, userToken))
-      .then(() => done())
-      .catch(done);
-    });
+    before(() => Promise.resolve()
+      .then(() => u.startCollector(coll1, collTokens, userToken))
+      .then(() => u.startCollector(coll2, collTokens, userToken))
+      .then(() => u.startCollector(coll3, collTokens, userToken))
+    );
 
     describe('validation >', () => {
-      it('no token', (done) => {
-        api.post(`/v1/collectors/${collector1.name}/heartbeat`)
-        .send({ timestamp: Date.now() })
-        .expect(constants.httpStatus.FORBIDDEN)
-        .end(done);
-      });
+      beforeEach(() => Promise.resolve()
+        .then(() => u.stopCollector(coll1, userToken))
+        .then(() => u.startCollector(coll1, collTokens, userToken))
+      );
 
-      it('invalid token', (done) => {
-        api.post(`/v1/collectors/${collector1.name}/heartbeat`)
-        .set('Authorization', 'aaa')
-        .send({ timestamp: Date.now() })
-        .expect(constants.httpStatus.FORBIDDEN)
-        .end(done);
-      });
-
-      it('invalid path, no token', (done) => {
-        api.post('/v1/collectors/AAA/heartbeat')
-        .send({ timestamp: Date.now() })
-        .expect(constants.httpStatus.FORBIDDEN)
-        .end(done);
-      });
-
-      it('invalid path, valid token', (done) => {
-        api.post('/v1/collectors/AAA/heartbeat')
-        .set('Authorization', collectorTokens[collector1.name])
-        .send({ timestamp: Date.now() })
-        .expect(constants.httpStatus.NOT_FOUND)
-        .end(done);
-      });
-
-      it('valid user token but needs collector token', (done) => {
-        api.post(`/v1/collectors/${collector1.name}/heartbeat`)
-        .set('Authorization', userToken)
-        .send({ timestamp: Date.now() })
-        .expect(constants.httpStatus.FORBIDDEN)
-        .end(done);
-      });
-
-      it('valid collector token, doesnt match collector - by name', (done) => {
-        api.post(`/v1/collectors/${collector1.name}/heartbeat`)
-        .set('Authorization', collectorTokens[collector2.name])
-        .send({ timestamp: Date.now() })
-        .expect(constants.httpStatus.FORBIDDEN)
-        .end(done);
-      });
-
-      it('valid collector token, doesnt match collector - by id', (done) => {
-        api.post(`/v1/collectors/${collector1.id}/heartbeat`)
-        .set('Authorization', collectorTokens[collector2.name])
-        .send({ timestamp: Date.now() })
-        .expect(constants.httpStatus.FORBIDDEN)
-        .end(done);
-      });
-
-      it('valid token, matches collector, collector stopped - by name', (done) => {
-        u.stopCollector(collector1, userToken)
-        .then(() => {
-          api.post(`/v1/collectors/${collector1.name}/heartbeat`)
-          .set('Authorization', collectorTokens[collector1.name])
-          .send({ timestamp: Date.now() })
-          .expect(constants.httpStatus.FORBIDDEN)
-          .end(done);
+      it('no token (forbidden)', () =>
+        u.sendHeartbeat({
+          collector: coll1,
         })
-        .catch(done);
-      });
+        .expect(status.FORBIDDEN)
+      );
 
-      it('valid token, matches collector, collector stopped - by id', (done) => {
-        u.stopCollector(collector1, userToken)
-        .then(() => {
-          api.post(`/v1/collectors/${collector1.id}/heartbeat`)
-          .set('Authorization', collectorTokens[collector1.name])
-          .send({ timestamp: Date.now() })
-          .expect(constants.httpStatus.FORBIDDEN)
-          .end(done);
+      it('invalid token (forbidden)', () =>
+        u.sendHeartbeat({
+          collector: coll1,
+          token: 'aaa',
         })
-        .catch(done);
-      });
+        .expect(status.FORBIDDEN)
+      );
 
-      it('valid token, matches collector, collector running - by name', (done) => {
-        u.startCollector(collector1, collectorTokens, userToken)
-        .then(() => {
-          api.post(`/v1/collectors/${collector1.name}/heartbeat`)
-          .set('Authorization', collectorTokens[collector1.name])
-          .send({ timestamp: Date.now() })
-          .expect(constants.httpStatus.OK)
-          .end(done);
+      it('invalid path, no token (forbidden)', () =>
+        u.sendHeartbeat({
+          collector: 'aaa',
         })
-        .catch(done);
-      });
+        .expect(status.FORBIDDEN)
+      );
 
-      it('valid token, matches collector, collector running - by id', (done) => {
-        api.post(`/v1/collectors/${collector1.id}/heartbeat`)
-        .set('Authorization', collectorTokens[collector1.name])
-        .send({ timestamp: Date.now() })
-        .expect(constants.httpStatus.OK)
-        .end(done);
-      });
+      it('invalid path, valid token (not found)', () =>
+        u.sendHeartbeat({
+          collector: 'aaa',
+          token: collTokens[coll1.name],
+        })
+        .expect(status.NOT_FOUND)
+      );
+
+      it('valid user token but needs collector token (forbidden)', () =>
+        u.sendHeartbeat({
+          collector: coll1,
+          token: userToken,
+        })
+        .expect(status.FORBIDDEN)
+      );
+
+      it('valid collector token, mismatch (forbidden) - by name', () =>
+        u.sendHeartbeat({
+          collector: coll1,
+          token: collTokens[coll2.name],
+        })
+        .expect(status.FORBIDDEN)
+      );
+
+      it('valid collector token, mismatch (forbidden) - by id', () =>
+        u.sendHeartbeat({
+          collName: coll1.id,
+          token: collTokens[coll2.name],
+        })
+        .expect(status.FORBIDDEN)
+      );
+
+      it('valid token, collector running (ok)', () =>
+        u.sendHeartbeat({
+          collector: coll1,
+          tokens: collTokens,
+        })
+        .expect(status.OK)
+      );
+
+      it('valid token, collector paused (ok)', () =>
+        u.pauseCollector(coll1, collTokens, userToken)
+        .then(() =>
+          u.sendHeartbeat({
+            collector: coll1,
+            tokens: collTokens,
+          })
+          .expect(status.OK)
+        )
+      );
+
+      it('valid token, collector stopped (ok)', () =>
+        u.stopCollector(coll1, userToken)
+        .then(() =>
+          u.sendHeartbeat({
+            collector: coll1,
+            tokens: collTokens,
+          })
+          .expect(status.OK)
+        )
+      );
+
+      it('valid token, collector missed (ok)', () =>
+        u.missHeartbeat(coll1)
+        .then(() =>
+          u.sendHeartbeat({
+            collector: coll1,
+            tokens: collTokens,
+          })
+          .expect(status.OK)
+        )
+      );
     });
 
-    describe('return collector status in heartbeat >', () => {
-      const _localCollector = u.getCollectorToCreate();
-      _localCollector.name += 'collectorForStateChange';
+    describe('status changes >', () => {
+      const _coll = u.getCollectorToCreate();
+      _coll.name += 'collectorForStateChange';
 
-      afterEach((done) => {
-        Collector.destroy({ where: { name: _localCollector.name }, force: true });
-        done();
-      });
+      afterEach(() =>
+        Collector.destroy({ where: { name: _coll.name }, force: true })
+      );
 
-      it('should return the right collector status after status ' +
-        'change', (done) => {
-        u.startCollector(_localCollector, collectorTokens, userToken)
-        .then(() => u.sendHeartbeat(_localCollector, collectorTokens))
-        .then((res) => {
-          expect(res.body.collectorConfig).to.have.property('status');
-          expect(res.body.collectorConfig.status).to.equal('Running');
-          return u.pauseCollector(_localCollector, userToken);
-        })
-        .then((res) => {
-          expect(res.body.status).to.equal('Paused');
-          return u.sendHeartbeat(_localCollector, collectorTokens);
-        })
-        .then((res) => {
-          expect(res.body.collectorConfig.status).to.equal('Paused');
-          return u.resumeCollector(_localCollector, userToken);
-        })
-        .then((res) => {
-          expect(res.body.status).to.equal('Running');
-          return u.sendHeartbeat(_localCollector, collectorTokens);
-        })
-        .then((res) => {
-          expect(res.body.collectorConfig.status).to.equal('Running');
-          done();
-        })
-        .catch(done);
-      });
+      it('returns the correct collector status after status change', () =>
+        u.startCollector(_coll, collTokens, userToken)
+        .then(() =>
+          u.sendHeartbeat({ collector: _coll, tokens: collTokens })
+          .expect(status.OK)
+          .expect((res) => {
+            expect(res.body.collectorConfig.status).to.equal('Running');
+          })
+        )
+
+        .then(() => u.pauseCollector(_coll, userToken))
+        .then(() =>
+          u.sendHeartbeat({ collector: _coll, tokens: collTokens })
+          .expect(status.OK)
+          .expect((res) => {
+            expect(res.body.collectorConfig.status).to.equal('Paused');
+          })
+        )
+
+        .then(() => u.resumeCollector(_coll, userToken))
+        .then(() =>
+          u.sendHeartbeat({ collector: _coll, tokens: collTokens })
+          .expect(status.OK)
+          .expect((res) => {
+            expect(res.body.collectorConfig.status).to.equal('Running');
+          })
+        )
+
+        .then(() => u.stopCollector(_coll, userToken))
+        .then(() =>
+          u.sendHeartbeat({ collector: _coll, tokens: collTokens })
+          .expect(status.OK)
+          .expect((res) => {
+            expect(res.body.collectorConfig.status).to.equal('Stopped');
+            expect(res.body.generatorsAdded).to.be.empty;
+            expect(res.body.generatorsDeleted).to.be.empty;
+            expect(res.body.generatorsUpdated).to.be.empty;
+          })
+        )
+
+        .then(() => u.resumeCollector(_coll, userToken))
+        .then(() =>
+          u.sendHeartbeat({ collector: _coll, tokens: collTokens })
+          .expect(status.OK)
+          .expect((res) => {
+            expect(res.body.collectorConfig.status).to.equal('Running');
+          })
+        )
+
+        .then(() => u.missHeartbeat(_coll))
+        .then(() =>
+          u.sendHeartbeat({ collector: _coll, tokens: collTokens })
+          .expect(status.OK)
+          .expect((res) => {
+            expect(res.body.collectorConfig.status).to.equal('Running');
+          })
+        )
+      );
     });
 
     describe('generator changes >', () => {
       // reset the tracked changes
       beforeEach((done) => {
         Promise.resolve()
-        .then(() => u.sendHeartbeat(collector1, collectorTokens))
-        .then(() => u.sendHeartbeat(collector2, collectorTokens))
-        .then(() => u.sendHeartbeat(collector3, collectorTokens))
+        .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
+        .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
+        .then(() => u.sendHeartbeat({ collector: coll3, tokens: collTokens }))
         .then(() => done())
         .catch(done);
       });
@@ -295,19 +329,19 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       //TODO: need to add DB validation that Generator.currentCollector exists
       describe.skip('make sure updating a nonexistent collector doesnt modify ' +
       'the collectorMap >', () => {
-        const collector4 = u.getCollectorToCreate();
-        collector4.name += '4';
+        const coll4 = u.getCollectorToCreate();
+        coll4.name += '4';
         afterEach((done) => {
-          Collector.destroy({ where: { name: collector4.name }, force: true });
+          Collector.destroy({ where: { name: coll4.name }, force: true });
           Generator.destroy({ where: { name: generator1.name }, force: true });
           done();
         });
 
         it('create with collector that doesnt exist', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector4))
-          .then(() => u.startCollector(collector4, collectorTokens, userToken))
-          .then(() => u.sendHeartbeat(collector4, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll4))
+          .then(() => u.startCollector(coll4, collTokens, userToken))
+          .then(() => u.sendHeartbeat({ collector: coll4, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 },
             res))
           .then(done).catch(done);
@@ -316,9 +350,9 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         it('update with collector that doesnt exist', (done) => {
           Promise.resolve()
           .then(() => u.createGenerator(generator1, userId, null))
-          .then(() => u.updateGenerator(generator1, userToken, collector4))
-          .then(() => u.startCollector(collector4, collectorTokens, userToken))
-          .then(() => u.sendHeartbeat(collector4, collectorTokens))
+          .then(() => u.updateGenerator(generator1, userToken, coll4))
+          .then(() => u.startCollector(coll4, collTokens, userToken))
+          .then(() => u.sendHeartbeat({ collector: coll4, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 },
              res))
           .then(done).catch(done);
@@ -329,22 +363,22 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       describe('basic changes >', () => {
         it('create', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => {
             u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res);
             expect(res.body.generatorsAdded[0].aspects[0])
-              .to.contain.property('name', 'temperature');
+            .to.contain.property('name', 'temperature');
           })
           .then(done).catch(done);
         });
 
         it('update', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then(() => u.updateGenerator(generator1, userToken))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 },
             res))
           .then(done).catch(done);
@@ -352,21 +386,21 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
 
         it('update move', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.updateGenerator(generator1, userToken, collector2))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
+          .then(() => u.updateGenerator(generator1, userToken, coll2))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
 
         it('no changes', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
@@ -374,51 +408,87 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         it('create with no collectors', (done) => {
           Promise.resolve()
           .then(() => u.createGenerator(generator1, userId))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
           .then(() => u.updateGenerator(generator1, userToken))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
-          .then(() => u.updateGenerator(generator1, userToken, collector1))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.updateGenerator(generator1, userToken, coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
+
+        it('changes are not carried over after stop and restart', (done) => {
+          Promise.resolve()
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.stopCollector(coll1, userToken))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
+          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
+          .then(() => u.createGenerator(generator2, userId, coll1))
+          .then(() => u.startCollector(coll1, collTokens, userToken))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
+          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
+          .then(done).catch(done);
+        });
+
+        it('changes are not carried over after pause and resume', (done) => {
+          Promise.resolve()
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.pauseCollector(coll1, userToken))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
+          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
+          .then(() => u.createGenerator(generator2, userId, coll1))
+          .then(() => u.resumeCollector(coll1, userToken))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
+          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
+          .then(done).catch(done);
+        });
+
+        it('changes are not carried over after missed heartbeat', (done) => {
+          Promise.resolve()
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.missHeartbeat(coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
+          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
+          .then(done).catch(done);
+        });
+
       });
 
       describe('basic changes to multiple generators >', () => {
         it('create', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.createGenerator(generator2, userId, collector1))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.createGenerator(generator2, userId, coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 2, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
 
         it('update', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.createGenerator(generator2, userId, collector1))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.createGenerator(generator2, userId, coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then(() => u.updateGenerator(generator1, userToken))
           .then(() => u.updateGenerator(generator2, userToken))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 2 }, res))
           .then(done).catch(done);
         });
 
         it('update move', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.createGenerator(generator2, userId, collector1))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.createGenerator(generator2, userId, coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 2, deleted: 0, updated: 0 }, res))
-          .then(() => u.updateGenerator(generator1, userToken, collector2))
-          .then(() => u.updateGenerator(generator2, userToken, collector2))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.updateGenerator(generator1, userToken, coll2))
+          .then(() => u.updateGenerator(generator2, userToken, coll2))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 2, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 2, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
@@ -427,59 +497,59 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       describe('multiple changes to the same generator >', () => {
         it('create + update', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
+          .then(() => u.createGenerator(generator1, userId, coll1))
           .then(() => u.updateGenerator(generator1, userToken))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
 
         it('create + update move', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.updateGenerator(generator1, userToken, collector2))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.updateGenerator(generator1, userToken, coll2))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
 
         it('update + update', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then(() => u.updateGenerator(generator1, userToken))
           .then(() => u.updateGenerator(generator1, userToken))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
           .then(done).catch(done);
         });
 
         it('update + update move', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then(() => u.updateGenerator(generator1, userToken))
-          .then(() => u.updateGenerator(generator1, userToken, collector2))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.updateGenerator(generator1, userToken, coll2))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
 
         it('update move + update move', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.updateGenerator(generator1, userToken, collector2))
-          .then(() => u.updateGenerator(generator1, userToken, collector3))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
+          .then(() => u.updateGenerator(generator1, userToken, coll2))
+          .then(() => u.updateGenerator(generator1, userToken, coll3))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll3, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
@@ -489,40 +559,43 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       describe('changes to multiple generators >', () => {
         it('update', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.createGenerator(generator2, userId, collector2))
-          .then(() => u.createGenerator(generator3, userId, collector3))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.createGenerator(generator2, userId, coll2))
+          .then(() => u.createGenerator(generator3, userId, coll3))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
+          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
+          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
+          .then(() => u.sendHeartbeat({ collector: coll3, tokens: collTokens }))
+          .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
           .then(() => u.updateGenerator(generator1, userToken))
           .then(() => u.updateGenerator(generator2, userToken))
           .then(() => u.updateGenerator(generator3, userToken))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll3, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
           .then(done).catch(done);
         });
 
         it('update and move', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.createGenerator(generator2, userId, collector1))
-          .then(() => u.createGenerator(generator3, userId, collector3))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
-          .then(() => u.updateGenerator(generator1, userToken, collector1))
-          .then(() => u.updateGenerator(generator2, userToken, collector2))
-          .then(() => u.updateGenerator(generator3, userToken, collector1))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.createGenerator(generator2, userId, coll1))
+          .then(() => u.createGenerator(generator3, userId, coll3))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
+          .then(() => u.sendHeartbeat({ collector: coll3, tokens: collTokens }))
+          .then(() => u.updateGenerator(generator1, userToken, coll1))
+          .then(() => u.updateGenerator(generator2, userToken, coll2))
+          .then(() => u.updateGenerator(generator3, userToken, coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 1, deleted: 1, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 1, deleted: 0, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll3, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 }, res))
           .then(done).catch(done);
         });
@@ -531,69 +604,69 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       describe('multiple changes to multiple generators >', () => {
         it('create then move all twice', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.createGenerator(generator2, userId, collector2))
-          .then(() => u.createGenerator(generator3, userId, collector3))
-          .then(() => u.updateGenerator(generator1, userToken, collector1))
-          .then(() => u.updateGenerator(generator2, userToken, collector1))
-          .then(() => u.updateGenerator(generator3, userToken, collector1))
-          .then(() => u.updateGenerator(generator1, userToken, collector2))
-          .then(() => u.updateGenerator(generator2, userToken, collector2))
-          .then(() => u.updateGenerator(generator3, userToken, collector2))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.createGenerator(generator2, userId, coll2))
+          .then(() => u.createGenerator(generator3, userId, coll3))
+          .then(() => u.updateGenerator(generator1, userToken, coll1))
+          .then(() => u.updateGenerator(generator2, userToken, coll1))
+          .then(() => u.updateGenerator(generator3, userToken, coll1))
+          .then(() => u.updateGenerator(generator1, userToken, coll2))
+          .then(() => u.updateGenerator(generator2, userToken, coll2))
+          .then(() => u.updateGenerator(generator3, userToken, coll2))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 3, deleted: 0, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll3, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
 
         it('move all twice', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.createGenerator(generator2, userId, collector2))
-          .then(() => u.createGenerator(generator3, userId, collector3))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
-          .then(() => u.updateGenerator(generator1, userToken, collector1))
-          .then(() => u.updateGenerator(generator2, userToken, collector1))
-          .then(() => u.updateGenerator(generator3, userToken, collector1))
-          .then(() => u.updateGenerator(generator1, userToken, collector2))
-          .then(() => u.updateGenerator(generator2, userToken, collector2))
-          .then(() => u.updateGenerator(generator3, userToken, collector2))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.createGenerator(generator2, userId, coll2))
+          .then(() => u.createGenerator(generator3, userId, coll3))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
+          .then(() => u.sendHeartbeat({ collector: coll3, tokens: collTokens }))
+          .then(() => u.updateGenerator(generator1, userToken, coll1))
+          .then(() => u.updateGenerator(generator2, userToken, coll1))
+          .then(() => u.updateGenerator(generator3, userToken, coll1))
+          .then(() => u.updateGenerator(generator1, userToken, coll2))
+          .then(() => u.updateGenerator(generator2, userToken, coll2))
+          .then(() => u.updateGenerator(generator3, userToken, coll2))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 2, deleted: 0, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll3, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 }, res))
           .then(done).catch(done);
         });
 
         it('move all - cycle collectors', (done) => {
           Promise.resolve()
-          .then(() => u.createGenerator(generator1, userId, collector1))
-          .then(() => u.createGenerator(generator2, userId, collector2))
-          .then(() => u.createGenerator(generator3, userId, collector3))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
-          .then(() => u.updateGenerator(generator1, userToken, collector2))
-          .then(() => u.updateGenerator(generator2, userToken, collector3))
-          .then(() => u.updateGenerator(generator3, userToken, collector1))
-          .then(() => u.updateGenerator(generator1, userToken, collector3))
-          .then(() => u.updateGenerator(generator2, userToken, collector1))
-          .then(() => u.updateGenerator(generator3, userToken, collector2))
-          .then(() => u.updateGenerator(generator1, userToken, collector1))
-          .then(() => u.updateGenerator(generator2, userToken, collector2))
-          .then(() => u.updateGenerator(generator3, userToken, collector3))
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.createGenerator(generator2, userId, coll2))
+          .then(() => u.createGenerator(generator3, userId, coll3))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
+          .then(() => u.sendHeartbeat({ collector: coll3, tokens: collTokens }))
+          .then(() => u.updateGenerator(generator1, userToken, coll2))
+          .then(() => u.updateGenerator(generator2, userToken, coll3))
+          .then(() => u.updateGenerator(generator3, userToken, coll1))
+          .then(() => u.updateGenerator(generator1, userToken, coll3))
+          .then(() => u.updateGenerator(generator2, userToken, coll1))
+          .then(() => u.updateGenerator(generator3, userToken, coll2))
+          .then(() => u.updateGenerator(generator1, userToken, coll1))
+          .then(() => u.updateGenerator(generator2, userToken, coll2))
+          .then(() => u.updateGenerator(generator3, userToken, coll3))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector2, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll2, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
-          .then(() => u.sendHeartbeat(collector3, collectorTokens))
+          .then(() => u.sendHeartbeat({ collector: coll3, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 1 }, res))
           .then(done).catch(done);
         });
@@ -603,7 +676,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
 
     describe('config changes >', () => {
       it('config ok', (done) => {
-        u.sendHeartbeat(collector1, collectorTokens)
+        u.sendHeartbeat({ collector: coll1, tokens: collTokens })
         .then((res) => {
           expect(res.body).to.have.property('collectorConfig');
           expect(res.body.collectorConfig)
@@ -621,7 +694,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
 
       it('change config', (done) => {
         config.collector.heartbeatIntervalMillis = 10000;
-        u.sendHeartbeat(collector1, collectorTokens)
+        u.sendHeartbeat({ collector: coll1, tokens: collTokens })
         .then((res) => {
           expect(res.body.collectorConfig)
           .to.have.property('heartbeatIntervalMillis', 10000);
@@ -640,8 +713,12 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
     describe('set lastHeartbeat time >', () => {
       it('', (done) => {
         const timestamp = Date.now();
-        u.sendHeartbeat(collector1, collectorTokens, { timestamp })
-        .then(() => u.getCollector(userToken, collector1))
+        u.sendHeartbeat({
+          collector: coll1,
+          tokens: collTokens,
+          body: { timestamp },
+        })
+        .then(() => u.getCollector(userToken, coll1))
         .then((res) => {
           expect(Date(res.body.lastHeartbeat)).to.equal(Date(timestamp));
         })
@@ -694,61 +771,71 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       const updatedVersion = changedVersion;
 
       beforeEach((done) => {
-        u.sendHeartbeat(collector1, collectorTokens, {
-          timestamp: Date.now(),
-          collectorConfig: {
-            osInfo: originalOsInfo,
-            processInfo: originalProcessInfo,
-            version: originalVersion,
+        u.sendHeartbeat({
+          collector: coll1,
+          tokens: collTokens,
+          body: {
+            timestamp: Date.now(),
+            collectorConfig: {
+              osInfo: originalOsInfo,
+              processInfo: originalProcessInfo,
+              version: originalVersion,
+            },
           },
         })
         .then(() => done()).catch(done);
       });
 
       it('one at a time', (done) => {
-        u.getCollector(userToken, collector1)
+        u.getCollector(userToken, coll1)
         .then((res) => {
           expect(res.body.osInfo).to.deep.equal(originalOsInfo);
           expect(res.body.processInfo).to.deep.equal(originalProcessInfo);
           expect(res.body.version).to.equal(originalVersion);
         })
-        .then(() =>
-          u.sendHeartbeat(collector1, collectorTokens, {
+        .then(() => u.sendHeartbeat({
+          collector: coll1,
+          tokens: collTokens,
+          body: {
             timestamp: Date.now(),
             collectorConfig: {
               osInfo: changedOsInfo,
             },
-          })
-        )
-        .then(() => u.getCollector(userToken, collector1))
+          },
+        }))
+        .then(() => u.getCollector(userToken, coll1))
         .then((res) => {
           expect(res.body.osInfo).to.deep.equal(updatedOsInfo);
           expect(res.body.processInfo).to.deep.equal(originalProcessInfo);
           expect(res.body.version).to.equal(originalVersion);
         })
-        .then(() =>
-          u.sendHeartbeat(collector1, collectorTokens, {
+        .then(() => u.sendHeartbeat({
+          collector: coll1,
+          tokens: collTokens,
+          body: {
             timestamp: Date.now(),
             collectorConfig: {
               processInfo: changedProcessInfo,
             },
-          })
-        )
-        .then(() => u.getCollector(userToken, collector1))
+          },
+        }))
+        .then(() => u.getCollector(userToken, coll1))
         .then((res) => {
           expect(res.body.osInfo).to.deep.equal(updatedOsInfo);
           expect(res.body.processInfo).to.deep.equal(updatedProcessInfo);
           expect(res.body.version).to.equal(originalVersion);
         })
-        .then(() =>
-          u.sendHeartbeat(collector1, collectorTokens, {
+        .then(() => u.sendHeartbeat({
+          collector: coll1,
+          tokens: collTokens,
+          body: {
             timestamp: Date.now(),
             collectorConfig: {
               version: changedVersion,
             },
-          })
-        )
-        .then(() => u.getCollector(userToken, collector1))
+          },
+        }))
+        .then(() => u.getCollector(userToken, coll1))
         .then((res) => {
           expect(res.body.osInfo).to.deep.equal(updatedOsInfo);
           expect(res.body.processInfo).to.deep.equal(updatedProcessInfo);
@@ -759,23 +846,25 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       });
 
       it('all at once', (done) => {
-        u.getCollector(userToken, collector1)
+        u.getCollector(userToken, coll1)
         .then((res) => {
           expect(res.body.osInfo).to.deep.equal(originalOsInfo);
           expect(res.body.processInfo).to.deep.equal(originalProcessInfo);
           expect(res.body.version).to.equal(originalVersion);
         })
-        .then(() =>
-          u.sendHeartbeat(collector1, collectorTokens, {
+        .then(() => u.sendHeartbeat({
+          collector: coll1,
+          tokens: collTokens,
+          body: {
             timestamp: Date.now(),
             collectorConfig: {
               osInfo: changedOsInfo,
               processInfo: changedProcessInfo,
               version: changedVersion,
             },
-          })
-        )
-        .then(() => u.getCollector(userToken, collector1))
+          },
+        }))
+        .then(() => u.getCollector(userToken, coll1))
         .then((res) => {
           expect(res.body.osInfo).to.deep.equal(updatedOsInfo);
           expect(res.body.processInfo).to.deep.equal(updatedProcessInfo);
@@ -795,12 +884,16 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       });
 
       it('encryption - api', (done) => {
-        const authToken = collectorTokens[collector1.name];
+        const authToken = collTokens[coll1.name];
         const timestamp = Date.now();
         const secretKeyColl = authToken + timestamp;
 
-        u.createGenerator(generator1, userId, collector1)
-        .then(() => u.sendHeartbeat(collector1, collectorTokens, { timestamp }))
+        u.createGenerator(generator1, userId, coll1)
+        .then(() => u.sendHeartbeat({
+          collector: coll1,
+          tokens: collTokens,
+          body: { timestamp },
+        }))
         .then((res) => {
           const reencryptedSG = res.body.generatorsAdded[0];
           expect(reencryptedSG).to.not.equal(undefined);
@@ -853,15 +946,15 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         api.post(gtPath)
         .set('Authorization', userToken)
         .send(sgtCopy)
-        .expect(constants.httpStatus.CREATED)
+        .expect(status.CREATED)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
 
           expect(res.body.createdBy).to.equal(userId);
-          return u.createGenerator(generator2, userId, collector1)
-          .then(() => u.sendHeartbeat(collector1, collectorTokens))
+          return u.createGenerator(generator2, userId, coll1)
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => {
             expect(res.body.generatorsAdded[0])
               .to.have.property('intervalSecs', 60);

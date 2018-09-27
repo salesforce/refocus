@@ -88,10 +88,12 @@ function validateVersion(version) {
  * @returns {Promise} - Resolves to array of assigned generator db objects
  */
 function assignUnassignedGenerators() {
+  // finds all unassigned generators (those with no currentCollector).
+  // Use collectorId because it's a field on the db model, vs currentCollector
+  // which is an association and can't be looked up with a normal where clause
   return utils.seq.models.Generator.findAll(
-    { where: { currentCollector: null, isActive: true } }
-  )
-  .map((g) => {
+    { where: { isActive: true, collectorId: null } }
+  ).map((g) => {
     g.assignToCollector();
     return g.save();
   });
