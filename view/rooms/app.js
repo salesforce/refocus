@@ -968,7 +968,9 @@ window.onload = () => {
     }
 
     if (parseInt(ROOM_ID, 10) !== response.id) {
-      window.location.replace(`/rooms/${response.id}?${urlParameters}`);
+      const redirectUrl = window.location.href.includes('keepParams=true') ?
+        `/rooms/${response.id}?${urlParameters}` : `/rooms/${response.id}`;
+      window.location.replace(redirectUrl);
     }
 
     uPage.setTitle(`Room # ${ROOM_ID}`);
