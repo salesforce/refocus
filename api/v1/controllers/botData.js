@@ -167,7 +167,7 @@ module.exports = {
       /**
    * GET /botData/{key}/writers
    *
-   * Retrieves all the writers associated with the bot
+   * Retrieves all the writers associated with the botData
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -175,12 +175,12 @@ module.exports = {
    */
   getBotDataWriters(req, res, next) {
     doGetWriters.getWriters(req, res, next, helper);
-  }, // getSubjectWriters
+  }, // getBotDataWriters
 
   /**
    * GET /botData/{key}/writers/userNameOrId
    *
-   * Determine whether a user is an authorized writer for a bot and returns
+   * Determine whether a user is an authorized writer for a botData and returns
    * the user record if so.
    *
    * @param {IncomingMessage} req - The request object
@@ -189,12 +189,12 @@ module.exports = {
    */
   getBotDataWriter(req, res, next) {
     doGetWriters.getWriter(req, res, next, helper);
-  }, // getSubjectWriter
+  }, // getBotDataWriter
 
   /**
    * POST /botData/{key}/writers
    *
-   * Add one or more users to an bots list of authorized writers
+   * Add one or more users to a botData list of authorized writers
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -202,7 +202,7 @@ module.exports = {
    */
   postBotDataWriters(req, res, next) {
     doPostWriters(req, res, next, helper);
-  }, // postSubjectWriters
+  }, // postBotDataWriters
 
   /**
    * DELETE /botData/{keys}/writers
@@ -215,12 +215,12 @@ module.exports = {
    */
   deleteBotDataWriters(req, res, next) {
     doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
-  },
+  }, // deleteBotDataWriters
 
   /**
    * DELETE /botData/{keys}/writers/userNameOrId
    *
-   * Deletes a user from an botAction's list of authorized writers.
+   * Deletes a user from an botData's list of authorized writers.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -230,6 +230,6 @@ module.exports = {
     const userNameOrId = req.swagger.params.userNameOrId.value;
     doDeleteOneAssoc(req, res, next, helper,
         helper.belongsToManyAssoc.users, userNameOrId);
-  },
+  }, // deleteBotDataWriter
 
 }; // exports

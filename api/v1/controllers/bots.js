@@ -219,7 +219,7 @@ module.exports = {
    */
   getBotWriters(req, res, next) {
     doGetWriters.getWriters(req, res, next, helper);
-  }, // getSubjectWriters
+  }, // getBotWriters
 
   /**
    * GET /bots/{key}/writers/userNameOrId
@@ -233,7 +233,7 @@ module.exports = {
    */
   getBotWriter(req, res, next) {
     doGetWriters.getWriter(req, res, next, helper);
-  }, // getSubjectWriter
+  }, // getBotWriter
 
   /**
    * POST /bots/{key}/writers
@@ -246,7 +246,7 @@ module.exports = {
    */
   postBotWriters(req, res, next) {
     doPostWriters(req, res, next, helper);
-  }, // postSubjectWriters
+  }, // postBotWriters
 
   /**
    * DELETE /bots/{keys}/writers
@@ -259,7 +259,7 @@ module.exports = {
    */
   deleteBotWriters(req, res, next) {
     doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
-  },
+  }, // deleteBotWriters
 
   /**
    * DELETE /bots/{keys}/writers/userNameOrId
@@ -274,6 +274,6 @@ module.exports = {
     const userNameOrId = req.swagger.params.userNameOrId.value;
     doDeleteOneAssoc(req, res, next, helper,
         helper.belongsToManyAssoc.users, userNameOrId);
-  },
+  }, // deleteBotWriter
 
 }; // exports

@@ -91,9 +91,9 @@ module.exports = {
   },
 
     /**
-   * GET /rooms/{key}/writers
+   * GET /roomTypes/{key}/writers
    *
-   * Retrieves all the writers associated with the room
+   * Retrieves all the writers associated with the roomType
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -101,12 +101,12 @@ module.exports = {
    */
   getRoomTypeWriters(req, res, next) {
     doGetWriters.getWriters(req, res, next, helper);
-  }, // getSubjectWriters
+  }, // getRoomTypeWriters
 
   /**
-   * GET /rooms/{key}/writers/userNameOrId
+   * GET /roomTypes/{key}/writers/userNameOrId
    *
-   * Determine whether a user is an authorized writer for a room and returns
+   * Determine whether a user is an authorized writer for a roomType and returns
    * the user record if so.
    *
    * @param {IncomingMessage} req - The request object
@@ -115,12 +115,12 @@ module.exports = {
    */
   getRoomTypeWriter(req, res, next) {
     doGetWriters.getWriter(req, res, next, helper);
-  }, // getSubjectWriter
+  }, // getRoomTypeWriter
 
   /**
-   * POST /rooms/{key}/writers
+   * POST /roomTypes/{key}/writers
    *
-   * Add one or more users to an rooms list of authorized writers
+   * Add one or more users to an roomTypes list of authorized writers
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -128,10 +128,10 @@ module.exports = {
    */
   postRoomTypeWriters(req, res, next) {
     doPostWriters(req, res, next, helper);
-  }, // postSubjectWriters
+  }, // postRoomTypeWriters
 
   /**
-   * DELETE /rooms/{keys}/writers
+   * DELETE /roomTypes/{keys}/writers
    *
    * Deletes all the writers associated with this resource.
    *
@@ -141,12 +141,12 @@ module.exports = {
    */
   deleteRoomTypeWriters(req, res, next) {
     doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
-  },
+  }, // deleteRoomTypeWriters
 
   /**
-   * DELETE /rooms/{keys}/writers/userNameOrId
+   * DELETE /roomTypes/{keys}/writers/userNameOrId
    *
-   * Deletes a user from an room's list of authorized writers.
+   * Deletes a user from an roomType's list of authorized writers.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -156,6 +156,6 @@ module.exports = {
     const userNameOrId = req.swagger.params.userNameOrId.value;
     doDeleteOneAssoc(req, res, next, helper,
         helper.belongsToManyAssoc.users, userNameOrId);
-  },
+  }, // deleteRoomTypeWriter
 
 }; // exports

@@ -106,7 +106,7 @@ module.exports = {
       /**
    * GET /botActions/{key}/writers
    *
-   * Retrieves all the writers associated with the bot
+   * Retrieves all the writers associated with the botAction
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -114,12 +114,12 @@ module.exports = {
    */
   getBotActionsWriters(req, res, next) {
     doGetWriters.getWriters(req, res, next, helper);
-  }, // getSubjectWriters
+  }, // getBotActionsWriters
 
   /**
    * GET /botActions/{key}/writers/userNameOrId
    *
-   * Determine whether a user is an authorized writer for a bot and returns
+   * Determine whether a user is an authorized writer for a botAction and returns
    * the user record if so.
    *
    * @param {IncomingMessage} req - The request object
@@ -128,12 +128,12 @@ module.exports = {
    */
   getBotActionsWriter(req, res, next) {
     doGetWriters.getWriter(req, res, next, helper);
-  }, // getSubjectWriter
+  }, // getBotActionsWriter
 
   /**
    * POST /botActions/{key}/writers
    *
-   * Add one or more users to an bots list of authorized writers
+   * Add one or more users to a botAction list of authorized writers
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
@@ -141,7 +141,7 @@ module.exports = {
    */
   postBotActionsWriters(req, res, next) {
     doPostWriters(req, res, next, helper);
-  }, // postSubjectWriters
+  }, // postBotActionsWriters
 
   /**
    * DELETE /botActions/{keys}/writers
@@ -154,7 +154,7 @@ module.exports = {
    */
   deleteBotActionsWriters(req, res, next) {
     doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
-  },
+  },// deleteBotActionsWriters
 
   /**
    * DELETE /botActions/{keys}/writers/userNameOrId
@@ -169,6 +169,6 @@ module.exports = {
     const userNameOrId = req.swagger.params.userNameOrId.value;
     doDeleteOneAssoc(req, res, next, helper,
         helper.belongsToManyAssoc.users, userNameOrId);
-  },
+  },// deleteBotActionsWriter
 
 }; // exports

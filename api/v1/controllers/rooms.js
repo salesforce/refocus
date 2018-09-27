@@ -101,7 +101,7 @@ module.exports = {
    */
   getRoomWriters(req, res, next) {
     doGetWriters.getWriters(req, res, next, helper);
-  }, // getSubjectWriters
+  }, // getRoomWriters
 
   /**
    * GET /rooms/{key}/writers/userNameOrId
@@ -115,7 +115,7 @@ module.exports = {
    */
   getRoomWriter(req, res, next) {
     doGetWriters.getWriter(req, res, next, helper);
-  }, // getSubjectWriter
+  }, // getRoomWriter
 
   /**
    * POST /rooms/{key}/writers
@@ -128,7 +128,7 @@ module.exports = {
    */
   postRoomWriters(req, res, next) {
     doPostWriters(req, res, next, helper);
-  }, // postSubjectWriters
+  }, // postRoomWriters
 
   /**
    * DELETE /rooms/{keys}/writers
@@ -141,7 +141,7 @@ module.exports = {
    */
   deleteRoomWriters(req, res, next) {
     doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
-  },
+  }, // deleteRoomWriters
 
   /**
    * DELETE /rooms/{keys}/writers/userNameOrId
@@ -156,6 +156,6 @@ module.exports = {
     const userNameOrId = req.swagger.params.userNameOrId.value;
     doDeleteOneAssoc(req, res, next, helper,
         helper.belongsToManyAssoc.users, userNameOrId);
-  },
+  }, // deleteRoomWriter
 
 }; // exports
