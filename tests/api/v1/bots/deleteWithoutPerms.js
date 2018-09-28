@@ -28,8 +28,7 @@ describe('tests/api/v1/bots/patchWithoutPerms.js >', () => {
   let user;
 
   before((done) => {
-    tu.createToken()
-    .then(() => tu.createUser('myUniqueValidUser'))
+    tu.createUser('myUniqueValidUser'))
     .then((usr) => tu.createTokenFromUserName(usr.name))
     .then((tkn) => {
       validToken = tkn;
@@ -73,5 +72,4 @@ describe('tests/api/v1/bots/patchWithoutPerms.js >', () => {
     .expect(constants.httpStatus.OK)
     .end(done);
   });
-
 });
