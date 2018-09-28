@@ -31,7 +31,7 @@ describe('tests/api/v1/rooms/deleteWithoutPerms.js >', () => {
   let user;
 
   before((done) => {
-    tu.createUser('myUniqueValidUser'))
+    tu.createUser('myUniqueValidUser')
     .then((usr) => tu.createTokenFromUserName(usr.name))
     .then((tkn) => {
       validToken = tkn;
