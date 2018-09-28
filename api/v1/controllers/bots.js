@@ -144,7 +144,7 @@ module.exports = {
       helper.model.create(seqObj)
         .then((o) => {
           o.dataValues.ui = uiObj;
-          o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name);
+          o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name,{ IsBot: true });
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
           u.logAPI(req, resultObj, o.dataValues);
           return res.status(httpStatus.CREATED)
@@ -169,6 +169,7 @@ module.exports = {
   putBots(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const reqObj = req.swagger.params;
+    const seqObj = {};
     const uiObj = {};
     u.findByKey(helper, req.swagger.params)
     .then((o) => u.isWritable(req, o))
@@ -189,6 +190,7 @@ module.exports = {
     })
     .then((o) => {
       o.dataValues.ui = uiObj;
+      o.dataValues.token = jwtUtil.createToken(o.dataValues.name, o.dataValues.name,{ IsBot: true });
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, o.dataValues);
       res.status(httpStatus.CREATED).json(u.responsify(o, helper, req.method));
