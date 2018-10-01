@@ -36,8 +36,6 @@ const u = require('../utils');
 const uPage = require('./utils/page');
 const uLayout = require('./utils/layout');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
-const urlParameters = window.location.href.includes('?') ?
-  window.location.href.split('?')[ONE] : '';
 const GET_BOTS = '/v1/bots';
 let GET_ROOM = '/v1/rooms/';
 GET_ROOM += isNaN(ROOM_ID) ? `?name=${ROOM_ID}` : ROOM_ID;
@@ -932,6 +930,22 @@ function setupColumns() {
   });
 }
 
+/**
+ * Retrieve the url which should be redirected to, based on parameters.
+ *
+ * @param {String} url - The url of the window.
+ * @param {Int} roomId - ID of the current room.
+ *
+ * @returns {String} - Where the window should be redirected to.
+ */
+function getRedirectUrl(url, roomId) {
+  const urlParameters = url.includes('?') ?
+    url.split('?')[ONE] : '';
+  const redirectUrl = url.includes('keepParams=true') ?
+    `/rooms/${roomId}?${urlParameters}` : `/rooms/${roomId}`;
+  return redirectUrl;
+}
+
 window.onbeforeunload = confirmUserExit;
 
 window.onload = () => {
@@ -963,11 +977,14 @@ window.onload = () => {
     const response = Array.isArray(res.body) ? res.body[0] : res.body;
 
     if (response === undefined) {
+      const urlParameters = url.includes('?') ?
+        url.split('?')[ONE] : '';
       window.location.replace(`/rooms/new/${ROOM_ID}?${urlParameters}`);
     }
 
     if (parseInt(ROOM_ID, 10) !== response.id) {
-      window.location.replace(`/rooms/${response.id}`);
+      const redirectUrl = getRedirectUrl(window.location.href, response.id);
+      window.location.replace(redirectUrl);
     }
 
     uPage.setTitle(`Room # ${ROOM_ID}`);
@@ -1013,5 +1030,6 @@ module.exports = () => {
     parseBot,
     iframeBot,
     decideBotPosition,
+    getRedirectUrl
   };
 };
