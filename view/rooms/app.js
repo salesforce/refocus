@@ -36,8 +36,6 @@ const u = require('../utils');
 const uPage = require('./utils/page');
 const uLayout = require('./utils/layout');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
-const urlParameters = window.location.href.includes('?') ?
-  window.location.href.split('?')[ONE] : '';
 const GET_BOTS = '/v1/bots';
 let GET_ROOM = '/v1/rooms/';
 GET_ROOM += isNaN(ROOM_ID) ? `?name=${ROOM_ID}` : ROOM_ID;
@@ -932,6 +930,14 @@ function setupColumns() {
   });
 }
 
+function getRedirectUrl(url, roomId) {
+  const urlParameters = url.includes('?') ?
+    url.split('?')[ONE] : '';
+  const redirectUrl = url.includes('keepParams=true') ?
+    `/rooms/${roomId}?${urlParameters}` : `/rooms/${roomId}`;
+  return redirectUrl;
+}
+
 window.onbeforeunload = confirmUserExit;
 
 window.onload = () => {
@@ -963,12 +969,13 @@ window.onload = () => {
     const response = Array.isArray(res.body) ? res.body[0] : res.body;
 
     if (response === undefined) {
+      const urlParameters = url.includes('?') ?
+        url.split('?')[ONE] : '';
       window.location.replace(`/rooms/new/${ROOM_ID}?${urlParameters}`);
     }
 
     if (parseInt(ROOM_ID, 10) !== response.id) {
-      const redirectUrl = window.location.href.includes('keepParams=true') ?
-        `/rooms/${response.id}?${urlParameters}` : `/rooms/${response.id}`;
+      const redirectUrl = getRedirectUrl(window.location.href, response.id);
       window.location.replace(redirectUrl);
     }
 
@@ -1015,5 +1022,6 @@ module.exports = () => {
     parseBot,
     iframeBot,
     decideBotPosition,
+    getRedirectUrl
   };
 };
