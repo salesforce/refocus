@@ -930,6 +930,14 @@ function setupColumns() {
   });
 }
 
+/**
+ * Retrieve the url which should be redirected to, based on parameters.
+ *
+ * @param {String} url - The url of the window.
+ * @param {Int} roomId - ID of the current room.
+ *
+ * @returns {String} - Where the window should be redirected to.
+ */
 function getRedirectUrl(url, roomId) {
   const urlParameters = url.includes('?') ?
     url.split('?')[ONE] : '';
