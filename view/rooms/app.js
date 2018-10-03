@@ -977,12 +977,12 @@ window.onload = () => {
     const response = Array.isArray(res.body) ? res.body[0] : res.body;
 
     if (response === undefined) {
-      const urlParameters = url.includes('?') ?
-        url.split('?')[ONE] : '';
+      const urlParameters = window.location.href.includes('?') ?
+        window.location.href.split('?')[ONE] : '';
       window.location.replace(`/rooms/new/${ROOM_ID}?${urlParameters}`);
     }
 
-    if (parseInt(ROOM_ID, 10) !== response.id) {
+    if (response.id && parseInt(ROOM_ID, 10) !== response.id) {
       const redirectUrl = getRedirectUrl(window.location.href, response.id);
       window.location.replace(redirectUrl);
     }
