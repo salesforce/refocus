@@ -24,9 +24,6 @@ const testBotName = 'test-bot';
 const firstIndex = 0;
 const secondIndex = 1;
 const thirdIndex = 2;
-const baseUrl = 'http://localhost:3000/rooms';
-const roomId = 2018;
-
 
 describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
   it('ok, parsed javascript and html', () => {
@@ -99,19 +96,5 @@ describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
     expect(app.decideBotPosition(testBotName, firstIndex)).to.equal('L');
     expect(app.decideBotPosition(testBotName, secondIndex)).to.equal('M');
     expect(app.decideBotPosition(testBotName, thirdIndex)).to.equal('R');
-  });
-
-  it('ok, getting redirect Url without keepParams', () => {
-    const paramString = '?important=false';
-    const href = `${baseUrl}/${roomId}${paramString}`;
-    const redirectUrl = app.getRedirectUrl(href, roomId);
-    expect(redirectUrl).to.equal(`/rooms/${roomId}`)
-  });
-
-  it('ok, getting redirect Url using keepParams', () => {
-    const paramString = '?keepParams=true&important=true';
-    const href = `${baseUrl}/${roomId}${paramString}`;
-    const redirectUrl = app.getRedirectUrl(href, roomId);
-    expect(redirectUrl).to.equal(`/rooms/${roomId}${paramString}`);
   });
 });
