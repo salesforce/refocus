@@ -189,6 +189,7 @@ describe('tests/utils/jwtUtil.js >', () => {
         expect(req.headers.IsGenerator).to.equal(false);
         expect(req.user.name).to.equal(adminUser.name);
         expect(req.user.profile.name).to.equal(adminProfile.name);
+        expect(req.user).to.not.have('password');
         return done();
       }).catch(done);
     });
@@ -275,6 +276,7 @@ describe('tests/utils/jwtUtil.js >', () => {
         expect(req.headers.IsGenerator).to.equal(false);
         expect(req.user.name).to.equal(userInst.name);
         expect(req.user.profile.name).to.equal(profile.name);
+        expect(req.user).to.not.have.property('password');
         return done();
       }).catch(done);
     });
