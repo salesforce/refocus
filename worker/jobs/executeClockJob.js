@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -7,35 +7,31 @@
  */
 
 /**
- * /worker/jobs/persistSampleStoreJob.js
+ * /worker/jobs/executeClockJob.js
  */
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
-const scheduledJob =
-  require('../../clock/scheduledJobs/persistSampleStoreJob');
 const activityLogUtil = require('../../utils/activityLog');
-const ZERO = 0;
 const jobLog = require('../jobLog');
 
 module.exports = (job, done) => {
+  const { reqStartTime, clockJobName } = job.data;
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
-    const msg = '[KJI] Entered persistSampleStoreJob.js';
+    const msg = `[KJI] Entered executeClockJob.js (${clockJobName})`;
     console.log(msg); // eslint-disable-line no-console
   }
 
   const jobStartTime = Date.now();
-  const reqStartTime = job.data.reqStartTime;
+  const clockJob = require(`../../clock/scheduledJobs/${clockJobName}`);
   const dbStartTime = Date.now();
-  scheduledJob.execute()
-  .then((num) => {
+
+  return Promise.resolve()
+  .then(clockJob.execute)
+  .then((res) => {
     if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
       const dbEndTime = Date.now();
       const jobEndTime = Date.now();
-      const objToReturn = {};
-
-      if (num === ZERO || num > ZERO) {
-        objToReturn.recordCount = num;
-      }
+      const objToReturn = res || {};
 
       const tempObj = {
         jobStartTime,
@@ -55,7 +51,7 @@ module.exports = (job, done) => {
     return done();
   })
   .catch((err) => {
-    logger.error('Caught error from /worker/jobs/persistSampleStoreJob:', err);
+    logger.error(`Caught error from /worker/jobs/executeClockJob (${clockJobName}):`, err);
     jobLog(jobStartTime, job, err.message || '');
     return done(err);
   });

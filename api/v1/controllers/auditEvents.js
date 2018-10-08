@@ -113,7 +113,7 @@ module.exports = {
       payload.auditEvents = auditEvents;
       payload.reqStartTime = reqStartTime;
       const jobPromise = jobWrapper
-        .createPromisifiedJob(jobType.BULK_CREATE_AUDIT_EVENTS,
+        .createPromisifiedJob(jobType.createAuditEvents,
           payload, req);
       return jobPromise.then((job) => {
         // set the job id in the response object before it is returned

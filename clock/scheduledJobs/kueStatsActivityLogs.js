@@ -62,7 +62,7 @@ function generateLogObject() {
  * Execute the call to write kue stats activity logs.
  */
 function execute() {
-  generateLogObject()
+  return generateLogObject()
   .then((obj) => {
     let level = DEFAULT_LOG_LEVEL;
     if (warningThreshold > ZERO && obj.inactiveCount > warningThreshold) {
