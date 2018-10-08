@@ -152,9 +152,11 @@ function loadView(app, passport) {
       key,
       ensureAuthenticated,
       (req, res) => {
+        const copyOfUser = JSON.parse(JSON.stringify(req.user));
+        delete copyOfUser.password;
         const trackObj = {
           trackingId: viewConfig.trackingId,
-          user: JSON.stringify(req.user).replace(/'/g,"apos;"),
+          user: JSON.stringify(copyOfUser).replace(/'/g,"apos;"),
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
           transportProtocol: viewConfig.socketIOtransportProtocol,
         };

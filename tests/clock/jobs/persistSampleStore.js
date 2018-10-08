@@ -7,24 +7,24 @@
  */
 
 /**
- * tests/clock/persistSampleStoreJob.js
+ * tests/clock/jobs/persistSampleStore.js
  */
 const expect = require('chai').expect;
-const j = require('../../clock/scheduledJobs/persistSampleStoreJob');
-const tu = require('../testUtils');
+const j = require('../../../clock/scheduledJobs/persistSampleStore');
+const tu = require('../../testUtils');
 const featureToggles = require('feature-toggles');
-const sampleStore = require('../../cache/sampleStore');
+const sampleStore = require('../../../cache/sampleStore');
 const initialFeatureState = featureToggles
   .isFeatureEnabled(sampleStore.constants.featureName);
 
-describe('tests/clock/persistSampleStoreJob.js >', () => {
+describe('tests/clock/jobs/persistSampleStore.js >', () => {
   describe('feature not enabled >', () => {
     before(() => tu.toggleOverride(sampleStore.constants.featureName, false));
     after(() => tu.toggleOverride(sampleStore.constants.featureName,
       initialFeatureState));
     it('ok, feature not enabled', (done) => {
       j.execute()
-      .then((res) => expect(res).to.be.false)
+      .then((res) => expect(res).to.deep.equal({ recordCount: 0 }))
       .then(() => done())
       .catch(done);
     });
@@ -36,7 +36,7 @@ describe('tests/clock/persistSampleStoreJob.js >', () => {
       initialFeatureState));
     it('ok, feature enabled', (done) => {
       j.execute()
-      .then((res) => expect(res).to.not.be.false)
+      .then((res) => expect(res).to.deep.equal({ recordCount: 0 }))
       .then(() => done())
       .catch(done);
     });

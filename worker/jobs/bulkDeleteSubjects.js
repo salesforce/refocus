@@ -7,7 +7,7 @@
  */
 
 /**
- * /worker/jobs/bulkDeleteSubjectsJob.js
+ * /worker/jobs/bulkDeleteSubjects.js
  */
 const logger = require('winston');
 const subjectHelper = require('../../api/v1/helpers/nouns/subjects');
@@ -80,7 +80,7 @@ module.exports = (job, done) => {
   const errors = [];
 
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
-    const msg = `[KJI] Entered bulkDeleteSubjectsJob.js: job.id=${job.id} ` +
+    const msg = `[KJI] Entered bulkDeleteSubjects.js: job.id=${job.id} ` +
       `SubjectsToDelete=${subjectKeys.length}`;
     console.log(msg); // eslint-disable-line no-console
   }
@@ -138,7 +138,7 @@ module.exports = (job, done) => {
       return done(null, jobResultData);
     })
     .catch((err) => {
-      logger.error('Error /worker/jobs/bulkDeleteSubjectsJob:', err);
+      logger.error('Error /worker/jobs/bulkDeleteSubjects:', err);
       jobLog(jobStartTime, job, err.message || '');
       return done(err);
     });

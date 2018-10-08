@@ -30,6 +30,12 @@ module.exports = {
       pe[pe.REDIS_CACHE] : PRIMARY_REDIS,
 
     /*
+     * Used for coordinating clock job timing
+     */
+    clock: pe.REDIS_CLOCK && pe[pe.REDIS_CLOCK] ?
+      pe[pe.REDIS_CLOCK] : PRIMARY_REDIS,
+
+    /*
      * Track generator changes to be sent in collector heartbeat response.
      */
     heartbeat: pe.REDIS_HEARTBEAT && pe[pe.REDIS_HEARTBEAT] ?

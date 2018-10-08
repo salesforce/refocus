@@ -58,7 +58,7 @@ function generateLogObjects() {
  * Generate and write out the pub stats logs (one log entry per publish "key").
  */
 function execute() {
-  generateLogObjects()
+  return generateLogObjects()
   .then((arr) =>
     arr.forEach((a) => activityLog.printActivityLogString(a, aType)));
 } // execute

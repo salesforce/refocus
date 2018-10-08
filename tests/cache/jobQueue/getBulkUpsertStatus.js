@@ -24,12 +24,14 @@ const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 const getStatusPath = '/v1/samples/upsert/bulk/{jobId}/status';
 const bulkUpsertSamplesJob =
-  require('../../../worker/jobs/bulkUpsertSamplesJob');
+  require('../../../worker/jobs/bulkUpsertSamples');
 
 describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
 `api: GET ${getStatusPath} >`, () => {
-  let token;
+  before(() => jobSetup.resetJobQueue());
+  after(() => jobSetup.resetJobQueue());
 
+  let token;
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enableRedisSampleStore', true);
@@ -97,7 +99,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULKUPSERTSAMPLES,
+      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
 
       /*
@@ -152,7 +154,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULKUPSERTSAMPLES,
+      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
 
       /*
@@ -224,7 +226,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULKUPSERTSAMPLES,
+      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
 
       /*

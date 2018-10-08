@@ -16,6 +16,7 @@ require('./config/toggles'); // Loads the feature toggles
 const configUtil = require('./config/configUtil');
 const redisConfig = require('./config/redisConfig');
 const collectorConfig = require('./config/collectorConfig');
+const ms = require('ms');
 const defaultPort = 3000;
 const defaultPostgresPort = 5432;
 const pe = process.env; // eslint-disable-line no-process-env
@@ -40,17 +41,10 @@ const hiddenRoutes = pe.HIDDEN_ROUTES ?
   pe.HIDDEN_ROUTES.split(',') : ['']; // Routes to hide
 const corsRoutes = pe.CORS_ROUTES ?
   pe.CORS_ROUTES.split(',') : ['']; // Routes to allow CORS
-const DEFAULT_BULK_UPSERT_JOB_CONCURRENCY = 1;
-const DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY = 1;
-const DEFAULT_BULK_CREATE_AUDIT_EVENT_JOB_CONCURRENCY = 1;
-const DEFAULT_BULK_DELETE_SUBJECTS_JOB_CONCURRENCY = 1;
 
 // By default, allow all IP's
 const ipWhitelist = pe.IP_WHITELIST || '[[0.0.0.0,255.255.255.255]]';
 const iplist = configUtil.parseIPlist(ipWhitelist);
-
-// Check for timed-out samples every 30 seconds if not specified in env var
-const DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS = 30000;
 
 // GET Samples Cache invalidation default time
 const DEFAULT_GET_SAMPLES_WILDCARD_CACHE_INVALIDATION = 5;
@@ -70,11 +64,8 @@ const expressLimiterExpire = pe.EXPRESS_LIMITER_EXPIRE;
 const expressLimiterTotal2 = pe.EXPRESS_LIMITER_TOTAL_2;
 const expressLimiterExpire2 = pe.EXPRESS_LIMITER_EXPIRE_2;
 
-const DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS = 120000; // 2min
-
 const botEventLimit = pe.BOT_EVENT_LIMIT || 100;
 
-const deactivateRoomsInterval = +pe.DEACTIVATE_ROOMS_INTERVAL || 300000; // 5min
 const minRoomDeactivationAge = +pe.MIN_ROOM_DEACTIVATION_AGE || 120; // 2 hours
 
 /*
@@ -89,10 +80,6 @@ const readReplicas = configUtil.getReadReplicas(pe, replicaConfigLabel);
 const DEFAULT_JOB_QUEUE_TTL_SECONDS_ASYNC = 3600;
 const DEFAULT_JOB_QUEUE_TTL_SECONDS_SYNC = 25;
 
-const DEFAULT_JOB_REMOVAL_INTERVAL_MINUTES = 30;
-const JOB_REMOVAL_INTERVAL = 60 * 1000 * (pe.KUE_JOBS_REMOVAL_INTERVAL_MINUTES ||
-  DEFAULT_JOB_REMOVAL_INTERVAL_MINUTES);
-
 const DEFAULT_JOB_REMOVAL_DELAY_MINUTES = 30;
 const JOB_REMOVAL_DELAY = 60 * 1000 * (pe.KUE_JOBS_REMOVAL_DELAY_MINUTES ||
   DEFAULT_JOB_REMOVAL_DELAY_MINUTES);
@@ -100,13 +87,6 @@ const JOB_REMOVAL_DELAY = 60 * 1000 * (pe.KUE_JOBS_REMOVAL_DELAY_MINUTES ||
 const DEFAULT_JOB_REMOVAL_BATCH_SIZE = 1000;
 const JOB_REMOVAL_BATCH_SIZE = pe.KUE_JOBS_REMOVAL_BATCH_SIZE ||
   DEFAULT_JOB_REMOVAL_BATCH_SIZE;
-
-// This must be set to several times the value of JOB_REMOVAL_INTERVAL or
-// completed jobs may be overwritten sooner that JOB_REMOVAL_DELAY
-const DEFAULT_JOB_COUNTER_RESET_INTERVAL_MINUTES = 24 * 60;
-const JOB_COUNTER_RESET_INTERVAL = 60 * 1000 *
-  (pe.KUE_JOB_COUNTER_RESET_INTERVAL_MINUTES ||
-  DEFAULT_JOB_COUNTER_RESET_INTERVAL_MINUTES);
 
 /*
  * If you're using worker dynos, you can set env vars PRIORITIZE_JOBS_FROM
@@ -124,15 +104,60 @@ const JOB_QUEUE_TTL_SECONDS_ASYNC = pe.TTL_KUE_JOBS_ASYNC
 const JOB_QUEUE_TTL_SECONDS_SYNC = pe.TTL_KUE_JOBS_SYNC
   || DEFAULT_JOB_QUEUE_TTL_SECONDS_SYNC;
 
-// set time interval for enableQueueStatsActivityLogs
-const queueStatsActivityLogsInterval = 60000;
-
 // encryption/decryption algorithm used for securing the context variables when
 // sent to collector.
 const encryptionAlgoForCollector = 'aes-256-cbc';
 
 const kueShutdownTimeout = +pe.KUE_SHUTDOWN_TIMEOUT || 5000;
 const waitingSigKillTimeout = +pe.WAITING_SIG_KILL_TIMEOUT || 60000;
+
+const jobType = {
+  createAuditEvents: 'createAuditEvents',
+  bulkUpsertSamples: 'bulkUpsertSamples',
+  getHierarchy: 'getHierarchy',
+  bulkDeleteSubjects: 'bulkDeleteSubjects',
+};
+
+const clockJobConfig = {
+  intervals: {
+    checkMissedCollectorHeartbeat: String(collectorConfig.heartbeatIntervalMillis),
+    deactivateRooms: '5m',
+    jobCleanup: '30m',
+    kueStatsActivityLogs: '1m',
+    persistSampleStore: '2m',
+    pubStatsLogs: '1m',
+    queueStatsActivityLogs: '1m',
+    resetJobCounter: '24h',
+    sampleTimeout: '30s',
+  },
+  useWorker: {
+    checkMissedCollectorHeartbeat: true,
+    jobCleanup: true,
+    persistSampleStore: true,
+    sampleTimeout: true,
+  },
+  toggles: {
+    kueStatsActivityLogs: 'enableKueStatsActivityLogs',
+    persistSampleStore: 'enableRedisSampleStore',
+    pubStatsLogs: 'enablePubStatsLogs',
+    queueStatsActivityLogs: 'enableQueueStatsActivityLogs',
+  },
+};
+
+// override job concurrency from env vars
+const jobConcurrency = {};
+Object.keys(jobType).forEach((jobName) => {
+  const envValue = pe[`WORKER_JOB_CONCURRENCY:${jobName}`];
+  jobConcurrency[jobName] = envValue || 1;
+});
+
+// override intervals from env vars and convert to ms
+Object.keys(clockJobConfig.intervals).forEach((jobName) => {
+  const defaultValue = clockJobConfig.intervals[jobName];
+  const envValue = pe[`CLOCK_JOB_INTERVAL:${jobName}`];
+  const value = envValue || defaultValue;
+  clockJobConfig.intervals[jobName] = ms(value);
+});
 
 module.exports = {
   api: {
@@ -242,28 +267,17 @@ module.exports = {
     },
   },
 
-  bulkUpsertSampleJobConcurrency: pe.BULK_UPSERT_JOB_CONCURRENCY ||
-    DEFAULT_BULK_UPSERT_JOB_CONCURRENCY,
-  getHierarchyJobConcurrency: pe.GET_HIERARCHY_JOB_CONCURRENCY ||
-  DEFAULT_GET_HIERARCHY_JOB_CONCURRENCY,
-  getBulkCreateAuditEventJobConcurrency:
-    pe.BULK_CREATE_AUDIT_EVENT_JOB_CONCURRENCY ||
-      DEFAULT_BULK_CREATE_AUDIT_EVENT_JOB_CONCURRENCY,
-  getBulkDeleteSubjectsJobConcurrency:
-    pe.BULK_DELETE_SUBJECTS_JOB_CONCURRENCY ||
-      DEFAULT_BULK_DELETE_SUBJECTS_JOB_CONCURRENCY,
-  checkTimeoutIntervalMillis: pe.CHECK_TIMEOUT_INTERVAL_MILLIS ||
-    DEFAULT_CHECK_TIMEOUT_INTERVAL_MILLIS,
   getSamplesWildcardCacheInvalidation:
     pe.GET_SAMPLES_WILDCARD_CACHE_INVALIDATION ||
     DEFAULT_GET_SAMPLES_WILDCARD_CACHE_INVALIDATION,
   CACHE_EXPIRY_IN_SECS,
   JOB_QUEUE_TTL_SECONDS_ASYNC,
   JOB_QUEUE_TTL_SECONDS_SYNC,
-  JOB_REMOVAL_INTERVAL,
   JOB_REMOVAL_DELAY,
   JOB_REMOVAL_BATCH_SIZE,
-  JOB_COUNTER_RESET_INTERVAL,
+  clockJobConfig,
+  jobType,
+  jobConcurrency,
   deprioritizeJobsFrom,
   expressLimiterPath,
   expressLimiterMethod,
@@ -273,7 +287,6 @@ module.exports = {
   expressLimiterTotal2,
   expressLimiterExpire2,
   botEventLimit,
-  deactivateRoomsInterval,
   logEnvVars: {
     MASK_LIST: pe.LOG_ENV_VARS_MASK_LIST ?
       pe.LOG_ENV_VARS_MASK_LIST.split(',') : [],
@@ -284,13 +297,8 @@ module.exports = {
   newRelicKey,
   nodeEnv,
   payloadLimit,
-  persistRedisSampleStoreMilliseconds:
-    pe.PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS ||
-    DEFAULT_PERSIST_REDIS_SAMPLE_STORE_MILLISECONDS,
   port,
   prioritizeJobsFrom,
-  pubStatsLogsIntervalMillis: +pe.PUB_STATS_LOGS_INTERVAL_MILLIS || 60000,
-  queueStatsActivityLogsInterval,
   queueTime95thMillis: pe.QUEUESTATS_95TH_WARNING_MILLIS,
   readReplicas,
   hiddenRoutes,

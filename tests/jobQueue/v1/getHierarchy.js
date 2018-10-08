@@ -10,9 +10,10 @@
  * tests/jobQueue/v1/getHierarchy.js
  */
 'use strict';
-const jobQueue = require('../../../jobQueue/setup').jobQueue;
-const jobType = require('../../../jobQueue/setup').jobType;
-const getHierarchyJob = require('../../../worker/jobs/getHierarchyJob');
+const jobSetup = require('../../../jobQueue/setup');
+const jobQueue = jobSetup.jobQueue;
+const jobType = jobSetup.jobType;
+const getHierarchyJob = require('../../../worker/jobs/getHierarchy');
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../index').app);
@@ -29,12 +30,15 @@ let enqueueHierarchyInitial;
 
 describe('tests/jobQueue/v1/getHierarchy.js, ' +
 `api: GET using worker process ${path} >`, () => {
+  before(() => jobSetup.resetJobQueue());
+  after(() => jobSetup.resetJobQueue());
+
   before(() => {
     enableWorkerProcessInitial = featureToggles.isFeatureEnabled('enableWorkerProcess');
     enqueueHierarchyInitial = featureToggles.isFeatureEnabled('enqueueHierarchy');
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enqueueHierarchy', true);
-    jobQueue.process(jobType.GET_HIERARCHY, getHierarchyJob);
+    jobQueue.process(jobType.getHierarchy, getHierarchyJob);
     jobQueue.testMode.enter(true);
     jobQueue.testMode.clear();
   });
@@ -146,7 +150,7 @@ describe('tests/jobQueue/v1/getHierarchy.js, ' +
         expect(jobQueue.testMode.jobs.length).to.equal(1);
 
         // make sure the job type is correct
-        expect(jobQueue.testMode.jobs[0].type).to.equal(jobType.GET_HIERARCHY);
+        expect(jobQueue.testMode.jobs[0].type).to.equal(jobType.getHierarchy);
 
         // make sure the queue has the right data inside it
         expect(jobQueue.testMode.jobs[0].data.params.key.value).to.equal(ipar);
