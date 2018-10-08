@@ -7,14 +7,14 @@
  */
 
 /**
- * tests/clock/deactivateRooms.js
+ * tests/clock/jobs/deactivateRooms.js
  */
 const expect = require('chai').expect;
-const deactivateRooms = require('../../clock/scheduledJobs/deactivateRooms');
-const tu = require('../testUtils');
-const u = require('../db/model/room/utils');
-const v = require('../db/model/roomType/utils');
-const e = require('../db/model/event/utils');
+const deactivateRooms = require('../../../clock/scheduledJobs/deactivateRooms');
+const tu = require('../../testUtils');
+const u = require('../../db/model/room/utils');
+const v = require('../../db/model/roomType/utils');
+const e = require('../../db/model/event/utils');
 const Room = tu.db.Room;
 const RoomType = tu.db.RoomType;
 const Event = tu.db.Event;
@@ -23,7 +23,7 @@ const ZERO = 0;
 const ONE = 1;
 const MOON_LANDING = '1969-07-20T20:18:00+00:00';
 
-describe('tests/clock/deactivateRooms.js >', () => {
+describe('tests/clock/jobs/deactivateRooms.js >', () => {
   afterEach(u.forceDelete);
   afterEach(e.forceDelete);
 

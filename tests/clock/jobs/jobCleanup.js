@@ -7,27 +7,31 @@
  */
 
 /**
- * tests/clock/jobCleanup.js
+ * tests/clock/jobs/jobCleanup.js
  */
-const tu = require('../testUtils');
+const tu = require('../../testUtils');
 const expect = require('chai').expect;
-const jobCleanup = require('../../clock/scheduledJobs/jobCleanup');
-const jobWrapper = require('../../jobQueue/jobWrapper');
-const jobSetup = require('../../jobQueue/setup');
+const jobCleanup = require('../../../clock/scheduledJobs/jobCleanup');
+const resetJobCounter = require('../../../clock/scheduledJobs/resetJobCounter');
+const jobWrapper = require('../../../jobQueue/jobWrapper');
+const jobSetup = require('../../../jobQueue/setup');
 const jobQueue = jobSetup.jobQueue;
-const jobType = jobSetup.jobType;
-const jobCleanupJob = require('../../worker/jobs/jobCleanupJob');
-const conf = require('../../config');
+const executeClockJob = require('../../../worker/jobs/executeClockJob');
+
+const conf = require('../../../config');
 const Promise = require('bluebird');
 const kue = require('kue');
 const originalRangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
 jobQueue.completeCountAsync = Promise.promisify(jobQueue.completeCount);
 jobQueue.completeAsync = Promise.promisify(jobQueue.complete);
 const sinon = require('sinon');
-const activityLogUtil = require('../../utils/activityLog');
+const activityLogUtil = require('../../../utils/activityLog');
 
-describe('tests/clock/jobCleanup.js >', () => {
+describe('tests/clock/jobs/jobCleanup.js >', () => {
   const MILLISECONDS_EXPRESSION = /^\d*ms/;
+
+  before(() => jobSetup.resetJobQueue());
+  after(() => jobSetup.resetJobQueue());
 
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
@@ -38,9 +42,10 @@ describe('tests/clock/jobCleanup.js >', () => {
 
   beforeEach((done) => {
     sinon.spy(activityLogUtil, 'printActivityLogString');
-
-    jobCleanup.execute(100, 0)
-    .then(jobCleanup.resetCounter())
+    conf.JOB_REMOVAL_DELAY = 0;
+    conf.JOB_REMOVAL_BATCH_SIZE = 100;
+    jobCleanup.execute()
+    .then(resetJobCounter.execute)
     .then(done)
     .catch(done);
   });
@@ -53,7 +58,9 @@ describe('tests/clock/jobCleanup.js >', () => {
   after((done) => {
     tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enableJobCleanupActivityLogs', false);
-    jobCleanup.execute(100, 0).then(done).catch(done);
+    conf.JOB_REMOVAL_DELAY = 0;
+    conf.JOB_REMOVAL_BATCH_SIZE = 100;
+    jobCleanup.execute().then(done).catch(done);
   });
 
   function testJob(job, done) {
@@ -102,20 +109,21 @@ describe('tests/clock/jobCleanup.js >', () => {
   }
 
   describe('no delay >', () => {
-    const delay = 0;
+    conf.JOB_REMOVAL_DELAY = 0;
     const expectedCount = 0;
 
     it('jobs: 0, batchSize: 10', (done) => {
       const jobCount = 0;
-      const batchSize = 10;
+      conf.JOB_REMOVAL_BATCH_SIZE = 10;
+      conf.JOB_REMOVAL_DELAY = 0;
 
       expectNJobs(jobCount)
-      .then(() => jobCleanup.execute(batchSize, delay))
+      .then(() => jobCleanup.execute())
       .then(() => expectNJobs(expectedCount))
       .then(() => {
         sinon.assert.calledWith(
           activityLogUtil.printActivityLogString,
-          sinon.match({ iterations: 1, removed: 20, skipped: 0, errors: 0,
+          sinon.match({ iterations: 1, removed: 0, skipped: 0, errors: 0,
             totalTime: sinon.match(MILLISECONDS_EXPRESSION), }),
           'jobCleanup'
         );
@@ -126,11 +134,11 @@ describe('tests/clock/jobCleanup.js >', () => {
 
     it('jobs: 1, batchSize: 10', (done) => {
       const jobCount = 1;
-      const batchSize = 10;
+      conf.JOB_REMOVAL_BATCH_SIZE = 10;
 
       runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(batchSize, delay))
+      .then(() => jobCleanup.execute())
       .then(() => expectNJobs(expectedCount))
       .then(() => {
         sinon.assert.calledWith(
@@ -146,11 +154,11 @@ describe('tests/clock/jobCleanup.js >', () => {
 
     it('jobs: 5, batchSize: 10', (done) => {
       const jobCount = 5;
-      const batchSize = 10;
+      conf.JOB_REMOVAL_BATCH_SIZE = 10;
 
       runJobs(jobCount)
         .then(() => expectNJobs(jobCount))
-        .then(() => jobCleanup.execute(batchSize, delay))
+        .then(() => jobCleanup.execute())
         .then(() => expectNJobs(expectedCount))
         .then(() => {
           sinon.assert.calledWith(
@@ -166,11 +174,11 @@ describe('tests/clock/jobCleanup.js >', () => {
 
     it('jobs: 22, batchSize: 5', (done) => {
       const jobCount = 22;
-      const batchSize = 5;
+      conf.JOB_REMOVAL_BATCH_SIZE = 5;
 
       runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(batchSize, delay))
+      .then(() => jobCleanup.execute())
       .then(() => expectNJobs(expectedCount))
       .then(() => {
         sinon.assert.calledWith(
@@ -186,11 +194,11 @@ describe('tests/clock/jobCleanup.js >', () => {
 
     it('jobs: 19, batchSize: 5', (done) => {
       const jobCount = 19;
-      const batchSize = 5;
+      conf.JOB_REMOVAL_BATCH_SIZE = 5;
 
       runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(batchSize, delay))
+      .then(() => jobCleanup.execute())
       .then(() => expectNJobs(expectedCount))
       .then(() => {
         sinon.assert.calledWith(
@@ -206,11 +214,11 @@ describe('tests/clock/jobCleanup.js >', () => {
 
     it('jobs: 100, batchSize: 5', (done) => {
       const jobCount = 100;
-      const batchSize = 5;
+      conf.JOB_REMOVAL_BATCH_SIZE = 5;
 
       runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(batchSize, delay))
+      .then(() => jobCleanup.execute())
       .then(() => expectNJobs(expectedCount))
       .then(() => {
         sinon.assert.calledWith(
@@ -226,11 +234,11 @@ describe('tests/clock/jobCleanup.js >', () => {
 
     it('jobs: 100, batchSize: 1', (done) => {
       const jobCount = 100;
-      const batchSize = 1;
+      conf.JOB_REMOVAL_BATCH_SIZE = 1;
 
       runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(batchSize, delay))
+      .then(() => jobCleanup.execute())
       .then(() => expectNJobs(expectedCount))
       .then(() => {
         sinon.assert.calledWith(
@@ -246,12 +254,12 @@ describe('tests/clock/jobCleanup.js >', () => {
 
     it('batchSize: 0 (none removed)', (done) => {
       const jobCount = 5;
-      const batchSize = 0;
+      conf.JOB_REMOVAL_BATCH_SIZE = 0;
       const expectedCountWhenNoneRemoved = 5;
 
       runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.execute(batchSize, delay))
+      .then(() => jobCleanup.execute())
       .then(() => expectNJobs(expectedCountWhenNoneRemoved))
       .then(() => {
         expect(activityLogUtil.printActivityLogString.calledOnce)
@@ -266,15 +274,15 @@ describe('tests/clock/jobCleanup.js >', () => {
     const durationType = 'staggered';
     const duration = 100;
     const jobCount = 20;
-    const batchSize = 5;
 
     it('skip 3', (done) => {
-      const delay = 350;
+      conf.JOB_REMOVAL_BATCH_SIZE = 5;
+      conf.JOB_REMOVAL_DELAY = 350;
       const expectedCount = 3;
       interceptJobEndTimes(duration, durationType);
 
       runJobs(jobCount)
-      .then(() => jobCleanup.execute(batchSize, delay))
+      .then(() => jobCleanup.execute())
       .then(() => expectNJobs(expectedCount))
       .then(() => {
         // when delay applied log called twice.
@@ -298,12 +306,13 @@ describe('tests/clock/jobCleanup.js >', () => {
     });
 
     it('skip 15', (done) => {
-      const delay = 1550;
+      conf.JOB_REMOVAL_BATCH_SIZE = 5;
+      conf.JOB_REMOVAL_DELAY = 1550;
       const expectedCount = 15;
       interceptJobEndTimes(duration, durationType);
 
       runJobs(jobCount)
-      .then(() => jobCleanup.execute(batchSize, delay))
+      .then(() => jobCleanup.execute())
       .then(() => expectNJobs(expectedCount))
       .then(() => {
         // when delay applied log called twice.
@@ -330,16 +339,16 @@ describe('tests/clock/jobCleanup.js >', () => {
   describe('delay - non-contiguous >', () => {
     const durationType = 'non-contiguous';
     const jobCount = 20;
-    const batchSize = 5;
 
     it('skip 1/2', (done) => {
       const duration = [0, 100];
-      const delay = 50;
+      conf.JOB_REMOVAL_BATCH_SIZE = 5;
+      conf.JOB_REMOVAL_DELAY = 50;
       const expectedCount = 10;
       interceptJobEndTimes(duration, durationType);
 
       runJobs(jobCount)
-      .then(() => jobCleanup.execute(batchSize, delay))
+      .then(() => jobCleanup.execute())
       .then(() => expectNJobs(expectedCount))
       .then(() => {
         // when delay applied log called twice.
@@ -364,12 +373,13 @@ describe('tests/clock/jobCleanup.js >', () => {
 
     it('skip 1/4', (done) => {
       const duration = [0, 100, 200, 300];
-      const delay = 50;
+      conf.JOB_REMOVAL_BATCH_SIZE = 5;
+      conf.JOB_REMOVAL_DELAY = 50;
       const expectedCount = 5;
       interceptJobEndTimes(duration, durationType);
 
       runJobs(jobCount)
-      .then(() => jobCleanup.execute(batchSize, delay))
+      .then(() => jobCleanup.execute())
       .then(() => expectNJobs(expectedCount))
       .then(() => {
         // when delay applied log called twice.
@@ -393,56 +403,31 @@ describe('tests/clock/jobCleanup.js >', () => {
     });
   });
 
-  describe('end-to-end >', () => {
-    jobQueue.process(jobType.JOB_CLEANUP, jobCleanupJob);
-    conf.JOB_REMOVAL_DELAY = 0;
-
-    it('worker disabled', (done) => {
-      const jobCount = 10;
-      const expectedCount = 0;
-
-      runJobs(jobCount)
-      .then(() => expectNJobs(jobCount))
-      .then(() => {
-        tu.toggleOverride('enableWorkerProcess', false);
-        return jobCleanup.enqueue();
-      })
-      .then(() => expectNJobs(expectedCount))
-      .then(done).catch(done);
+  function enqueueCleanupJob() {
+    const data = {
+      reqStartTime: Date.now(),
+      clockJobName: 'jobCleanup',
+    };
+    const job = jobWrapper.createJob('jobCleanup', data);
+    return new Promise((resolve) => {
+      job.on('complete', resolve);
     });
+  }
 
+  describe('end-to-end >', () => {
     it('worker enabled', (done) => {
+      conf.JOB_REMOVAL_BATCH_SIZE = 100;
+      conf.JOB_REMOVAL_DELAY = 0;
       tu.toggleOverride('enableWorkerProcess', true);
+      jobQueue.process('jobCleanup', executeClockJob);
       const jobCount = 10;
       const expectedCount = 1; // the cleanup job can't delete itself
 
       runJobs(jobCount)
       .then(() => expectNJobs(jobCount))
-      .then(() => jobCleanup.enqueue())
-      .then((job) => {
-        job.on('complete', () => {
-          expectNJobs(expectedCount)
-          .then(done).catch(done);
-        });
-      })
-      .catch(done);
+      .then(() => enqueueCleanupJob())
+      .then(() => expectNJobs(expectedCount))
+      .then(done).catch(done);
     });
-  });
-
-  it('id counter reset', (done) => {
-    const jobCount = 10;
-    const batchSize = 5;
-    const delay = 0;
-
-    runJobs(jobCount)
-    .then(() => jobCleanup.execute(batchSize, delay))
-    .then(() => runJobs(jobCount))
-    .then(() => jobQueue.completeAsync())
-    .then((ids) => { expect(ids[0]).to.be.greaterThan(jobCount); })
-    .then(() => jobCleanup.resetCounter())
-    .then(() => runJobs(jobCount))
-    .then(() => jobQueue.completeAsync())
-    .then((ids) => { expect(ids[0]).to.equal(1); })
-    .then(done).catch(done);
   });
 });

@@ -7,7 +7,7 @@
  */
 
 /**
- * /worker/jobs/bulkUpsertSamplesJob.js
+ * /worker/jobs/bulkUpsertSamples.js
  */
 const logger = require('winston');
 const subHelper = require('../../api/v1/helpers/nouns/subjects');
@@ -34,7 +34,7 @@ module.exports = (job, done) => {
   const errors = [];
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg =
-      `[KJI] Entered bulkUpsertSamplesJob.js: job.id=${job.id} ` +
+      `[KJI] Entered bulkUpsertSamples.js: job.id=${job.id} ` +
       `sampleCount=${samples.length}`;
     console.log(msg); // eslint-disable-line no-console
   }
@@ -107,7 +107,7 @@ module.exports = (job, done) => {
       return done(null, objToReturn);
     })
     .catch((err) => {
-      logger.error('Caught error from /worker/jobs/bulkUpsertSamplesJob:', err);
+      logger.error('Caught error from /worker/jobs/bulkUpsertSamples:', err);
       jobLog(jobStartTime, job, err.message || '');
       return done(err);
     });

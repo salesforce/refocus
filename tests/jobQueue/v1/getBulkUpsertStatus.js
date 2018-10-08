@@ -23,13 +23,15 @@ const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 const getStatusPath = '/v1/samples/upsert/bulk/{jobId}/status';
 const bulkUpsertSamplesJob =
-  require('../../../worker/jobs/bulkUpsertSamplesJob');
+  require('../../../worker/jobs/bulkUpsertSamples');
 const timeoutMillis = 500;
 
 describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
 `api: GET ${getStatusPath} >`, () => {
-  let token;
+  before(() => jobSetup.resetJobQueue());
+  after(() => jobSetup.resetJobQueue());
 
+  let token;
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
     tu.createToken()
@@ -95,7 +97,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULKUPSERTSAMPLES,
+      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
 
       /*
@@ -151,7 +153,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULKUPSERTSAMPLES,
+      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
 
       /*
@@ -224,7 +226,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULKUPSERTSAMPLES,
+      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
 
       /*

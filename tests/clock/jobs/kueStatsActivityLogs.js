@@ -10,8 +10,8 @@
  * tests/clock/kueStatsActivityLogs.js
  */
 const expect = require('chai').expect;
-const k = require('../../clock/scheduledJobs/kueStatsActivityLogs');
-const redis = require('../../cache/redisCache');
+const k = require('../../../clock/scheduledJobs/kueStatsActivityLogs');
+const redis = require('../../../cache/redisCache');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;

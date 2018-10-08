@@ -7,7 +7,7 @@
  */
 
 /**
- * /worker/jobs/getHierarchyJob.js
+ * /worker/jobs/getHierarchy.js
  */
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');

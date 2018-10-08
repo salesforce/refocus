@@ -201,7 +201,7 @@ function execute() {
   // Get queueStats from redis
   let keyArray;
   const mainKey = 'queueStats';
-  client.hgetallAsync(mainKey).then((reply) => {
+  return client.hgetallAsync(mainKey).then((reply) => {
     const currentTimeStamp = 'queueStats.' + createTimeStamp();
     if (reply) {
       const keys = stringToArray(reply.keyArray);

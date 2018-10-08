@@ -212,7 +212,7 @@ module.exports = {
        * throw the "ResourceNotFoundError" if there is an error in getting the
        * job or the job is not a bulkUpsert job
        */
-      if (_err || !job || job.type !== kueSetup.jobType.BULKUPSERTSAMPLES) {
+      if (_err || !job || job.type !== kueSetup.jobType.bulkUpsertSamples) {
         const err = new apiErrors.ResourceNotFoundError();
         return u.handleError(next, err, helper.modelName);
       }
@@ -432,7 +432,7 @@ module.exports = {
         wrappedBulkUpsertData.reqStartTime = resultObj.reqStartTime;
         wrappedBulkUpsertData.readOnlyFields = readOnlyFields;
         const jobPromise = jobWrapper
-          .createPromisifiedJob(jobType.BULKUPSERTSAMPLES,
+          .createPromisifiedJob(jobType.bulkUpsertSamples,
             wrappedBulkUpsertData, req);
         return jobPromise.then((job) => {
           // set the job id in the response object before it is returned

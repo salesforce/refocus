@@ -7,14 +7,14 @@
  */
 
 /**
- * tests/clock/pubStatsLogs.js
+ * tests/clock/jobs/pubStatsLogs.js
  */
 const expect = require('chai').expect;
-const p = require('../../clock/scheduledJobs/pubStatsLogs');
-const rcache = require('../../cache/redisCache').client.cache;
-const PUB_STATS_HASH = require('../../realtime/constants').pubStatsHash;
+const p = require('../../../clock/scheduledJobs/pubStatsLogs');
+const rcache = require('../../../cache/redisCache').client.cache;
+const PUB_STATS_HASH = require('../../../realtime/constants').pubStatsHash;
 
-describe('tests/clock/pubStatsLogs >', () => {
+describe('tests/clock/jobs/pubStatsLogs >', () => {
   describe('toLogObj >', () => {
     it('ok', () => {
       expect(p.toLogObj('x.y.z', 1)).to.deep.equal({
