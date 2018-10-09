@@ -7,12 +7,11 @@
  */
 
 /**
- * clock/scheduledJobs/checkMissedCollectorHeartbeatJob.js
+ * clock/scheduledJobs/checkMissedCollectorHeartbeat.js
  *
  * Executes the checkMissedHeartbeat process. If worker process is enabled,
  * enqueues a job, otherwise just executes work directly in this process.
  */
-const featureToggles = require('feature-toggles');
 const Collector = require('../../db/index').Collector;
 
 /**
@@ -24,19 +23,5 @@ function execute() {
 } // execute
 
 module.exports = {
-  enqueue() {
-    if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
-      const jobWrapper = require('../../jobQueue/jobWrapper');
-      const jobType = require('../../jobQueue/setup').jobType;
-      const j = jobWrapper.createJob(
-        jobType.CHECK_MISSED_COLLECTOR_HEARTBEAT, { reqStartTime: Date.now() }
-      );
-      return Promise.resolve(true);
-    }
-
-    // If not using worker process, execute directly;
-    return execute();
-  },
-
   execute,
 };

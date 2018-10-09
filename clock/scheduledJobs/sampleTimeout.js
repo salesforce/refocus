@@ -7,17 +7,15 @@
  */
 
 /**
- * clock/scheduledJobs/sampleTimeoutJob.js
+ * clock/scheduledJobs/sampleTimeout.js
  *
  * Executes the sample timeout process. If worker process is enabled, enqueues
  * a job, otherwise just executes work directly in this process.
  */
-const featureToggles = require('feature-toggles');
 const dbSubject = require('../../db/index').Subject;
 const publisher = require('../../realtime/redisPublisher');
 const sampleEvent = require('../../realtime/constants').events.sample;
 const sampleStoreTimeout = require('../../cache/sampleStoreTimeout');
-
 /**
  * Execute the call to check for sample timeouts.
  *
@@ -33,24 +31,13 @@ function execute() {
       });
     }
 
-    return Promise.resolve(dbRes);
+    return {
+      recordCount: dbRes.numberTimedOut,
+      errorCount: dbRes.numberEvaluated - dbRes.numberTimedOut,
+    };
   });
 } // execute
 
 module.exports = {
-  enqueue() {
-    if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
-      const jobWrapper = require('../../jobQueue/jobWrapper');
-      const jobType = require('../../jobQueue/setup').jobType;
-      const j = jobWrapper.createJob(
-        jobType.SAMPLE_TIMEOUT, { reqStartTime: Date.now() }
-      );
-      return Promise.resolve(true);
-    }
-
-    // If not using worker process, execute directly;
-    return execute();
-  },
-
   execute,
 };

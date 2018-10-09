@@ -172,8 +172,8 @@ function calculateJobPriority(prioritize, deprioritize, req) {
  *  listening for this jobName to process the jobs.
  * @param {Object} data - Data for the job to work with.
  * @param {Object} req - Request object.
- * @returns {Object} - A job object. The job object will be null when the
- *  jobQueue is created in the test mode.
+ * @returns {Promise} - resolves to job object. The job object will be null
+ *  when the jobQueue is created in test mode.
  */
 function createPromisifiedJob(jobName, data, req) {
   const startTime = Date.now();
@@ -205,8 +205,8 @@ function createPromisifiedJob(jobName, data, req) {
  *  listening for this jobName to process the jobs.
  * @param {Object} data - Data for the job to work with.
  * @param {Object} req - Request object.
- * @returns {Promise} - resolves to job object. The job object will be null
- *  when the jobQueue is created in test mode.
+ * @returns {Object} - A job object. The job object will be null when the
+ *  jobQueue is created in the test mode.
  */
 function createJob(jobName, data, req) {
   const startTime = Date.now();

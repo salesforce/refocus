@@ -7,7 +7,7 @@
  */
 
 /**
- * /worker/jobs/createAuditEventsJob.js
+ * /worker/jobs/createAuditEvents.js
  */
 const logger = require('winston');
 const auditEvent = require('../../api/v1/helpers/nouns/auditEvents').model;
@@ -47,7 +47,7 @@ module.exports = (job, done) => {
       return done();
     })
     .catch((err) => {
-      logger.error('Caught error from /worker/jobs/createAuditEventsJob:', err);
+      logger.error('Caught error from /worker/jobs/createAuditEvents:', err);
       jobLog(jobStartTime, job, err.message || '');
       return done(err);
     });

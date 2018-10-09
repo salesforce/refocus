@@ -7,18 +7,18 @@
  */
 
 /**
- * tests/clock/queueStatsActivityLogs.js
+ * tests/clock/jobs/queueStatsActivityLogs.js
  */
 
 const expect = require('chai').expect;
-const qs = require('../../clock/scheduledJobs/queueStatsActivityLogs');
-const redis = require('../../cache/redisCache');
+const qs = require('../../../clock/scheduledJobs/queueStatsActivityLogs');
+const redis = require('../../../cache/redisCache');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 const client = redis.client.realtimeLogging;
 
-describe('tests/clock/queueStatsActivityLogs.js >', () => {
+describe('tests/clock/jobs/queueStatsActivityLogs.js >', () => {
   it('arrayToString', () => {
     const resp = qs.arrayToString([ZERO, ONE, TWO]);
     expect(resp).to.be.an('string');
