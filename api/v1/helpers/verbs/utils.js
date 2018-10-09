@@ -237,20 +237,52 @@ function handleAssociations(reqObj, inst, props, method) {
   });
 } // handleAssociations
 
+function isMultipleAssociations(opts) {
+  const MULTIPLE_ASSOCIATIONS = 3;
+  return opts.attributes.length >= MULTIPLE_ASSOCIATIONS;
+}
+
 /**
  * Generates sequelize options object with all the appropriate attributes
  * (fields) and includes, and taking virtual fields into account as well.
  * Always include the "id" field even if it was not explicitly requested.
  *
  * @param {Object} params - The request parameters
+ * @param {Object} props - The helpers/nouns module for the given DB model
  * @returns {Object} - Sequelize options
  */
-function buildFieldList(params) {
+function buildFieldList(params, props) {
   const opts = {};
   if (params.fields && params.fields.value) {
     opts.attributes = params.fields.value;
-    if (!opts.attributes.includes('id')) {
-      opts.attributes.push('id');
+    if (!opts.attributes.includes('id')) opts.attributes.push('id');
+
+    if (props.model && isMultipleAssociations(opts)) {
+      /*
+      Sequelize workaround.
+      Includes all model's FK for an eventual outer join when it selects
+      the attributes before doing the join for the association, which
+      causes an error when the foreign key is not included in the fields.
+      */
+      const keys = Object.keys(props.model.attributes);
+      keys.forEach((key) => {
+        if (props.model.attributes[key].references) {
+          // model has FK, add to the SQL
+          opts.attributes.push(key);
+
+          /*
+            TODO
+            Keeping comment by now:
+            re-using props as above (The helpers/nouns module ) makes the test
+            fail when running all tests (runs properly one-by-one).
+            We must send back fieldsToExclude into opts (next sprint).
+            https://github.com/salesforce/refocus/pull/918
+          */
+          // Add to fields to exclude before sending response
+          // if (!props.fieldsToExclude) props.fieldsToExclude = [];
+          // props.fieldsToExclude.push(key);
+        }
+      });
     }
   }
 
@@ -637,7 +669,7 @@ function cleanAndStripNulls(obj) {
  */
 function findByKey(props, params, extraAttributes) {
   const key = params.key.value;
-  const opts = buildFieldList(params);
+  const opts = buildFieldList(params, props);
   const keyClause = {};
   keyClause[Op.iLike] = key;
   opts.where = {};

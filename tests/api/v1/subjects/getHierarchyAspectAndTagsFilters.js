@@ -260,7 +260,7 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
         // north america. Check to make sure it does not return the parOther
         expect(res.body.children).to.have.length(1);
         expect(res.body).to.not.have.property('tags');
-        expect(res.body).to.have.all
+        expect(res.body).to.contains.all
         .keys(['name', 'id', 'samples', 'children', 'apiLinks']);
 
         // canada

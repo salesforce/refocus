@@ -99,7 +99,7 @@ describe(`tests/api/v1/tokens/associations.js, GET ${path} >`, () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body).to.be.an('object');
-      expect(res.body).to.have.keys('id', 'name', 'user', 'isRevoked', 'apiLinks');
+      expect(res.body).to.contains.keys('id', 'name', 'user', 'isRevoked', 'apiLinks');
       expect(Joi.validate(res.body.user, joiSchema.user).error).to.be.null;
     })
     .end(done);
