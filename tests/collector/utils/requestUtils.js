@@ -25,6 +25,7 @@ supertest.Test.prototype.end = Promise.promisify(supertest.Test.prototype.end);
 supertest.Test.prototype.then = function (resolve, reject) {
   return this.end().then(resolve).catch(reject);
 };
+
 let token;
 
 module.exports = {
@@ -57,7 +58,7 @@ function setupMiddleware(interceptConfig) {
       intercept: (body, send) => {
         res.body = JSON.parse(body);
         send(body);
-      }
+      },
     };
   }));
 }
@@ -92,7 +93,7 @@ function setupInterceptFuncs(interceptConfig) {
     const msg = `${conf.reqType} timeout ${timeout}`;
 
     const timeoutPromise = new Promise((resolve) => {
-      conf.timeoutMap[collectorName]
+      conf.timeoutMap[collectorName];
       const resolveArray = conf.timeoutMap[collectorName];
       if (!resolveArray) conf.timeoutMap[collectorName] = [resolve];
       else resolveArray.push(resolve);
@@ -172,40 +173,40 @@ function postGenerator(gen) {
   return api.post(genPath)
   .set('Authorization', token)
   .send(gen)
-  .expect(constants.httpStatus.CREATED)
+  .expect(constants.httpStatus.CREATED);
 }
 
 function patchGenerator(key, body) {
   return api.patch(`${genPath}/${key}`)
   .set('Authorization', token)
   .send(body)
-  .expect(constants.httpStatus.OK)
+  .expect(constants.httpStatus.OK);
 }
 
 function putGenerator(gen) {
   return api.put(`${genPath}/${gen.name}`)
   .set('Authorization', token)
   .send(gen)
-  .expect(constants.httpStatus.OK)
+  .expect(constants.httpStatus.OK);
 }
 
 function postStatus(status, key) {
   return api.post(`${'/v1/collectors'}/${key}/${status}`)
   .set('Authorization', token)
   .send({})
-  .expect(constants.httpStatus.OK)
+  .expect(constants.httpStatus.OK);
 }
 
 function getStatus(key) {
   return api.get(`${'/v1/collectors'}/${key}/status`)
   .set('Authorization', token)
-  .expect(constants.httpStatus.OK)
+  .expect(constants.httpStatus.OK);
 }
 
 function getCollector(key) {
   return api.get(`${'/v1/collectors'}/${key}`)
   .set('Authorization', token)
-  .expect(constants.httpStatus.OK)
+  .expect(constants.httpStatus.OK);
 }
 
 function setToken(_token) {

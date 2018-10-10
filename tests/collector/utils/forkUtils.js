@@ -48,7 +48,7 @@ function doFork(args) {
   const opts = {
     silent: true,
     env: {},
-    // env: { DEBUG: 'refocus-collector:*' },
+    /* env: { DEBUG: 'refocus-collector:*' }, */
   };
   const forkPath = require.resolve('./runCollector');
   const subprocess = fork(forkPath, args, opts);
@@ -117,7 +117,7 @@ function awaitExit(collectorName) {
     return new Promise((resolve) => {
       subprocess.on('exit', () => {
         resolve();
-      })
+      });
     });
   } else {
     return Promise.reject(Error('not running'));
@@ -144,14 +144,14 @@ function killAllCollectors() {
 const tickMap = {};
 function tick(ms) {
   return tickSync(clock, ms)
-  .then(() => {
-    return Promise.map(Object.entries(subprocesses), ([name, subprocess]) => {
-      subprocess.send({tick: ms});
+  .then(() =>
+    Promise.map(Object.entries(subprocesses), ([name, subprocess]) => {
+      subprocess.send({ tick: ms });
       return new Promise((resolve) =>
         tickMap[name] = resolve
       );
     })
-  });
+  );
 
 }
 
@@ -183,7 +183,7 @@ function tickUntilComplete(awaitFunc, collectorName) {
   const promise = awaitFunc(collectorName);
   readyToTick.push(promise);
   if (!tickingPromises.length) {
-    tickUntilAllComplete()
+    tickUntilAllComplete();
   }
 
   return promise;
@@ -194,9 +194,9 @@ function tickUntilComplete(awaitFunc, collectorName) {
     readyToTick = [];
     if (tickingPromises.length) {
       return tick(1000)
-      .then(() => {
-        return tickUntilAllComplete(tickingPromises);
-      })
+      .then(() =>
+        tickUntilAllComplete(tickingPromises)
+      );
     }
   }
 }

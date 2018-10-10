@@ -156,7 +156,7 @@ const interceptConfig = {
     expectedRequestKeys: ['timestamp', 'collectorConfig'],
     expectedResponseKeys: [
       'collectorConfig', 'generatorsAdded', 'generatorsDeleted',
-      'generatorsUpdated'
+      'generatorsUpdated',
     ],
   },
   SubjectQuery: {
@@ -194,7 +194,7 @@ const interceptConfig = {
 
 u.setupInterception(interceptConfig);
 
-describe('tests/api/v1/collectors/heartbeat.js >', function() {
+describe('tests/api/v1/collectors/heartbeat.js >', function () {
   this.timeout(5000);
 
   before(() =>
@@ -210,7 +210,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
     Aspect.create(asp2),
     Subject.create(sub1),
     Subject.create(sub2),
-    GeneratorTemplate.create(sgt)
+    GeneratorTemplate.create(sgt),
   ]));
 
   beforeEach(() => {
@@ -236,24 +236,24 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
   after(tu.forceDeleteUser);
 
   describe('basic', () => {
-    it('from scratch - start collector, then post generator', () => {
-      return Promise.resolve()
+    it('from scratch - start collector, then post generator', () =>
+      Promise.resolve()
       .then(() => u.doStart(coll1))
       .then(() => u.postGenerator(gen1))
 
       .then(() => u.awaitHeartbeat())
-      .then(({res}) => {
+      .then(({ res }) => {
         expect(res.body.generatorsAdded.length).to.equal(1);
         expect(res.body.generatorsAdded[0].name).to.equal(gen1.name);
       })
 
       .then(() => u.awaitBulkUpsert())
-      .then(({req}) => {
+      .then(({ req }) => {
         expect(req.body).to.deep.equal([
-          {name: 'sub1|asp1', value: '1'},
+          { name: 'sub1|asp1', value: '1' },
         ]);
-      });
-    });
+      })
+    );
 
     describe('existing collector and generators', () => {
       beforeEach(() =>
@@ -262,33 +262,33 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
         .then(() => forkUtils.doStop(coll1))
       );
 
-      it('existing collector and generators', () => {
-        return u.doStart(coll1)
-        .then(({res}) => {
+      it('existing collector and generators', () =>
+        u.doStart(coll1)
+        .then(({ res }) => {
           expect(res.body).to.have.property('generatorsAdded').with.lengthOf(1);
         })
 
         .then(() => Promise.all([
           u.awaitHeartbeat()
-          .then(({res}) => {
+          .then(({ res }) => {
             expect(res.body.generatorsAdded.length).to.equal(0);
           }),
 
           u.awaitSubjectQuery()
-          .then(({req, res}) => {
+          .then(({ req, res }) => {
             expect(req.url).to.equal('/v1/subjects?absolutePath=sub1');
             expect(res.body).to.be.an('array').with.lengthOf(1);
             expect(res.body[0].name).to.equal('sub1');
           })
           .then(() => u.awaitBulkUpsert())
-          .then(({req}) => {
+          .then(({ req }) => {
             expect(req.body).to.deep.equal([
-              {name: 'sub1|asp1', value: '1'},
+              { name: 'sub1|asp1', value: '1' },
             ]);
             return Promise.resolve();
           }),
-        ]));
-      });
+        ]))
+      );
     });
   });
 
@@ -299,8 +299,8 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
       .then(() => forkUtils.doStop(coll1))
     );
 
-    it('subjectQuery updated', () => {
-      return u.doStart(coll1)
+    it('subjectQuery updated', () =>
+      u.doStart(coll1)
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
         u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
@@ -316,11 +316,11 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub*'),
         u.expectBulkUpsertNames(coll1, ['sub1|asp1'], ['sub2|asp1']),
-      ));
-    });
+      ))
+    );
 
-    it('aspects updated', () => {
-      return u.doStart(coll1)
+    it('aspects updated', () =>
+      u.doStart(coll1)
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
         u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
@@ -336,11 +336,11 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
         u.expectBulkUpsertNames(coll1, ['sub1|asp1'], ['sub1|asp2']),
-      ));
-    });
+      ))
+    );
 
-    it('interval updated', () => {
-      return u.doStart(coll1)
+    it('interval updated', () =>
+      u.doStart(coll1)
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
         u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
@@ -356,14 +356,14 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
       .then(() => u.awaitBulkUpsert() // new interval is > 60s
       .should.eventually.be.rejectedWith(Promise.TimeoutError))
 
-      .then(() => gen1.intervalSecs = 120 )  // update the promise timeout
+      .then(() => gen1.intervalSecs = 120)  // update the promise timeout
       .then(() => u.awaitBulkUpsert()) // 120s after heartbeat
       .then(() => u.awaitBulkUpsert()) // 120s later, doesn't timeout
-      .then(() => gen1.intervalSecs = 60 );  // reset the promise timeout
-    });
+      .then(() => gen1.intervalSecs = 60)  // reset the promise timeout
+    );
 
-    it('context updated', () => {
-      return u.doStart(coll1)
+    it('context updated', () =>
+      u.doStart(coll1)
       .then(() => u.expectBulkUpsertSamples(coll1, [
         { name: 'sub1|asp1', value: '1' },
       ]))
@@ -377,8 +377,8 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
 
       .then(() => u.expectBulkUpsertSamples(coll1, [
         { name: 'sub1|asp1', value: '1-' },
-      ]));
-    });
+      ]))
+    );
   });
 
   describe('collector config', () => {
@@ -404,7 +404,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
 
         .then(() => u.awaitHeartbeat())
         .then(({ waitTime }) => {
-          expect(waitTime).to.equal(ms('15s'))
+          expect(waitTime).to.equal(ms('15s'));
           config.collector.heartbeatIntervalMillis = ms('50s');
         })
 
@@ -415,7 +415,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
 
         .then(() => u.awaitHeartbeat())
         .then(({ waitTime }) => {
-          expect(waitTime).to.equal(ms('50s'))
+          expect(waitTime).to.equal(ms('50s'));
         })
       );
 
@@ -461,21 +461,21 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
 
         .then(() => u.awaitBulkUpsert())
         .then(() => u.awaitBulkUpsert())
-        .then(({waitTime}) => {
-          expect(waitTime).to.be.closeTo(ms('60s'), ms('10s'))
+        .then(({ waitTime }) => {
+          expect(waitTime).to.be.closeTo(ms('60s'), ms('10s'));
           config.collector.sampleUpsertQueueTimeMillis = ms('120s');
         })
 
         .then(() => u.awaitHeartbeat())
-        .then(({res}) => expect(res.body.collectorConfig).to.include({
+        .then(({ res }) => expect(res.body.collectorConfig).to.include({
           sampleUpsertQueueTimeMillis: ms('120s'),
         }))
 
         .then(() => u.awaitBulkUpsert())
         .then(() => u.awaitBulkUpsert())
-        .then(({waitTime}) => {
-          expect(waitTime).to.be.closeTo(ms('120s'), ms('10s'))
-        })
+        .then(({ waitTime }) => {
+          expect(waitTime).to.be.closeTo(ms('120s'), ms('10s'));
+        });
       });
 
       it('maxSamplesPerBulkUpsert', () =>
@@ -503,7 +503,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
         .then(() => u.expectBulkUpsertNames(coll1,
           ['sub1|asp1', 'sub1|asp2'], ['sub2|asp1', 'sub2|asp2']
         ))
-      )
+      );
     });
 
     describe('from collector >', () => {
@@ -531,7 +531,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
           expect(res.body.osInfo).to.deep.equal(osInfo);
           expect(res.body.processInfo).to.deep.equal(processInfo);
           expect(res.body.version).to.deep.equal(version);
-        })
+        });
       });
     });
   });
@@ -544,7 +544,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
       })
       .then(() => GlobalConfig.create({
         key: dbConstants.SGEncryptionAlgorithm,
-        value: 'aes-256-cbc'
+        value: 'aes-256-cbc',
       }))
       .then(() => done())
       .catch(done);
@@ -602,8 +602,8 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
     );
 
     describe('with collector commands >', () => {
-      it('stop - no more heartbeats', () => {
-        return Promise.resolve()
+      it('stop - no more heartbeats', () =>
+        Promise.resolve()
 
         .then(() => u.doStart(coll1))
         .then(() => u.awaitHeartbeat())
@@ -616,10 +616,10 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
 
         .then(() => u.doStart(coll1))
         .then(() => u.awaitHeartbeat())
-      });
+      );
 
-      it('pause - heartbeats continue, collection stops', () => {
-        return Promise.resolve()
+      it('pause - heartbeats continue, collection stops', () =>
+        Promise.resolve()
 
         .then(() => u.doStart(coll1))
         .then(() => Promise.join(
@@ -641,12 +641,12 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
           u.awaitHeartbeat(),
           u.awaitBulkUpsert(),
         ))
-      });
+      );
     });
 
     describe('through api >', () => {
-      it('stop - no more heartbeats', () => {
-        return Promise.resolve()
+      it('stop - no more heartbeats', () =>
+        Promise.resolve()
 
         .then(() => u.doStart(coll1))
         .then(() => u.awaitHeartbeat())
@@ -656,11 +656,11 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
         .then(() =>
           u.awaitHeartbeat()
             .should.eventually.be.rejectedWith(Promise.TimeoutError)
-        );
-      });
+        )
+      );
 
-      it('pause - heartbeats continue, collection stops', () => {
-        return Promise.resolve()
+      it('pause - heartbeats continue, collection stops', () =>
+        Promise.resolve()
 
         .then(() => u.doStart(coll1))
         .then(() => Promise.join(
@@ -680,7 +680,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
         .then(() =>
           u.awaitBulkUpsert(),
         )
-      });
+      );
     });
   });
 
@@ -693,8 +693,8 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
         gen2.possibleCollectors = [coll2];
       });
 
-      it('generators created, assigned to collectors', () => {
-        return Promise.join(
+      it('generators created, assigned to collectors', () =>
+        Promise.join(
           u.doStart(coll1)
           .then(() => u.awaitHeartbeat(coll1)),
           u.doStart(coll2)
@@ -715,10 +715,10 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
           u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
           u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
         ))
-      });
+      );
 
-      it('generator possibleCollectors updated, reassigned', () => {
-        return Promise.join(
+      it('generator possibleCollectors updated, reassigned', () =>
+        Promise.join(
           u.doStart(coll1)
           .then(() => u.awaitHeartbeat(coll1)),
           u.doStart(coll2)
@@ -761,10 +761,10 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
           u.expectBulkUpsertNames(coll2, ['sub1|asp1'], ['sub2|asp2']),
         ))
-      });
+      );
 
-      it('generator activated/deactivated', () => {
-        return Promise.join(
+      it('generator activated/deactivated', () =>
+        Promise.join(
           u.doStart(coll1)
           .then(() => u.awaitHeartbeat(coll1)),
           u.doStart(coll2)
@@ -802,7 +802,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
           u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
           u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
         ))
-      });
+      );
     });
 
     describe('collector status changed >', () => {
@@ -824,8 +824,8 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
       });
       afterEach(() => clearInterval(interval));
 
-      beforeEach(() => {
-        return Promise.join(
+      beforeEach(() =>
+        Promise.join(
           u.doStart(coll1),
           u.doStart(coll2),
         )
@@ -837,10 +837,10 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
           forkUtils.doStop(coll1),
           forkUtils.doStop(coll2),
         ))
-      });
+      );
 
-      it('started', () => {
-        return u.doStart(coll1)
+      it('started', () =>
+        u.doStart(coll1)
         .then(() => u.awaitHeartbeat(coll1))
         .then(() => Promise.join(
           u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
@@ -853,10 +853,10 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
           u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
           u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
         ))
-      });
+      );
 
-      it('stopped', () => {
-        return Promise.join(
+      it('stopped', () =>
+        Promise.join(
           u.doStart(coll1),
           u.doStart(coll2),
         )
@@ -873,10 +873,10 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
           u.expectBulkUpsertNames(coll2, ['sub1|asp1'], ['sub2|asp2']),
         ))
-      });
+      );
 
-      it('pause/resume', () => {
-        return Promise.join(
+      it('pause/resume', () =>
+        Promise.join(
           u.doStart(coll1),
           u.doStart(coll2),
         )
@@ -912,10 +912,10 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
           u.awaitBulkUpsert(coll2)
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
         ))
-      });
+      );
 
-      it('missed heartbeat', () => {
-        return Promise.join(
+      it('missed heartbeat', () =>
+        Promise.join(
           u.doStart(coll1),
           u.doStart(coll2),
         )
@@ -950,7 +950,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', function() {
           u.awaitBulkUpsert(coll2)
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
         ))
-      });
+      );
     });
   });
 });

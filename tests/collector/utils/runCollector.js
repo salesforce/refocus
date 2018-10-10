@@ -15,7 +15,6 @@ const sinon = require('sinon');
 const u = require('./forkUtils');
 let clock;
 
-
 // set up mock data
 const mockResponse = {
   sub1: {
@@ -29,7 +28,7 @@ const mockResponse = {
 };
 
 // mock the data source for the collector
-const dataSourceUrl = "http://www.example.com";
+const dataSourceUrl = 'http://www.example.com';
 nock(dataSourceUrl)
 .persist()
 .get('/')
@@ -43,7 +42,7 @@ process.on('message', (msg) => {
     u.tickSync(clock, msg.tick)
     .then(() => {
       process.send({ ticked: true });
-    })
+    });
   }
 });
 
