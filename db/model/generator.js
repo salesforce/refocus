@@ -230,9 +230,15 @@ module.exports = function generator(seq, dataTypes) {
       afterUpdate(inst) {
         const oldCollectorName = inst.previous('currentCollector') ?
                                  inst.previous('currentCollector').name : null;
-        const newCollectorName = inst.get('currentCollector') ?
-                                 inst.get('currentCollector').name : null;
-        return hbUtils.trackGeneratorChanges(inst, oldCollectorName, newCollectorName);
+        const newCollectorName = inst.currentCollector ?
+                                 inst.currentCollector.name : null;
+
+        console.log('trackGeneratorChanges', inst.name, oldCollectorName, newCollectorName)
+        return hbUtils.trackGeneratorChanges(inst, oldCollectorName, newCollectorName)
+        .then(() => hbUtils.getChangedIds(oldCollectorName))
+        .then((res) => console.log(res))
+        .then(() => hbUtils.getChangedIds(newCollectorName))
+        .then((res) => console.log(res))
       }, //afterUpdate
     },
     validate: {
@@ -451,10 +457,11 @@ module.exports = function generator(seq, dataTypes) {
    * @returns {Generator} - the updated Generator
    */
   Generator.prototype.updateForHeartbeat = function () {
+    const jwtUtil = require('../../utils/jwtUtil');
     const g = this.get();
     const aspects = g.aspects.map((a) => ({ name: a }));
     g.aspects = aspects;
-
+    g.token = jwtUtil.createToken(g.name, g.user.name, { IsGenerator: true });
     const gt = g.generatorTemplate;
     return seq.models.GeneratorTemplate.getSemverMatch(gt.name, gt.version)
     .then((t) => {
@@ -481,7 +488,7 @@ module.exports = function generator(seq, dataTypes) {
     // We could use setCurrentCollector, but that would result in database saves
     // that would be unnecessary and complicate our logic in the db hooks.
     // Instead, we set the foreign key (collectorId) from collector model.
-    // We also mock the currentCollector on the instance to avoid a needing
+    // We also mock the currentCollector on the instance to avoid needing
     // a database reload.
     this.collectorId = newColl ? newColl.id : null;
     this.currentCollector = newColl || null;
