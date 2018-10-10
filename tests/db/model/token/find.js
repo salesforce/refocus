@@ -37,6 +37,7 @@ describe('tests/db/model/token/find.js >', () => {
       expect(returnedToken.id).to.be.equal(tokenObj.id);
       expect(returnedToken.createdBy).to.be.equal(tokenObj.createdBy);
       expect(returnedToken.isRevoked).to.be.equal(tokenObj.isRevoked);
+      expect(returnedToken.lastUsed).to.be.instanceof(Date);
       done();
     })
     .catch(done);
@@ -46,6 +47,7 @@ describe('tests/db/model/token/find.js >', () => {
     Token.findAll({ where: { createdBy: tokenObj.createdBy } })
     .then((returnedTokens) => {
       expect(returnedTokens.length).to.be.eql(1);
+      expect(returnedTokens[0].lastUsed).to.be.instanceof(Date);
       done();
     })
     .catch(done);

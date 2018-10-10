@@ -20,10 +20,13 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const path = '/v1/auditEvents';
 const createAuditEventsJob =
-  require('../../../../worker/jobs/createAuditEventsJob');
+  require('../../../../worker/jobs/createAuditEvents');
 const logger = require('../../../../utils/activityLog').logger;
 
 describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
+  before(() => jobSetup.resetJobQueue());
+  after(() => jobSetup.resetJobQueue());
+
   let token;
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
@@ -60,7 +63,7 @@ describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULK_CREATE_AUDIT_EVENTS,
+      jobQueue.process(jobSetup.jobType.createAuditEvents,
         createAuditEventsJob);
 
       setTimeout(() => {
@@ -106,7 +109,7 @@ describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
             expect(logObj.queueResponseTime).to.match(/\d+ms/);
             expect(logObj.workTime).to.match(/\d+ms/);
             expect(logObj.dbTime).to.match(/\d+ms/);
-            expect(logObj.jobType).to.equal('BULK_CREATE_AUDIT_EVENTS');
+            expect(logObj.jobType).to.equal('createAuditEvents');
             expect(logObj.recordCount).to.equal('3');
             logger.removeListener('logging', testLogMessage);
             done();
@@ -131,7 +134,7 @@ describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
       })
       .then(() => {
         // call the worker
-        jobQueue.process(jobSetup.jobType.BULK_CREATE_AUDIT_EVENTS,
+        jobQueue.process(jobSetup.jobType.createAuditEvents,
           createAuditEventsJob);
 
         // done is called in the call back passed to the "logging" event

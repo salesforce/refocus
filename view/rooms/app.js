@@ -36,15 +36,12 @@ const u = require('../utils');
 const uPage = require('./utils/page');
 const uLayout = require('./utils/layout');
 const ROOM_ID = window.location.pathname.split('/rooms/')[ONE];
-const urlParameters = window.location.href.includes('?') ?
-  window.location.href.split('?')[ONE] : '';
 const GET_BOTS = '/v1/bots';
 let GET_ROOM = '/v1/rooms/';
 GET_ROOM += isNaN(ROOM_ID) ? `?name=${ROOM_ID}` : ROOM_ID;
 const GET_EVENTS = '/v1/events';
 const GET_ACTIONS = '/v1/botActions';
 const GET_ROOMTYPES = '/v1/roomTypes';
-const GITHUB_LOGO = '../static/images/GitHub-Mark.png';
 const BOT_LOGO = '../static/images/refocus-bot.png';
 const BOT_REQ_HEADERS = {
   'X-Requested-With': 'XMLHttpRequest',
@@ -365,27 +362,33 @@ function createHeader(bot) {
  */
 function createFooter(bot) {
   const footer = document.createElement('h3');
-  const linkedElement = document.createElement('a');
-  const gitHubImage = document.createElement('img');
   const botVersion = document.createElement('span');
 
-  footer.className =
-    'slds-section__title ' +
-    'slds-p-horizontal_small ' +
-    'slds-theme_shade ';
+  footer.className = 'slds-p-horizontal_small ' +
+    'slds-theme_shade';
+  botVersion.innerHTML = bot.version;
+  botVersion.className = 'slds-float--right slds-m-around--xx-small';
 
-  botVersion.innerHTML = 'Version ' + bot.version;
-  botVersion.className = 'slds-p-horizontal--medium';
-  linkedElement.href = bot.url;
-  linkedElement.target = '_blank';
-  linkedElement.rel = 'noopener noreferrer';
-  gitHubImage.height = '20';
-  gitHubImage.width = '20';
-  gitHubImage.src = GITHUB_LOGO;
-  linkedElement.appendChild(gitHubImage);
-  footer.appendChild(linkedElement);
+  if (bot.url && bot.url.length) {
+    const codeLinkedSvg = uPage.createFooterLinkedSvg('apex', bot.url);
+    codeLinkedSvg.title = 'Code';
+    footer.appendChild(codeLinkedSvg);
+  }
+
+  if (bot.helpUrl && bot.helpUrl.length) {
+    const helpLinkedSvg =
+      uPage.createFooterLinkedSvg('description', bot.helpUrl);
+    helpLinkedSvg.title = 'Documentation';
+    footer.appendChild(helpLinkedSvg);
+  }
+
+  if (bot.ownerUrl && bot.ownerUrl.length) {
+    const ownerLinkedSvg = uPage.createFooterLinkedSvg('groups', bot.ownerUrl);
+    ownerLinkedSvg.title = 'Owner';
+    footer.appendChild(ownerLinkedSvg);
+  }
+
   footer.appendChild(botVersion);
-
   return footer;
 }
 
@@ -927,6 +930,22 @@ function setupColumns() {
   });
 }
 
+/**
+ * Retrieve the url which should be redirected to, based on parameters.
+ *
+ * @param {String} url - The url of the window.
+ * @param {Int} roomId - ID of the current room.
+ *
+ * @returns {String} - Where the window should be redirected to.
+ */
+function getRedirectUrl(url, roomId) {
+  const urlParameters = url.includes('?') ?
+    url.split('?')[ONE] : '';
+  const redirectUrl = url.includes('keepParams=true') ?
+    `/rooms/${roomId}?${urlParameters}` : `/rooms/${roomId}`;
+  return redirectUrl;
+}
+
 window.onbeforeunload = confirmUserExit;
 
 window.onload = () => {
@@ -958,11 +977,14 @@ window.onload = () => {
     const response = Array.isArray(res.body) ? res.body[0] : res.body;
 
     if (response === undefined) {
+      const urlParameters = window.location.href.includes('?') ?
+        window.location.href.split('?')[ONE] : '';
       window.location.replace(`/rooms/new/${ROOM_ID}?${urlParameters}`);
     }
 
-    if (parseInt(ROOM_ID, 10) !== response.id) {
-      window.location.replace(`/rooms/${response.id}`);
+    if (response.id && parseInt(ROOM_ID, 10) !== response.id) {
+      const redirectUrl = getRedirectUrl(window.location.href, response.id);
+      window.location.replace(redirectUrl);
     }
 
     uPage.setTitle(`Room # ${ROOM_ID}`);
@@ -1008,5 +1030,6 @@ module.exports = () => {
     parseBot,
     iframeBot,
     decideBotPosition,
+    getRedirectUrl
   };
 };

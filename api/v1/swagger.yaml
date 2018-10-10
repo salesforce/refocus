@@ -2051,8 +2051,20 @@ paths:
         -
           name: url
           in: formData
-          description: The URL of the bot server
+          description: The URL of the code repository
           type: string
+        -
+          name: helpUrl
+          in: formData
+          description: The URL of the support documentation
+          type: string
+          required: false
+        -
+          name: ownerUrl
+          in: formData
+          description: The URL of the owner of the bot
+          type: string
+          required: false
         -
           name: ui
           description: The zipped HTML and Javascript needed to run the UI of the bot
@@ -2213,6 +2225,12 @@ paths:
               url:
                 type: string
                 description: Bot url
+              helpUrl:
+                type: string
+                description: Url of the support documentation for the bot
+              ownerUrl:
+                type: string
+                description: Url of the owner of the bot
               active:
                 type: boolean
                 description: If the bot is active
@@ -2281,6 +2299,16 @@ paths:
           name: url
           in: formData
           description: The URL of the bot server
+          type: string
+        -
+          name: helpUrl
+          in: formData
+          description: The URL of the support documentation
+          type: string
+        -
+          name: ownerUrl
+          in: formData
+          description: The URL of the owner of the bot
           type: string
         -
           name: version
@@ -3319,7 +3347,6 @@ paths:
             enum:
               - isActive
               - aspects
-              - subjects
               - subjectQuery
               - createdAt
               - description
@@ -3328,7 +3355,6 @@ paths:
               - updatedAt
               - -isActive
               - -aspects
-              - -subjects
               - -subjectQuery
               - -createdAt
               - -description
@@ -3378,14 +3404,6 @@ paths:
           maxLength: 4096
           description: >-
             Filter by the query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-        -
-          name: subjects
-          in: query
-          description: >-
-            Filter by the absolutePaths of the subjects.
-          type: array
-          items:
-            type: string
         -
           name: aspects
           in: query
@@ -3477,11 +3495,6 @@ paths:
                  type: array
                  items:
                    type: string
-              subjects:
-                description: AbsolutePaths of the subjects. Either fill in this or subjectQuery field.
-                type: array
-                items:
-                  type: string
               aspects:
                 description: List of one or more Aspects you want to collect Samples for.
                 type: array
@@ -3627,11 +3640,6 @@ paths:
                 minLength: 7
                 maxLength: 4096
                 description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-              subjects:
-                description: AbsolutePaths of the subjects.
-                type: array
-                items:
-                  type: string
               aspects:
                 description: Names of the aspects.
                 type: array
@@ -3754,11 +3762,6 @@ paths:
                 minLength: 7
                 maxLength: 4096
                 description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-              subjects:
-                description: AbsolutePaths of the subjects.
-                type: array
-                items:
-                  type: string
               aspects:
                 description: Names of the aspects.
                 type: array
@@ -11762,11 +11765,6 @@ definitions:
         type: array
         items:
           type: object
-      subjects:
-        description: AbsolutePaths of the subjects.
-        type: array
-        items:
-          type: string
       aspects:
         description: Names of the aspects.
         type: array
@@ -11845,11 +11843,6 @@ definitions:
         description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
       possibleCollectors:
         description: List of collectors this Sample Generator should try to use.
-        type: array
-        items:
-          type: object
-      subjects:
-        description: Array of subjects.
         type: array
         items:
           type: object
@@ -12179,7 +12172,6 @@ parameters:
         - isActive
         - tags
         - aspects
-        - subjects
         - subjectQuery
         - createdAt
         - description

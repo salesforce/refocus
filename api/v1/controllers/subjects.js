@@ -279,7 +279,7 @@ module.exports = {
 
     if (featureToggles.isFeatureEnabled('enableWorkerProcess')
     && featureToggles.isFeatureEnabled('enqueueHierarchy')) {
-      jobWrapper.createJob(jobType.GET_HIERARCHY, resultObj, req)
+      jobWrapper.createJob(jobType.getHierarchy, resultObj, req)
       .ttl(WORKER_TTL)
       .on('complete', (resultObj) => {
         u.logAPI(req, resultObj, resultObj.retval);
@@ -588,7 +588,7 @@ module.exports = {
     subjectDataWrapper.readOnlyFields = helper.readOnlyFields
       .filter((field) => field !== 'name');
     const jobPromise = jobWrapper.createPromisifiedJob(
-      jobType.BULK_DELETE_SUBJECTS,
+      jobType.bulkDeleteSubjects,
       subjectDataWrapper,
       req);
     return jobPromise
@@ -624,7 +624,7 @@ module.exports = {
     kue.Job.get(jobId, (_err, job) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
-      if (_err || !job || job.type !== kueSetup.jobType.BULK_DELETE_SUBJECTS) {
+      if (_err || !job || job.type !== kueSetup.jobType.bulkDeleteSubjects) {
         const err = new apiErrors.ResourceNotFoundError();
         return u.handleError(next, err, helper.modelName);
       }

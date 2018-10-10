@@ -51,6 +51,18 @@ module.exports = function bot(seq, dataTypes) {
       validate: { isUrl: true },
       comment: 'The URL to load bot',
     },
+    helpUrl: {
+      type: dataTypes.STRING,
+      allowNull: true,
+      validate: { isUrl: true },
+      comment: 'The URL to load bot',
+    },
+    ownerUrl: {
+      type: dataTypes.STRING,
+      allowNull: true,
+      validate: { isUrl: true },
+      comment: 'The URL to load bot',
+    },
     ui: {
       type: dataTypes.BLOB,
       allowNull: true,
