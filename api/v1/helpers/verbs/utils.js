@@ -271,7 +271,7 @@ function buildFieldList(params, props) {
           opts.attributes.push(key);
 
           /*
-            TODO
+            TODO - remove attributes before send back to the client
             Keeping comment by now:
             re-using props as above (The helpers/nouns module ) makes the test
             fail when running all tests (runs properly one-by-one).
