@@ -235,7 +235,7 @@ module.exports = function generator(seq, dataTypes) {
 
         return hbUtils.trackGeneratorChanges(inst, oldCollectorName, newCollectorName)
         .then(() => hbUtils.getChangedIds(oldCollectorName))
-        .then(() => hbUtils.getChangedIds(newCollectorName))
+        .then(() => hbUtils.getChangedIds(newCollectorName));
       }, //afterUpdate
     },
     validate: {
