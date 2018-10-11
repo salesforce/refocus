@@ -233,12 +233,9 @@ module.exports = function generator(seq, dataTypes) {
         const newCollectorName = inst.currentCollector ?
                                  inst.currentCollector.name : null;
 
-        console.log('trackGeneratorChanges', inst.name, oldCollectorName, newCollectorName)
         return hbUtils.trackGeneratorChanges(inst, oldCollectorName, newCollectorName)
         .then(() => hbUtils.getChangedIds(oldCollectorName))
-        .then((res) => console.log(res))
         .then(() => hbUtils.getChangedIds(newCollectorName))
-        .then((res) => console.log(res))
       }, //afterUpdate
     },
     validate: {
