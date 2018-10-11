@@ -278,6 +278,7 @@ function buildFieldList(params, props) {
             We must send back fieldsToExclude into opts (next sprint).
             https://github.com/salesforce/refocus/pull/918
           */
+
           // Add to fields to exclude before sending response
           // if (!props.fieldsToExclude) props.fieldsToExclude = [];
           // props.fieldsToExclude.push(key);
