@@ -21,10 +21,11 @@ class RoomTypeComponent extends React.Component {
     super(props);
     this.state = {
       edit: false,
-      Name: this.props.roomType.name,
-      Enabled: this.props.roomType.isEnabled,
-      Bots: this.props.roomType.bots,
-      Settings: JSON.stringify(this.props.roomType.settings, undefined, 2),
+      Name: this.props.roomType ? this.props.roomType.name : '',
+      Enabled: this.props.roomType ? this.props.roomType.isEnabled : true,
+      Bots: this.props.roomType ? this.props.roomType.bots : [],
+      Settings: this.props.roomType ?
+        JSON.stringify(this.props.roomType.settings, undefined, 2) : '',
       error: null,
     };
     this.editToggle = this.editToggle.bind(this);
@@ -47,7 +48,9 @@ class RoomTypeComponent extends React.Component {
       const obj = {
         name: this.state.Name,
         isEnabled: this.state.Enabled == 'true',
-        bots: typeof (this.state.Bots) === 'object' ? this.state.Bots : this.state.Bots.split(','),
+        bots:  Array.isArray(this.state.Bots) ?
+          this.state.Bots : typeof this.state.Bots === 'string' ?
+          this.state.Bots.split(',') : [],
         settings: JSON.parse(this.state.Settings),
       };
       req
@@ -240,40 +243,47 @@ class RoomTypeComponent extends React.Component {
    * Create Settings output
    */
   createSettingView(label, value) {
-    return (<li className='slds-form-element slds-hint-parent slds-border_bottom'>
-      <span className='slds-form-element__label'>{label}</span>
-      <div className='slds-form-element__control'>
-        {value.split('\n').map((val) => {
-          return (
-            <div style={{maxWidth:'900px', overflowWrap: 'break-word'}}>
-              {val.replace(/ /g, "\u00a0")} <br />
-            </div>
-          );
-        })}
-      </div>
-    </li>);
+    if (value) {
+      return (<li className='slds-form-element slds-hint-parent slds-border_bottom'>
+        <span className='slds-form-element__label'>{label}</span>
+        <div className='slds-form-element__control'>
+          {value.split('\n').map((val) => {
+            return (
+              <div style={{maxWidth:'900px', overflowWrap: 'break-word'}}>
+                {val.replace(/ /g, "\u00a0")} <br />
+              </div>
+            );
+          })}
+        </div>
+      </li>);
+    }
   }
 
   /**
    * Create Settings Edit Field
    */
   createEditSetting(label, value, changes) {
-    return (<li className='slds-form-element slds-hint-parent slds-border_bottom'>
-      <span className='slds-form-element__label'>{label}</span>
-      <div className='slds-form-element__control'>
-        <textarea
-          id={label}
-          type="text"
-          value={value}
-          rows={value.split('\n').length}
-          onChange={changes}
-          style={{width:'900px'}}/>
-      </div>
-    </li>);
+    if (value) {
+      return (<li className='slds-form-element slds-hint-parent slds-border_bottom'>
+        <span className='slds-form-element__label'>{label}</span>
+        <div className='slds-form-element__control'>
+          <textarea
+            id={label}
+            type="text"
+            value={value}
+            rows={value.split('\n').length}
+            onChange={changes}
+            style={{width:'900px'}}/>
+        </div>
+      </li>);
+    }
   }
 }
 
 RoomTypeComponent.propTypes = {
+  roomType: PropTypes.object,
+  roomType: PropTypes.object,
+  roomType: PropTypes.object,
   roomType: PropTypes.object,
 };
 
