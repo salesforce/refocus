@@ -44,7 +44,7 @@ const MINUS_ONE = -1;
  * attribute.
  * @param  {String}   authToken - Collector authentication token
  * @param  {String}   timestamp - Timestamp sent by collector in heartbeat
- * @returns {Object} Sample generator with reencrypted context values.
+ * @returns {Promise<Generator>} Sample generator with reencrypted context values.
  */
 function reEncryptSGContextValues(sg, authToken, timestamp) {
   if (!authToken || !timestamp) {
@@ -60,6 +60,10 @@ function reEncryptSGContextValues(sg, authToken, timestamp) {
       explanation: 'Sample generator template not found in sample generator.',
     });
     return Promise.reject(err);
+  }
+
+  if (!sg.context || !sg.generatorTemplate.contextDefinition) {
+    return Promise.resolve(sg);
   }
 
   const sgt = sg.generatorTemplate;
@@ -79,24 +83,6 @@ function reEncryptSGContextValues(sg, authToken, timestamp) {
   })
   .catch(() => {
     throw new apiErrors.SampleGeneratorContextDecryptionError();
-  });
-}
-
-/**
- * Find the matching generator template and attach it to the generator
- *
- * @param  {Object} sg - Sample generator object
- * @return {Object} Sample generator with generatorTemplate attribute set to the
- *  full matching generator template object.
- */
-function attachTemplate(sg) {
-  const { name, version } = sg.generatorTemplate;
-  return GeneratorTemplate.getSemverMatch(name, version)
-  .then((gt) => {
-    if (sg.context && gt.contextDefinition) {
-      sg.generatorTemplate = gt;
-      return sg;
-    }
   });
 }
 
@@ -253,13 +239,14 @@ function heartbeat(req, res, next) {
   let collectorName;
 
   const retval = {
-    collectorConfig: config.collector,
+    collectorConfig: JSON.parse(JSON.stringify(config.collector)),
+    encryptionAlgorithm: encryptionAlgoForCollector,
     generatorsAdded: [],
     generatorsDeleted: [],
     generatorsUpdated: [],
   };
 
-  u.findByKey(helper, req.swagger.params)
+  return u.findByKey(helper, req.swagger.params)
   .then((o) => {
     collectorName = o.name;
 
@@ -328,35 +315,19 @@ function heartbeat(req, res, next) {
   .then(() => heartbeatUtils.resetChanges(collectorName))
 
   // re-encrypt context values for added and updated generators
-  .then(() => Promise.all(
-    retval.generatorsAdded.map((sg) =>
-      attachTemplate(sg)
-      .then((sg) => {
-        const userName = sg.user.dataValues.name;
-        const generatorName = sg.name;
-        sg.token = jwtUtil.createToken(generatorName, userName,
-          { IsGenerator: true });
-        return reEncryptSGContextValues(sg, authToken, timestamp);
-      })
-    )
+  .then(() => Promise.map(
+    retval.generatorsAdded,
+    (gen) => reEncryptSGContextValues(gen, authToken, timestamp)
   ))
   .then((added) => retval.generatorsAdded = added)
-  .then(() => Promise.all(
-    retval.generatorsUpdated.map((sg) =>
-      attachTemplate(sg)
-      .then((sg) => {
-        const userName = sg.user.dataValues.name;
-        const generatorName = sg.name;
-        sg.token = jwtUtil.createToken(generatorName, userName,
-          { IsGenerator: true });
-        return reEncryptSGContextValues(sg, authToken, timestamp);
-      })
-    )
+  .then(() => Promise.map(
+    retval.generatorsUpdated,
+    (gen) => reEncryptSGContextValues(gen, authToken, timestamp)
   ))
   .then((updated) => retval.generatorsUpdated = updated)
   .then(() => {
     u.logAPI(req, resultObj, retval);
-    res.status(httpStatus.OK).json(u.cleanAndStripNulls(retval));
+    return res.status(httpStatus.OK).json(u.cleanAndStripNulls(retval));
   })
   .catch((err) => u.handleError(next, err, helper.modelName));
 } // heartbeat
@@ -423,8 +394,6 @@ function startCollector(req, res, next) {
   .then((gens) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     collToReturn.dataValues.generatorsAdded = gens.map((g) => {
-      g.token = jwtUtil.createToken(g.name, g.user.name,
-        { IsGenerator: true });
       delete g.GeneratorCollectors;
       delete g.possibleCollectors;
       return g;
@@ -439,6 +408,13 @@ function startCollector(req, res, next) {
 
     collToReturn.dataValues.collectorConfig = config.collector;
     collToReturn.dataValues.collectorConfig.status = collToReturn.status;
+  })
+
+  // reset the tracked changes so we don't send them again in the heartbeat
+  .then(() => heartbeatUtils.resetChanges(collToReturn.name))
+
+  // send response
+  .then(() => {
     u.logAPI(req, resultObj, collToReturn);
     return res.status(httpStatus.OK)
       .json(u.responsify(collToReturn, helper, req.method));
