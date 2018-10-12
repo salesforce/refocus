@@ -67,7 +67,7 @@ function doFindResponse(reqResNext, props, opts, resultObj) {
     });
   }
 
-  doFindAndCountAll(reqResNext, props, opts, resultObj)
+  return doFindAndCountAll(reqResNext, props, opts, resultObj)
   .then((retval) => {
     u.sortArrayObjectsByField(props, retval);
 
@@ -108,7 +108,7 @@ module.exports = function doFind(req, res, next, props) {
     redisCache.get(props.cacheKey, (cacheErr, reply) => {
       if (cacheErr || !reply) {
         // if err or no reply, get resuls from db and set redis cache
-        doFindResponse({ req, res, next }, props, opts, resultObj);
+        return doFindResponse({ req, res, next }, props, opts, resultObj);
       } else {
         // get from cache
         const dbObj = JSON.parse(reply);
@@ -118,6 +118,6 @@ module.exports = function doFind(req, res, next, props) {
       }
     });
   } else {
-    doFindResponse({ req, res, next }, props, opts, resultObj);
+    return doFindResponse({ req, res, next }, props, opts, resultObj);
   }
 }; // exports

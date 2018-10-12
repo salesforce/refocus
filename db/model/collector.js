@@ -136,10 +136,14 @@ module.exports = function collector(seq, dataTypes) {
             return u.assignUnassignedGenerators();
           } else if (inst.previous('status') === collectorStatus.Running) {
             /* if status is changed from Running to anything else, reassign the
-            generators which were assigned to this collector, then reset
-            the tracked changes for this collector. */
+            generators which were assigned to this collector. If stopped or paused,
+            reset the tracked changes for this collector. */
             return inst.reassignGenerators()
-              .then(() => heartbeatUtils.resetChanges(inst.name));
+            .then(() => {
+              if (inst.status !== collectorStatus.MissedHeartbeat) {
+                return heartbeatUtils.resetChanges(inst.name);
+              }
+            });
           }
         }
 
