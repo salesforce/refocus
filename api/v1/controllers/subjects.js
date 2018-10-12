@@ -218,7 +218,7 @@ module.exports = {
       })
       .catch((err) => u.handleError(next, err, helper.modelName));
     } else {
-      doFind(req, res, next, helper);
+      return doFind(req, res, next, helper);
     }
   },
 

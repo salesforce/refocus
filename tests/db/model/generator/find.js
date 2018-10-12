@@ -50,14 +50,20 @@ describe('tests/db/model/generator/find.js >', () => {
     name: 'collector2',
     version: '1.0.0',
   };
+  let userId;
+
   before((done) => {
     u.createGeneratorAspects()
     .then(() => u.createGeneratorSubjects())
     .then(() => GeneratorTemplate.create(gtWithEncryption))
     .then(() => GeneratorTemplate.create(gtWithRequiredContextDef))
     .then(() => GeneratorTemplate.create(generatorTemplate))
-    .then((o) => {
-      sgtDBInstance = o;
+    .then((o) => sgtDBInstance = o)
+    .then(() => tu.createUser('GeneratorOwner'))
+    .then((u) => userId = u.id)
+    .then(() => {
+      generator.createdBy = userId;
+      g2.createdBy = userId;
       return Generator.create(generator);
     })
     .then((o) => {
