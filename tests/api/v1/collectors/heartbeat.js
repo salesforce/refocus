@@ -422,10 +422,8 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         it('changes are not carried over after stop and restart', (done) => {
           Promise.resolve()
           .then(() => u.createGenerator(generator1, userId, coll1))
-          .then(() => u.stopCollector(coll1, userToken))
           .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
-          .then(() => u.createGenerator(generator2, userId, coll1))
+          .then(() => u.stopCollector(coll1, userToken))
           .then(() => u.startCollector(coll1, collTokens, userToken))
           .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
@@ -435,22 +433,21 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         it('changes are not carried over after pause and resume', (done) => {
           Promise.resolve()
           .then(() => u.createGenerator(generator1, userId, coll1))
-          .then(() => u.pauseCollector(coll1, userToken))
           .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
-          .then(() => u.createGenerator(generator2, userId, coll1))
+          .then(() => u.pauseCollector(coll1, userToken))
           .then(() => u.resumeCollector(coll1, userToken))
           .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
           .then(done).catch(done);
         });
 
-        it('changes are not carried over after missed heartbeat', (done) => {
+        it('changes are carried over after missed heartbeat', (done) => {
           Promise.resolve()
           .then(() => u.createGenerator(generator1, userId, coll1))
+          .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then(() => u.missHeartbeat(coll1))
           .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
-          .then((res) => u.expectLengths({ added: 0, deleted: 0, updated: 0 }, res))
+          .then((res) => u.expectLengths({ added: 0, deleted: 1, updated: 0 }, res))
           .then(done).catch(done);
         });
 
