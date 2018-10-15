@@ -341,6 +341,8 @@ describe(`tests/api/v1/subjects/get.js, GET ${path} >`, () => {
       expect(res.body.length).to.equal(ONE);
       expect(res.body[ZERO].name).to.eql(vt.name);
       expect(res.body[ZERO]).to.not.have.property('tags');
+
+      // TODO - change contains to have once second part of sequelize bug applied
       expect(res.body[ZERO]).to.contains.all
         .keys(['apiLinks', 'id', 'isPublished', 'name', 'sortBy']);
       done();
