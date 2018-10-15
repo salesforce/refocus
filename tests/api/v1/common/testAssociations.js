@@ -91,6 +91,7 @@ function testAssociations(path, associations, joiSchema, conf) {
         expect(res.body).to.be.an('array');
         res.body.forEach((record) => {
           // TODO - change contains to have once second part of sequelize bug applied
+
           expect(record).to.contains.all.keys('id', 'name', assoc, 'apiLinks');
           expect(Joi.validate(record[assoc], joiSchema[assoc]).error).to.be.null;
         });
@@ -106,6 +107,7 @@ function testAssociations(path, associations, joiSchema, conf) {
       .expect(constants.httpStatus.OK)
       .expect((res) => {
         expect(res.body).to.be.an('object');
+
         // TODO - change contains to have once second part of sequelize bug applied
         expect(res.body).to.contains.all.keys('id', 'name', assoc, 'apiLinks');
         expect(Joi.validate(res.body[assoc], joiSchema[assoc]).error).to.be.null;
