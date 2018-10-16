@@ -26,7 +26,6 @@ describe('tests/jobQueue/index.js >', () => {
         bulkDeleteSubjects: 1,
         checkMissedCollectorHeartbeat: 1,
         jobCleanup: 1,
-        persistSampleStore: 1,
         sampleTimeout: 1,
       });
     })
@@ -49,7 +48,6 @@ describe('tests/jobQueue/index.js >', () => {
         bulkDeleteSubjects: 4,
         checkMissedCollectorHeartbeat: 1,
         jobCleanup: 1,
-        persistSampleStore: 1,
         sampleTimeout: 1,
       });
     });
@@ -59,7 +57,6 @@ describe('tests/jobQueue/index.js >', () => {
     const env = {
       'WORKER_JOB_CONCURRENCY:checkMissedCollectorHeartbeat': 1,
       'WORKER_JOB_CONCURRENCY:jobCleanup': 2,
-      'WORKER_JOB_CONCURRENCY:persistSampleStore': 3,
       'WORKER_JOB_CONCURRENCY:sampleTimeout': 4,
     };
 
@@ -72,7 +69,6 @@ describe('tests/jobQueue/index.js >', () => {
         bulkDeleteSubjects: 1,
         checkMissedCollectorHeartbeat: 1,
         jobCleanup: 1,
-        persistSampleStore: 1,
         sampleTimeout: 1,
       });
     });
