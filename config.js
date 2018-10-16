@@ -124,7 +124,6 @@ const clockJobConfig = {
     deactivateRooms: '5m',
     jobCleanup: '30m',
     kueStatsActivityLogs: '1m',
-    persistSampleStore: '2m',
     pubStatsLogs: '1m',
     queueStatsActivityLogs: '1m',
     resetJobCounter: '24h',
@@ -133,12 +132,10 @@ const clockJobConfig = {
   useWorker: {
     checkMissedCollectorHeartbeat: true,
     jobCleanup: true,
-    persistSampleStore: true,
     sampleTimeout: true,
   },
   toggles: {
     kueStatsActivityLogs: 'enableKueStatsActivityLogs',
-    persistSampleStore: 'enableRedisSampleStore',
     pubStatsLogs: 'enablePubStatsLogs',
     queueStatsActivityLogs: 'enableQueueStatsActivityLogs',
   },
