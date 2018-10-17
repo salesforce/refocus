@@ -70,7 +70,6 @@ describe('tests/clock/clock.js >', function () {
       deactivateRooms: intervalsInHour('5m'),
       jobCleanup: intervalsInHour('30m'),
       kueStatsActivityLogs: intervalsInHour('1m'),
-      persistSampleStore: intervalsInHour('2m'),
       pubStatsLogs: intervalsInHour('1m'),
       queueStatsActivityLogs: intervalsInHour('1m'),
       resetJobCounter: intervalsInHour('24h'),
