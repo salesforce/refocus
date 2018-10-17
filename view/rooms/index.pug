@@ -57,7 +57,17 @@ html
               button#confirm_button.slds-button.slds-button_neutral Yes
               button#decline_button.slds-button.slds-button_neutral Cancel
         div.slds-backdrop.slds-backdrop_open
-
+    block roomNotFoundNotification
+      div#room_not_found_modal(style='display: none')
+        section.slds-modal.slds-fade-in-open.slds-modal_prompt
+          div.slds-modal__container
+            header.slds-modal__header.slds-theme_info.slds-theme_alert-texture
+              h2.slds-text-heading_medium 404: Room Not Found
+            div.slds-modal__content.slds-p-around_medium
+              p#room_not_found_text
+            footer.slds-modal__footer.slds-theme_default
+              button#go_to_rooms_button.slds-button.slds-button_neutral Rooms
+        div.slds-backdrop.slds-backdrop_open
   script(src='/static/scripts/socket.io.js')
   script(src='/static/scripts/jquery-1.11.1.min.js')
   script(src='/static/scripts/moment.min.js')
