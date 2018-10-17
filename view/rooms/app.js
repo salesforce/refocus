@@ -35,8 +35,8 @@ const roomNotFoundModal =
   document.getElementById('room_not_found_modal');
 const notFoundText =
   document.getElementById('room_not_found_text');
-const goToRoomsButton = 
-  document.getElementById('go_to_rooms_button');
+const goToCreateRoomsButton = 
+  document.getElementById('create_room_button');
 const AdmZip = require('adm-zip');
 const u = require('../utils');
 const uPage = require('./utils/page');
@@ -840,14 +840,14 @@ function closeConfirmationModal() {
  * Room not found so we display error message
  */
 function displayNotFoundModal() {
-  goToRoomsButton.onclick = () => window.location = "/rooms";
+  goToCreateRoomsButton.onclick = () => window.location = "/rooms/new";
   roomNotFoundModal.setAttribute(
     'style',
     'display:block;'
   );
 
   notFoundText.innerText =
-    `The requested room does not exist, please check that the id is correct or click below to go to the room list`;
+    `The requested room was not found, click below to create a room or contact IMC`;
 }
 
 /**
@@ -1016,10 +1016,10 @@ window.onload = () => {
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + response.type);
   }).catch((err) => {
     err.status == 404 && displayNotFoundModal();
+    debugMessage(`Error ${err}`);
   })
   .then((res) => {
     if(res) {
-      console.log(`Res is ${res}`)
       _roomTypeName = res.body.name;
       const subTitle = `${_roomName} - ${_roomTypeName}`;
       uPage.setSubtitle(subTitle);
