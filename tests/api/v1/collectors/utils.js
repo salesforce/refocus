@@ -36,8 +36,6 @@ const expectedProps = [
   'subjectQuery', 'tags', 'token', 'updatedAt', 'user',
 ];
 
-const expectedPropsDel = expectedProps.filter((p) => p !== 'token');
-
 const expectedCtxProps = ['password', 'secretInformation',
   'otherNonSecretInformation',
 ];
@@ -151,7 +149,7 @@ function expectGeneratorArray(res) {
     expect(gen.generatorTemplate).to.be.an('object').that.has.all.keys(expectedSGTProps);
   });
   generatorsDeleted.forEach((gen) => {
-    expect(gen).to.be.an('object').that.has.all.keys(expectedPropsDel);
+    expect(gen).to.be.an('object').that.has.all.keys(expectedProps);
     expect(gen.context).to.be.an('object').that.has.all.keys(expectedCtxProps);
     expect(gen.generatorTemplate).to.be.an('object').that.has.all.keys(expectedSGTProps);
   });
