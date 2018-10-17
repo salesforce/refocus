@@ -1014,33 +1014,38 @@ window.onload = () => {
     activeToggle.checked = _isActive;
     room = res.body;
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + response.type);
+  }).catch((err) => {
+    err.status == 404 && displayNotFoundModal();
   })
   .then((res) => {
-    _roomTypeName = res.body.name;
-    const subTitle = `${_roomName} - ${_roomTypeName}`;
-    uPage.setSubtitle(subTitle);
-    document.title = subTitle;
-    let layoutCookie =
-      u.getCookie(`${window.location.pathname}-bots-layout`);
-    if (layoutCookie) {
-      layoutCookie = JSON.parse(layoutCookie);
-      // Checking if the layout that came from the cookie is valid
-      if (uLayout.isValidLayout(layoutCookie, room.bots)) {
-        _botsLayout = layoutCookie;
-        // Reordering bots so they will be in the correct layout
-        room.bots = _botsLayout.leftColumn.concat(_botsLayout.middleColumn)
-          .concat(_botsLayout.rightColumn);
+    if(res) {
+      console.log(`Res is ${res}`)
+      _roomTypeName = res.body.name;
+      const subTitle = `${_roomName} - ${_roomTypeName}`;
+      uPage.setSubtitle(subTitle);
+      document.title = subTitle;
+      let layoutCookie =
+        u.getCookie(`${window.location.pathname}-bots-layout`);
+      if (layoutCookie) {
+        layoutCookie = JSON.parse(layoutCookie);
+        // Checking if the layout that came from the cookie is valid
+        if (uLayout.isValidLayout(layoutCookie, room.bots)) {
+          _botsLayout = layoutCookie;
+          // Reordering bots so they will be in the correct layout
+          room.bots = _botsLayout.leftColumn.concat(_botsLayout.middleColumn)
+            .concat(_botsLayout.rightColumn);
+        }
+      } else if (room.settings && room.settings.botsLayout) {
+        _botsLayout = room.settings.botsLayout;
       }
-    } else if (room.settings && room.settings.botsLayout) {
-      _botsLayout = room.settings.botsLayout;
-    }
 
-    const promises = room.bots.map((botName) =>
-      u.getPromiseWithUrl(GET_BOTS + '/' + botName, BOT_REQ_HEADERS));
-    return Promise.all(promises);
+      const promises = room.bots.map((botName) =>
+        u.getPromiseWithUrl(GET_BOTS + '/' + botName, BOT_REQ_HEADERS));
+      return Promise.all(promises);
+    }
   })
   .then((res) => {
-    setupSocketIOClient(res);
+    res && setupSocketIOClient(res);
     uPage.removeSpinner();
   });
 };
