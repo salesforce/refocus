@@ -126,7 +126,7 @@ const clockJobConfig = {
     kueStatsActivityLogs: '1m',
     pubStatsLogs: '1m',
     queueStatsActivityLogs: '1m',
-    resetJobCounter: '24h',
+    resetJobCounter: '2h',
     sampleTimeout: '30s',
   },
   useWorker: {
@@ -153,6 +153,10 @@ Object.keys(clockJobConfig.intervals).forEach((jobName) => {
   const defaultValue = clockJobConfig.intervals[jobName];
   const envValue = pe[`CLOCK_JOB_INTERVAL:${jobName}`];
   const value = envValue || defaultValue;
+  console.log('Configuring clock job intervals: ' +
+    `jobName="${jobName}" defaultValue="${defaultValue}" ` +
+    `envValue="${envValue}" envValueType="${typeof envValue}" ` +
+    `value="${value}" ms-value="${ms(value)}"`);
   clockJobConfig.intervals[jobName] = ms(value);
 });
 
