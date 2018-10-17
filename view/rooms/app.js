@@ -31,6 +31,12 @@ const confirmationModal =
   document.getElementById('active_confirmation_modal');
 const confirmationText =
   document.getElementById('active_confirmation_text');
+const roomNotFoundModal = 
+  document.getElementById('room_not_found_modal');
+const notFoundText =
+  document.getElementById('room_not_found_text');
+const goToRoomsButton = 
+  document.getElementById('go_to_rooms_button');
 const AdmZip = require('adm-zip');
 const u = require('../utils');
 const uPage = require('./utils/page');
@@ -56,6 +62,7 @@ let _isActive;
 let _movingContent;
 let _botsLayout;
 let firstLoad = true;
+let roomExists = true;
 
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
@@ -827,6 +834,20 @@ function closeConfirmationModal() {
     'style',
     'display:none;'
   );
+}
+
+/**
+ * Room not found so we display error message
+ */
+function displayNotFoundModal() {
+  goToRoomsButton.onclick = () => window.location = "/rooms";
+  roomNotFoundModal.setAttribute(
+    'style',
+    'display:block;'
+  );
+
+  notFoundText.innerText =
+    `The requested room does not exist, please check that the id is correct or click below to go to the room list`;
 }
 
 /**
