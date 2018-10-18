@@ -255,8 +255,9 @@ function multipleAssociations(helperModule, requestedAttributes) {
      (createdBy, collectorId, etc)
      */
     const extraForeignKeys = associations
-      .map((assocName) => helperModule.model.associations[assocName].foreignKey)
-      .map((foreignKey) => {
+      .map((assocName) => {
+        const foreignKey = helperModule.model.associations[assocName]
+          .foreignKey;
         const attribute = helperModule.model.attributes[foreignKey];
         return attribute ? attribute.fieldName : '';
       })
