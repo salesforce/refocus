@@ -194,7 +194,7 @@ const interceptConfig = {
 
 u.setupInterception(interceptConfig);
 
-describe('tests/api/v1/collectors/heartbeat.js >', function () {
+describe('tests/collector/integration.js >', function () {
   this.timeout(5000);
 
   before(() =>
@@ -686,6 +686,8 @@ describe('tests/api/v1/collectors/heartbeat.js >', function () {
 
   // TODO: some of these tests are flapping because the bulkUpsert request can't
   // be correctly waited on, because the post promise is obscured by the upsert queue
+  // TODO: add to main test script once that's fixed and tests pass consistenly:
+  // "test-all": "npm run test-main && npm run test-extra && npm run test-collector",
   describe('assignment >', () => {
     describe('generator updated >', () => {
       beforeEach(() => {

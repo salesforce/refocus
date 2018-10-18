@@ -43,7 +43,7 @@
     "start-clock": "node clock/index.js",
     "start-worker": "node worker/index.js",
     "test": "npm run reset-coverage && npm run test-all && npm run report",
-    "test-all": "npm run test-main && npm run test-extra && npm run test-collector",
+    "test-all": "npm run test-main && npm run test-extra",
     "test-api": "npm run test-with-coverage -- --recursive tests/api",
     "test-api-log": "ENABLE_API_ACTIVITY_LOGS=true npm run test-with-coverage -- --recursive tests/api",
     "test-cache": "npm run test-cache-jobQueue && npm run test-cache-models && npm run test-cache-misc",
