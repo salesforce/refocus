@@ -14,7 +14,8 @@ const tu = require('../../../testUtils');
 const cu = require('./utils');
 const gu = require('../generators/utils');
 const gtUtil = gu.gtUtil;
-const testAssociations = require('../common/testAssociations.js').testAssociations;
+const testAssociations = require('../common/testAssociations.js')
+  .testAssociations;
 const Collector = tu.db.Collector;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;

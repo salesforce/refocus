@@ -12,7 +12,8 @@
 'use strict';
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const testAssociations = require('../common/testAssociations.js').testAssociations;
+const testAssociations = require('../common/testAssociations.js')
+  .testAssociations;
 const Subject = tu.db.Subject;
 const path = '/v1/subjects';
 const Joi = require('joi');
