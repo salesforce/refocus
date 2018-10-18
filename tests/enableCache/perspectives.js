@@ -126,9 +126,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
       }
 
       expect(res.body).to.have.length(ONE);
-
-      // TODO - remove comment once second part of sequelize bug applied
-      // expect(res.body[ZERO].lensId).to.not.exist;
+      expect(res.body[ZERO].lensId).to.not.exist;
       expect(res.body[ZERO].name).to.be.equal('___testPersp');
       expect(res.body[ZERO].rootSubject).to.be.equal('myMainSubject');
       return done();
