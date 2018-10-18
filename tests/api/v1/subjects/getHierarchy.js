@@ -284,8 +284,10 @@ describe(`tests/api/v1/subjects/getHierarchy.js, GET ${path} >`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) done(err);
+
+        // TODO - change contains to have once second part of sequelize bug applied
         expect(res.body)
-        .to.have.all.keys(['name', 'id', 'samples', 'children', 'apiLinks']);
+        .to.contains.all.keys(['name', 'id', 'samples', 'children', 'apiLinks']);
         done();
       });
     });
@@ -296,8 +298,10 @@ describe(`tests/api/v1/subjects/getHierarchy.js, GET ${path} >`, () => {
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) done(err);
+
+        // TODO - change contains to have once second part of sequelize bug applied
         expect(res.body)
-        .to.have.all.keys(['name', 'id', 'samples', 'children', 'apiLinks']);
+        .to.contains.all.keys(['name', 'id', 'samples', 'children', 'apiLinks']);
         done();
       });
     });
