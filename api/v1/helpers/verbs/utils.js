@@ -251,17 +251,22 @@ function multipleAssociations(helperModule, requestedAttributes) {
 
   if (associations.length > 1) {
     /*
-     Maps association names (User, currentCollector, etc) to model.fk_names
-     (createdBy, collectorId, etc)
+     Transform association names (User, currentCollector, etc) to
+     model.fk_names (createdBy, collectorId, etc)
      */
     const extraForeignKeys = associations
-      .map((assocName) => {
-        const foreignKey = helperModule.model.associations[assocName]
-          .foreignKey;
-        const attribute = helperModule.model.attributes[foreignKey];
-        return attribute ? attribute.fieldName : '';
+      .filter((association) => {
+        // filter all associations with respective fk in the model attributes
+
+        const foreignKey = helperModule.model
+          .associations[association].foreignKey;
+        return helperModule.model.attributes[foreignKey] !== undefined;
       })
-      .filter((it) => it !== '');
+      .map((association) => {
+        const foreignKey = helperModule.model
+          .associations[association].foreignKey;
+        return helperModule.model.attributes[foreignKey].fieldName;
+      });
 
     if (extraForeignKeys.length > 0) {
       requestedAttributes.push(...extraForeignKeys);
