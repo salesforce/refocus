@@ -98,7 +98,7 @@ describe(`tests/api/v1/perspectives/associations.js, GET ${path} >`, () => {
             associations.forEach((association) => {
               expect(record).to.have.property(association);
               /*
-              API is returning extra fields as a solution for Sequelize inner
+               API is returning extra fields as a solution for Sequelize inner
               query issue that doesn't not return FK when multiple associations.
               */
               expect(record).to.have.property('lensId');
