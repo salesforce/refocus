@@ -111,7 +111,7 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
 
   testAssociations(path, associations, schema, conf);
 
-  describe('Checking Sequelize extra FK when multiple associations', () => {
+  describe('Checking sequelize extra FK when multiple associations', () => {
     it('Extra IDs must be returned from API', (done) => {
       const fields = ['name', ...associations].toString();
       api.get(`${path}?fields=${fields}`)
