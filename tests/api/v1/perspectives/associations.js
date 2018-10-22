@@ -16,8 +16,7 @@ const constants = require('../../../../api/v1/constants');
 const supertest = require('supertest');
 const expect = require('chai').expect;
 const api = supertest(require('../../../../index').app);
-const testAssociations = require('../common/testAssociations.js')
-  .testAssociations;
+const testAssociations = require('../common/testAssociations.js').testAssociations;
 const Perspective = tu.db.Perspective;
 const path = '/v1/perspectives';
 const Joi = require('joi');
@@ -99,7 +98,7 @@ describe(`tests/api/v1/perspectives/associations.js, GET ${path} >`, () => {
               expect(record).to.have.property(association);
               /*
                API is returning extra fields as a solution for Sequelize inner
-              query issue that doesn't not return FK when multiple associations.
+               query issue that doesn't not return FK when multiple associations.
               */
               expect(record).to.have.property('lensId');
               expect(record).to.have.property('createdBy');
