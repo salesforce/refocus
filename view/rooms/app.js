@@ -848,7 +848,6 @@ function displayNotFoundModal() {
     'style',
     'display:block;'
   );
-
   notFoundText.innerText =
     `The requested room was not found, click below to create a room view the list of available rooms`;
 }
