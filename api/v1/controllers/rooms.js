@@ -12,6 +12,7 @@
 'use strict';
 
 const helper = require('../helpers/nouns/rooms');
+const RoomType = require('../../../db').RoomType;
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
@@ -22,6 +23,8 @@ const doGetWriters = require('../helpers/verbs/doGetWriters');
 const doPostWriters = require('../helpers/verbs/doPostWriters');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
+const u = require('../../../utils/common');
+const Op = require('sequelize').Op;
 
 module.exports = {
 
@@ -48,7 +51,23 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findRooms(req, res, next) {
-    doFind(req, res, next, helper);
+    const type = req.swagger.params.type;
+    if (type && !u.looksLikeId(type.value)) {
+      RoomType.findOne({
+        where: {
+          name: { [Op.iLike]: req.swagger.params.type.value },
+        },
+      })
+      .then((o) => {
+        if (o) {
+          req.swagger.params.type.value = o.dataValues.id;
+        }
+
+        doFind(req, res, next, helper);
+      });
+    } else {
+      doFind(req, res, next, helper);
+    }
   },
 
   /**

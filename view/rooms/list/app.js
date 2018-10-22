@@ -17,10 +17,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import ListController from './ListController';
 import moment from 'moment';
+const url = require('url');
 
 const u = require('../../utils');
 const uPage = require('./../utils/page');
-const url = require('url');
 const roomsListContainer = document.getElementById('roomsListContainer');
 const header = document.getElementById('header');
 const GET_ROOMS = '/v1/rooms';
@@ -32,18 +32,29 @@ const MAX_ROOM_NUMBERS = 25;
 const q = url.parse(address, true);
 const qdata = q.query || {};
 const currentPage = qdata.page ? parseInt(qdata.page, 10) : ONE;
+const filterType = qdata.type;
+const filterActive = qdata.active;
+
 const offset = currentPage > ZERO ?
   (currentPage - ONE) * MAX_ROOM_NUMBERS :
   ZERO;
 
 window.onload = () => {
+  let roomsQueryUrl = `${GET_ROOMS}?limit=${MAX_ROOM_NUMBERS}&offset=${offset}&sort=-id`;
+
+  if (filterType) {
+    roomsQueryUrl += `&type=${filterType}`;
+  }
+
+  if (filterActive) {
+    roomsQueryUrl += `&active=${filterActive}`;
+  }
+
   let rooms;
   let roomTypes;
   let numRooms;
   uPage.setRoomsTab();
-  u.getPromiseWithUrl(
-    `${GET_ROOMS}?limit=${MAX_ROOM_NUMBERS}&offset=${offset}&sort=-id`
-  )
+  u.getPromiseWithUrl(roomsQueryUrl)
   .then((res) => {
     numRooms = Number(res.header['x-total-count']);
     rooms = res.body;
@@ -67,6 +78,8 @@ function loadController(rooms, roomTypes, numRooms) {
   const redirect = 'if (this.value)' +
     ' window.location.href= \'/rooms?page=\' + this.value';
   let pageOptions = '<div>Page: <select onChange="' + redirect + '">';
+
+
   for (let i = ONE; i < numPages + ONE; i++) {
     if (i === currentPage) {
       pageOptions += '<option value="'+i+'" selected>' + i + '</option>';

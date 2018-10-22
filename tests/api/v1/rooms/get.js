@@ -41,6 +41,7 @@ describe('tests/api/v1/rooms/get.js >', () => {
   beforeEach((done) => {
     RoomType.create(v.getStandard())
     .then((roomType) => {
+      testRoomType = roomType;
       const room = u.getStandard();
       room.type = roomType.id;
       return Room.create(room);
@@ -105,6 +106,48 @@ describe('tests/api/v1/rooms/get.js >', () => {
 
   it('Pass, get inactive', (done) => {
     api.get(`${path}?active=false`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ZERO);
+      done(err);
+    });
+  });
+
+  it('Pass, get by type (id)', (done) => {
+    api.get(`${path}?type=${testRoomType.id}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      done(err);
+    });
+  });
+
+  it('Pass, get by type (name)', (done) => {
+    api.get(`${path}?type=${testRoomType.name}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      done(err);
+    });
+  });
+
+  it('Pass, get by type when none exist', (done) => {
+    api.get(`${path}?type=NOT_A_TYPE`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
