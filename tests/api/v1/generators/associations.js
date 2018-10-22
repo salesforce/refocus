@@ -14,7 +14,12 @@ const tu = require('../../../testUtils');
 const cu = require('../collectors/utils');
 const gu = require('./utils');
 const gtUtil = gu.gtUtil;
-const testAssociations = require('../common/testAssociations.js').testAssociations;
+const constants = require('../../../../api/v1/constants');
+const supertest = require('supertest');
+const expect = require('chai').expect;
+const api = supertest(require('../../../../index').app);
+const testAssociations = require('../common/testAssociations.js')
+  .testAssociations;
 const Collector = tu.db.Collector;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
@@ -106,4 +111,28 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
   };
 
   testAssociations(path, associations, schema, conf);
+
+  describe('Checking Sequelize extra FK when multiple associations', () => {
+    it('Extra IDs must be returned from API', (done) => {
+      const fields = ['name', ...associations].toString();
+      api.get(`${path}?fields=${fields}`)
+        .set('Authorization', conf.token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.be.an('array');
+          res.body.forEach((record) => {
+            associations.forEach((association) => {
+              expect(record).to.have.property(association);
+              /*
+              API is returning extra fields as a solution for Sequelize inner
+              query issue that doesn't not return FK when multiple associations.
+              */
+              expect(record).to.have.property('collectorId');
+              expect(record).to.have.property('createdBy');
+            });
+          });
+        })
+        .end(done);
+    });
+  });
 });
