@@ -12,7 +12,8 @@
 'use strict';
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const testAssociations = require('../common/testAssociations.js').testAssociations;
+const testAssociations = require('../common/testAssociations.js')
+  .testAssociations;
 const Lens = tu.db.Lens;
 const path = '/v1/lenses';
 const Joi = require('joi');
