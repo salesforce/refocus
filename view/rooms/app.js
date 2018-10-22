@@ -37,6 +37,8 @@ const notFoundText =
   document.getElementById('room_not_found_text');
 const goToCreateRoomsButton = 
   document.getElementById('create_room_button');
+const gotToRoomListButton = 
+  document.getElementById('room_list_button');
 const AdmZip = require('adm-zip');
 const u = require('../utils');
 const uPage = require('./utils/page');
@@ -62,7 +64,6 @@ let _isActive;
 let _movingContent;
 let _botsLayout;
 let firstLoad = true;
-let roomExists = true;
 
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
@@ -841,13 +842,15 @@ function closeConfirmationModal() {
  */
 function displayNotFoundModal() {
   goToCreateRoomsButton.onclick = () => window.location = "/rooms/new";
+  gotToRoomListButton.onclick = () => window.location = "/rooms"
+  
   roomNotFoundModal.setAttribute(
     'style',
     'display:block;'
   );
 
   notFoundText.innerText =
-    `The requested room was not found, click below to create a room or contact IMC`;
+    `The requested room was not found, click below to create a room view the list of available rooms`;
 }
 
 /**
