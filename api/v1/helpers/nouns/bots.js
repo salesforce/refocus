@@ -25,6 +25,9 @@ module.exports = {
   fieldScopeMap: {
     botUI: 'botUI',
   },
+  belongsToManyAssoc: {
+    users: 'writers',
+  },
   getScopes: ['botUI'],
   baseUrl: '/v1/bots',
   model: Bots,
