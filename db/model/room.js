@@ -192,6 +192,20 @@ module.exports = function room(seq, dataTypes) {
     });
   };
 
+  Room.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getWriters()
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
   return Room;
 };
 

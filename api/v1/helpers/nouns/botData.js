@@ -21,6 +21,9 @@ module.exports = {
     PATCH: `Update selected attributes of ${m}`,
     DELETE: `Delete ${m}`,
   },
+  belongsToManyAssoc: {
+    users: 'writers',
+  },
   baseUrl: '/v1/botData',
   model: BotData,
   modelName: 'botData',
