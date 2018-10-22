@@ -123,8 +123,8 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
             associations.forEach((association) => {
               expect(record).to.have.property(association);
               /*
-               API is returning extra fields as a solution for Sequelize inner
-               query issue that doesn't not return FK when multiple associations.
+              API is returning extra fields as a solution for Sequelize inner
+              query issue that doesn't not return FK when multiple associations.
               */
               expect(record).to.have.property('collectorId');
               expect(record).to.have.property('createdBy');
