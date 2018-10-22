@@ -73,7 +73,6 @@ window.onload = () => {
  */
 function loadController(rooms, roomTypes, numRooms) {
   uPage.setTitle('Refocus Rooms');
-
   const numPages = parseInt(numRooms/MAX_ROOM_NUMBERS) + ONE;
   const redirect = 'if (this.value)' +
     ' window.location.href= \'/rooms?page=\' + this.value';
@@ -89,7 +88,52 @@ function loadController(rooms, roomTypes, numRooms) {
   }
   pageOptions += '</select></div>';
 
-  uPage.setSubtitle(`Number of rooms: ${numRooms} ${pageOptions}`);
+  uPage.setSubtitle(`Number of rooms: ${numRooms}`);
+
+  const subtitle = document.getElementById('subTitle');
+
+  const pageDrop = document.createElement('select');
+  pageDrop.onchange = function(e) {
+    if (e.target.value) {
+      window.location.href = `/rooms?page=${e.target.value}${filterType ? `&type=${filterType}` : ''}${filterActive ? `&active=${filterActive}` : ''}`
+    }
+  }
+
+  for (let i = ONE; i < numPages + ONE; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.innerText = i;
+
+    if (i === currentPage) {
+      option.selected = 'selected';
+    }
+
+    pageDrop.appendChild(option)
+  }
+
+  subtitle.appendChild(pageDrop)
+
+
+
+
+  const typeDrop = document.createElement('select');
+  const option = document.createElement('option');
+  option.innerText = 'All';
+  typeDrop.appendChild(option);
+
+  roomTypes.forEach((rt, i) => {
+    const option = document.createElement('option');
+    option.value = rt.name;
+    option.innerText = rt.name;
+
+    if (filterType && filterType.toLowerCase() === rt.name.toLowerCase()) {
+      option.selected = 'selected';
+    }
+
+    typeDrop.appendChild(option)
+  })
+
+  subtitle.appendChild(typeDrop);
 
   const createNewBotton = `<div class="slds-form-element" style="float: right;">
     <button
