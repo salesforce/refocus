@@ -39,6 +39,7 @@ const goToCreateRoomsButton =
   document.getElementById('create_room_button');
 const gotToRoomListButton = 
   document.getElementById('room_list_button');
+const notFoundMessage = 'The requested room was not found, click below to create a room or view the list of available rooms';
 const AdmZip = require('adm-zip');
 const u = require('../utils');
 const uPage = require('./utils/page');
@@ -850,8 +851,7 @@ function displayNotFoundModal(doc) {
       'style',
       'display: block;'
     );
-    doc.getElementById('room_not_found_text').innerText =
-    'The requested room was not found, click below to create a room view the list of available rooms';
+    doc.getElementById('room_not_found_text').innerText = notFoundMessage;
   } else {
     goToCreateRoomsButton.onclick = () => window.location = '/rooms/new';
     gotToRoomListButton.onclick = () => window.location = '/rooms';
@@ -860,8 +860,7 @@ function displayNotFoundModal(doc) {
       'style',
       'display:block;'
     );
-    notFoundText.innerText =
-      'The requested room was not found, click below to create a room view the list of available rooms';
+    notFoundText.innerText = notFoundMessage;
   }
 }
 
