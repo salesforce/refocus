@@ -11,8 +11,10 @@
  */
 
 import ReactTestUtils from 'react-dom/test-utils';
+import { jsdom } from 'jsdom'
 
 const expect = require('chai').expect;
+
 const app = require('../../../../view/rooms/list/app.js');
 
 describe('tests/view/rooms/list/app.js', () => {
@@ -40,9 +42,16 @@ describe('tests/view/rooms/list/app.js', () => {
     expect(url).to.equal('/rooms?page=1&type=coolName');
   });
 
-  it('ok, constructing url after active filter change (page is reset to 1)', () => {
-    const url = app.constructListFilterUrl('active', 'false');
-    expect(url).to.equal('/rooms?page=1&active=false');
+  before(() => {
+    delete require.cache[require.resolve('../../../../view/rooms/list/app.js')];
+    Object.defineProperty(window.location, 'href', {
+      value: 'http://localhost:3000/rooms?type=doughnuts'
+    });
+  });
+
+  it('ok, constructing url after active filter change when type filter is present', () => {
+    const testApp = require('../../../../view/rooms/list/app.js');
+    const url = testApp.constructListFilterUrl('active', 'false');
+    expect(url).to.equal('/rooms?page=1&type=doughnuts&active=false');
   });
 });
-
