@@ -207,3 +207,9 @@ function loadController(rooms, roomTypes, numRooms) {
   );
 }
 
+// For testing
+module.exports = {
+  createSelectEl,
+  constructListFilterUrl
+}
+
