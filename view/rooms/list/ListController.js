@@ -30,29 +30,38 @@ class ListController extends React.Component {
 
     return (
       <div>
-        <table className='slds-table slds-table--bordered slds-table-cell-buffer'>
-          <thead>
-            <tr className='slds-text-title--caps'>
-              {tableHeaders.map(header => {
-                const key = camelCase(header);
-                return <th scope='col' key={key}>
-                  <div className='slds-truncate' title={key}>{header}</div>
-                </th>;
+        {tableRows.length ?
+          <table className='slds-table slds-table--bordered slds-table-cell-buffer'>
+            <thead>
+              <tr className='slds-text-title--caps'>
+                {tableHeaders.map(header => {
+                  const key = camelCase(header);
+                  return <th scope='col' key={key}>
+                    <div className='slds-truncate' title={key}>{header}</div>
+                  </th>;
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {tableRows.map(row => {
+                const camelCaseHeaders = tableHeaders.map(header => camelCase(header));
+                return <tr key={row.id}>
+                  {camelCaseHeaders.map(header =>
+                    <td className="slds-cell-wrap slds-hyphenate" key={row.id + header}>
+                      {Parser(row[header])}
+                    </td>)}
+                </tr>;
               })}
-            </tr>
-          </thead>
-          <tbody>
-            {tableRows.map(row => {
-              const camelCaseHeaders = tableHeaders.map(header => camelCase(header));
-              return <tr key={row.id}>
-                {camelCaseHeaders.map(header =>
-                  <td className="slds-cell-wrap slds-hyphenate" key={row.id + header}>
-                    {Parser(row[header])}
-                  </td>)}
-              </tr>;
-            })}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+          :
+          <div className="slds-text-align--center">
+            <h1 className="slds-page-header__title slds-p-around--small">
+              No Rooms Match Current Filter..
+            </h1>
+            <img src="./static/images/empty-state-events.svg"/>
+          </div>
+      }
       </div>
     );
   }

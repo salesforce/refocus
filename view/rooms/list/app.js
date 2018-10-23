@@ -165,15 +165,11 @@ function loadController(rooms, roomTypes, numRooms) {
 
   pageSelectDiv.appendChild(document.createTextNode("Page: "));
   pageSelectDiv.appendChild(pageDrop);
-
   filterDiv.appendChild(document.createTextNode("Type: "));
   filterDiv.appendChild(typeDrop);
   filterDiv.appendChild(document.createTextNode('Active: '));
   filterDiv.appendChild(activeDrop);
   filterDiv.appendChild(pageSelectDiv);
-
-
-
   subtitle.appendChild(filterDiv);
 
   const createNewBotton = `<div class="slds-form-element" style="float: right;">
