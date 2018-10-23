@@ -133,7 +133,25 @@ function loadController(rooms, roomTypes, numRooms) {
   uPage.setSubtitle(`Number of rooms: ${numRooms}`);
   const subtitle = document.getElementById('subTitle');
   const filterDiv = document.createElement('div');
-  filterDiv.className = 'slds-m-top--small slds-m-bottom--x-small';
+  const pageSelectDiv = document.createElement('div');
+  pageSelectDiv.className = 'slds-m-top--x-small';
+  filterDiv.className = 'slds-m-top--x-small slds-m-bottom--x-small';
+
+  const typeArr = ['All'];
+  roomTypes.forEach((rt) => {
+    typeArr.push(rt.name);
+  });
+
+  const typeDrop = createSelectEl(typeArr, filterType);
+  typeDrop.onchange = ((e) => {
+    window.location.href = constructListFilterUrl('type', e.target.value);
+  });
+
+  const activeDrop = createSelectEl(['All', 'true', 'false'], filterActive);
+  activeDrop.onchange = ((e) => {
+    window.location.href = constructListFilterUrl('active', e.target.value);
+  });
+
   const pageArr = [];
 
   for (let i = ONE; i < numPages + ONE; i++) {
@@ -143,29 +161,19 @@ function loadController(rooms, roomTypes, numRooms) {
   const pageDrop = createSelectEl(pageArr, currentPage.toString());
   pageDrop.onchange = ((e) => {
     window.location.href = constructListFilterUrl('page', e.target.value);
-  })
+  });
 
-  const typeArr = ['All'];
-  roomTypes.forEach((rt) => {
-    typeArr.push(rt.name);
-  })
+  pageSelectDiv.appendChild(document.createTextNode("Page: "));
+  pageSelectDiv.appendChild(pageDrop);
 
-  const typeDrop = createSelectEl(typeArr, filterType);
-  typeDrop.onchange = ((e) => {
-    window.location.href = constructListFilterUrl('type', e.target.value);
-  })
-
-  const activeDrop = createSelectEl(['All', 'true', 'false'], filterActive);
-  activeDrop.onchange = ((e) => {
-    window.location.href = constructListFilterUrl('active', e.target.value);
-  })
-
-  filterDiv.appendChild(document.createTextNode("Page: "));
-  filterDiv.appendChild(pageDrop);
   filterDiv.appendChild(document.createTextNode("Type: "));
   filterDiv.appendChild(typeDrop);
   filterDiv.appendChild(document.createTextNode('Active: '));
   filterDiv.appendChild(activeDrop);
+  filterDiv.appendChild(pageSelectDiv);
+
+
+
   subtitle.appendChild(filterDiv);
 
   const createNewBotton = `<div class="slds-form-element" style="float: right;">
