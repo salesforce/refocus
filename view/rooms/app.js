@@ -839,17 +839,30 @@ function closeConfirmationModal() {
 
 /**
  * Room not found so we display error message
+ * @param {DOM} document document to display not found modal on
  */
-function displayNotFoundModal() {
-  goToCreateRoomsButton.onclick = () => window.location = "/rooms/new";
-  gotToRoomListButton.onclick = () => window.location = "/rooms"
-  
-  roomNotFoundModal.setAttribute(
-    'style',
-    'display:block;'
-  );
-  notFoundText.innerText =
+function displayNotFoundModal(doc) {
+  if(doc) {
+    doc.getElementById('create_room_button').onclick = () => window.location = "/rooms/new";
+    doc.getElementById('room_list_button').onclick = () => window.location = "/rooms";
+
+    doc.getElementById('room_not_found_modal').setAttribute(
+      'style',
+      'display: block;'
+    );
+    doc.getElementById('room_not_found_text').innerText =
     `The requested room was not found, click below to create a room view the list of available rooms`;
+  } else {
+    goToCreateRoomsButton.onclick = () => window.location = "/rooms/new";
+    gotToRoomListButton.onclick = () => window.location = "/rooms";
+  
+    roomNotFoundModal.setAttribute(
+      'style',
+      'display:block;'
+    );
+    notFoundText.innerText =
+      `The requested room was not found, click below to create a room view the list of available rooms`;
+  }
 }
 
 /**
@@ -1017,7 +1030,7 @@ window.onload = () => {
     room = res.body;
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + response.type);
   }).catch((err) => {
-    err.status == 404 && displayNotFoundModal();
+    err.status == 404 && displayNotFoundModal(document);
     debugMessage(`Error ${err}`);
   })
   .then((res) => {
@@ -1058,6 +1071,7 @@ module.exports = () => {
     parseBot,
     iframeBot,
     decideBotPosition,
-    getRedirectUrl
+    getRedirectUrl,
+    displayNotFoundModal
   };
 };

@@ -26,7 +26,9 @@ const secondIndex = 1;
 const thirdIndex = 2;
 const baseUrl = 'http://localhost:3000/rooms';
 const roomId = 2018;
-
+const pug = require('pug');
+const index = paths.join(__dirname, '../../../../view/rooms/index.pug');
+const ui = pug.renderFile(index);
 
 describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
   it('ok, parsed javascript and html', () => {
@@ -113,5 +115,19 @@ describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
     const href = `${baseUrl}/${roomId}${paramString}`;
     const redirectUrl = app.getRedirectUrl(href, roomId);
     expect(redirectUrl).to.equal(`/rooms/${roomId}${paramString}`);
+  });
+
+  it('ok, "not found modal" element is in html of room from pug file', () => {
+    document.body.innerHTML = ui;
+    expect(document.getElementById('room_not_found_modal').innerHTML).to.not.equal(null);
+  });
+
+  it('ok, "not found modal" is hidden by default', () => {
+    expect(document.getElementById('room_not_found_modal').getAttribute('style')).to.equal('display: none;');
+  });
+
+  it('ok, displayNotFoundModal() shows room not found modal', () => {
+    app.displayNotFoundModal(document);
+    expect(document.getElementById('room_not_found_modal').getAttribute('style')).to.equal('display: block;');
   });
 });
