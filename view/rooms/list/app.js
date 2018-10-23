@@ -76,7 +76,6 @@ window.onload = () => {
  */
 function createSelectEl(options, selected) {
   const selEl = document.createElement('select');
-
   options.forEach((o) => {
     const option = document.createElement('option');
     option.value = o;
@@ -147,7 +146,6 @@ function loadController(rooms, roomTypes, numRooms) {
   })
 
   const typeArr = ['All'];
-
   roomTypes.forEach((rt) => {
     typeArr.push(rt.name);
   })
