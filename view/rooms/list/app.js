@@ -66,74 +66,93 @@ window.onload = () => {
   });
 };
 
+function createSelectEl(options, selected) {
+  const selEl = document.createElement('select');
+
+  options.forEach((o) => {
+    const option = document.createElement('option');
+    option.value = o;
+    option.innerText = o;
+
+    if (selected && (o.toLowerCase() === selected.toLowerCase())) {
+      option.selected = 'selected';
+    }
+
+    selEl.appendChild(option);
+  })
+
+  selEl.className = 'slds-select slds-m-right--small';
+  selEl.style.width = 'auto';
+  return selEl;
+}
+
+function constructFilterRedirectUrl(filter, value) {
+  let url = '/rooms?'
+  if (filter === 'active') {
+    url += `page=1${filterType ? `&type=${filterType}` : ''}`;
+    if (value !== 'All') {
+      url += `&active=${value}`;
+    }
+  } else if (filter === 'page') {
+    url += `page=${value}${filterType ?
+      `&type=${filterType}` : ''}${filterActive ?
+        `&active=${filterActive}` : ''}`;
+  } else if (filter === 'type') {
+    url += `page=1${filterActive ? `&active=${filterActive}` : ''}`;
+    if (value !== 'All') {
+      url += `&type=${value}`;
+    }
+  }
+
+  return url
+}
+
 /**
  * Passes data on to Controller to pass onto renderers.
  *
  * @param {Object} values Data returned from AJAX.
  */
 function loadController(rooms, roomTypes, numRooms) {
-  uPage.setTitle('Refocus Rooms');
   const numPages = parseInt(numRooms/MAX_ROOM_NUMBERS) + ONE;
-  const redirect = 'if (this.value)' +
-    ' window.location.href= \'/rooms?page=\' + this.value';
-  let pageOptions = '<div>Page: <select onChange="' + redirect + '">';
-
-
-  for (let i = ONE; i < numPages + ONE; i++) {
-    if (i === currentPage) {
-      pageOptions += '<option value="'+i+'" selected>' + i + '</option>';
-    } else {
-      pageOptions += '<option value="'+i+'">' + i + '</option>';
-    }
-  }
-  pageOptions += '</select></div>';
-
+  uPage.setTitle('Refocus Rooms');
   uPage.setSubtitle(`Number of rooms: ${numRooms}`);
-
   const subtitle = document.getElementById('subTitle');
-
-  const pageDrop = document.createElement('select');
-  pageDrop.onchange = function(e) {
-    if (e.target.value) {
-      window.location.href = `/rooms?page=${e.target.value}${filterType ? `&type=${filterType}` : ''}${filterActive ? `&active=${filterActive}` : ''}`
-    }
-  }
+  const filterDiv = document.createElement('div');
+  filterDiv.className = 'slds-m-top--small slds-m-bottom--x-small';
+  const pageArr = [];
 
   for (let i = ONE; i < numPages + ONE; i++) {
-    const option = document.createElement('option');
-    option.value = i;
-    option.innerText = i;
-
-    if (i === currentPage) {
-      option.selected = 'selected';
-    }
-
-    pageDrop.appendChild(option)
+    pageArr.push(i.toString());
   }
 
-  subtitle.appendChild(pageDrop)
-
-
-
-
-  const typeDrop = document.createElement('select');
-  const option = document.createElement('option');
-  option.innerText = 'All';
-  typeDrop.appendChild(option);
-
-  roomTypes.forEach((rt, i) => {
-    const option = document.createElement('option');
-    option.value = rt.name;
-    option.innerText = rt.name;
-
-    if (filterType && filterType.toLowerCase() === rt.name.toLowerCase()) {
-      option.selected = 'selected';
-    }
-
-    typeDrop.appendChild(option)
+  const pageDrop = createSelectEl(pageArr, currentPage.toString());
+  pageDrop.onchange = ((e) => {
+    window.location.href = constructFilterRedirectUrl('page', e.target.value);
   })
 
-  subtitle.appendChild(typeDrop);
+  const typeArr = ['All'];
+
+  roomTypes.forEach((rt) => {
+    typeArr.push(rt.name);
+  })
+
+  const typeDrop = createSelectEl(typeArr, filterType);
+  typeDrop.onchange = ((e) => {
+    window.location.href = constructFilterRedirectUrl('type', e.target.value);
+  })
+
+  const activeDrop = createSelectEl(['All', 'true', 'false'], filterActive);
+  activeDrop.onchange = ((e) => {
+    window.location.href = constructFilterRedirectUrl('active', e.target.value);
+  })
+
+  filterDiv.appendChild(document.createTextNode("Page: "));
+  filterDiv.appendChild(pageDrop);
+  filterDiv.appendChild(document.createTextNode("Type: "));
+  filterDiv.appendChild(typeDrop);
+  filterDiv.appendChild(document.createTextNode('Active: '));
+  filterDiv.appendChild(activeDrop);
+  subtitle.appendChild(filterDiv);
 
   const createNewBotton = `<div class="slds-form-element" style="float: right;">
     <button
