@@ -66,6 +66,14 @@ window.onload = () => {
   });
 };
 
+/**
+ * Creates a select DOM element with given options.
+ *
+ * @param {Array} options - Options for select dropdown.
+ * @param {String} selected - Default selected option/
+ *
+ * @returns {DOM} - Select element with options as dropdown.
+ */
 function createSelectEl(options, selected) {
   const selEl = document.createElement('select');
 
@@ -79,14 +87,22 @@ function createSelectEl(options, selected) {
     }
 
     selEl.appendChild(option);
-  })
+  });
 
   selEl.className = 'slds-select slds-m-right--small';
   selEl.style.width = 'auto';
   return selEl;
 }
 
-function constructFilterRedirectUrl(filter, value) {
+/**
+ * Constructs a url with filters as parameters.
+ *
+ * @param {String} filter - Type of filter that has changed.
+ * @param {String} value - New value of the filter.
+ *
+ * @returns {String} - Url generated from new filter change.
+ */
+function constructListFilterUrl(filter, value) {
   let url = '/rooms?'
   if (filter === 'active') {
     url += `page=1${filterType ? `&type=${filterType}` : ''}`;
@@ -104,7 +120,7 @@ function constructFilterRedirectUrl(filter, value) {
     }
   }
 
-  return url
+  return url;
 }
 
 /**
@@ -127,7 +143,7 @@ function loadController(rooms, roomTypes, numRooms) {
 
   const pageDrop = createSelectEl(pageArr, currentPage.toString());
   pageDrop.onchange = ((e) => {
-    window.location.href = constructFilterRedirectUrl('page', e.target.value);
+    window.location.href = constructListFilterUrl('page', e.target.value);
   })
 
   const typeArr = ['All'];
@@ -138,12 +154,12 @@ function loadController(rooms, roomTypes, numRooms) {
 
   const typeDrop = createSelectEl(typeArr, filterType);
   typeDrop.onchange = ((e) => {
-    window.location.href = constructFilterRedirectUrl('type', e.target.value);
+    window.location.href = constructListFilterUrl('type', e.target.value);
   })
 
   const activeDrop = createSelectEl(['All', 'true', 'false'], filterActive);
   activeDrop.onchange = ((e) => {
-    window.location.href = constructFilterRedirectUrl('active', e.target.value);
+    window.location.href = constructListFilterUrl('active', e.target.value);
   })
 
   filterDiv.appendChild(document.createTextNode("Page: "));
