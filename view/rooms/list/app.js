@@ -41,14 +41,8 @@ const offset = currentPage > ZERO ?
 
 window.onload = () => {
   let roomsQueryUrl = `${GET_ROOMS}?limit=${MAX_ROOM_NUMBERS}&offset=${offset}&sort=-id`;
-
-  if (filterType) {
-    roomsQueryUrl += `&type=${filterType}`;
-  }
-
-  if (filterActive) {
-    roomsQueryUrl += `&active=${filterActive}`;
-  }
+  roomsQueryUrl += `${filterType ? `&type=${filterType}` : ''}`
+  roomsQueryUrl += `${filterActive ? `&active=${filterActive}` : ''}`
 
   let rooms;
   let roomTypes;
