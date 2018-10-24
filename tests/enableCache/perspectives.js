@@ -146,7 +146,6 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
       .then((reply) => {
         const jsonReply = JSON.parse(reply);
         expect(jsonReply).to.have.length(ONE);
-        expect(jsonReply[ZERO].lensId).to.not.exist;
         expect(jsonReply[ZERO].name).to.be.equal('___testPersp');
         expect(jsonReply[ZERO].rootSubject).to.be.equal('myMainSubject');
         return done();

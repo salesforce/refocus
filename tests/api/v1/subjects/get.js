@@ -431,7 +431,7 @@ describe(`tests/api/v1/subjects/get.js, GET ${path} >`, () => {
       }
 
       expect(res.body[ZERO]).to.not.have.property('absolutePath');
-      expect(res.body[ZERO]).to.have.all
+      expect(res.body[ZERO]).to.contains.all
         .keys(['apiLinks', 'id', 'isPublished', 'name', 'sortBy']);
       done();
     });

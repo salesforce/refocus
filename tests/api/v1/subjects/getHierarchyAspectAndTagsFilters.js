@@ -261,7 +261,7 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
         expect(res.body.children).to.have.length(1);
         expect(res.body).to.not.have.property('tags');
         expect(res.body).to.have.all
-        .keys(['name', 'id', 'samples', 'children', 'apiLinks']);
+          .keys(['name', 'id', 'samples', 'children', 'apiLinks']);
 
         // canada
         expect(res.body.children[0].children).to.have.length(1);

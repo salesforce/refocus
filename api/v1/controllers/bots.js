@@ -18,6 +18,10 @@ const helper = require('../helpers/nouns/bots');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doPatch = require('../helpers/verbs/doPatch');
+const doGetWriters = require('../helpers/verbs/doGetWriters');
+const doPostWriters = require('../helpers/verbs/doPostWriters');
+const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
+const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const redisCache = require('../../../cache/redisCache').client.cache;
 const logger = require('winston');
 
@@ -167,6 +171,7 @@ module.exports = {
     const reqObj = req.swagger.params;
     const uiObj = {};
     u.findByKey(helper, req.swagger.params)
+    .then((o) => u.isWritable(req, o))
     .then((o) => {
       for (const param in reqObj) {
         if (reqObj[param].value) {
@@ -202,5 +207,73 @@ module.exports = {
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   }, // heartbeat
+
+  /**
+   * GET /bots/{key}/writers
+   *
+   * Retrieves all the writers associated with the bot
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getBotWriters(req, res, next) {
+    doGetWriters.getWriters(req, res, next, helper);
+  }, // getBotWriters
+
+  /**
+   * GET /bots/{key}/writers/userNameOrId
+   *
+   * Determine whether a user is an authorized writer for a bot and returns
+   * the user record if so.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getBotWriter(req, res, next) {
+    doGetWriters.getWriter(req, res, next, helper);
+  }, // getBotWriter
+
+  /**
+   * POST /bots/{key}/writers
+   *
+   * Add one or more users to an bots list of authorized writers
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  postBotWriters(req, res, next) {
+    doPostWriters(req, res, next, helper);
+  }, // postBotWriters
+
+  /**
+   * DELETE /bots/{keys}/writers
+   *
+   * Deletes all the writers associated with this resource.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  deleteBotWriters(req, res, next) {
+    doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
+  }, // deleteBotWriters
+
+  /**
+   * DELETE /bots/{keys}/writers/userNameOrId
+   *
+   * Deletes a user from an bot's list of authorized writers.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  deleteBotWriter(req, res, next) {
+    const userNameOrId = req.swagger.params.userNameOrId.value;
+    doDeleteOneAssoc(req, res, next, helper,
+        helper.belongsToManyAssoc.users, userNameOrId);
+  }, // deleteBotWriter
 
 }; // exports

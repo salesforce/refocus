@@ -285,7 +285,7 @@ describe(`tests/api/v1/subjects/getHierarchy.js, GET ${path} >`, () => {
       .end((err, res) => {
         if (err) done(err);
         expect(res.body)
-        .to.have.all.keys(['name', 'id', 'samples', 'children', 'apiLinks']);
+          .to.have.all.keys(['name', 'id', 'samples', 'children', 'apiLinks']);
         done();
       });
     });
@@ -297,7 +297,7 @@ describe(`tests/api/v1/subjects/getHierarchy.js, GET ${path} >`, () => {
       .end((err, res) => {
         if (err) done(err);
         expect(res.body)
-        .to.have.all.keys(['name', 'id', 'samples', 'children', 'apiLinks']);
+          .to.have.all.keys(['name', 'id', 'samples', 'children', 'apiLinks']);
         done();
       });
     });
