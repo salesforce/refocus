@@ -12078,30 +12078,10 @@ definitions:
           Timestamp at which the the write permission was modified
 
   RoomWriterResponse:
-    type: object
-    description: >
-      Users having write permission to the room
-    properties:
-      roomId:
-        type: string
-        readOnly: true
-        description: >
-          Id of a write-protected room
-      userId:
-        type: string
-        readOnly: true
-        description: >
-          Id of a user having write permission to the room
-      createdAt:
-        readOnly: true
-        type: string
-        description: >
-          Timestamp at which the the write permission was created
-      updatedAt:
-        readOnly: true
-        type: string
-        description: >
-          Timestamp at which the the write permission was modified
+    $ref: "./api/v1/swagger/definitions/room.yaml#/RoomWriterResponse"
+
+  RoomTypeWriterResponse:
+    $ref: "./api/v1/swagger/definitions/roomType.yaml#/RoomTypeWriterResponse"
 
   BotResponse:
     type: object
@@ -12618,29 +12598,12 @@ definitions:
         description: >
           Id of the User who created this generatorTemplate.
 
-
   RoomResponse:
-    type: object
-    description: A response for information about a room
-    properties:
-      id:
-        type: integer
-        description: The room number of the specified room
-      name:
-        type: string
-        description: The unique readable name for the room
-      active:
-        type: boolean
-        description: Flag for whether the room is still active or closed
-      type:
-        type: string
-        description: The roomType being used in the specified room
+    $ref: "./api/v1/swagger/definitions/room.yaml#/RoomResponse"
 
   RoomTypeResponse:
-    $ref: "./api/v1/swagger/definitions/roomType.yaml#/RoomType"
+    $ref: "./api/v1/swagger/definitions/roomType.yaml#/RoomTypeResponse"
     
-
-
   BotDataResponse:
     type: object
     description: A response for information about a room

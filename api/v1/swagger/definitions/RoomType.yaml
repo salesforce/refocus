@@ -1,4 +1,4 @@
-RoomType:
+RoomTypeResponse:
   type: object
   description: A response for information about a bot
   properties:
@@ -24,8 +24,7 @@ RoomType:
       items:
         type: string
       description: Array containing the bots to be used for rooms of this type
-
-RoomTypeWriters:
+RoomTypeWriterResponse:
   type: object
   description: >
     Users having write permission to the roomType

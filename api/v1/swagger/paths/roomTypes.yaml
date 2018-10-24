@@ -334,7 +334,7 @@ RoomTypeWriters:
         schema:
           type: array
           items:
-            $ref: "#/definitions/RoomTypeWriter"
+            $ref: "#/definitions/RoomTypeWriterResponse"
             description: >-
               The users having write permission to the room
       400:
