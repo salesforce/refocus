@@ -238,19 +238,59 @@ function handleAssociations(reqObj, inst, props, method) {
 } // handleAssociations
 
 /**
+ * When more than one association is required, Sequelize creates inner query
+ * but doesn't expose FK causing SQL failure.
+ *
+ * This method, in order to avoid Sequelize issue, will add all
+ * the foreign keys to the query when more than one association is required.
+ */
+function multipleAssociations(helperModule, requestedAttributes) {
+  // Filters all association just when requested
+  const associations = requestedAttributes
+    .filter((attribute) => helperModule.model.associations[attribute]);
+
+  if (associations.length > 1) {
+    /*
+     Transform association names (User, currentCollector, etc) to
+     model.fk_names (createdBy, collectorId, etc)
+     */
+    const extraForeignKeys = associations
+      .filter((association) => {
+        // filter all associations with respective fk in the model attributes
+
+        const foreignKey = helperModule.model
+          .associations[association].foreignKey;
+        return helperModule.model.attributes[foreignKey] !== undefined;
+      })
+      .map((association) => {
+        const foreignKey = helperModule.model
+          .associations[association].foreignKey;
+        return helperModule.model.attributes[foreignKey].fieldName;
+      });
+
+    if (extraForeignKeys.length > 0) {
+      requestedAttributes.push(...extraForeignKeys);
+    }
+  }
+}
+
+/**
  * Generates sequelize options object with all the appropriate attributes
  * (fields) and includes, and taking virtual fields into account as well.
  * Always include the "id" field even if it was not explicitly requested.
  *
  * @param {Object} params - The request parameters
+ * @param {Object} props - The helpers/nouns module for the given DB model
  * @returns {Object} - Sequelize options
  */
-function buildFieldList(params) {
+function buildFieldList(params, props) {
   const opts = {};
   if (params.fields && params.fields.value) {
     opts.attributes = params.fields.value;
-    if (!opts.attributes.includes('id')) {
-      opts.attributes.push('id');
+    if (!opts.attributes.includes('id')) opts.attributes.push('id');
+
+    if (props.model) {
+      multipleAssociations(props, opts.attributes);
     }
   }
 
@@ -637,7 +677,7 @@ function cleanAndStripNulls(obj) {
  */
 function findByKey(props, params, extraAttributes) {
   const key = params.key.value;
-  const opts = buildFieldList(params);
+  const opts = buildFieldList(params, props);
   const keyClause = {};
   keyClause[Op.iLike] = key;
   opts.where = {};

@@ -144,14 +144,18 @@ const clockJobConfig = {
 // override job concurrency from env vars
 const jobConcurrency = {};
 Object.keys(jobType).forEach((jobName) => {
-  const envValue = pe[`WORKER_JOB_CONCURRENCY:${jobName}`];
+  /*
+   * Use underscore (_) as separator here - colon (:) doesn't work
+   *  consistently in env var names in heroku.
+   */
+  const envValue = pe[`WORKER_JOB_CONCURRENCY_${jobName}`];
   jobConcurrency[jobName] = envValue || 1;
 });
 
 // override intervals from env vars and convert to ms
 Object.keys(clockJobConfig.intervals).forEach((jobName) => {
   const defaultValue = clockJobConfig.intervals[jobName];
-  const envValue = pe[`CLOCK_JOB_INTERVAL:${jobName}`];
+  const envValue = pe[`CLOCK_JOB_INTERVAL_${jobName}`];
   const value = envValue || defaultValue;
   console.log('Configuring clock job intervals: ' +
     `jobName="${jobName}" defaultValue="${defaultValue}" ` +
