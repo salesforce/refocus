@@ -227,4 +227,3 @@ module.exports = {
   createSelectEl,
   constructListFilterUrl
 }
-

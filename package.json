@@ -58,7 +58,7 @@
     "test-limiter": "npm run test-with-coverage -- tests/limiter/limiter.js",
     "test-main": "npm run test-with-coverage -- --recursive tests/api tests/clock tests/config tests/db tests/enforceToken tests/realtime tests/enableCache tests/logging",
     "test-travis": "npm run test && npm run coveralls",
-    "test-view": "NODE_ENV=build npm run test-with-coverage -- --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view/rooms/list/app.js",
+    "test-view": "NODE_ENV=build npm run test-with-coverage -- --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view",
     "test-with-coverage": "istanbul cover ./node_modules/mocha/bin/_mocha --report none --print none --include-pid -- -R dot",
     "test-xfwd": "REJECT_MULTIPLE_X_FORWARDED_FOR=true npm run test-with-coverage -- --recursive tests/xfwd",
     "test-graceful-shutdown": "npm run test-with-coverage -- --recursive tests/kue/setup.js tests/signal",
