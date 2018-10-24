@@ -163,7 +163,7 @@ module.exports = {
       offset: 0,
     },
     swagger: {
-      doc: './api/v1/swagger.yaml',
+      doc: './api/v1/swagger/index.yaml',
       router: {
         controllers: './api/v1/controllers',
       },

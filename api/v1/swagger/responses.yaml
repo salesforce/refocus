@@ -1,0 +1,21 @@
+responses:
+  400:
+    description: Bad Request
+    schema:
+      $ref: '#/definitions/BadRequest'
+  401:
+    description: Authentication Error
+    schema:
+      $ref: '#/definitions/AuthenticationError'
+  403:
+    description: Forbidden
+    schema:
+      $ref: '#/definitions/ErrorResponse'
+  404:
+    description: Resource Not Found
+    schema:
+      $ref: '#/definitions/ResourceNotFoundError'
+  genericError:
+    description: Error
+    schema:
+      $ref: '#/definitions/ErrorResponse'

@@ -1,0 +1,52 @@
+RoomType:
+  type: object
+  description: A response for information about a bot
+  properties:
+    id:
+      type: string
+      description: The UUID of the roomType specified
+    name:
+      type: string
+      description: The roomType being used in the specified room
+    isEnabled:
+      type: boolean
+      description: Flag indicating whether a roomType is enabled to use on rooms
+    settings:
+      type: object
+      description: Key-value pairs used to configure bots and rooms intial state
+    rules:
+      type: array
+      items:
+        type: object
+      description: Array containing the rules that trigger automations for rooms of this type
+    bots:
+      type: array
+      items:
+        type: string
+      description: Array containing the bots to be used for rooms of this type
+
+RoomTypeWriters:
+  type: object
+  description: >
+    Users having write permission to the roomType
+  properties:
+    roomTypeId:
+      type: string
+      readOnly: true
+      description: >
+        Id of a write-protected roomType
+    userId:
+      type: string
+      readOnly: true
+      description: >
+        Id of a user having write permission to the roomType
+    createdAt:
+      readOnly: true
+      type: string
+      description: >
+        Timestamp at which the the write permission was created
+    updatedAt:
+      readOnly: true
+      type: string
+      description: >
+        Timestamp at which the the write permission was modified
