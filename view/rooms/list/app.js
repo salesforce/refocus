@@ -218,7 +218,6 @@ function loadController(rooms, roomTypes, numRooms) {
       </div>
     }
     </div>,
-
     roomsListContainer
   );
 }

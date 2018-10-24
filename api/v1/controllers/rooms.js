@@ -63,6 +63,7 @@ module.exports = {
           req.swagger.params.type.value = o.dataValues.id;
         }
 
+        console.log(req.swagger.params.type)
         doFind(req, res, next, helper);
       });
     } else {
