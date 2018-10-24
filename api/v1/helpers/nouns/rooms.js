@@ -21,6 +21,9 @@ module.exports = {
     PATCH: `Update selected attributes of ${m}`,
     POST: `Create a new ${m}`,
   },
+  belongsToManyAssoc: {
+    users: 'writers',
+  },
   baseUrl: '/v1/rooms',
   model: Rooms,
   modelName: 'rooms',

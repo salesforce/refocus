@@ -86,11 +86,11 @@ describe('tests/clock/clock.js >', function () {
 
   it('override intervals', () => {
     const env = {
-      'CLOCK_JOB_INTERVAL:checkMissedCollectorHeartbeat': '1m',
-      'CLOCK_JOB_INTERVAL:deactivateRooms': '2m',
-      'CLOCK_JOB_INTERVAL:jobCleanup': '3m',
-      'CLOCK_JOB_INTERVAL:resetJobCounter': '4m',
-      'CLOCK_JOB_INTERVAL:sampleTimeout': '5m',
+      CLOCK_JOB_INTERVAL_checkMissedCollectorHeartbeat: '1m',
+      CLOCK_JOB_INTERVAL_deactivateRooms: '2m',
+      CLOCK_JOB_INTERVAL_jobCleanup: '3m',
+      CLOCK_JOB_INTERVAL_resetJobCounter: '4m',
+      CLOCK_JOB_INTERVAL_sampleTimeout: '5m',
     };
 
     const expectedCount = {
