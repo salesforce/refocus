@@ -29,29 +29,31 @@ class ListController extends React.Component {
     } = this.props;
 
     return (
-      <table className='slds-table slds-table--bordered slds-table-cell-buffer'>
-        <thead>
-          <tr className='slds-text-title--caps'>
-            {tableHeaders.map(header => {
-              const key = camelCase(header);
-              return <th scope='col' key={key}>
-                <div className='slds-truncate' title={key}>{header}</div>
-              </th>;
+      <div>
+        <table className='slds-table slds-table--bordered slds-table-cell-buffer'>
+          <thead>
+            <tr className='slds-text-title--caps'>
+              {tableHeaders.map(header => {
+                const key = camelCase(header);
+                return <th scope='col' key={key}>
+                  <div className='slds-truncate' title={key}>{header}</div>
+                </th>;
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {tableRows.map(row => {
+              const camelCaseHeaders = tableHeaders.map(header => camelCase(header));
+              return <tr key={row.id}>
+                {camelCaseHeaders.map(header =>
+                  <td className="slds-cell-wrap slds-hyphenate" key={row.id + header}>
+                    {Parser(row[header])}
+                  </td>)}
+              </tr>;
             })}
-          </tr>
-        </thead>
-        <tbody>
-          {tableRows.map(row => {
-            const camelCaseHeaders = tableHeaders.map(header => camelCase(header));
-            return <tr key={row.id}>
-              {camelCaseHeaders.map(header =>
-                <td className="slds-cell-wrap slds-hyphenate" key={row.id + header}>
-                  {Parser(row[header])}
-                </td>)}
-            </tr>;
-          })}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     );
   }
 }
