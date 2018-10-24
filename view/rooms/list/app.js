@@ -203,10 +203,22 @@ function loadController(rooms, roomTypes, numRooms) {
 
   uPage.removeSpinner();
   ReactDOM.render(
-    <ListController
-      tableHeaders={ headers }
-      tableRows={ rows }
-    />,
+    <div>
+    { rows.length > 0 ?
+      <ListController
+        tableHeaders={ headers }
+        tableRows={ rows }
+      />
+      :
+      <div className="slds-text-align--center">
+        <h1 className="slds-page-header__title slds-p-around--small">
+          No Rooms Match Current Filter..
+        </h1>
+        <img src="./static/images/empty-state-events.svg"/>
+      </div>
+    }
+    </div>,
+
     roomsListContainer
   );
 }
