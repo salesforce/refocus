@@ -182,17 +182,17 @@ function deleteSampleKeys(associationType, name) {
   })
   .then((samples) => {
     deletedSamples = samples || [];
-    cmds = [];
 
-    // remove the entries from the master list of index
-    cmds.push(['srem', indexName, Array.from(keyArr)]);
-
-    // delete the hashes too
-    cmds.push(['del', Array.from(keyArr)]);
-    return redisClient.batch(cmds).execAsync();
+    /*
+     * Delete all the sample hashes and remove the entries from the master
+     * index of samples.
+     */
+    const sampleRemovalCmds = keyArr.map((key) => ['del', key]);
+    sampleRemovalCmds.push(['srem', indexName, Array.from(keyArr)]);
+    return redisClient.batch(sampleRemovalCmds).execAsync();
   })
   .then(() => deletedSamples);
-}
+} // deleteSampleKeys
 
 /**
  * Deletes entries from the sample master list of indexes that matches
