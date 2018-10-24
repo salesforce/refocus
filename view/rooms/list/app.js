@@ -47,6 +47,7 @@ window.onload = () => {
   let rooms;
   let roomTypes;
   let numRooms;
+
   uPage.setRoomsTab();
   u.getPromiseWithUrl(roomsQueryUrl)
   .then((res) => {
