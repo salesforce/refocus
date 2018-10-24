@@ -26,6 +26,7 @@ const sampleStore = require('../cache/sampleStore');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const doTimeout = require('../cache/sampleStoreTimeout').doTimeout;
 const Op = require('sequelize').Op;
+const Promise = require('bluebird');
 
 /*
  * A wrapper to create, read, update and delete the samples using the same
@@ -124,10 +125,10 @@ function looksLikeId(key) {
  * By convention, all the resources we create in our tests are named using
  * the prefix so we can just do the destroy this way!
  * @param  {Object} model - model object
- * @param  {Object} testStartTime - start time
+ * @param  {Object} _testStartTime - start time
  * @returns {Promise} Promise to delete model object
  */
-function forceDelete(model, testStartTime) {
+function forceDelete(model, _testStartTime = testStartTime) {
   return model.destroy({
     where: {
       name: {
@@ -135,12 +136,21 @@ function forceDelete(model, testStartTime) {
       },
       createdAt: {
         [Op.lt]: new Date(),
-        [Op.gte]: testStartTime,
+        [Op.gte]: _testStartTime,
       },
     },
     force: true,
   });
 } // forceDelete
+
+/**
+ * Force delete multiple models.
+ * @param  {Array} models - model objects to delete
+ * @returns {Promise} Promise to delete model objects
+ */
+function forceDeleteAll(...models) {
+  return Promise.each(models, forceDelete);
+}
 
 module.exports = {
   fakeUserCredentials: {
@@ -171,6 +181,7 @@ module.exports = {
   valError: new Error('expecting SequelizeValidationError'),
   malFormedTokenError: new Error('expecting the token to be malformed'),
   forceDelete,
+  forceDeleteAll,
   schemaValidationErrorName: 'SCHEMA_VALIDATION_FAILED',
   gotExpectedLength(stringOrArray, len) {
     return stringOrArray.length === len;
