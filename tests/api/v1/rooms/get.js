@@ -146,20 +146,6 @@ describe('tests/api/v1/rooms/get.js >', () => {
     });
   });
 
-  it('Pass, get by type when none exist', (done) => {
-    api.get(`${path}?type=NOT_A_TYPE`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.length).to.equal(ZERO);
-      done(err);
-    });
-  });
-
   it('Pass, get by name', (done) => {
     const room2 = u.getNonActive();
     room2.type = testRoom.type;
@@ -219,6 +205,13 @@ describe('tests/api/v1/rooms/get.js >', () => {
     api.get(`${path}/INVALID_ID`)
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
+    .end(() => done());
+  });
+
+  it('Fail, get by active when not a valid boolean', (done) => {
+    api.get(`${path}?active=active`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.BAD_REQUEST)
     .end(() => done());
   });
 });
