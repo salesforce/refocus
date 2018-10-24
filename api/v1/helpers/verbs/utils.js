@@ -237,9 +237,41 @@ function handleAssociations(reqObj, inst, props, method) {
   });
 } // handleAssociations
 
-function isMultipleAssociations(opts) {
-  const MULTIPLE_ASSOCIATIONS = 3;
-  return opts.attributes.length >= MULTIPLE_ASSOCIATIONS;
+/**
+ * When more than one association is required, Sequelize creates inner query
+ * but doesn't expose FK causing SQL failure.
+ *
+ * This method, in order to avoid Sequelize issue, will add all
+ * the foreign keys to the query when more than one association is required.
+ */
+function multipleAssociations(helperModule, requestedAttributes) {
+  // Filters all association just when requested
+  const associations = requestedAttributes
+    .filter((attribute) => helperModule.model.associations[attribute]);
+
+  if (associations.length > 1) {
+    /*
+     Transform association names (User, currentCollector, etc) to
+     model.fk_names (createdBy, collectorId, etc)
+     */
+    const extraForeignKeys = associations
+      .filter((association) => {
+        // filter all associations with respective fk in the model attributes
+
+        const foreignKey = helperModule.model
+          .associations[association].foreignKey;
+        return helperModule.model.attributes[foreignKey] !== undefined;
+      })
+      .map((association) => {
+        const foreignKey = helperModule.model
+          .associations[association].foreignKey;
+        return helperModule.model.attributes[foreignKey].fieldName;
+      });
+
+    if (extraForeignKeys.length > 0) {
+      requestedAttributes.push(...extraForeignKeys);
+    }
+  }
 }
 
 /**
@@ -257,33 +289,8 @@ function buildFieldList(params, props) {
     opts.attributes = params.fields.value;
     if (!opts.attributes.includes('id')) opts.attributes.push('id');
 
-    if (props.model && isMultipleAssociations(opts)) {
-      /*
-      Sequelize workaround.
-      Includes all model's FK for an eventual outer join when it selects
-      the attributes before doing the join for the association, which
-      causes an error when the foreign key is not included in the fields.
-      */
-      const keys = Object.keys(props.model.attributes);
-      keys.forEach((key) => {
-        if (props.model.attributes[key].references) {
-          // model has FK, add to the SQL
-          opts.attributes.push(key);
-
-          /*
-            TODO - remove attributes before send back to the client
-            Keeping comment by now:
-            re-using props as above (The helpers/nouns module ) makes the test
-            fail when running all tests (runs properly one-by-one).
-            We must send back fieldsToExclude into opts (next sprint).
-            https://github.com/salesforce/refocus/pull/918
-          */
-
-          // Add to fields to exclude before sending response
-          // if (!props.fieldsToExclude) props.fieldsToExclude = [];
-          // props.fieldsToExclude.push(key);
-        }
-      });
+    if (props.model) {
+      multipleAssociations(props, opts.attributes);
     }
   }
 
