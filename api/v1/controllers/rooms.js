@@ -58,9 +58,9 @@ module.exports = {
           name: { [Op.iLike]: req.swagger.params.type.value },
         },
       })
-      .then((o) => {
-        if (o) {
-          req.swagger.params.type.value = o.dataValues.id;
+      .then((roomType) => {
+        if (roomType) {
+          req.swagger.params.type.value = roomType.dataValues.id;
         }
 
         doFind(req, res, next, helper);
