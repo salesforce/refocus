@@ -71,16 +71,6 @@ async function start(clusterProcessId = 0) { // eslint-disable-line max-statemen
 
   const app = express();
 
-  // Swagger Schema compiler options for initializing Swagger Middleware
-  // Enables Schema to be multiple files
-  const swaggerRefOptions = {
-    loaderOptions: {
-      processContent: (res, callback) => {
-        callback(undefined, yaml.safeLoad(res.text));
-      }
-    }
-  };
-
   /*
    * If clusterProcessId is 0, we're running in single-process mode (i.e.
    * non-throng), so log the env vars out.
@@ -183,7 +173,18 @@ async function start(clusterProcessId = 0) { // eslint-disable-line max-statemen
   app.set('views', path.join(__dirname, 'view'));
   app.set('view engine', 'pug');
 
-  const response = await JsonRefs.resolveRefsAt('./api/v1/swagger/index.yaml', swaggerRefOptions);
+  // Swagger Schema compiler options for initializing Swagger Middleware
+  // Enables Schema to be multiple files
+  const swaggerRefOptions = {
+    loaderOptions: {
+      processContent: (res, callback) => {
+        callback(undefined, yaml.safeLoad(res.text));
+      }
+    }
+  };
+
+  const response = await JsonRefs
+    .resolveRefsAt('./api/v1/swagger/index.yaml', swaggerRefOptions);
   const swaggerDoc = response.resolved;
 
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
