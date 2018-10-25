@@ -2376,24 +2376,24 @@ paths:
 
   # ---------------------------------------------------------------------------
   /bots:
-    $ref: "./api/v1/swagger/paths/bots.yaml#/Bots"
+    $ref: "./paths/bots.yaml#/Bots"
 
   # ---------------------------------------------------------------------------
   /bots/{key}:
-    $ref: "./api/v1/swagger/paths/bots.yaml#/BotsByID"
+    $ref: "./paths/bots.yaml#/BotsByID"
 
   # ---------------------------------------------------------------------------
 
   /bots/{key}/heartbeat:
-    $ref: "./api/v1/swagger/paths/bots.yaml#/BotHeartbeat"
+    $ref: "./paths/bots.yaml#/BotHeartbeat"
 
   # ---------------------------------------------------------------------------
   /bots/{key}/writers:
-    $ref: "./api/v1/swagger/paths/bots.yaml#/BotWriters"
+    $ref: "./paths/bots.yaml#/BotWriters"
 
   # ---------------------------------------------------------------------------
   /bots/{key}/writers/{userNameOrId}:
-    $ref: "./api/v1/swagger/paths/bots.yaml#/BotWritersByID"
+    $ref: "./paths/bots.yaml#/BotWritersByID"
 
   # ---------------------------------------------------------------------------
   /collectors:
@@ -6604,43 +6604,43 @@ paths:
 
   # ---------------------------------------------------------------------------
   /rooms:
-    $ref: "./api/v1/swagger/paths/rooms.yaml#/Rooms"
+    $ref: "./paths/rooms.yaml#/Rooms"
 
   # ---------------------------------------------------------------------------
   /rooms/{key}:
-    $ref: "./api/v1/swagger/paths/rooms.yaml#/RoomsByID"
+    $ref: "./paths/rooms.yaml#/RoomsByID"
 
   # ---------------------------------------------------------------------------
   /rooms/{key}/writers:
-    $ref: "./api/v1/swagger/paths/rooms.yaml#/RoomWriters"
+    $ref: "./paths/rooms.yaml#/RoomWriters"
 
   # ---------------------------------------------------------------------------
   /rooms/{key}/writers/{userNameOrId}:
-    $ref: "./api/v1/swagger/paths/rooms.yaml#/RoomWritersByID"
+    $ref: "./paths/rooms.yaml#/RoomWritersByID"
 
   # ---------------------------------------------------------------------------
   /rooms/{roomId}/data:
-    $ref: "./api/v1/swagger/paths/rooms.yaml#/RoomData"
+    $ref: "./paths/rooms.yaml#/RoomData"
 
   # ---------------------------------------------------------------------------
   /rooms/{roomId}/bots/{botId}/data:
-    $ref: "./api/v1/swagger/paths/rooms.yaml#/RoomDataByBot"
+    $ref: "./paths/rooms.yaml#/RoomDataByBot"
 
   # ---------------------------------------------------------------------------
   /roomTypes:
-    $ref: "./api/v1/swagger/paths/roomTypes.yaml#/RoomTypes"
+    $ref: "./paths/roomTypes.yaml#/RoomTypes"
 
   # ---------------------------------------------------------------------------
   /roomTypes/{key}:
-    $ref: "./api/v1/swagger/paths/roomTypes.yaml#/RoomTypesByID"
+    $ref: "./paths/roomTypes.yaml#/RoomTypesByID"
 
   # ---------------------------------------------------------------------------
   /roomTypes/{key}/writers:
-    $ref: "./api/v1/swagger/paths/roomTypes.yaml#/RoomTypeWriters"
+    $ref: "./paths/roomTypes.yaml#/RoomTypeWriters"
 
   # ---------------------------------------------------------------------------
   /roomTypes/{key}/writers/{userNameOrId}:
-    $ref: "./api/v1/swagger/paths/roomTypes.yaml#/RoomTypeWritersByID"
+    $ref: "./paths/roomTypes.yaml#/RoomTypeWritersByID"
 
   # ---------------------------------------------------------------------------
   /samples:
@@ -10986,16 +10986,16 @@ definitions:
           Timestamp at which the the write permission was modified
 
   BotWriterResponse:
-    $ref: "./api/v1/swagger/definitions/bot.yaml#/BotWriterResponse"
+    $ref: "./definitions/bot.yaml#/BotWriterResponse"
 
   RoomWriterResponse:
-    $ref: "./api/v1/swagger/definitions/room.yaml#/RoomWriterResponse"
+    $ref: "./definitions/room.yaml#/RoomWriterResponse"
 
   RoomTypeWriterResponse:
-    $ref: "./api/v1/swagger/definitions/roomType.yaml#/RoomTypeWriterResponse"
+    $ref: "./definitions/roomType.yaml#/RoomTypeWriterResponse"
 
   BotResponse:
-    $ref: "./api/v1/swagger/definitions/bot.yaml#/BotResponse"
+    $ref: "./definitions/bot.yaml#/BotResponse"
 
   EventResponse:
     type: object
@@ -11476,10 +11476,10 @@ definitions:
           Id of the User who created this generatorTemplate.
 
   RoomResponse:
-    $ref: "./api/v1/swagger/definitions/room.yaml#/RoomResponse"
+    $ref: "./definitions/room.yaml#/RoomResponse"
 
   RoomTypeResponse:
-    $ref: "./api/v1/swagger/definitions/roomType.yaml#/RoomTypeResponse"
+    $ref: "./definitions/roomType.yaml#/RoomTypeResponse"
     
   BotDataResponse:
     type: object
