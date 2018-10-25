@@ -41,6 +41,7 @@ describe('tests/api/v1/rooms/get.js >', () => {
   beforeEach((done) => {
     RoomType.create(v.getStandard())
     .then((roomType) => {
+      testRoomType = roomType;
       const room = u.getStandard();
       room.type = roomType.id;
       return Room.create(room);
@@ -117,6 +118,34 @@ describe('tests/api/v1/rooms/get.js >', () => {
     });
   });
 
+  it('Pass, get by type (id)', (done) => {
+    api.get(`${path}?type=${testRoomType.id}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      done(err);
+    });
+  });
+
+  it('Pass, get by type (name)', (done) => {
+    api.get(`${path}?type=${testRoomType.name}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      done(err);
+    });
+  });
+
   it('Pass, get by name', (done) => {
     const room2 = u.getNonActive();
     room2.type = testRoom.type;
@@ -176,6 +205,13 @@ describe('tests/api/v1/rooms/get.js >', () => {
     api.get(`${path}/INVALID_ID`)
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
+    .end(() => done());
+  });
+
+  it('Fail, get by active when not a valid boolean', (done) => {
+    api.get(`${path}?active=active`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.BAD_REQUEST)
     .end(() => done());
   });
 });
