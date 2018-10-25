@@ -126,7 +126,7 @@ const clockJobConfig = {
     kueStatsActivityLogs: '1m',
     pubStatsLogs: '1m',
     queueStatsActivityLogs: '1m',
-    resetJobCounter: '24h',
+    resetJobCounter: '2h',
     sampleTimeout: '30s',
   },
   useWorker: {
