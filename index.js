@@ -17,12 +17,12 @@
 /* eslint-disable global-require */
 /* eslint-disable no-process-env */
 const throng = require('throng');
+const JsonRefs = require('json-refs');
 const DEFAULT_WEB_CONCURRENCY = 1;
 const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 const sampleStore = require('./cache/sampleStoreInit');
 const conf = require('./config');
 const signal = require('./signal/signal');
-const JsonRefs = require('json-refs');
 
 /**
  * Entry point for each clustered process.
@@ -302,6 +302,7 @@ async function start(clusterProcessId = 0) { // eslint-disable-line max-statemen
      * middleware chain as possible.
      */
     app.use(mw.swaggerRouter(conf.api.swagger.router));
+
     // Serve the Swagger documents and Swagger UI
     app.use(mw.swaggerUi({
       apiDocs: swaggerDoc.basePath + '/api-docs', // API documetation as JSON
@@ -311,7 +312,6 @@ async function start(clusterProcessId = 0) { // eslint-disable-line max-statemen
     // Handle Errors
     app.use(errorHandler);
   });
-
 
   // Setup for session
   app.use(cookieParser());
