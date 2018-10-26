@@ -30,7 +30,7 @@ const signal = require('./signal/signal');
  * @param {Number} clusterProcessId - process id if called from throng,
  *  otherwise 0
  */
- function start(clusterProcessId = 0) { // eslint-disable-line max-statements
+function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   console.log(`Started node process ${clusterProcessId}`);
 
   /*
