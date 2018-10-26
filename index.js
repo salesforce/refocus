@@ -185,6 +185,8 @@ async function start(clusterProcessId = 0) { // eslint-disable-line max-statemen
   const response = await JsonRefs
     .resolveRefsAt('./api/v1/swagger/index.yaml', swaggerRefOptions);
   const swaggerDoc = response.resolved;
+  console.log("ANCHOR FOR THIS")
+  console.log(swaggerDoc.definitions.RoomTypeResponse)
 
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
     /*
