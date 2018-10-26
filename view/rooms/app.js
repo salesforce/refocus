@@ -304,7 +304,7 @@ function createMinimizeButton(bot) {
     '../static/icons/utility-sprite/svg/symbols.svg#chevrondown'
   );
   useElemDown.setAttribute('id', bot.name + '-toggleDown');
-  useElemDown.setAttribute('style', 'display: none');
+  useElemDown.setAttribute('style', 'display:none');
   svgElem.appendChild(useElemDown);
   minimize.appendChild(svgElem);
 
@@ -843,25 +843,35 @@ function closeConfirmationModal() {
  * @param {DOM} document - document to display not found modal on
  */
 function displayNotFoundModal(doc) {
-  if(doc) {
-    doc.getElementById('create_room_button').onclick = () => window.location = '/rooms/new';
-    doc.getElementById('room_list_button').onclick = () => window.location = '/rooms';
+  doc ?
+    notFoundModalInit(doc.getElementById('create_room_button'), 
+                      doc.getElementById('room_list_button'), 
+                      doc.getElementById('room_not_found_modal'), 
+                      doc.getElementById('room_not_found_text'))
+    :
+    notFoundModalInit(goToCreateRoomsButton, 
+                      gotToRoomListButton, 
+                      roomNotFoundModal, 
+                      notFoundText);
+  
+}
 
-    doc.getElementById('room_not_found_modal').setAttribute(
+/**
+ * Intialises dom elements for modal passed in, shows modal on screen
+ * @param {DOM} createButton 
+ * @param {DOM} roomListButton 
+ * @param {DOM} modal 
+ * @param {DOM} messageText 
+ */
+function notFoundModalInit(createButton, roomListButton, modal, messageText) {
+    createButton.onclick = () => window.location = '/rooms/new';
+    roomListButton.onclick = () => window.location = '/rooms';
+  
+    modal.setAttribute(
       'style',
       'display: block;'
     );
-    doc.getElementById('room_not_found_text').innerText = notFoundMessage;
-  } else {
-    goToCreateRoomsButton.onclick = () => window.location = '/rooms/new';
-    gotToRoomListButton.onclick = () => window.location = '/rooms';
-  
-    roomNotFoundModal.setAttribute(
-      'style',
-      'display:block;'
-    );
-    notFoundText.innerText = notFoundMessage;
-  }
+    messageText.innerText = notFoundMessage;
 }
 
 /**
