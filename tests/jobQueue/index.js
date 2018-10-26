@@ -33,10 +33,10 @@ describe('tests/jobQueue/index.js >', () => {
 
   it('override concurrency', () => {
     const env = {
-      'WORKER_JOB_CONCURRENCY:createAuditEvents': 1,
-      'WORKER_JOB_CONCURRENCY:bulkUpsertSamples': 2,
-      'WORKER_JOB_CONCURRENCY:getHierarchy': 3,
-      'WORKER_JOB_CONCURRENCY:bulkDeleteSubjects': 4,
+      WORKER_JOB_CONCURRENCY_createAuditEvents: 1,
+      WORKER_JOB_CONCURRENCY_bulkUpsertSamples: 2,
+      WORKER_JOB_CONCURRENCY_getHierarchy: 3,
+      WORKER_JOB_CONCURRENCY_bulkDeleteSubjects: 4,
     };
 
     return runWorker(env)
@@ -55,9 +55,9 @@ describe('tests/jobQueue/index.js >', () => {
 
   it('cannot override clock job concurrency', () => {
     const env = {
-      'WORKER_JOB_CONCURRENCY:checkMissedCollectorHeartbeat': 1,
-      'WORKER_JOB_CONCURRENCY:jobCleanup': 2,
-      'WORKER_JOB_CONCURRENCY:sampleTimeout': 4,
+      WORKER_JOB_CONCURRENCY_checkMissedCollectorHeartbeat: 1,
+      WORKER_JOB_CONCURRENCY_jobCleanup: 2,
+      WORKER_JOB_CONCURRENCY_sampleTimeout: 4,
     };
 
     return runWorker(env)

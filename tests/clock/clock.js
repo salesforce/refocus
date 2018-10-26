@@ -26,7 +26,7 @@ describe('tests/clock/clock.js >', function () {
       checkMissedCollectorHeartbeat: intervalsInDay('15s'),
       deactivateRooms: intervalsInDay('5m'),
       jobCleanup: intervalsInDay('30m'),
-      resetJobCounter: intervalsInDay('24h'),
+      resetJobCounter: intervalsInDay('2h'),
       sampleTimeout: intervalsInDay('30s'),
     };
 
@@ -47,7 +47,7 @@ describe('tests/clock/clock.js >', function () {
       checkMissedCollectorHeartbeat: intervalsInHour('15s'),
       deactivateRooms: intervalsInHour('5m'),
       jobCleanup: intervalsInHour('30m'),
-      resetJobCounter: intervalsInHour('24h'),
+      resetJobCounter: intervalsInHour('2h'),
       sampleTimeout: intervalsInHour('30s'),
     };
 
@@ -72,7 +72,7 @@ describe('tests/clock/clock.js >', function () {
       kueStatsActivityLogs: intervalsInHour('1m'),
       pubStatsLogs: intervalsInHour('1m'),
       queueStatsActivityLogs: intervalsInHour('1m'),
-      resetJobCounter: intervalsInHour('24h'),
+      resetJobCounter: intervalsInHour('2h'),
       sampleTimeout: intervalsInHour('30s'),
     };
 
@@ -86,11 +86,11 @@ describe('tests/clock/clock.js >', function () {
 
   it('override intervals', () => {
     const env = {
-      'CLOCK_JOB_INTERVAL:checkMissedCollectorHeartbeat': '1m',
-      'CLOCK_JOB_INTERVAL:deactivateRooms': '2m',
-      'CLOCK_JOB_INTERVAL:jobCleanup': '3m',
-      'CLOCK_JOB_INTERVAL:resetJobCounter': '4m',
-      'CLOCK_JOB_INTERVAL:sampleTimeout': '5m',
+      CLOCK_JOB_INTERVAL_checkMissedCollectorHeartbeat: '1m',
+      CLOCK_JOB_INTERVAL_deactivateRooms: '2m',
+      CLOCK_JOB_INTERVAL_jobCleanup: '3m',
+      CLOCK_JOB_INTERVAL_resetJobCounter: '4m',
+      CLOCK_JOB_INTERVAL_sampleTimeout: '5m',
     };
 
     const expectedCount = {
