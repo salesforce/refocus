@@ -187,66 +187,12 @@ function deleteSampleKeys(associationType, name) {
      * Delete all the sample hashes and remove the entries from the master
      * index of samples.
      */
-    const sampleRemovalCmds = keyArr.map((key) => ['del', key]);
-    sampleRemovalCmds.push(['srem', indexName, Array.from(keyArr)]);
-    return redisClient.batch(sampleRemovalCmds).execAsync();
+    const delCmds = keyArr.map((key) => ['del', key]);
+    const sremCmds = keyArr.map((key) => ['srem', indexName, key]);
+    return executeBatchCmds(delCmds.concat(sremCmds));
   })
   .then(() => deletedSamples);
 } // deleteSampleKeys
-
-/**
- * Deletes entries from the sample master list of indexes that matches
- * the "subject name" part or the "aspect name" part of the entry. The hash
- * identified by the deleted entry is also deleted. Use this only to delete
- * multiple keys in the sample master list of indexes and its related hashes.
- * @param  {String} type - The type of the master list on which the
- *  set operations are to be performed
- * @param  {String} objectName - The object name (like Subject, Aspect, Sample)
- * @param {String} name - The name of the key to be deleted
- * @returns {Promise} - which resolves to the values returned by the redis batch
- * command
- */
-function deleteKeys(type, objectName, name) {
-  if (type !== sampleType) {
-    return Promise.reject(false);
-  }
-
-  const nameKey = redisStore.toKey(type, name);
-  const indexName = redisStore.constants.indexKey[type];
-  const cmds = [];
-  return redisClient.smembersAsync(indexName)
-  .then((keys) => {
-    const keyArr = [];
-
-    /*
-     * Go through the members in the sample master list of indexes.
-     * Split the name parts. If the object type is subject and the
-     * "subjectNamepart" matches the nameKey remove it from the SampleStore.
-     * There is also a hash with the same name as this, delete that hash too.
-     * If the object type is aspect and the and aspect name matches the name,
-     * remove it from the sample master index and delete the hash.
-     */
-    keys.forEach((key) => {
-      const nameParts = key.split('|');
-      const subjectKey = nameParts[0];
-      const aspect = nameParts[1];
-      if ((objectName.toLowerCase() === subjectType && nameKey === subjectKey)
-        || (objectName.toLowerCase() === aspectType &&
-          name.toLowerCase() === aspect)) {
-        keyArr.push(key);
-      }
-    });
-
-    // remove the entry from the master list of index
-    cmds.push(['srem', indexName, Array.from(keyArr)]);
-
-    // delete the hash too
-    cmds.push(['del', Array.from(keyArr)]);
-    return redisClient.batch(cmds).execAsync();
-  })
-  .then((ret) => Promise.resolve(ret))
-  .catch((err) => Promise.reject(err));
-} // deleteKeys
 
 /**
  * Renames the entry in subject or aspect master list and the corresponding
@@ -274,8 +220,8 @@ function renameKey(type, oldName, newName) {
   // rename the set with the new name
   cmds.push(['rename', oldKey, newKey]);
   return redisClient.batch(cmds).execAsync()
-        .then((ret) => Promise.resolve(ret))
-        .catch((err) => Promise.reject(err));
+  .then((ret) => Promise.resolve(ret))
+  .catch((err) => Promise.reject(err));
 } // renameKey
 
 /**
@@ -596,8 +542,6 @@ module.exports = {
   renameKey,
 
   deleteKey,
-
-  deleteKeys,
 
   deleteSampleKeys,
 
