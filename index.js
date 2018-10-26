@@ -173,14 +173,13 @@ async function start(clusterProcessId = 0) { // eslint-disable-line max-statemen
   app.set('views', path.join(__dirname, 'view'));
   app.set('view engine', 'pug');
 
-  // Swagger Schema compiler options for initializing Swagger Middleware
-  // Enables Schema to be multiple files
+  // Enables Swagger Schema to be multiple files
   const swaggerRefOptions = {
     loaderOptions: {
       processContent: (res, callback) => {
         callback(undefined, yaml.safeLoad(res.text));
-      }
-    }
+      },
+    },
   };
 
   const response = await JsonRefs
