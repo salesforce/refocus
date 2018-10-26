@@ -126,7 +126,7 @@ const clockJobConfig = {
     kueStatsActivityLogs: '1m',
     pubStatsLogs: '1m',
     queueStatsActivityLogs: '1m',
-    resetJobCounter: '24h',
+    resetJobCounter: '2h',
     sampleTimeout: '30s',
   },
   useWorker: {
@@ -144,14 +144,18 @@ const clockJobConfig = {
 // override job concurrency from env vars
 const jobConcurrency = {};
 Object.keys(jobType).forEach((jobName) => {
-  const envValue = pe[`WORKER_JOB_CONCURRENCY:${jobName}`];
+  /*
+   * Use underscore (_) as separator here - colon (:) doesn't work
+   *  consistently in env var names in heroku.
+   */
+  const envValue = pe[`WORKER_JOB_CONCURRENCY_${jobName}`];
   jobConcurrency[jobName] = envValue || 1;
 });
 
 // override intervals from env vars and convert to ms
 Object.keys(clockJobConfig.intervals).forEach((jobName) => {
   const defaultValue = clockJobConfig.intervals[jobName];
-  const envValue = pe[`CLOCK_JOB_INTERVAL:${jobName}`];
+  const envValue = pe[`CLOCK_JOB_INTERVAL_${jobName}`];
   const value = envValue || defaultValue;
   clockJobConfig.intervals[jobName] = ms(value);
 });
