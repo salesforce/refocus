@@ -282,9 +282,6 @@ class RoomTypeComponent extends React.Component {
 
 RoomTypeComponent.propTypes = {
   roomType: PropTypes.object,
-  roomType: PropTypes.object,
-  roomType: PropTypes.object,
-  roomType: PropTypes.object,
 };
 
 export default RoomTypeComponent;
