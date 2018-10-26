@@ -9885,7 +9885,7 @@ definitions:
     $ref: "./definitions/room.yaml#/RoomWriterResponse"
 
   RoomTypeWriterResponse:
-    $ref: "./definitions/roomType.yaml#/RoomTypeWriterResponse"
+    $ref: "./definitions/room.yaml#/RoomWriterResponse"
 
   BotResponse:
     $ref: "./definitions/bot.yaml#/BotResponse"
@@ -10318,7 +10318,7 @@ definitions:
     $ref: "./definitions/room.yaml#/RoomResponse"
 
   RoomTypeResponse:
-    $ref: "./definitions/roomType.yaml#/RoomTypeResponse"
+    $ref: "./definitions/room.yaml#/RoomResponse"
     
   BotDataResponse:
     $ref: "./definitions/botData.yaml#/BotDataResponse"
