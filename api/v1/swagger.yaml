@@ -6012,6 +6012,21 @@ paths:
                 description: >
                   Array of subject tag names to filter; Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
+              aspectFilterType:
+                type: string
+                enum:
+                  - INCLUDE
+                  - EXCLUDE
+              aspectTagFilterType:
+                type: string
+                enum:
+                  - INCLUDE
+                  - EXCLUDE
+              subjectTagFilterType:
+                type: string
+                enum:
+                  - INCLUDE
+                  - EXCLUDE
               statusFilter:
                 type: array
                 items:
@@ -6188,6 +6203,21 @@ paths:
                 description: >
                   Array of subject tag names to filter; Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
                   underscore (_) and dash (-).
+              aspectFilterType:
+                type: string
+                enum:
+                  - INCLUDE
+                  - EXCLUDE
+              aspectTagFilterType:
+                type: string
+                enum:
+                  - INCLUDE
+                  - EXCLUDE
+              subjectTagFilterType:
+                type: string
+                enum:
+                  - INCLUDE
+                  - EXCLUDE
               statusFilter:
                 type: array
                 items:
@@ -11601,6 +11631,21 @@ definitions:
         description: >
           Array of subject tag names to filter; Tag name: Max 60 characters; case insensitive; allows alpha-numeric characters,
           underscore (_) and dash (-).
+      aspectFilterType:
+        type: string
+        enum:
+          - INCLUDE
+          - EXCLUDE
+      aspectTagFilterType:
+        type: string
+        enum:
+          - INCLUDE
+          - EXCLUDE
+      subjectTagFilterType:
+        type: string
+        enum:
+          - INCLUDE
+          - EXCLUDE
       statusFilter:
         type: array
         items:
