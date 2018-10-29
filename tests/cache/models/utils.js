@@ -103,4 +103,27 @@ describe('tests/cache/models/utils.js >', () => {
       expect(result[2].name.endsWith(1)).to.be.true;
     });
   });
+
+  describe('cleanQueryBodyObj >', () => {
+    it('obj has some fields in arr', () => {
+      const obj = { a: 'a', b: 'b', c: 'c' };
+      const fieldArr = ['a', 'b', 'd', 'e'];
+      utils.cleanQueryBodyObj(obj, fieldArr);
+      expect(obj).to.deep.equal({ a: 'a', b: 'b' });
+    });
+
+    it('obj has no fields in arr', () => {
+      const obj = { a: 'a', b: 'b', c: 'c' };
+      const fieldArr = ['d', 'e'];
+      utils.cleanQueryBodyObj(obj, fieldArr);
+      expect(obj).to.deep.equal({ });
+    });
+
+    it('obj has all fields in arr', () => {
+      const obj = { a: 'a', b: 'b', c: 'c' };
+      const fieldArr = ['a', 'b', 'c'];
+      utils.cleanQueryBodyObj(obj, fieldArr);
+      expect(obj).to.deep.equal({ a: 'a', b: 'b', c: 'c' });
+    });
+  });
 });

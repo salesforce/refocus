@@ -205,26 +205,29 @@ function cleanAddSubjectToSample(sampleObj, subjectObj) {
  * @param  {Object} aspectObj - Aspect object
  */
 function createSampHsetCommand(qbObj, sampObj, aspectObj) {
+  const dateNow = new Date().toISOString();
   modelUtils.cleanQueryBodyObj(qbObj, sampleFieldsArr); // remove extra fields
-  let value;
+  let value = '';
   if (qbObj[sampFields.VALUE]) {
     value = qbObj[sampFields.VALUE];
-  } else if (!sampObj) {
-    value = ''; // default value
   }
 
-  if (value !== undefined) {
-    qbObj[sampFields.VALUE] = value;
-    const status = sampleUtils.computeStatus(aspectObj, value);
+  // Make sure the sample *always* has a previous status!
+  qbObj[sampFields.PRVS_STATUS] =
+    sampObj ? sampObj[sampFields.STATUS] : dbConstants.statuses.Invalid;
 
-    if (!sampObj || (sampObj && (sampObj[sampFields.STATUS] !== status))) {
-      const prevStatus = sampObj ? sampObj[sampFields.STATUS] :
-        dbConstants.statuses.Invalid;
-      qbObj[sampFields.PRVS_STATUS] = prevStatus;
-      qbObj[sampFields.STS_CHNGED_AT] = new Date().toISOString();
-      qbObj[sampFields.STATUS] = status;
-    }
+  qbObj[sampFields.VALUE] = value;
+  const status = sampleUtils.computeStatus(aspectObj, value);
+
+  // Use the former "status changed at" field or update if necessary
+  if (sampObj && sampObj[sampFields.STATUS] === status) {
+    qbObj[sampFields.STS_CHNGED_AT] = sampObj[sampFields.STS_CHNGED_AT];
+  } else {
+    qbObj[sampFields.STS_CHNGED_AT] = dateNow;
   }
+
+  // Set the status
+  qbObj[sampFields.STATUS] = status;
 
   let rlinks;
 
@@ -239,7 +242,6 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj) {
     qbObj[sampFields.RLINKS] = JSON.stringify(rlinks);
   }
 
-  const dateNow = new Date().toISOString();
   if (!sampObj) { // new sample
     qbObj[sampFields.CREATED_AT] = dateNow;
   }
@@ -452,6 +454,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
 } // upsertOneSample
 
 module.exports = {
+  createSampHsetCommand, // export for testing only
 
   /**
    * Delete sample. Get sample. If found, get aspect, delete sample entry from

@@ -56,6 +56,12 @@ module.exports = (job, done) => {
           return Promise.resolve();
         }
 
+        if (!result.hasOwnProperty('name')) {
+          errors.push('Sample record in Redis missing "name" attribute. ' +
+            'Contact your Refocus administrator.');
+          return Promise.resolve();
+        }
+
         successCount++;
         if (featureToggles.isFeatureEnabled('publishSampleInPromiseChain')) {
           // Wait for publish to complete before resolving the promise.
