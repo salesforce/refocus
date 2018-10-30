@@ -1,0 +1,57 @@
+# =============================================================================
+# Copyright (c) 2018, salesforce.com, inc.
+# All rights reserved.
+# Licensed under the BSD 3-Clause license.
+# For full license text, see LICENSE.txt file in the repo root or
+# https://opensource.org/licenses/BSD-3-Clause
+# =============================================================================
+
+# =============================================================================
+# api/v1/swagger/definitions/botData.yaml
+# =============================================================================
+BotDataResponse:
+  type: object
+  description: A response for information about a room
+  properties:
+    id:
+      type: string
+      description: UUID of the specified bot data
+    name:
+      type: string
+      description: Name of the bot data
+    value:
+      type: string
+      description: Current value of the bot data
+    roomId:
+      type: integer
+      description: The room number of the room of the bot data
+    botId:
+      type: string
+      description: UUID of the specified bot in that room
+
+# ---------------------------------------------------------------------------
+BotDataWriterResponse:
+  type: object
+  description: >
+    Users having write permission to the botData
+  properties:
+    botDataId:
+      type: string
+      readOnly: true
+      description: >
+        Id of a write-protected botData
+    userId:
+      type: string
+      readOnly: true
+      description: >
+        Id of a user having write permission to the botData
+    createdAt:
+      readOnly: true
+      type: string
+      description: >
+        Timestamp at which the the write permission was created
+    updatedAt:
+      readOnly: true
+      type: string
+      description: >
+        Timestamp at which the the write permission was modified
