@@ -188,6 +188,7 @@
     "eslint-plugin-react": "^4.2.3",
     "eslint_d": "^3.1.0",
     "istanbul": "^0.4.5",
+    "json-refs": "^3.0.12",
     "mocha": "^3.1.2",
     "mocha-lcov-reporter": "1.2.0",
     "redbox-react": "^1.6.0",
