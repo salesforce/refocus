@@ -39,10 +39,10 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       name: '___ThreeHours',
       timeout: '3H',
       valueType: 'NUMERIC',
-      criticalRange: [ 0, 0 ],
-      warningRange: [ 1, 1 ],
-      infoRange: [ 2, 2 ],
-      okRange: [ 3, 3 ],
+      criticalRange: [0, 0],
+      warningRange: [1, 1],
+      infoRange: [2, 2],
+      okRange: [3, 3],
       updatedAt: '2018-10-29T20:24:37.044Z',
       createdAt: '2018-10-29T20:24:37.044Z',
     };
@@ -72,7 +72,9 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       status: 'Critical',
       value: '1',
       previousStatus: 'Invalid',
-      user: '{"name":"___testUser@refocus.com","email":"___testUser@refocus.com","profile":{"name":"___testProfile"}}',
+      user: '{"name":"___testUser@refocus.com",' +
+        '"email":"___testUser@refocus.com",' +
+        '"profile":{"name":"___testProfile"}}',
       createdAt: '2018-10-29T22:42:30.938Z',
       name: '___TEST_SUBJECT|___TEST_ASPECT',
       subjectId: 'd2dfc000-5498-4bf0-a8c4-9c42c4569f05',
@@ -81,7 +83,7 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       statusChangedAt: '2018-10-29T22:42:30.938Z',
       provider: '84f3560b-1b68-4868-bea3-8dd0ad8aa8f3',
       updatedAt: '2018-10-29T22:42:30.938Z',
-    }
+    };
     const asp = {
       id: '50513365-f24f-455c-8d47-c507d1c62a96',
       isDeleted: '0',
@@ -94,10 +96,10 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       timeout: '30s',
       valueLabel: 's',
       valueType: 'NUMERIC',
-      criticalRange: [ 0, 1 ],
-      warningRange: [ 2, 3 ],
-      infoRange: [ 4, 5 ],
-      okRange: [ 6, 7 ],
+      criticalRange: [0, 1],
+      warningRange: [2, 3],
+      infoRange: [4, 5],
+      okRange: [6, 7],
       updatedAt: '2018-10-29T22:42:30.918Z',
       createdAt: '2018-10-29T22:42:30.918Z',
       writers: [],
@@ -125,7 +127,9 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       status: 'Critical',
       value: '1',
       previousStatus: 'Invalid',
-      user: '{"name":"___testUser@refocus.com","email":"___testUser@refocus.com","profile":{"name":"___testProfile"}}',
+      user: '{"name":"___testUser@refocus.com",' +
+        '"email":"___testUser@refocus.com",' +
+        '"profile":{"name":"___testProfile"}}',
       createdAt: '2018-10-29T22:42:30.938Z',
       name: '___TEST_SUBJECT|___TEST_ASPECT',
       subjectId: 'd2dfc000-5498-4bf0-a8c4-9c42c4569f05',
@@ -134,7 +138,7 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       statusChangedAt: '2018-10-29T22:42:30.938Z',
       provider: '84f3560b-1b68-4868-bea3-8dd0ad8aa8f3',
       updatedAt: '2018-10-29T22:42:30.938Z',
-    }
+    };
     const asp = {
       id: '50513365-f24f-455c-8d47-c507d1c62a96',
       isDeleted: '0',
@@ -147,10 +151,10 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       timeout: '30s',
       valueLabel: 's',
       valueType: 'NUMERIC',
-      criticalRange: [ 0, 1 ],
-      warningRange: [ 2, 3 ],
-      infoRange: [ 4, 5 ],
-      okRange: [ 6, 7 ],
+      criticalRange: [0, 1],
+      warningRange: [2, 3],
+      infoRange: [4, 5],
+      okRange: [6, 7],
       updatedAt: '2018-10-29T22:42:30.918Z',
       createdAt: '2018-10-29T22:42:30.918Z',
       writers: [],
@@ -179,7 +183,9 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       status: 'Critical',
       value: '1',
       previousStatus: 'Invalid',
-      user: '{"name":"___testUser@refocus.com","email":"___testUser@refocus.com","profile":{"name":"___testProfile"}}',
+      user: '{"name":"___testUser@refocus.com",' +
+        '"email":"___testUser@refocus.com",' +
+        '"profile":{"name":"___testProfile"}}',
       createdAt: '2018-10-29T22:42:30.938Z',
       name: '___TEST_SUBJECT|___TEST_ASPECT',
       subjectId: 'd2dfc000-5498-4bf0-a8c4-9c42c4569f05',
@@ -188,7 +194,7 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       statusChangedAt: '2018-10-29T22:42:30.938Z',
       provider: '84f3560b-1b68-4868-bea3-8dd0ad8aa8f3',
       updatedAt: '2018-10-29T22:42:30.938Z',
-    }
+    };
     const asp = {
       id: '50513365-f24f-455c-8d47-c507d1c62a96',
       isDeleted: '0',
@@ -201,10 +207,10 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       timeout: '30s',
       valueLabel: 's',
       valueType: 'NUMERIC',
-      criticalRange: [ 0, 1 ],
-      warningRange: [ 2, 3 ],
-      infoRange: [ 4, 5 ],
-      okRange: [ 6, 7 ],
+      criticalRange: [0, 1],
+      warningRange: [2, 3],
+      infoRange: [4, 5],
+      okRange: [6, 7],
       updatedAt: '2018-10-29T22:42:30.918Z',
       createdAt: '2018-10-29T22:42:30.918Z',
       writers: [],
@@ -233,7 +239,9 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       status: 'Critical',
       value: '1',
       previousStatus: 'Invalid',
-      user: '{"name":"___testUser@refocus.com","email":"___testUser@refocus.com","profile":{"name":"___testProfile"}}',
+      user: '{"name":"___testUser@refocus.com",' +
+        '"email":"___testUser@refocus.com",' +
+        '"profile":{"name":"___testProfile"}}',
       createdAt: '2018-10-29T22:42:30.938Z',
       name: '___TEST_SUBJECT|___TEST_ASPECT',
       subjectId: 'd2dfc000-5498-4bf0-a8c4-9c42c4569f05',
@@ -242,7 +250,7 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       statusChangedAt: '2018-10-29T22:42:30.938Z',
       provider: '84f3560b-1b68-4868-bea3-8dd0ad8aa8f3',
       updatedAt: '2018-10-29T22:42:30.938Z',
-    }
+    };
     const asp = {
       id: '50513365-f24f-455c-8d47-c507d1c62a96',
       isDeleted: '0',
@@ -255,10 +263,10 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       timeout: '30s',
       valueLabel: 's',
       valueType: 'NUMERIC',
-      criticalRange: [ 0, 1 ],
-      warningRange: [ 2, 3 ],
-      infoRange: [ 4, 5 ],
-      okRange: [ 6, 7 ],
+      criticalRange: [0, 1],
+      warningRange: [2, 3],
+      infoRange: [4, 5],
+      okRange: [6, 7],
       updatedAt: '2018-10-29T22:42:30.918Z',
       createdAt: '2018-10-29T22:42:30.918Z',
       writers: [],
@@ -282,13 +290,15 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       value: '0',
       subjectId: 'd2dfc000-5498-4bf0-a8c4-9c42c4569f05',
       aspectId: '50513365-f24f-455c-8d47-c507d1c62a96',
-      relatedLinks: [{ name : 'a', url: 'bcd' }],
+      relatedLinks: [{ name: 'a', url: 'bcd' }],
     };
     const samp = {
       status: 'Critical',
       value: '1',
       previousStatus: 'Invalid',
-      user: '{"name":"___testUser@refocus.com","email":"___testUser@refocus.com","profile":{"name":"___testProfile"}}',
+      user: '{"name":"___testUser@refocus.com",' +
+        '"email":"___testUser@refocus.com",' +
+        '"profile":{"name":"___testProfile"}}',
       createdAt: '2018-10-29T22:42:30.938Z',
       name: '___TEST_SUBJECT|___TEST_ASPECT',
       subjectId: 'd2dfc000-5498-4bf0-a8c4-9c42c4569f05',
@@ -297,7 +307,7 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       statusChangedAt: '2018-10-29T22:42:30.938Z',
       provider: '84f3560b-1b68-4868-bea3-8dd0ad8aa8f3',
       updatedAt: '2018-10-29T22:42:30.938Z',
-    }
+    };
     const asp = {
       id: '50513365-f24f-455c-8d47-c507d1c62a96',
       isDeleted: '0',
@@ -310,10 +320,10 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       timeout: '30s',
       valueLabel: 's',
       valueType: 'NUMERIC',
-      criticalRange: [ 0, 1 ],
-      warningRange: [ 2, 3 ],
-      infoRange: [ 4, 5 ],
-      okRange: [ 6, 7 ],
+      criticalRange: [0, 1],
+      warningRange: [2, 3],
+      infoRange: [4, 5],
+      okRange: [6, 7],
       updatedAt: '2018-10-29T22:42:30.918Z',
       createdAt: '2018-10-29T22:42:30.918Z',
       writers: [],
