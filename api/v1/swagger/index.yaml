@@ -9311,7 +9311,7 @@ definitions:
           occurs, value is set to null.
       provider:
         readOnly: true
-        $ref: "#/definitions/UsersResponse"
+        type: string
         description: >
           User who provided this sample.
       createdAt:
