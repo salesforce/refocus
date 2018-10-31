@@ -225,6 +225,14 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj) {
     }
   }
 
+  /*
+   * This block makes sure we always have a previous status--it protects us
+   * against the problem of trying to call HMSET with an "undefined" argument.
+   */
+  if (!qbObj.hasOwnProperty(sampFields.PRVS_STATUS)) {
+    qbObj[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
+  }
+
   let rlinks;
 
   // if related link is passed in query object
@@ -1041,4 +1049,5 @@ module.exports = {
 
   cleanAddSubjectToSample, // export for testing only
   cleanAddAspectToSample, // export for testing only
+  createSampHsetCommand, // export for testing only
 };
