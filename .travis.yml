@@ -41,15 +41,15 @@ services:
   - redis-server
 
 script:
-  - npm run jscs-enforce
-  - npm run checkdb
-  - npm run test-travis
+  - travis_retry npm run jscs-enforce
+  - travis_retry npm run checkdb
+  - travis_retry npm run test-travis
 
 before_install:
-  - npm install -g npm@^5.7.0
+  - travis_retry npm install -g npm@^5.7.0
 
 install:
-  - npm ci
+  - travis_retry npm ci
 
 cache:
   directories:
