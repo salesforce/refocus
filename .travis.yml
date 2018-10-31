@@ -41,8 +41,8 @@ services:
   - redis-server
 
 script:
-  - travis_retry npm run jscs-enforce
-  - travis_retry npm run checkdb
+  - npm run jscs-enforce
+  - npm run checkdb
   - travis_retry npm run test-travis
 
 before_install:
