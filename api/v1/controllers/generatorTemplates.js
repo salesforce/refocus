@@ -50,6 +50,20 @@ module.exports = {
   },
 
   /**
+   * GET /generatorTemplates/{name}/{version}
+   *
+   * Retrieves the generatorTemplate by name and version and sends it back
+   * in the response.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getGeneratorTemplateByNameAndVersion(req, res, next) {
+    doFind(req, res, next, helper);
+  },
+
+  /**
    * PATCH /generatorTemplates/{key}
    *
    * Modifies the generatorTemplate and sends it back in the response.

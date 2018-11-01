@@ -32,8 +32,10 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
   let o4;
   const template1 = u.getGeneratorTemplate();
   template1.name = 'template1';
+  template1.version = '1.0.0';
   const template2 = u.getGeneratorTemplate();
   template2.name = 'template2';
+  template2.version = '1.0.0';
   template2.tags.push('tag2');
   const template3 = u.getGeneratorTemplate();
   template3.name = 'template3';
@@ -158,6 +160,64 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
       expect(res.body.name).to.equal(template1.name);
       done();
     });
+  });
+
+  it('Must retrieve when valid name and version', (done) => {
+    api.get(`${path}/${template1.name}/${template1.version}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[0].name).to.equal(template1.name);
+        expect(res.body[0].version).to.equal(template1.version);
+        done();
+      });
+  });
+
+  it('Must not retrieve by incorrect version', (done) => {
+    api.get(`${path}/${template1.name}/1.0.2`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(ZERO);
+        done();
+      });
+  });
+
+  it('Must not retrieve by incorrect name', (done) => {
+    api.get(`${path}/foo/${template1.version}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(ZERO);
+        done();
+      });
+  });
+
+  it('Must not retrieve by incorrect name and version', (done) => {
+    api.get(`${path}/foo/aa`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(ZERO);
+        done();
+      });
   });
 
   it('Simple GET with name in lowercase', (done) => {
