@@ -48,9 +48,7 @@ const sampFields = {
   ASP_ID: 'aspectId',
   SUBJ_ID: 'subjectId',
 };
-const sampleFieldsArr = Object.keys(sampFields).map(
-  (field) => sampFields[field]
-);
+const sampleFieldsArr = Object.keys(sampFields).map((key) => sampFields[key]);
 
 const embeddedAspectFields = [
   'id', 'description', 'isPublished', 'helpEmail', 'helpUrl', 'name', 'timeout',
@@ -59,9 +57,9 @@ const embeddedAspectFields = [
 ];
 const embeddedSubjectFields = [
   'absolutePath', 'childCount', 'createdAt', 'createdBy', 'description',
-  'geolocation', 'helpEmail', 'helpUrl', 'hierarchyLevel', 'id',
-  'isPublished', 'name', 'parentAbsolutePath', 'parentId', 'relatedLinks',
-  'sortBy', 'tags', 'updatedAt',
+  'geolocation', 'helpEmail', 'helpUrl', 'hierarchyLevel', 'id', 'isPublished',
+  'name', 'parentAbsolutePath', 'parentId', 'relatedLinks', 'sortBy', 'tags',
+  'updatedAt',
 ];
 
 const ZERO = 0;
@@ -143,7 +141,7 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
   const aspect = sampleStore.arrayObjsStringsToJson(aspectObj,
     constants.fieldsToStringify.aspect);
   if (aspect) {
-    modelUtils.cleanQueryBodyObj(aspect, embeddedAspectFields);
+    modelUtils.removeExtraAttributes(aspect, embeddedAspectFields);
     sampleStore.convertAspectStrings(aspect);
     sampleRes.aspect = aspect;
   }
@@ -185,7 +183,7 @@ function cleanAddSubjectToSample(sampleObj, subjectObj) {
   const subject = sampleStore.arrayObjsStringsToJson(subjectObj,
     constants.fieldsToStringify.subject);
   if (subject) {
-    modelUtils.cleanQueryBodyObj(subject, embeddedSubjectFields);
+    modelUtils.removeExtraAttributes(subject, embeddedSubjectFields);
     sampleStore.convertSubjectStrings(subject);
     sampleRes.subject = subject;
   }
@@ -205,7 +203,8 @@ function cleanAddSubjectToSample(sampleObj, subjectObj) {
  * @param  {Object} aspectObj - Aspect object
  */
 function createSampHsetCommand(qbObj, sampObj, aspectObj) {
-  modelUtils.cleanQueryBodyObj(qbObj, sampleFieldsArr); // remove extra fields
+  modelUtils.removeExtraAttributes(qbObj, sampleFieldsArr);
+  const now = new Date().toISOString();
   let value;
   if (qbObj[sampFields.VALUE]) {
     value = qbObj[sampFields.VALUE];
@@ -221,7 +220,7 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj) {
       const prevStatus = sampObj ? sampObj[sampFields.STATUS] :
         dbConstants.statuses.Invalid;
       qbObj[sampFields.PRVS_STATUS] = prevStatus;
-      qbObj[sampFields.STS_CHNGED_AT] = new Date().toISOString();
+      qbObj[sampFields.STS_CHNGED_AT] = now;
       qbObj[sampFields.STATUS] = status;
     }
   }
@@ -239,12 +238,11 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj) {
     qbObj[sampFields.RLINKS] = JSON.stringify(rlinks);
   }
 
-  const dateNow = new Date().toISOString();
   if (!sampObj) { // new sample
-    qbObj[sampFields.CREATED_AT] = dateNow;
+    qbObj[sampFields.CREATED_AT] = now;
   }
 
-  qbObj[sampFields.UPD_AT] = dateNow;
+  qbObj[sampFields.UPD_AT] = now;
 } // createSampHsetCommand
 
 /**
@@ -532,6 +530,7 @@ module.exports = {
     const sampleName = params.key.value;
     const parsedSampleName = parseName(sampleName);
     const aspectName = parsedSampleName.aspect.name;
+    const now = new Date().toISOString();
     let currSampObj;
     let aspectObj;
     return redisOps.getHashPromise(sampleType, sampleName)
@@ -575,7 +574,7 @@ module.exports = {
 
       const hmsetObj = {};
       hmsetObj.relatedLinks = updatedRlinks;
-      hmsetObj.updatedAt = new Date().toISOString();
+      hmsetObj.updatedAt = now;
 
       // stringify arrays
       constants.fieldsToStringify.sample.forEach((field) => {
@@ -604,6 +603,7 @@ module.exports = {
    * @returns {Promise} - Resolves to a sample object
    */
   patchSample(params, userName) {
+    const now = new Date().toISOString();
     const reqBody = params.queryBody.value;
     const sampleName = params.key.value;
     const parsedSampleName = parseName(sampleName.toLowerCase());
@@ -631,7 +631,7 @@ module.exports = {
         });
       }
 
-      modelUtils.cleanQueryBodyObj(reqBody, sampleFieldsArr);
+      modelUtils.removeExtraAttributes(reqBody, sampleFieldsArr);
       aspectObj = sampleStore.arrayObjsStringsToJson(
         aspObj, constants.fieldsToStringify.aspect
       );
@@ -652,11 +652,11 @@ module.exports = {
         const status = sampleUtils.computeStatus(aspectObj, reqBody.value);
         if (currSampObj[sampFields.STATUS] !== status) {
           reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
-          reqBody[sampFields.STS_CHNGED_AT] = new Date().toISOString();
+          reqBody[sampFields.STS_CHNGED_AT] = now;
           reqBody[sampFields.STATUS] = status;
         }
 
-        reqBody[sampFields.UPD_AT] = new Date().toISOString();
+        reqBody[sampFields.UPD_AT] = now;
       }
 
       if (reqBody.relatedLinks) {
@@ -690,6 +690,7 @@ module.exports = {
    * @returns {Promise} - Resolves to a sample object
    */
   postSample(reqBody, userObj) {
+    const now = new Date().toISOString();
     const userName = userObj ? userObj.name : false;
     const cmds = [];
     let subject;
@@ -736,7 +737,7 @@ module.exports = {
         });
       }
 
-      modelUtils.cleanQueryBodyObj(reqBody, sampleFieldsArr);
+      modelUtils.removeExtraAttributes(reqBody, sampleFieldsArr);
       reqBody.name = sampleName;
       const value = reqBody.value || '';
       reqBody[sampFields.STATUS] = sampleUtils.computeStatus(aspectObj, value);
@@ -748,11 +749,10 @@ module.exports = {
       }
 
       // defaults
-      const dateNow = new Date().toISOString();
       reqBody[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
-      reqBody[sampFields.STS_CHNGED_AT] = dateNow;
-      reqBody[sampFields.UPD_AT] = dateNow;
-      reqBody[sampFields.CREATED_AT] = dateNow;
+      reqBody[sampFields.STS_CHNGED_AT] = now;
+      reqBody[sampFields.UPD_AT] = now;
+      reqBody[sampFields.CREATED_AT] = now;
       if (userObj) {
         reqBody[sampFields.PROVIDER] = userObj.id;
         reqBody[sampFields.USER] = JSON.stringify({
@@ -798,6 +798,7 @@ module.exports = {
    * @returns {Promise} - Resolves to a sample object
    */
   putSample(params, userName) {
+    const now = new Date().toISOString();
     const reqBody = params.queryBody.value;
     const sampleName = params.key.value;
     const parsedSampleName = parseName(sampleName);
@@ -839,7 +840,7 @@ module.exports = {
       return checkWritePermission(aspectObj, userName);
     })
     .then(() => {
-      modelUtils.cleanQueryBodyObj(reqBody, sampleFieldsArr);
+      modelUtils.removeExtraAttributes(reqBody, sampleFieldsArr);
       let value = '';
       if (reqBody.value) {
         value = reqBody.value;
@@ -849,13 +850,13 @@ module.exports = {
       const status = sampleUtils.computeStatus(aspectObj, value);
       if (currSampObj[sampFields.STATUS] !== status) {
         reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
-        reqBody[sampFields.STS_CHNGED_AT] = new Date().toISOString();
+        reqBody[sampFields.STS_CHNGED_AT] = now;
         reqBody[sampFields.STATUS] = status;
       }
 
       // We have a value, so update value and updated_at always.
       reqBody[sampFields.VALUE] = value;
-      reqBody[sampFields.UPD_AT] = new Date().toISOString();
+      reqBody[sampFields.UPD_AT] = now;
 
       if (reqBody.relatedLinks) { // related links
         reqBody[sampFields.RLINKS] = JSON.stringify(reqBody.relatedLinks);
