@@ -202,7 +202,7 @@ function cleanAddSubjectToSample(sampleObj, subjectObj) {
 function updateSampleAttributes(curr, prev, aspect) {
   modelUtils.removeExtraAttributes(curr, sampleFieldsArr);
   const now = new Date().toISOString();
-  
+
   if (!curr.hasOwnProperty(sampFields.VALUE)) {
     /*
      * If no value is provided and this is a new sample, set value to empty
