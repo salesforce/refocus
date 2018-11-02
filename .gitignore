@@ -45,3 +45,6 @@ dump.rdb
 
 # Ignore IntelliJ IDEA developers configs
 .idea/
+
+# Ignore .DS_Store files created by Mac finder
+.DS_Store
