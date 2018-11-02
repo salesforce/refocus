@@ -210,8 +210,8 @@ function updateSampleAttributes(curr, prev, aspect) {
      * sample, treat it like a PATCH and keep the value from the "prev" version
      * of the sample.
      */
-    if (sampObj && sampObj.hasOwnProperty(sampFields.VALUE)) {
-      curr[sampFields.VALUE] = sampObj[sampFields.VALUE];
+    if (prev && prev.hasOwnProperty(sampFields.VALUE)) {
+      curr[sampFields.VALUE] = prev[sampFields.VALUE];
     } else {
       curr[sampFields.VALUE] = '';
     }
@@ -220,7 +220,7 @@ function updateSampleAttributes(curr, prev, aspect) {
   /* Just in case curr.value was undefined... */
   if (curr[sampFields.VALUE] === undefined) curr[sampFields.VALUE] = '';
 
-  if (!sampObj) {
+  if (!prev) {
     /*
      * This is a brand new sample so calculate current status based on value,
      * set previous status to invalid, and set status changed at to now.
@@ -229,33 +229,33 @@ function updateSampleAttributes(curr, prev, aspect) {
       sampleUtils.computeStatus(aspect, curr[sampFields.VALUE]);
     curr[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
     curr[sampFields.STS_CHNGED_AT] = now;
-  } else if (curr[sampFields.VALUE] === sampObj[sampFields.VALUE]) {
+  } else if (curr[sampFields.VALUE] === prev[sampFields.VALUE]) {
     /*
      * Value is same so no need to recalculate status. Just carry over the
      * status, previous status, and status changed at from the old sample.
      */
-    curr[sampFields.STATUS] = sampObj[sampFields.STATUS];
-    curr[sampFields.PRVS_STATUS] = sampObj[sampFields.PRVS_STATUS];
-    curr[sampFields.STS_CHNGED_AT] = sampObj[sampFields.STS_CHNGED_AT];
+    curr[sampFields.STATUS] = prev[sampFields.STATUS];
+    curr[sampFields.PRVS_STATUS] = prev[sampFields.PRVS_STATUS];
+    curr[sampFields.STS_CHNGED_AT] = prev[sampFields.STS_CHNGED_AT];
   } else {
     /*
      * The value is different so we need to calculate the status.
      */
     curr[sampFields.STATUS] =
       sampleUtils.computeStatus(aspect, curr[sampFields.VALUE]);
-    if (curr[sampFields.STATUS] === sampObj[sampFields.STATUS]) {
+    if (curr[sampFields.STATUS] === prev[sampFields.STATUS]) {
       /*
        * The status is the same so carry over the previous status and status
        * changed at from the old sample.
        */
-      curr[sampFields.PRVS_STATUS] = sampObj[sampFields.PRVS_STATUS];
-      curr[sampFields.STS_CHNGED_AT] = sampObj[sampFields.STS_CHNGED_AT];
+      curr[sampFields.PRVS_STATUS] = prev[sampFields.PRVS_STATUS];
+      curr[sampFields.STS_CHNGED_AT] = prev[sampFields.STS_CHNGED_AT];
     } else {
       /*
        * The status is different so assign previous status based on the old
        * sample's status, and set status changd at to now.
        */
-      curr[sampFields.PRVS_STATUS] = sampObj[sampFields.STATUS];
+      curr[sampFields.PRVS_STATUS] = prev[sampFields.STATUS];
       curr[sampFields.STS_CHNGED_AT] = now;
     }
   }
@@ -265,13 +265,13 @@ function updateSampleAttributes(curr, prev, aspect) {
   // if related link is passed in query object
   if (curr[sampFields.RLINKS]) {
     rlinks = curr[sampFields.RLINKS];
-  } else if (!sampObj) { // if we are creating new sample
+  } else if (!prev) { // if we are creating new sample
     rlinks = []; // default value
   }
 
   if (rlinks) curr[sampFields.RLINKS] = JSON.stringify(rlinks);
 
-  if (!sampObj) curr[sampFields.CREATED_AT] = now;
+  if (!prev) curr[sampFields.CREATED_AT] = now;
   curr[sampFields.UPD_AT] = now;
 } // updateSampleAttributes
 
