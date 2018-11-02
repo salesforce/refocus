@@ -192,88 +192,88 @@ function cleanAddSubjectToSample(sampleObj, subjectObj) {
 } // cleanAddSubjectToSample
 
 /**
- * Create properties array with fields to update/create. Value is empty string
- * if new object being created. If value is present, then calculate status.
- * Update the status, previousStatus and changedAt fields if:
- *   a) sampObj is not present, or
- *   b) sampObj is present and previousStatus != current status.
+ * Update the sample from the request body. Updates in place. Compares to the
+ * previous state of the same sample, recalcuates status as needed.
  *
- * @param  {Object} qbObj - Query body object
- * @param  {Object} sampObj - Sample object
- * @param  {Object} aspectObj - Aspect object
+ * @param  {Object} qbObj - current samnpe (from request body)
+ * @param  {Object} sampObj - previous sample
+ * @param  {Object} aspect - aspect used to recalculate status
  */
-function createSampHsetCommand(qbObj, sampObj, aspectObj) {
-  modelUtils.removeExtraAttributes(qbObj, sampleFieldsArr);
+function updateSampleAttributes(curr, prev, aspect) {
+  modelUtils.removeExtraAttributes(curr, sampleFieldsArr);
   const now = new Date().toISOString();
-  if (!qbObj.hasOwnProperty(sampFields.VALUE)) {
+  
+  if (!curr.hasOwnProperty(sampFields.VALUE)) {
+    /*
+     * If no value is provided and this is a new sample, set value to empty
+     * string, which will generate a status of "Invalid". If this is NOT a new
+     * sample, treat it like a PATCH and keep the value from the "prev" version
+     * of the sample.
+     */
     if (sampObj && sampObj.hasOwnProperty(sampFields.VALUE)) {
-      qbObj[sampFields.VALUE] = sampObj[sampFields.VALUE];
+      curr[sampFields.VALUE] = sampObj[sampFields.VALUE];
     } else {
-      qbObj[sampFields.VALUE] = '';
+      curr[sampFields.VALUE] = '';
     }
   }
 
-  if (qbObj[sampFields.VALUE] === undefined) qbObj[sampFields.VALUE] = '';
+  /* Just in case curr.value was undefined... */
+  if (curr[sampFields.VALUE] === undefined) curr[sampFields.VALUE] = '';
 
   if (!sampObj) {
     /*
      * This is a brand new sample so calculate current status based on value,
      * set previous status to invalid, and set status changed at to now.
      */
-    qbObj[sampFields.STATUS] =
-      sampleUtils.computeStatus(aspectObj, qbObj[sampFields.VALUE]);
-    qbObj[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
-    qbObj[sampFields.STS_CHNGED_AT] = now;
-  } else if (qbObj[sampFields.VALUE] === sampObj[sampFields.VALUE]) {
+    curr[sampFields.STATUS] =
+      sampleUtils.computeStatus(aspect, curr[sampFields.VALUE]);
+    curr[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
+    curr[sampFields.STS_CHNGED_AT] = now;
+  } else if (curr[sampFields.VALUE] === sampObj[sampFields.VALUE]) {
     /*
      * Value is same so no need to recalculate status. Just carry over the
      * status, previous status, and status changed at from the old sample.
      */
-    qbObj[sampFields.STATUS] = sampObj[sampFields.STATUS];
-    qbObj[sampFields.PRVS_STATUS] = sampObj[sampFields.PRVS_STATUS];
-    qbObj[sampFields.STS_CHNGED_AT] = sampObj[sampFields.STS_CHNGED_AT];
+    curr[sampFields.STATUS] = sampObj[sampFields.STATUS];
+    curr[sampFields.PRVS_STATUS] = sampObj[sampFields.PRVS_STATUS];
+    curr[sampFields.STS_CHNGED_AT] = sampObj[sampFields.STS_CHNGED_AT];
   } else {
     /*
      * The value is different so we need to calculate the status.
      */
-    qbObj[sampFields.STATUS] =
-      sampleUtils.computeStatus(aspectObj, qbObj[sampFields.VALUE]);
-    if (qbObj[sampFields.STATUS] === sampObj[sampFields.STATUS]) {
+    curr[sampFields.STATUS] =
+      sampleUtils.computeStatus(aspect, curr[sampFields.VALUE]);
+    if (curr[sampFields.STATUS] === sampObj[sampFields.STATUS]) {
       /*
        * The status is the same so carry over the previous status and status
        * changed at from the old sample.
        */
-      qbObj[sampFields.PRVS_STATUS] = sampObj[sampFields.PRVS_STATUS];
-      qbObj[sampFields.STS_CHNGED_AT] = sampObj[sampFields.STS_CHNGED_AT];
+      curr[sampFields.PRVS_STATUS] = sampObj[sampFields.PRVS_STATUS];
+      curr[sampFields.STS_CHNGED_AT] = sampObj[sampFields.STS_CHNGED_AT];
     } else {
       /*
        * The status is different so assign previous status based on the old
        * sample's status, and set status changd at to now.
        */
-      qbObj[sampFields.PRVS_STATUS] = sampObj[sampFields.STATUS];
-      qbObj[sampFields.STS_CHNGED_AT] = now;
+      curr[sampFields.PRVS_STATUS] = sampObj[sampFields.STATUS];
+      curr[sampFields.STS_CHNGED_AT] = now;
     }
   }
 
   let rlinks;
 
   // if related link is passed in query object
-  if (qbObj[sampFields.RLINKS]) {
-    rlinks = qbObj[sampFields.RLINKS];
+  if (curr[sampFields.RLINKS]) {
+    rlinks = curr[sampFields.RLINKS];
   } else if (!sampObj) { // if we are creating new sample
     rlinks = []; // default value
   }
 
-  if (rlinks) {
-    qbObj[sampFields.RLINKS] = JSON.stringify(rlinks);
-  }
+  if (rlinks) curr[sampFields.RLINKS] = JSON.stringify(rlinks);
 
-  if (!sampObj) { // new sample
-    qbObj[sampFields.CREATED_AT] = now;
-  }
-
-  qbObj[sampFields.UPD_AT] = now;
-} // createSampHsetCommand
+  if (!sampObj) curr[sampFields.CREATED_AT] = now;
+  curr[sampFields.UPD_AT] = now;
+} // updateSampleAttributes
 
 /**
  * Throws custom error object based on object type for sample upsert.
@@ -388,7 +388,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     }
 
     // sampleQueryBodyObj updated with fields
-    createSampHsetCommand(sampleQueryBodyObj, sample, aspectObj);
+    updateSampleAttributes(sampleQueryBodyObj, sample, aspectObj);
 
     if (sample) { // if sample exists, just update sample
       delete sampleQueryBodyObj.name; // to avoid updating sample name
@@ -1071,5 +1071,5 @@ module.exports = {
 
   cleanAddSubjectToSample, // export for testing only
   cleanAddAspectToSample, // export for testing only
-  createSampHsetCommand, // export for testing only
+  updateSampleAttributes, // export for testing only
 };

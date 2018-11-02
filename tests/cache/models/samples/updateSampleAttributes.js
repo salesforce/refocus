@@ -7,15 +7,15 @@
  */
 
 /**
- * tests/cache/models/samples/createSampHsetCommand.js
+ * tests/cache/models/samples/updateSampleAttributes.js
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const sinon = require('sinon');
 const model = require('../../../../cache/models/samples');
-const createSampHsetCommand = model.createSampHsetCommand;
+const updateSampleAttributes = model.updateSampleAttributes;
 
-describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
+describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
   let clock;
 
   before(() => {
@@ -48,7 +48,7 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       updatedAt: '2018-10-29T20:24:37.044Z',
       createdAt: '2018-10-29T20:24:37.044Z',
     };
-    createSampHsetCommand(qb, samp, asp);
+    updateSampleAttributes(qb, samp, asp);
     expect(qb).to.deep.equal({
       name: '___Subject|___ThreeHours',
       value: 2,
@@ -106,7 +106,7 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       createdAt: '2018-10-29T22:42:30.918Z',
       writers: [],
     };
-    createSampHsetCommand(qb, samp, asp);
+    updateSampleAttributes(qb, samp, asp);
     expect(qb).to.deep.equal({
       name: '___TEST_SUBJECT|___TEST_ASPECT',
       value: '100',
@@ -161,7 +161,7 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       createdAt: '2018-10-29T22:42:30.918Z',
       writers: [],
     };
-    createSampHsetCommand(qb, samp, asp);
+    updateSampleAttributes(qb, samp, asp);
     expect(qb).to.deep.equal({
       name: '___TEST_SUBJECT|___TEST_ASPECT',
       value: '1',
@@ -217,7 +217,7 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       createdAt: '2018-10-29T22:42:30.918Z',
       writers: [],
     };
-    createSampHsetCommand(qb, samp, asp);
+    updateSampleAttributes(qb, samp, asp);
     expect(qb).to.deep.equal({
       name: '___TEST_SUBJECT|___TEST_ASPECT',
       value: '',
@@ -273,7 +273,7 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       createdAt: '2018-10-29T22:42:30.918Z',
       writers: [],
     };
-    createSampHsetCommand(qb, samp, asp);
+    updateSampleAttributes(qb, samp, asp);
     expect(qb).to.deep.equal({
       name: '___TEST_SUBJECT|___TEST_ASPECT',
       value: '0',
@@ -330,7 +330,7 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       createdAt: '2018-10-29T22:42:30.918Z',
       writers: [],
     };
-    createSampHsetCommand(qb, samp, asp);
+    updateSampleAttributes(qb, samp, asp);
     expect(qb).to.deep.equal({
       name: '___TEST_SUBJECT|___TEST_ASPECT',
       value: '0',
