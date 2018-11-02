@@ -22,6 +22,8 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
     clock = sinon.useFakeTimers(new Date('2018-10-29T20:24:37.053Z').getTime());
   });
 
+  after(() => clock.restore());
+
   it('no sampObj', () => {
     const qb = {
       name: '___Subject|___ThreeHours',

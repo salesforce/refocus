@@ -230,7 +230,7 @@ function createSampHsetCommand(qbObj, sampObj, aspectObj) {
    * against the problem of trying to call HMSET with an "undefined" argument.
    */
   if (!qbObj.hasOwnProperty(sampFields.PRVS_STATUS)) {
-    // qbObj[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
+    qbObj[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
   }
 
   let rlinks;
