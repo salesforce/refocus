@@ -205,32 +205,54 @@ function cleanAddSubjectToSample(sampleObj, subjectObj) {
 function createSampHsetCommand(qbObj, sampObj, aspectObj) {
   modelUtils.removeExtraAttributes(qbObj, sampleFieldsArr);
   const now = new Date().toISOString();
-  let value;
-  if (qbObj[sampFields.VALUE]) {
-    value = qbObj[sampFields.VALUE];
-  } else if (!sampObj) {
-    value = ''; // default value
-  }
-
-  if (value !== undefined) {
-    qbObj[sampFields.VALUE] = value;
-    const status = sampleUtils.computeStatus(aspectObj, value);
-
-    if (!sampObj || (sampObj && (sampObj[sampFields.STATUS] !== status))) {
-      const prevStatus = sampObj ? sampObj[sampFields.STATUS] :
-        dbConstants.statuses.Invalid;
-      qbObj[sampFields.PRVS_STATUS] = prevStatus;
-      qbObj[sampFields.STS_CHNGED_AT] = now;
-      qbObj[sampFields.STATUS] = status;
+  if (!qbObj.hasOwnProperty(sampFields.VALUE)) {
+    if (sampObj && sampObj.hasOwnProperty(sampFields.VALUE)) {
+      qbObj[sampFields.VALUE] = sampObj[sampFields.VALUE];
+    } else {
+      qbObj[sampFields.VALUE] = '';
     }
   }
 
-  /*
-   * This block makes sure we always have a previous status--it protects us
-   * against the problem of trying to call HMSET with an "undefined" argument.
-   */
-  if (!qbObj.hasOwnProperty(sampFields.PRVS_STATUS)) {
+  if (qbObj[sampFields.VALUE] === undefined) qbObj[sampFields.VALUE] = '';
+
+  if (!sampObj) {
+    /*
+     * This is a brand new sample so calculate current status based on value,
+     * set previous status to invalid, and set status changed at to now.
+     */
+    qbObj[sampFields.STATUS] =
+      sampleUtils.computeStatus(aspectObj, qbObj[sampFields.VALUE]);
     qbObj[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
+    qbObj[sampFields.STS_CHNGED_AT] = now;
+  } else if (qbObj[sampFields.VALUE] === sampObj[sampFields.VALUE]) {
+    /*
+     * Value is same so no need to recalculate status. Just carry over the
+     * status, previous status, and status changed at from the old sample.
+     */
+    qbObj[sampFields.STATUS] = sampObj[sampFields.STATUS];
+    qbObj[sampFields.PRVS_STATUS] = sampObj[sampFields.PRVS_STATUS];
+    qbObj[sampFields.STS_CHNGED_AT] = sampObj[sampFields.STS_CHNGED_AT];
+  } else {
+    /*
+     * The value is different so we need to calculate the status.
+     */
+    qbObj[sampFields.STATUS] =
+      sampleUtils.computeStatus(aspectObj, qbObj[sampFields.VALUE]);
+    if (qbObj[sampFields.STATUS] === sampObj[sampFields.STATUS]) {
+      /*
+       * The status is the same so carry over the previous status and status
+       * changed at from the old sample.
+       */
+      qbObj[sampFields.PRVS_STATUS] = sampObj[sampFields.PRVS_STATUS];
+      qbObj[sampFields.STS_CHNGED_AT] = sampObj[sampFields.STS_CHNGED_AT];
+    } else {
+      /*
+       * The status is different so assign previous status based on the old
+       * sample's status, and set status changd at to now.
+       */
+      qbObj[sampFields.PRVS_STATUS] = sampObj[sampFields.STATUS];
+      qbObj[sampFields.STS_CHNGED_AT] = now;
+    }
   }
 
   let rlinks;

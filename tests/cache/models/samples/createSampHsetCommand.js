@@ -19,7 +19,7 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
   let clock;
 
   before(() => {
-    clock = sinon.useFakeTimers(new Date('2018-10-29T20:24:37.053Z').getTime());
+    clock = sinon.useFakeTimers(new Date('2018-10-30T20:24:37.053Z').getTime());
   });
 
   after(() => clock.restore());
@@ -55,11 +55,11 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       subjectId: '323ef102-3b64-458d-b134-29d2cd840bb2',
       aspectId: '1979b734-bece-446e-9cb1-03917f60788e',
       previousStatus: 'Invalid',
-      statusChangedAt: '2018-10-29T20:24:37.053Z',
+      statusChangedAt: '2018-10-30T20:24:37.053Z',
       status: 'Invalid',
       relatedLinks: '[]',
-      createdAt: '2018-10-29T20:24:37.053Z',
-      updatedAt: '2018-10-29T20:24:37.053Z',
+      createdAt: '2018-10-30T20:24:37.053Z',
+      updatedAt: '2018-10-30T20:24:37.053Z',
     });
   });
 
@@ -113,13 +113,13 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       subjectId: 'd2dfc000-5498-4bf0-a8c4-9c42c4569f05',
       aspectId: '50513365-f24f-455c-8d47-c507d1c62a96',
       previousStatus: 'Critical',
-      statusChangedAt: '2018-10-29T20:24:37.053Z',
+      statusChangedAt: '2018-10-30T20:24:37.053Z',
       status: 'Invalid',
-      updatedAt: '2018-10-29T20:24:37.053Z',
+      updatedAt: '2018-10-30T20:24:37.053Z',
     });
   });
 
-  it('no value', () => {
+  it('no value, carries previous value forward', () => {
     const qb = {
       name: '___TEST_SUBJECT|___TEST_ASPECT',
       subjectId: 'd2dfc000-5498-4bf0-a8c4-9c42c4569f05',
@@ -164,13 +164,13 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
     createSampHsetCommand(qb, samp, asp);
     expect(qb).to.deep.equal({
       name: '___TEST_SUBJECT|___TEST_ASPECT',
-      value: '',
+      value: '1',
       subjectId: 'd2dfc000-5498-4bf0-a8c4-9c42c4569f05',
       aspectId: '50513365-f24f-455c-8d47-c507d1c62a96',
-      previousStatus: 'Critical',
-      statusChangedAt: '2018-10-29T20:24:37.053Z',
-      status: 'Invalid',
-      updatedAt: '2018-10-29T20:24:37.053Z',
+      previousStatus: 'Invalid',
+      statusChangedAt: '2018-10-29T22:42:30.938Z',
+      status: 'Critical',
+      updatedAt: '2018-10-30T20:24:37.053Z',
     });
   });
 
@@ -224,9 +224,9 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       subjectId: 'd2dfc000-5498-4bf0-a8c4-9c42c4569f05',
       aspectId: '50513365-f24f-455c-8d47-c507d1c62a96',
       previousStatus: 'Critical',
-      statusChangedAt: '2018-10-29T20:24:37.053Z',
+      statusChangedAt: '2018-10-30T20:24:37.053Z',
       status: 'Invalid',
-      updatedAt: '2018-10-29T20:24:37.053Z',
+      updatedAt: '2018-10-30T20:24:37.053Z',
     });
   });
 
@@ -279,10 +279,10 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       value: '0',
       subjectId: 'd2dfc000-5498-4bf0-a8c4-9c42c4569f05',
       aspectId: '50513365-f24f-455c-8d47-c507d1c62a96',
-      previousStatus: 'Critical',
+      previousStatus: 'Invalid',
       statusChangedAt: '2018-10-29T22:42:30.938Z',
       status: 'Critical',
-      updatedAt: '2018-10-29T20:24:37.053Z',
+      updatedAt: '2018-10-30T20:24:37.053Z',
     });
   });
 
@@ -336,11 +336,11 @@ describe('tests/cache/models/samples/createSampHsetCommand.js >', () => {
       value: '0',
       subjectId: 'd2dfc000-5498-4bf0-a8c4-9c42c4569f05',
       aspectId: '50513365-f24f-455c-8d47-c507d1c62a96',
-      previousStatus: 'Critical',
+      previousStatus: 'Invalid',
       statusChangedAt: '2018-10-29T22:42:30.938Z',
       status: 'Critical',
       relatedLinks: '[{\"name\":\"a\",\"url\":\"bcd\"}]',
-      updatedAt: '2018-10-29T20:24:37.053Z',
+      updatedAt: '2018-10-30T20:24:37.053Z',
     });
   });
 });
