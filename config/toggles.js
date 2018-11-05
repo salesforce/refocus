@@ -183,6 +183,9 @@ const shortTermToggles = {
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
   requireHelpEmailOrHelpUrl: environmentVariableTrue(
     pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
+
+  // track active namespaces and only iterate over those on emit
+  trackActiveNamespaces: environmentVariableTrue(pe, 'TRACK_ACTIVE_NAMESPACES'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

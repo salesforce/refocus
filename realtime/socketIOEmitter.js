@@ -11,6 +11,8 @@
  */
 'use strict'; // eslint-disable-line strict
 const rtUtils = require('./utils');
+const connectedNamespaces = require('./connectedNamespaces');
+const ft = require('feature-toggles');
 const initPerspectiveEvent =
   'refocus.internal.realtime.perspective.namespace.initialize';
 const initBotEvent = 'refocus.internal.realtime.bot.namespace.initialize';
@@ -36,7 +38,10 @@ module.exports = (io, key, obj, pubOpts) => {
    * this real-time event to the perspectives/rooms to which it should be
    * emitted.
    */
-  Object.keys(io.nsps).forEach((n) => {
+  const namespaces = ft.isFeatureEnabled('trackActiveNamespaces')
+    ? connectedNamespaces.nspStrings
+    : Object.keys(io.nsps);
+  namespaces.forEach((n) => {
     const namespace = io.of(n); // Load the namespace from socket.io
 
     /*

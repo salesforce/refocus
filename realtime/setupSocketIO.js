@@ -21,6 +21,7 @@ const redisClient = require('../cache/redisCache').client.realtimeLogging;
 const conf = require('../config');
 const ipWhitelist = conf.environment[conf.nodeEnv].ipWhitelist;
 const activityLogUtil = require('../utils/activityLog');
+const ft = require('feature-toggles');
 const logEnabled = toggle.isFeatureEnabled('enableRealtimeActivityLogs');
 const ONE = 1;
 const SID_REX = /connect.sid=s%3A([^\.]*)\./;
@@ -63,7 +64,12 @@ function setupNamespace(io) {
     .map((p) => rtUtils.initializePerspectiveNamespace(p, io));
   const roomPromise = room.scope('namespace').findAll()
     .map((r) => rtUtils.initializeBotNamespace(r, io));
-  return Promise.all([perspPromise, roomPromise]);
+  return Promise.all([perspPromise, roomPromise])
+  .then(() => {
+    if (ft.isFeatureEnabled('trackActiveNamespaces')) {
+      rtUtils.addEventsForNamespaces(io);
+    }
+  });
 } // setupNamespace
 
 /**

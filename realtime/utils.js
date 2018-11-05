@@ -17,6 +17,7 @@ const redisStore = require('../cache/sampleStore');
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
 const Op = require('sequelize').Op;
+const connectedNamespaces = require('./connectedNamespaces');
 const eventName = {
   add: 'refocus.internal.realtime.subject.add',
   upd: 'refocus.internal.realtime.subject.update',
@@ -310,6 +311,21 @@ function initializePerspectiveNamespace(inst, io) {
   return io;
 }
 
+function addEventsForNamespaces(io) {
+  Object.keys(io.nsps).forEach((n) => {
+    const namespace = io.of(n);
+    namespace.on('connect', (socket) => {
+      connectedNamespaces.addNamespace(n);
+      socket.on('disconnect', function () {
+        const namespace = io.of(n);
+        if (Object.keys(namespace.connected).length === 0) {
+          connectedNamespaces.removeNamespace(n);
+        }
+      });
+    });
+  });
+}
+
 /**
  * Initializes a socketIO namespace based on the bot object.
  * @param {Instance} inst - The perspective instance.
@@ -450,6 +466,7 @@ module.exports = {
   getPerspectiveNamespaceString,
   initializeBotNamespace,
   initializePerspectiveNamespace,
+  addEventsForNamespaces,
   isIpWhitelisted,
   parseObject,
   shouldIEmitThisObj,
