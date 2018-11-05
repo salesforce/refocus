@@ -31,13 +31,13 @@ const confirmationModal =
   document.getElementById('active_confirmation_modal');
 const confirmationText =
   document.getElementById('active_confirmation_text');
-const roomNotFoundModal = 
+const roomNotFoundModal =
   document.getElementById('room_not_found_modal');
 const notFoundText =
   document.getElementById('room_not_found_text');
-const goToCreateRoomsButton = 
+const goToCreateRoomsButton =
   document.getElementById('create_room_button');
-const gotToRoomListButton = 
+const gotToRoomListButton =
   document.getElementById('room_list_button');
 const notFoundMessage = 'The requested room was not found, click below to create a room or view the list of available rooms';
 const AdmZip = require('adm-zip');
@@ -64,6 +64,7 @@ let _roomTypeName;
 let _isActive;
 let _movingContent;
 let _botsLayout;
+let _userSession;
 let firstLoad = true;
 
 // Used when holding a bot over a place it can be dropped
@@ -457,7 +458,7 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
       `<script>
         var user = "${currentUser}";
         {
-          const oldParent = window.parent;        
+          const oldParent = window.parent;
           function outputSize() {
             const el = document.getElementById("${bot.name}");
             // Sometimes clientHeight was > scrollHeight
@@ -471,7 +472,7 @@ function iframeBot(iframe, bot, parsedBot, currentUser) {
             );
           }
         }
-        window.top = window.parent = null;   
+        window.top = window.parent = null;
       </script>
       ${contentSection}
       <script>${botScript}</script>` +
@@ -844,29 +845,29 @@ function closeConfirmationModal() {
  */
 function displayNotFoundModal(doc) {
   doc ?
-    notFoundModalInit(doc.getElementById('create_room_button'), 
-                      doc.getElementById('room_list_button'), 
-                      doc.getElementById('room_not_found_modal'), 
+    notFoundModalInit(doc.getElementById('create_room_button'),
+                      doc.getElementById('room_list_button'),
+                      doc.getElementById('room_not_found_modal'),
                       doc.getElementById('room_not_found_text'))
     :
-    notFoundModalInit(goToCreateRoomsButton, 
-                      gotToRoomListButton, 
-                      roomNotFoundModal, 
+    notFoundModalInit(goToCreateRoomsButton,
+                      gotToRoomListButton,
+                      roomNotFoundModal,
                       notFoundText);
-  
+
 }
 
 /**
  * Intialises dom elements for modal passed in, shows modal on screen
- * @param {DOM} createButton 
- * @param {DOM} roomListButton 
- * @param {DOM} modal 
- * @param {DOM} messageText 
+ * @param {DOM} createButton
+ * @param {DOM} roomListButton
+ * @param {DOM} modal
+ * @param {DOM} messageText
  */
 function notFoundModalInit(createButton, roomListButton, modal, messageText) {
     createButton.onclick = () => window.location = '/rooms/new';
     roomListButton.onclick = () => window.location = '/rooms';
-  
+
     modal.setAttribute(
       'style',
       'display: block;'
@@ -1016,6 +1017,8 @@ window.onload = () => {
   _user = JSON.parse(user.replace(/&quot;/g, '"')
     .replace(/apos;/g, "'"));
   let room;
+  console.log("userSession",userSession)
+  _userSession = userSession;
 
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
