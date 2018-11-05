@@ -256,25 +256,45 @@ function toSequelizeOrder(sortOrder) {
 /**
  * Check for unique field in opts. If unique field is present, there are
  * following cases:
- * 1) Unique field have single value - set limit to 1
+ * 1) Limit unchanged if unique field is present and doesn't requires limit.
+ *    doesn't requires limit: It's not specified into the noun,
+ *    uniqueFieldWithoutLimit attribute.
+ * 2) Unique field have single value and requires limit - set limit to 1
  *    Eg: opts = { where: { [Op.iLike]: { uniqField: 'someValue' } } };
- * 2) Unique field can have multiple values - set limit to the number of values
- *    Eg: opts = { where: { uniqField:
-          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: 'someName2' }] },
-        } };
- * 3) Unique field have single wildcard value - limit unchanged
-      Eg: opts = { where: { [Op.iLike]: { uniqField: '%someValue%' } } };
- * 4) Unique field have multiple values one of which is wildcard value -
- *    limit unchanged
- *    Eg: opts = { where: { uniqField:
-          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: '%someName%' }] },
-        } };
+ * 3) Unique field can have multiple values (Op.or) and requires limit - set
+ *    limit to the number of values
+ *  Eg: opts = {
+ *       where: {
+ *        uniqField: {
+ *         [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: 'someName2' }]
+ *        },
+ *       },
+ *      };
+ * 4) Unique field requires limit but have single wildcard value - limit
+ *    unchanged.
+ *    Eg: opts = { where: { [Op.iLike]: { uniqField: '%someValue%' } } };
+ * 5) Unique field requires limit and have multiple values one of which is
+ *    wildcard value - limit unchanged
+ *    Eg: opts = {
+ *         where: {
+ *           uniqField: {
+ *             [Op.or]:[{ [Op.iLike]: 'someName1' },{[Op.iLike]: '%someName%'}],
+ *           },
+ *         },
+ *        };
  * It is assumed that each field value will have $iLike operator applied.
  * @param  {Object} opts - Query options object
  * @param  {Object} props - The helpers/nouns module for the given DB model
  */
 function applyLimitIfUniqueField(opts, props) {
   const uniqueFieldName = props.nameFinder || 'name';
+
+  const uniqueFieldWithoutLimit = props.uniqueFieldWithoutLimit &&
+    opts.where[props.uniqueFieldWithoutLimit];
+  if (uniqueFieldWithoutLimit) {
+    return;
+  }
+
   if (opts.where && opts.where[uniqueFieldName]) {
     const optsWhereOR = opts.where[uniqueFieldName][Op.or];
     if (optsWhereOR && Array.isArray(optsWhereOR)) { // multiple values

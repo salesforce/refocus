@@ -34,8 +34,8 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
   template1.name = 'template1';
   template1.version = '1.0.0';
   const template2 = u.getGeneratorTemplate();
-  template2.name = 'template2';
-  template2.version = '1.0.0';
+  template2.name = 'template1';
+  template2.version = '1.0.2';
   template2.tags.push('tag2');
   const template3 = u.getGeneratorTemplate();
   template3.name = 'template3';
@@ -157,12 +157,11 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
         return done(err);
       }
 
-      expect(res.body.name).to.equal(template1.name);
       done();
     });
   });
 
-  it('Must retrieve when valid name and version', (done) => {
+  it('Must GET a single GT when valid name and version', (done) => {
     api.get(`${path}/${template1.name}/${template1.version}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -171,51 +170,38 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
           return done(err);
         }
 
-        expect(res.body.length).to.equal(ONE);
-        expect(res.body[0].name).to.equal(template1.name);
-        expect(res.body[0].version).to.equal(template1.version);
+        expect(res.body.name).to.equal(template1.name);
+        expect(res.body.version).to.equal(template1.version);
         done();
       });
   });
 
-  it('Must not retrieve by incorrect version', (done) => {
-    api.get(`${path}/${template1.name}/1.0.2`)
+  it('Must not GET when incorrect version', (done) => {
+    api.get(`${path}/${template1.name}/1.0.3`)
       .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.length).to.equal(ZERO);
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err) => {
+        if (err) return done(err);
         done();
       });
   });
 
-  it('Must not retrieve by incorrect name', (done) => {
+  it('Must not GET by incorrect name', (done) => {
     api.get(`${path}/foo/${template1.version}`)
       .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.length).to.equal(ZERO);
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err) => {
+        if (err) return done(err);
         done();
       });
   });
 
-  it('Must not retrieve by incorrect name and version', (done) => {
+  it('Must not GET by incorrect name and version', (done) => {
     api.get(`${path}/foo/aa`)
       .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.length).to.equal(ZERO);
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err) => {
+        if (err) return done(err);
         done();
       });
   });
@@ -229,7 +215,6 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
         return done(err);
       }
 
-      expect(res.body.name).to.equal(template1.name);
       done();
     });
   });
@@ -412,7 +397,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     });
 
     it('find by name', (done) => {
-      findByField(done, 'name', 'template2', 1);
+      findByField(done, 'name', 'template1', 2);
     });
 
     it('find by name wildcard', (done) => {

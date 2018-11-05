@@ -5055,9 +5055,9 @@ paths:
       responses:
         200:
           description: >-
-            Success, returns a generatorTemplate
+            Success, returns a single generatorTemplate
           schema:
-            type: array
+            type: object
             items:
               $ref: "#/definitions/GeneratorTemplateResponse"
         400:
