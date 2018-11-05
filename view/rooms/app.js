@@ -31,6 +31,15 @@ const confirmationModal =
   document.getElementById('active_confirmation_modal');
 const confirmationText =
   document.getElementById('active_confirmation_text');
+const roomNotFoundModal = 
+  document.getElementById('room_not_found_modal');
+const notFoundText =
+  document.getElementById('room_not_found_text');
+const goToCreateRoomsButton = 
+  document.getElementById('create_room_button');
+const gotToRoomListButton = 
+  document.getElementById('room_list_button');
+const notFoundMessage = 'The requested room was not found, click below to create a room or view the list of available rooms';
 const AdmZip = require('adm-zip');
 const u = require('../utils');
 const uPage = require('./utils/page');
@@ -295,7 +304,7 @@ function createMinimizeButton(bot) {
     '../static/icons/utility-sprite/svg/symbols.svg#chevrondown'
   );
   useElemDown.setAttribute('id', bot.name + '-toggleDown');
-  useElemDown.setAttribute('style', 'display: none');
+  useElemDown.setAttribute('style', 'display:none');
   svgElem.appendChild(useElemDown);
   minimize.appendChild(svgElem);
 
@@ -830,6 +839,42 @@ function closeConfirmationModal() {
 }
 
 /**
+ * Room not found so we display error message
+ * @param {DOM} document - document to display not found modal on
+ */
+function displayNotFoundModal(doc) {
+  doc ?
+    notFoundModalInit(doc.getElementById('create_room_button'), 
+                      doc.getElementById('room_list_button'), 
+                      doc.getElementById('room_not_found_modal'), 
+                      doc.getElementById('room_not_found_text'))
+    :
+    notFoundModalInit(goToCreateRoomsButton, 
+                      gotToRoomListButton, 
+                      roomNotFoundModal, 
+                      notFoundText);
+  
+}
+
+/**
+ * Intialises dom elements for modal passed in, shows modal on screen
+ * @param {DOM} createButton 
+ * @param {DOM} roomListButton 
+ * @param {DOM} modal 
+ * @param {DOM} messageText 
+ */
+function notFoundModalInit(createButton, roomListButton, modal, messageText) {
+    createButton.onclick = () => window.location = '/rooms/new';
+    roomListButton.onclick = () => window.location = '/rooms';
+  
+    modal.setAttribute(
+      'style',
+      'display: block;'
+    );
+    messageText.innerText = notFoundMessage;
+}
+
+/**
  * The room state has changed so it needs to be updated.
  */
 function roomStateChanged() {
@@ -993,33 +1038,38 @@ window.onload = () => {
     activeToggle.checked = _isActive;
     room = res.body;
     return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + response.type);
+  }).catch((err) => {
+    err.status == 404 && displayNotFoundModal(document);
+    debugMessage(`Error ${err}`);
   })
   .then((res) => {
-    _roomTypeName = res.body.name;
-    const subTitle = `${_roomName} - ${_roomTypeName}`;
-    uPage.setSubtitle(subTitle);
-    document.title = subTitle;
-    let layoutCookie =
-      u.getCookie(`${window.location.pathname}-bots-layout`);
-    if (layoutCookie) {
-      layoutCookie = JSON.parse(layoutCookie);
-      // Checking if the layout that came from the cookie is valid
-      if (uLayout.isValidLayout(layoutCookie, room.bots)) {
-        _botsLayout = layoutCookie;
-        // Reordering bots so they will be in the correct layout
-        room.bots = _botsLayout.leftColumn.concat(_botsLayout.middleColumn)
-          .concat(_botsLayout.rightColumn);
+    if(res) {
+      _roomTypeName = res.body.name;
+      const subTitle = `${_roomName} - ${_roomTypeName}`;
+      uPage.setSubtitle(subTitle);
+      document.title = subTitle;
+      let layoutCookie =
+        u.getCookie(`${window.location.pathname}-bots-layout`);
+      if (layoutCookie) {
+        layoutCookie = JSON.parse(layoutCookie);
+        // Checking if the layout that came from the cookie is valid
+        if (uLayout.isValidLayout(layoutCookie, room.bots)) {
+          _botsLayout = layoutCookie;
+          // Reordering bots so they will be in the correct layout
+          room.bots = _botsLayout.leftColumn.concat(_botsLayout.middleColumn)
+            .concat(_botsLayout.rightColumn);
+        }
+      } else if (room.settings && room.settings.botsLayout) {
+        _botsLayout = room.settings.botsLayout;
       }
-    } else if (room.settings && room.settings.botsLayout) {
-      _botsLayout = room.settings.botsLayout;
-    }
 
-    const promises = room.bots.map((botName) =>
-      u.getPromiseWithUrl(GET_BOTS + '/' + botName, BOT_REQ_HEADERS));
-    return Promise.all(promises);
+      const promises = room.bots.map((botName) =>
+        u.getPromiseWithUrl(GET_BOTS + '/' + botName, BOT_REQ_HEADERS));
+      return Promise.all(promises);
+    }
   })
   .then((res) => {
-    setupSocketIOClient(res);
+    res && setupSocketIOClient(res);
     uPage.removeSpinner();
   });
 };
@@ -1030,6 +1080,7 @@ module.exports = () => {
     parseBot,
     iframeBot,
     decideBotPosition,
-    getRedirectUrl
+    getRedirectUrl,
+    displayNotFoundModal
   };
 };

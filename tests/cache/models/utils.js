@@ -103,4 +103,28 @@ describe('tests/cache/models/utils.js >', () => {
       expect(result[2].name.endsWith(1)).to.be.true;
     });
   });
+
+  describe('removeExtraAttributes >', () => {
+    it('obj has some fields in arr', () => {
+      const obj = { a: 'a', b: 'b', c: 'c' };
+      const attributesToKeep = ['a', 'b', 'd', 'e'];
+      utils.removeExtraAttributes(obj, attributesToKeep);
+      expect(obj).to.deep.equal({ a: 'a', b: 'b' });
+    });
+
+    it('obj has no fields in arr', () => {
+      const obj = { a: 'a', b: 'b', c: 'c' };
+      const attributesToKeep = ['d', 'e'];
+      utils.removeExtraAttributes(obj, attributesToKeep);
+      expect(obj).to.deep.equal({ });
+    });
+
+    it('obj has all fields in arr', () => {
+      const obj = { a: 'a', b: 'b', c: 'c' };
+      const attributesToKeep = ['a', 'b', 'c'];
+      utils.removeExtraAttributes(obj, attributesToKeep);
+      expect(obj).to.deep.equal({ a: 'a', b: 'b', c: 'c' });
+    });
+  });
+
 });
