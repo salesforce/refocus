@@ -9,10 +9,10 @@
 /**
  * db/model/token.js
  */
-
+const ms = require('ms');
+const Op = require('sequelize').Op;
 const constants = require('../constants');
 const common = require('../helpers/common');
-
 const assoc = {};
 
 module.exports = function token(seq, dataTypes) {
@@ -104,6 +104,19 @@ module.exports = function token(seq, dataTypes) {
         name,
         createdBy,
         isRevoked: 0,
+      },
+      attributes: ['id'],
+    }));
+
+    /*
+     * "since" should me a valid "ms" module time format offset like "-15m" OR
+     * a number of milliseconds.
+     */
+    Token.addScope('unusedSince', (since) => ({
+      where: {
+        lastUsed: {
+          [Op.lt]: new Date(new Date().getTime() + ms(since)),
+        },
       },
       attributes: ['id'],
     }));
