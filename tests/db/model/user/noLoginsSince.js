@@ -16,12 +16,19 @@ const expect = require('chai').expect;
 const User = tu.db.User;
 const Token = tu.db.Token;
 const Profile = tu.db.Profile;
+const SIXTY_FIVE_SECONDS = 65000;
+const TWENTY_FIVE_HOURS = 90000000;
+const FORTY_DAYS = 3456000000;
+const ZERO = 0;
+const ONE = 1;
+const TWO = 2;
+const FOUR = 4;
 
 describe('tests/db/model/user/noLoginsSince.js >', () => {
   let users;
-  const sixtyFiveSecondsAgo = new Date(new Date() - 1000 * 65);
-  const twentyFiveHoursAgo = new Date(new Date() - 1000 * 60 * 60 * 25);
-  const fortyDaysAgo = new Date(new Date() - 1000 * 60 * 60 * 24 * 40);
+  const sixtyFiveSecondsAgo = new Date(new Date() - SIXTY_FIVE_SECONDS);
+  const twentyFiveHoursAgo = new Date(new Date() - TWENTY_FIVE_HOURS);
+  const fortyDaysAgo = new Date(new Date() - FORTY_DAYS);
 
   before((done) => {
     Profile.create({ name: `${tu.namePrefix}1` })
@@ -51,23 +58,25 @@ describe('tests/db/model/user/noLoginsSince.js >', () => {
         lastLogin: fortyDaysAgo,
       },
     ]))
-    .then((newUsers) => users = newUsers)
+    .then((newUsers) => {
+      users = newUsers;
+    })
     .then(() => Token.bulkCreate([
       {
         name: `${tu.namePrefix}u1t1`,
         lastUsed: sixtyFiveSecondsAgo,
-        createdBy: users[0].id,
+        createdBy: users[ZERO].id,
       },
       {
         name: `${tu.namePrefix}u1t2`,
         lastUsed: sixtyFiveSecondsAgo,
-        createdBy: users[0].id,
+        createdBy: users[ZERO].id,
         isRevoked: 1827272829292,
       },
       {
         name: `${tu.namePrefix}u2t1`,
         lastUsed: sixtyFiveSecondsAgo,
-        createdBy: users[1].id,
+        createdBy: users[ONE].id,
       },
     ]))
     .then(() => done())
@@ -78,11 +87,12 @@ describe('tests/db/model/user/noLoginsSince.js >', () => {
 
   it('since 1m ago', (done) => {
     User.scope({ method: ['noLoginsSince', '-1m'] }).findAll()
-    .then((users) => {
-      expect(users).to.have.property('length', 4); // 4 cuz includes OOTB admin
-      expect(users[0].tokens).to.have.property('length', 2);
-      expect(users[1].tokens).to.have.property('length', 1);
-      expect(users[2].tokens).to.have.property('length', 0);
+    .then((usersFound) => {
+      /* 4 found cuz includes OOTB admin */
+      expect(usersFound).to.have.property('length', FOUR);
+      expect(usersFound[ZERO].tokens).to.have.property('length', TWO);
+      expect(usersFound[ONE].tokens).to.have.property('length', ONE);
+      expect(usersFound[TWO].tokens).to.have.property('length', ZERO);
       done();
     })
     .catch(done);
@@ -90,31 +100,30 @@ describe('tests/db/model/user/noLoginsSince.js >', () => {
 
   it('since -1d', (done) => {
     User.scope({ method: ['noLoginsSince', '-1d'] }).findAll()
-    .then((users) => expect(users).to.have.property('length', 2))
+    .then((usersFound) => expect(usersFound).to.have.property('length', TWO))
     .then(() => done())
     .catch(done);
   });
 
   it('since -30d', (done) => {
     User.scope({ method: ['noLoginsSince', '-30d'] }).findAll()
-    .then((users) => expect(users).to.have.property('length', 1))
+    .then((usersFound) => expect(usersFound).to.have.property('length', ONE))
     .then(() => done())
     .catch(done);
   });
 
-
   it('since -60d', (done) => {
     User.scope({ method: ['noLoginsSince', '-60d'] }).findAll()
-    .then((users) => expect(users).to.have.property('length', 0))
+    .then((usersFound) => expect(usersFound).to.have.property('length', ZERO))
     .then(() => done())
     .catch(done);
   });
 
   it('invalid time', (done) => {
-    const msg = 
+    const msg =
       'invalid input syntax for type timestamp with time zone: "Invalid date"';
     User.scope({ method: ['noLoginsSince', 'Hello, World'] }).findAll()
-    .then((users) => done(new Error('Expecting error')))
+    .then(() => done(new Error('Expecting error')))
     .catch((err) => {
       expect(err).to.have.property('message', msg);
       done();
