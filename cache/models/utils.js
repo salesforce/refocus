@@ -131,17 +131,19 @@ function prefilterKeys(keysArr, opts, getNameFunc) {
 } // prefilterKeys
 
 /**
- * Remove extra fields from query body object.
- * @param  {Object} qbObj - Query body object
- * @param  {Array} fieldsArr - Array of field names
+ * Remove attributes from the object which are not specified in the array.
+ * Note: this updates the object "in place".
+ *
+ * @param  {Object} obj - the original object
+ * @param  {Array} attributesToKeep - Array of attribute names to keep
+ * @returns {Object} new object with all the extra attributes from the original
+ *  object stripped out
  */
-function cleanQueryBodyObj(qbObj, fieldsArr) {
-  Object.keys(qbObj).forEach((qbField) => {
-    if (!fieldsArr.includes(qbField)) {
-      delete qbObj[qbField];
-    }
-  });
-}
+function removeExtraAttributes(obj, attributesToKeep) {
+  Object.keys(obj)
+  .filter((key) => !attributesToKeep.includes(key))
+  .forEach((key) => delete obj[key]);
+} // removeExtraAttributes
 
 /**
  * Apply isPublished filter on resource array of objects.
@@ -308,12 +310,12 @@ function getOptionsFromReq(params, helper) {
 }
 
 module.exports = {
-  applyFiltersOnResourceObjs,
-  cleanQueryBodyObj,
-  filterByFieldWildCardExpr,
   applyFieldListFilter,
-  prefilterKeys,
+  applyFiltersOnResourceObjs,
   applyLimitAndOffset,
+  filterByFieldWildCardExpr,
   getOptionsFromReq,
+  prefilterKeys,
+  removeExtraAttributes,
   sortByOrder,
 };
