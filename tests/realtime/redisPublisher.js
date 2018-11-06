@@ -218,11 +218,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
     it('Must return an undefined promise when Error from real time ' +
       'attachAspectSubject', (done) => {
       sinon.stub(realTimeUtils, 'attachAspectSubject')
-        .returns(
-          new Promise(() => {
-            throw new Error();
-          })
-        );
+        .rejects(Error());
 
       Sample.findOne(sampleName)
         .then((sam) => redisPublisher
