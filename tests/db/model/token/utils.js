@@ -49,24 +49,20 @@ module.exports = {
    *  attribute and "lastUsed" attribute.
    */
   createMultipleTokens(arr) {
-    return tu.db.Profile.create({
-      name: `${pfx}testProfile`,
-    })
-    .then((createdProfile) =>
-      tu.db.User.create({
-        profileId: createdProfile.id,
-        name: `${pfx}test@refocus.com`,
-        email: `${pfx}test@refocus.com`,
-        password: 'user123password',
-      })
-    )
+    return tu.db.Profile.create({ name: `${pfx}testProfile` })
+    .then((createdProfile) => tu.db.User.create({
+      profileId: createdProfile.id,
+      name: `${pfx}test@refocus.com`,
+      email: `${pfx}test@refocus.com`,
+      password: 'user123password',
+    }))
     .then((returnedUser) => {
       const toCreate = arr.map((t, i) => {
         t.createdBy = returnedUser.id;
         return t;
       });
-      console.log('toCreate', toCreate);
       return tu.db.Token.bulkCreate(toCreate);
-    });
+    })
+    .catch(console.error);
   },
 };

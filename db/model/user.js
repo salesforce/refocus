@@ -9,7 +9,8 @@
 /**
  * db/model/user.js
  */
-
+const ms = require('ms');
+const Op = require('sequelize').Op;
 const constants = require('../constants');
 const u = require('../helpers/userUtils');
 const common = require('../helpers/common');
@@ -323,6 +324,25 @@ module.exports = function user(seq, dataTypes) {
       ],
       order: ['name'],
     });
+
+    /*
+     * "since" should me a valid "ms" module time format offset like "-15m" OR
+     * a number of milliseconds.
+     */
+    User.addScope('noLoginsSince', (since) => ({
+      where: {
+        lastLogin: {
+          [Op.lt]: new Date(new Date().getTime() + ms(since)),
+        },
+      },
+      include: [
+        {
+          association: assoc.tokens,
+          attributes: ['id', 'isRevoked'],
+        },
+      ],
+      attributes: ['id'],
+    }));
   };
 
   User.prototype.setLastLogin = function (lastLogin) {
