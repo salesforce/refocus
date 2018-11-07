@@ -9,6 +9,7 @@
 /**
  * db/model/user.js
  */
+
 const constants = require('../constants');
 const u = require('../helpers/userUtils');
 const common = require('../helpers/common');
