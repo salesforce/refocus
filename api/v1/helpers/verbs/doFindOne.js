@@ -7,7 +7,7 @@
  */
 
 /**
- * api/v1/helpers/verbs/doFind.js
+ * api/v1/helpers/verbs/doFindOne.js
  */
 'use strict'; // eslint-disable-line strict
 const verbUtils = require('./utils');
