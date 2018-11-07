@@ -139,9 +139,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+      if (err) return done(err);
 
       expect(res.body.name).to.equal(template1.name);
       done();
@@ -152,10 +150,8 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     api.get(`${path}/${template1.name}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+    .end((err) => {
+      if (err) return done(err);
 
       done();
     });
@@ -166,9 +162,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+        if (err) return done(err);
 
         expect(res.body.name).to.equal(template1.name);
         expect(res.body.version).to.equal(template1.version);
@@ -210,10 +204,8 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     api.get(`${path}/${template1.name.toLowerCase()}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+    .end((err) => {
+      if (err) return done(err);
 
       done();
     });
@@ -224,9 +216,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+      if (err) return done(err);
 
       expect(res.body).to.have.length(THREE);
       done();
@@ -238,9 +228,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+      if (err) return done(err);
 
       expect(res.body).to.have.length(ONE);
       expect(res.body[ZERO]).to.have.property('name', template2.name);
@@ -253,9 +241,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+      if (err) return done(err);
 
       expect(res.body).to.have.length(ZERO);
       done();
@@ -271,9 +257,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+        if (err) return done(err);
 
         if (res.body.errors) {
           return done(res.body.errors[0]);
@@ -302,9 +286,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+        if (err) return done(err);
 
         fields.forEach((field) => {
           expect(res.body[field]).to.deep.equal(template1[field]);

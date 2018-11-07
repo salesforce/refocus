@@ -122,8 +122,10 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
  * @param {Object} The input object without the keys in fieldsArr
  */
 function removeFieldsFromResponse(fieldsToExclude, responseObj) {
-  for (let i = fieldsToExclude.length - 1; i >= 0; i--) {
-    delete responseObj[fieldsToExclude[i]];
+  if (fieldsToExclude) {
+    for (let i = fieldsToExclude.length - 1; i >= 0; i--) {
+      delete responseObj[fieldsToExclude[i]];
+    }
   }
 } // removeFieldsFromResponse
 
