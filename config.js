@@ -120,8 +120,10 @@ const jobType = {
 
 const clockJobConfig = {
   intervals: {
-    checkMissedCollectorHeartbeat: String(collectorConfig.heartbeatIntervalMillis),
+    checkMissedCollectorHeartbeat:
+      String(collectorConfig.heartbeatIntervalMillis),
     deactivateRooms: '5m',
+    deleteUnusedTokens: '1d',
     jobCleanup: '30m',
     kueStatsActivityLogs: '1m',
     pubStatsLogs: '1m',
@@ -277,9 +279,10 @@ module.exports = {
   JOB_REMOVAL_DELAY,
   JOB_REMOVAL_BATCH_SIZE,
   clockJobConfig,
-  jobType,
-  jobConcurrency,
+  corsRoutes,
+  deleteUnusedTokensSince: pe.DELETE_UNUSED_TOKENS_SINCE || false,
   deprioritizeJobsFrom,
+  encryptionAlgoForCollector,
   expressLimiterPath,
   expressLimiterMethod,
   expressLimiterLookup,
@@ -288,13 +291,17 @@ module.exports = {
   expressLimiterTotal2,
   expressLimiterExpire2,
   botEventLimit,
+  hiddenRoutes,
+  jobConcurrency,
+  jobType,
+  kueShutdownTimeout,
   logEnvVars: {
     MASK_LIST: pe.LOG_ENV_VARS_MASK_LIST ?
       pe.LOG_ENV_VARS_MASK_LIST.split(',') : [],
     MAX_LEN: +pe.LOG_ENV_VARS_MAX_LEN || 512,
   },
-  minRoomDeactivationAge,
   kueStatsInactiveWarning: pe.KUESTATS_INACTIVE_WARNING,
+  minRoomDeactivationAge,
   newRelicKey,
   nodeEnv,
   payloadLimit,
@@ -302,9 +309,5 @@ module.exports = {
   prioritizeJobsFrom,
   queueTime95thMillis: pe.QUEUESTATS_95TH_WARNING_MILLIS,
   readReplicas,
-  hiddenRoutes,
-  corsRoutes,
-  encryptionAlgoForCollector,
-  kueShutdownTimeout,
   waitingSigKillTimeout,
 };
