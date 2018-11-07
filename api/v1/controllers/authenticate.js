@@ -49,26 +49,27 @@ module.exports = {
         }
 
         return user.setLastLogin()
-        .then(() => Profile.isAdmin(user.profileId))
-        .then((isAdmin) => { // update in token payload if admin
-          const payloadObj = {
-            ProfileName: user.profile.name,
-            IsAdmin: isAdmin,
-          };
+          .then(() => Profile.isAdmin(user.profileId))
+          .then((isAdmin) => { // update in token payload if admin
+            const payloadObj = {
+              ProfileName: user.profile.name,
+              IsAdmin: isAdmin,
+            };
 
-          // create token
-          const token = jwtUtil.createToken(
-            req.user.name, req.user.name, payloadObj
-          );
+            // create token
+            const token = jwtUtil.createToken(
+              req.user.name, req.user.name, payloadObj
+            );
 
-          req.session.token = token;
-          const retObj = {
-            success: true,
-            message: 'authentication succeeded',
-          };
-          u.logAPI(req, resultObj, retObj);
-          return res.status(httpStatus.OK).json(retObj);
-        });
+            req.session.token = token;
+            const retObj = {
+              success: true,
+              message: 'authentication succeeded',
+            };
+            u.logAPI(req, resultObj, retObj);
+            return res.status(httpStatus.OK).json(retObj);
+          })
+          .catch((e) => u.handleError(next, e, resourceName));
       });
     })(req, res, next);
   },

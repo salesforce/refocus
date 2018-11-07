@@ -72,7 +72,7 @@ module.exports = {
           req.session.token = tokenToReturn;
           u.logAPI(req, resultObj, userObj);
           return res.status(httpStatus.CREATED).json(userObj);
-        });
+        }).catch((e) => u.handleError(next, e, helper.modelName));
       });
     })(req, res, next);
   },
