@@ -12,8 +12,8 @@
 'use strict'; // eslint-disable-line strict
 const verbUtils = require('./utils');
 const findUtils = require('./findUtils');
-const httpStatus = require('../../constants').httpStatus;
 const apiErrors = require('../../apiErrors');
+const OK = require('../../constants').httpStatus.OK;
 
 function doFindOne_(reqResNextWrapper, props, opts, dbTimeObject) {
   return props.model
@@ -54,7 +54,7 @@ function handleResponse(props, responseObject, reqResNextWrapper,
   verbUtils.logAPI(reqResNextWrapper.req, dbTimeObject, responseObject, null);
   reqResNextWrapper
     .res
-    .status(httpStatus.OK)
+    .status(OK)
     .json(responseObject);
 } // handleResponse
 
