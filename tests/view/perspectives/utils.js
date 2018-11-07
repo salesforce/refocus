@@ -9,15 +9,8 @@
 /**
  * tests/view/perspectives/utils.js
  */
-
-import { expect } from 'chai';
-import { getArray,
-  getTagsFromResources,
-  getConfig,
-  arrayFilter,
-  getTagsFromArrays,
-} from '../../../view/perspective/utils';
-
+const expect = require('chai').expect;
+const utils = require('../../../view/perspective/utils');
 const ZERO = 0;
 
 /**
@@ -32,7 +25,7 @@ const ZERO = 0;
  * @returns {Array} Array with all published resources
  */
 function getSubjects(INT, fieldName, isPublished) {
-  let subjects = [];
+  const subjects = [];
   for (let i = INT; i > ZERO; i--) {
     const obj = {
       isPublished,
@@ -41,6 +34,7 @@ function getSubjects(INT, fieldName, isPublished) {
     obj[fieldName] = i;
     subjects.push(obj);
   }
+
   return subjects;
 }
 
@@ -49,146 +43,145 @@ module.exports = {
 };
 
 describe('tests/view/perspectives/utils.js, Config perspective functions >',
-() => {
-  const ZERO = 0;
-  const NUM = 10;
-  const POPULAR_SAYING = 'The quick brown fox jumps over the lazy dog';
-  const ARR = POPULAR_SAYING.split(' ');
-  const WORD = 'fox';
+  () => {
+    const NUM = 10;
+    const POPULAR_SAYING = 'The quick brown fox jumps over the lazy dog';
+    const ARR = POPULAR_SAYING.split(' ');
+    const WORD = 'fox';
 
-  it('getTagsFromResources does not return duplicates', () => {
-    const arr = [
-      { tags: [ WORD ] },
-      { tags: [] },
-      { tags: [ WORD ] },
-    ];
-    const resultArr = getTagsFromResources(arr);
-    expect(resultArr.length).to.equal(1);
-    expect(resultArr).to.deep.equal([WORD]);
-  });
-
-  describe('arrayFilter >', () => {
-    it('filters out numbers', () => {
-      const arr1 = [1, 2, 3, 4, 5];
-      const arr2 = [1, 2, 3];
-      const filtered = arrayFilter(arr1, arr2);
-      expect(filtered).to.deep.equal([4, 5]);
-    });
-
-    it('dropdown removes all options, if values === options', () => {
-      // remove empty spaces
-      const arr = arrayFilter(
-        ARR,
-        ARR,
-      );
-      expect(arr).to.be.empty;
-    });
-
-    it('dropdown removes existing option ' +
-      'from available options', () => {
-      // remove empty spaces
-      const arr = arrayFilter(
-        POPULAR_SAYING.split(''),
-        ' ',
-      );
-      expect(arr).to.not.contain(' ');
-    });
-
-    it('pass in null value', () => {
-      const arr = arrayFilter(ARR);
-      expect(arr).to.deep.equal(ARR);
-    });
-  })
-
-  describe('getConfig >', () => {
-    it('config options contain the expected number of options', () => {
-      const key = 'statusFilter'; // any string
-      const values = {};
-      values[key] = POPULAR_SAYING.split(' ');
-      const value = [WORD];
-      const config = getConfig(values, key, value);
-      expect(config.options.length).to.equal(values[key].length - 1);
-    });
-
-    it('options contain only values not in field', () => {
-      const key = 'statusFilter'; // any string
-      const values = {};
-      values[key] = POPULAR_SAYING.split(' ');
-      const value = [WORD];
-      const config = getConfig(values, key, value);
-      expect(config.options).to.not.contain(WORD);
-    });
-  });
-
-  describe('getArray >', () => {
-    it('returns published resources', () => {
-      const published = getArray(
-        'absolutePath',
-        // published
-        getSubjects(NUM, 'absolutePath', true)
-      );
-      expect(published.length).to.equal(NUM);
-      // input is in decreasing order
-      // should preserve order
-      expect(published[ZERO]).to.equal(NUM);
-    });
-
-    it('preserves the order of input resources', () => {
-      const published = getArray(
-        'absolutePath',
-        // published
-        getSubjects(NUM, 'absolutePath', true),
-      );
-      // input is in decreasing order
-      expect(published[ZERO]).to.equal(NUM);
-    });
-  });
-
-  describe('getTagsFromArrays >', () => {
-    it('not an array', () => {
-      const tags = getTagsFromArrays('not-an-arr');
-      expect(tags.length).to.equal(0);
-    });
-
-    it('null array', () => {
-      const tags = getTagsFromArrays();
-      expect(tags.length).to.equal(0);
-    });
-
-    it('empty array', () => {
-      const tags = getTagsFromArrays([]);
-      expect(tags.length).to.equal(0);
-    });
-
-    it('array with one object having one tag', () => {
-      const arr = [{ tags: ['tag1'] }];
-      const tags = getTagsFromArrays(arr);
-      expect(tags.length).to.equal(1);
-      expect(tags).to.deep.equal(['tag1']);
-    });
-
-    it('array with one object having multiple tags', () => {
-      const arr = [{ tags: ['tag1', 'tag2'] }];
-      const tags = getTagsFromArrays(arr);
-      expect(tags.length).to.equal(2);
-      expect(tags).to.deep.equal(['tag1', 'tag2']);
-    });
-
-    it('array with one object having duplicate tags', () => {
-      const arr = [{ tags: ['tag1', 'tag1'] }];
-      const tags = getTagsFromArrays(arr);
-      expect(tags.length).to.equal(1);
-      expect(tags).to.deep.equal(['tag1']);
-    });
-
-    it('array with multiple objects having tags, result sorted', () => {
+    it('getTagsFromResources does not return duplicates', () => {
       const arr = [
-        { tags: ['tag2', 'tag1'] },
-        { tags: ['tag2', 'tag4', 'tag3'] },
+        { tags: [WORD] },
+        { tags: [] },
+        { tags: [WORD] },
       ];
-      const tags = getTagsFromArrays(arr);
-      expect(tags.length).to.equal(4);
-      expect(tags).to.deep.equal(['tag1', 'tag2', 'tag3', 'tag4']);
+      const resultArr = utils.getTagsFromResources(arr);
+      expect(resultArr.length).to.equal(1);
+      expect(resultArr).to.deep.equal([WORD]);
+    });
+
+    describe('arrayFilter >', () => {
+      it('filters out numbers', () => {
+        const arr1 = [1, 2, 3, 4, 5];
+        const arr2 = [1, 2, 3];
+        const filtered = utils.arrayFilter(arr1, arr2);
+        expect(filtered).to.deep.equal([4, 5]);
+      });
+
+      it('dropdown removes all options, if values === options', () => {
+        // remove empty spaces
+        const arr = utils.arrayFilter(
+          ARR,
+          ARR,
+        );
+        expect(arr).to.be.empty;
+      });
+
+      it('dropdown removes existing option ' +
+        'from available options', () => {
+        // remove empty spaces
+        const arr = utils.arrayFilter(
+          POPULAR_SAYING.split(''),
+          ' ',
+        );
+        expect(arr).to.not.contain(' ');
+      });
+
+      it('pass in null value', () => {
+        const arr = utils.arrayFilter(ARR);
+        expect(arr).to.deep.equal(ARR);
+      });
+    });
+
+    describe('getConfig >', () => {
+      it('config options contain the expected number of options', () => {
+        const key = 'statusFilter'; // any string
+        const values = {};
+        values[key] = POPULAR_SAYING.split(' ');
+        const value = [WORD];
+        const config = utils.getConfig(values, key, value);
+        expect(config.options.length).to.equal(values[key].length - 1);
+      });
+
+      it('options contain only values not in field', () => {
+        const key = 'statusFilter'; // any string
+        const values = {};
+        values[key] = POPULAR_SAYING.split(' ');
+        const value = [WORD];
+        const config = utils.getConfig(values, key, value);
+        expect(config.options).to.not.contain(WORD);
+      });
+    });
+
+    describe('getArray >', () => {
+      it('returns published resources', () => {
+        const published = utils.getArray(
+          'absolutePath',
+          // published
+          getSubjects(NUM, 'absolutePath', true)
+        );
+        expect(published.length).to.equal(NUM);
+        // input is in decreasing order
+        // should preserve order
+        expect(published[ZERO]).to.equal(NUM);
+      });
+
+      it('preserves the order of input resources', () => {
+        const published = utils.getArray(
+          'absolutePath',
+          // published
+          getSubjects(NUM, 'absolutePath', true),
+        );
+        // input is in decreasing order
+        expect(published[ZERO]).to.equal(NUM);
+      });
+    });
+
+    describe('getTagsFromArrays >', () => {
+      it('not an array', () => {
+        const tags = utils.getTagsFromArrays('not-an-arr');
+        expect(tags.length).to.equal(0);
+      });
+
+      it('null array', () => {
+        const tags = utils.getTagsFromArrays();
+        expect(tags.length).to.equal(0);
+      });
+
+      it('empty array', () => {
+        const tags = utils.getTagsFromArrays([]);
+        expect(tags.length).to.equal(0);
+      });
+
+      it('array with one object having one tag', () => {
+        const arr = [{ tags: ['tag1'] }];
+        const tags = utils.getTagsFromArrays(arr);
+        expect(tags.length).to.equal(1);
+        expect(tags).to.deep.equal(['tag1']);
+      });
+
+      it('array with one object having multiple tags', () => {
+        const arr = [{ tags: ['tag1', 'tag2'] }];
+        const tags = utils.getTagsFromArrays(arr);
+        expect(tags.length).to.equal(2);
+        expect(tags).to.deep.equal(['tag1', 'tag2']);
+      });
+
+      it('array with one object having duplicate tags', () => {
+        const arr = [{ tags: ['tag1', 'tag1'] }];
+        const tags = utils.getTagsFromArrays(arr);
+        expect(tags.length).to.equal(1);
+        expect(tags).to.deep.equal(['tag1']);
+      });
+
+      it('array with multiple objects having tags, result sorted', () => {
+        const arr = [
+          { tags: ['tag2', 'tag1'] },
+          { tags: ['tag2', 'tag4', 'tag3'] },
+        ];
+        const tags = utils.getTagsFromArrays(arr);
+        expect(tags.length).to.equal(4);
+        expect(tags).to.deep.equal(['tag1', 'tag2', 'tag3', 'tag4']);
+      });
     });
   });
-});
