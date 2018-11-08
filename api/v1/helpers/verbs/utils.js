@@ -11,7 +11,6 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const NOT_FOUND = -1;
 const apiErrors = require('../../apiErrors');
 const constants = require('../../constants');
 const commonDbUtil = require('../../../../db/helpers/common');
@@ -726,7 +725,8 @@ function findAssociatedInstances(props, params, association, options) {
       if (o) {
         const getAssocfuncName = `get${capitalizeFirstLetter(association)}`;
         o[getAssocfuncName](options)
-        .then((assocArry) => resolve(assocArry));
+        .then((assocArry) => resolve(assocArry))
+        .catch((err) => reject(err));
       }
     })
     .catch((err) => reject(err));

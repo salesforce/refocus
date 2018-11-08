@@ -45,7 +45,8 @@ module.exports = {
       } else {
         u.forbidden(next);
       }
-    });
+    })
+      .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or
  * https://opensource.org/licenses/BSD-3-Clause
  */
+
 /**
  * view/perspective/utils.js
  *
@@ -25,7 +26,7 @@ function getFilterQuery(p) {
   if (p.aspectFilter && p.aspectFilter.length) {
     const sign = p.aspectFilterType === 'INCLUDE' ? '' : '-';
     q += 'aspect' + '=' + sign +
-        p.aspectFilter.join().replace(/,/g, ',' + sign);
+      p.aspectFilter.join().replace(/,/g, ',' + sign);
   }
 
   if (p.aspectTagFilter && p.aspectTagFilter.length) {
@@ -35,7 +36,7 @@ function getFilterQuery(p) {
 
     const sign = p.aspectTagFilterType === 'INCLUDE' ? '' : '-';
     q += 'aspectTags' + '=' + sign +
-        p.aspectTagFilter.join().replace(/,/g, ',' + sign);
+      p.aspectTagFilter.join().replace(/,/g, ',' + sign);
   }
 
   if (p.subjectTagFilter && p.subjectTagFilter.length) {
@@ -45,7 +46,7 @@ function getFilterQuery(p) {
 
     const sign = p.subjectTagFilterType === 'INCLUDE' ? '' : '-';
     q += 'subjectTags' + '=' + sign +
-        p.subjectTagFilter.join().replace(/,/g, ',' + sign);
+      p.subjectTagFilter.join().replace(/,/g, ',' + sign);
   }
 
   if (p.statusFilter && p.statusFilter.length) {
@@ -55,7 +56,7 @@ function getFilterQuery(p) {
 
     const sign = p.statusFilterType === 'INCLUDE' ? '' : '-';
     q += 'status' + '=' + sign +
-        p.statusFilter.join().replace(/,/g, ',' + sign);
+      p.statusFilter.join().replace(/,/g, ',' + sign);
   }
 
   return q.length ? ('?' + q) : q;
@@ -88,7 +89,6 @@ function getArray(field, arrayOfObjects) {
  * @returns {String} The converted string, includes spaces.
  */
 function convertCamelCase(string) {
-
   // insert a space before all caps
   // then uppercase the first character
   return string
@@ -137,7 +137,7 @@ function arrayFilter(array1, exclude = []) {
 function findNamePrefixFromAbsolutePath(options, searchText, callback) {
   const arr = options.filter((option) => {
     const dotIndex = option.lastIndexOf('.');
-    const name = dotIndex > -1 ? option.slice(dotIndex+1) : option;
+    const name = dotIndex > -1 ? option.slice(dotIndex + 1) : option;
     return name.toUpperCase().startsWith(searchText.toUpperCase());
   });
   callback(arr);
@@ -281,30 +281,28 @@ function getValuesObject(accumulatorObject) {
      * it is also dispatched.
      */
     const getLens = getPromiseWithUrl('/v1/lenses/' + perspective.lensId)
-    .then((res) => {
+      .then((res) => {
+        // hierarchyLoadEvent can be undefined or a custom event
+        // if hierarchyLoadEvent is custom event, it will be dispatched
+        handleLensDomEvent(res.body.library, hierarchyLoadEvent);
 
-      // hierarchyLoadEvent can be undefined or a custom event
-      // if hierarchyLoadEvent is custom event, it will be dispatched
-      handleLensDomEvent(res.body.library, hierarchyLoadEvent);
+        // set the lens received flag to true, to dispatch lens load
+        // when hierarchy is resolved in getHierarchy
+        gotLens = true;
 
-      // set the lens received flag to true, to dispatch lens load
-       // when hierarchy is resolved in getHierarchy
-      gotLens = true;
+        valuesObj.lens = res.body;
+      });
 
-      valuesObj.lens = res.body;
-    });
-
-    const filterString  = getFilterQuery(perspective);
+    const filterString = getFilterQuery(perspective);
     const getHierarchy = getPromiseWithUrl('/v1/subjects/' +
-    perspective.rootSubject + '/hierarchy' + filterString)
-    .then((res) => {
+      perspective.rootSubject + '/hierarchy' + filterString)
+      .then((res) => {
+        // if gotLens is false, hierarchyLoadEvent will be assigned
+        // and NOT dispatched. Otherwise dispatch the hierarchy event
+        hierarchyLoadEvent = handleHierarchyEvent(res.body, gotLens);
 
-      // if gotLens is false, hierarchyLoadEvent will be assigned
-      // and NOT dispatched. Otherwise dispatch the hierarchy event
-      hierarchyLoadEvent = handleHierarchyEvent(res.body, gotLens);
-
-      valuesObj.rootSubject = res.body;
-    });
+        valuesObj.rootSubject = res.body;
+      });
 
     return [getLens, getHierarchy];
   }
@@ -315,113 +313,111 @@ function getValuesObject(accumulatorObject) {
   // If successful, load the hierarchy and lens
   const arr = [
     getPromiseWithUrl('/v1/perspectives'),
-    getPromiseWithUrl(url)
-    .catch(console.log)
+    getPromiseWithUrl(url),
   ];
 
   return Promise.all(arr)
-  .then((responses) => {
-    valuesObj.perspectives = responses[0].body;
+    .then((responses) => {
+      valuesObj.perspectives = responses[0].body;
 
-    // use ternary as if pespective does not exist, responses[1] is undefined
-    const returnedPerspective = responses[1] ? responses[1].body : null;
+      // use ternary as if pespective does not exist, responses[1] is undefined
+      const returnedPerspective = responses[1] ? responses[1].body : null;
 
-    // assign perspective-related values to the accumulator object
-    valuesObj.persNames = valuesObj.perspectives
-      .map((perspective) => perspective.name).sort();
+      // assign perspective-related values to the accumulator object
+      valuesObj.persNames = valuesObj.perspectives
+        .map((perspective) => perspective.name).sort();
 
-    /*
-     * One out of four situations can happen:
-     * GET default perspective: exists. Redirect to the default perspective
-     * GET default perspective: does NOT exist: perspective is the first
-     *  perspective in the perspectives array.
-     * If no perspectives exist, valuesObj.perspective = null
-     */
-     if (!named) {
-      if (returnedPerspective) {
+      /*
+       * One out of four situations can happen:
+       * GET default perspective: exists. Redirect to the default perspective
+       * GET default perspective: does NOT exist: perspective is the first
+       *  perspective in the perspectives array.
+       * If no perspectives exist, valuesObj.perspective = null
+       */
+      if (!named) {
+        if (returnedPerspective) {
+          // the value field has the name of the default perspective.
+          // need the return statement to skip executing the rest of code
+          return redirectToUrl('/perspectives/' + returnedPerspective.value);
+        }
 
-        // the value field has the name of the default perspective.
-        // need the return statement to skip executing the rest of code
-        return redirectToUrl('/perspectives/' + returnedPerspective.value);
+        // default perspective does NOT exist.
+        // GET the first perspective by alphabetical order.
+        // Check to see there are perspectives
+        if (valuesObj.perspectives.length) {
+          // redirect to the first perspective. The rest of the code
+          // won't be executed.
+          return redirectToUrl('/perspectives/' +
+            valuesObj.perspectives[0].name);
+        }
+
+        // default perspective does NOT exist AND
+        // there are no perspectives
+        valuesObj.perspective = null;
+
+        // Execution needs to continue after this, to
+        //  load the perspective picker
+        customHandleError('There are no perspectives yet. Click the ' +
+          ' "Search Perspectives" input box then click "New Perspective".');
       }
 
-      // default perspective does NOT exist.
-      // GET the first perspective by alphabetical order.
-      // Check to see there are perspectives
-      if (valuesObj.perspectives.length) {
+      /*
+       * GET named perspective: exists. Assign perspective
+       * GET named perspective: does NOT exist: handleError
+       */
+      const promisesArr = [
+        getPromiseWithUrl('/v1/lenses?isPublished=true&fields=name'),
+        getPromiseWithUrl('/v1/subjects?isPublished=true&fields=' +
+          'absolutePath,tags'),
+        getPromiseWithUrl('/v1/aspects?isPublished=true&fields=name,tags'),
+      ];
 
-        // redirect to the first perspective. The rest of the code
-        // won't be executed.
-        return redirectToUrl('/perspectives/' + valuesObj.perspectives[0].name);
+      if (named) {
+        if (returnedPerspective) {
+          setupSocketIOClient(returnedPerspective);
+          valuesObj.perspective = returnedPerspective;
+          valuesObj.name = valuesObj.perspective.name;
+
+          // perspective exists. GET its hierarchy and lenses soon.
+          promisesArr.concat(getPageLoadingPromises(returnedPerspective));
+        } else {
+          // named perspective does not exist
+          const name = url.split('/').pop();
+          customHandleError('Sorry, but the perspective you were trying ' +
+            'to load, ' + name + ', does not exist. Please select a ' +
+            'perspective from the dropdown.');
+        }
       }
 
-      // default perspective does NOT exist AND
-      // there are no perspectives
-      valuesObj.perspective = null;
-
-      // Execution needs to continue after this, to
-      //  load the perspective picker
-      customHandleError('There are no perspectives yet. Click the ' +
-        ' "Search Perspectives" input box then click "New Perspective".');
-     }
-
-    /*
-     * GET named perspective: exists. Assign perspective
-     * GET named perspective: does NOT exist: handleError
-     */
-     const promisesArr = [
-      getPromiseWithUrl('/v1/lenses?isPublished=true&fields=name'),
-      getPromiseWithUrl('/v1/subjects?isPublished=true&fields=absolutePath,tags'),
-      getPromiseWithUrl('/v1/aspects?isPublished=true&fields=name,tags')
-     ];
-
-     if (named) {
-      if (returnedPerspective) {
-        setupSocketIOClient(returnedPerspective);
-        valuesObj.perspective = returnedPerspective;
-        valuesObj.name = valuesObj.perspective.name;
-
-        // perspective exists. GET its hierarchy and lenses soon.
-        promisesArr.concat(getPageLoadingPromises(returnedPerspective));
-      } else {
-
-        // named perspective does not exist
-        const name = url.split('/').pop();
-        customHandleError('Sorry, but the perspective you were trying ' +
-          'to load, ' + name + ', does not exist. Please select a ' +
-          'perspective from the dropdown.');
+      return Promise.all(promisesArr);
+    })
+    .then((responses) => {
+      // on redirect, responses is a string
+      // otherwise it is an array of API responses
+      if (typeof responses === 'string') {
+        return;
       }
-    }
 
-    return Promise.all(promisesArr);
-  })
-  .then((responses) => {
+      const lenses = responses ? responses[0].body : null;
+      const subjects = responses ? responses[1].body : null;
+      const aspects = responses ? responses[2].body : null;
 
-    // on redirect, responses is a string
-    // otherwise it is an array of API responses
-    if (typeof responses === 'string') {
-      return;
-    }
+      // assign non-perspective values to the accumulator object.
+      // TODO: subjects are objects. Change to use strings
+      valuesObj.subjects = subjects;
+      valuesObj.subjectTagFilter = getTagsFromArrays(valuesObj.subjects);
+      valuesObj.lenses = lenses;
 
-    const lenses = responses[0].body;
-    const subjects = responses[1].body;
-    const aspects = responses[2].body;
+      // aspectFilter is an array of strings
+      valuesObj.aspectFilter = aspects.map((aspect) => aspect.name);
+      valuesObj.aspectTagFilter = getTagsFromArrays(aspects);
 
-    // assign non-perspective values to the accumulator object.
-    // TODO: subjects are objects. Change to use strings
-    valuesObj.subjects = subjects;
-    valuesObj.subjectTagFilter = getTagsFromArrays(valuesObj.subjects);
-    valuesObj.lenses = lenses;
-
-    // aspectFilter is an array of strings
-    valuesObj.aspectFilter = aspects.map((aspect) => aspect.name);
-    valuesObj.aspectTagFilter = getTagsFromArrays(aspects);
-
-    return valuesObj;
-  });
+      return valuesObj;
+    })
+    .catch(() => Promise.resolve());
 } // getValuesObject
 
-module.exports =  {
+module.exports = {
   getValuesObject,
   getTagsFromArrays,
   getFilterQuery,

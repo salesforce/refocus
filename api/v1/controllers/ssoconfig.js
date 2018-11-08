@@ -84,12 +84,13 @@ module.exports = {
     .then((o) => {
       if (o) {
         o.destroy()
-        .then((destroyedObj) => {
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          u.logAPI(req, resultObj, destroyedObj);
-          res.status(httpStatus.OK)
-          .json(responsify(destroyedObj, helper, req.method));
-        });
+          .then((destroyedObj) => {
+            resultObj.dbTime = new Date() - resultObj.reqStartTime;
+            u.logAPI(req, resultObj, destroyedObj);
+            res.status(httpStatus.OK)
+              .json(responsify(destroyedObj, helper, req.method));
+          })
+          .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
         const err = new apiErrors.ResourceNotFoundError();
         err.info = 'There is no sso config to delete.';
@@ -160,12 +161,13 @@ module.exports = {
         }
 
         o.update(requestBody)
-        .then((updatedObj) => {
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          u.logAPI(req, resultObj, o.dataValues);
-          res.status(httpStatus.OK)
-          .json(responsify(updatedObj, helper, req.method));
-        });
+          .then((updatedObj) => {
+            resultObj.dbTime = new Date() - resultObj.reqStartTime;
+            u.logAPI(req, resultObj, o.dataValues);
+            res.status(httpStatus.OK)
+              .json(responsify(updatedObj, helper, req.method));
+          })
+          .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
         const err = new apiErrors.ResourceNotFoundError({
           explanation: 'There is no sso config.',
@@ -244,12 +246,13 @@ module.exports = {
         }
 
         o.save()
-        .then((savedObj) => {
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          u.logAPI(req, resultObj, savedObj);
-          res.status(httpStatus.OK)
-          .json(responsify(savedObj, helper, req.method));
-        });
+          .then((savedObj) => {
+            resultObj.dbTime = new Date() - resultObj.reqStartTime;
+            u.logAPI(req, resultObj, savedObj);
+            res.status(httpStatus.OK)
+              .json(responsify(savedObj, helper, req.method));
+          })
+          .catch((err) => u.handleError(next, err, helper.modelName));
       } else {
         const err = new apiErrors.ResourceNotFoundError({
           explanation: 'There is no sso config.',

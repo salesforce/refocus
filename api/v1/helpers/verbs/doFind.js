@@ -112,10 +112,14 @@ module.exports = function doFind(req, res, next, props) {
       }
 
       // get from cache
-      const dbObj = JSON.parse(reply);
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      u.logAPI(req, resultObj, dbObj);
-      res.status(httpStatus.OK).json(dbObj);
+      try {
+        const dbObj = JSON.parse(reply);
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        u.logAPI(req, resultObj, dbObj);
+        res.status(httpStatus.OK).json(dbObj);
+      } catch (err) {
+        u.handleError(next, err, props.modelName);
+      }
     });
   } else {
     return doFindResponse({ req, res, next }, props, opts, resultObj);
