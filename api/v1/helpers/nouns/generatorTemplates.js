@@ -36,7 +36,8 @@ module.exports = {
   fieldScopeMap: {
     user: 'user',
   },
-  uniqueFieldWithoutLimit: 'name',
+
+  nameFinderWithoutLimit: true,
 
 }; // exports
 
