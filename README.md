@@ -60,8 +60,8 @@ See the [Quickstart](https://salesforce.github.io/refocus/docs/01-quickstart.htm
         once a day.
     * Use environment variable name `DELETE_UNUSED_TOKENS_SINCE` to set
         the threshold of what we should consider "unused". Set the value
-        to a negative time offset like `-30d` if you want to consider a token unused if it has
-        not been used in the last 30 days, or `-3m` for three months, etc.
+        to a negative time offset like `-30d` if you want to consider a
+        token unused if it has not been used in the last 30 days.
 
 ### IP Restrictions
 By default, there are no IP restrictions for Refocus access. An admin can configure IP restrictions by adding a config var in Heroku with name ```IP_WHITELIST``` and value array of IP ranges, eg. ```[ [1.2.3.4, 1.2.3.8], [7.6.5.4, 7.6.9.9], [8.8.8.8, 9.9.9.9] ]```. Only the specified IP ranges will be allowed access to Refocus.

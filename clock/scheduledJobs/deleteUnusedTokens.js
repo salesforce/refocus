@@ -31,7 +31,7 @@ module.exports = {
    * Use environment variable name "DELETE_UNUSED_TOKENS_SINCE" to set the
    * threshold of what we should consider "unused". Set the value to a negative
    * time offset like "-30d" if you want to consider a token unused if it has
-   * not been used in the last 30 days, or "-3m" for three months, etc.
+   * not been used in the last 30 days.
    *
    * @returns {Promise<Object>} containing recordCount and errorCount for
    *  activity=worker logging

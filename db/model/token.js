@@ -126,7 +126,7 @@ module.exports = function token(seq, dataTypes) {
         return Token.destroy({
           where: {
             lastUsed: {
-              [Op.lt]: new Date(new Date().getTime() + ms(since)),
+              [Op.lt]: new Date(Date.now() + ms(since)),
             },
           },
         });
