@@ -122,10 +122,10 @@ describe('tests/db/helpers/common.js >', () => {
       const settings = {
         Key1: 'Value1',
         Key2: 'Value2',
-      }
+      };
 
       expect(() => common.validateSettings(settings)).to.not.throw();
-    })
+    });
 
     it('Ok, sharedContext and initialBotData are both valid', () => {
       const settings = {
