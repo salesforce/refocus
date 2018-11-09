@@ -254,26 +254,56 @@ function toSequelizeOrder(sortOrder) {
 } // toSequelizeOrder
 
 /**
- * Check for unique field in opts. If unique field is present, there are
- * following cases:
- * 1) Unique field have single value - set limit to 1
- *    Eg: opts = { where: { [Op.iLike]: { uniqField: 'someValue' } } };
+ * Check for unique field in opts.
+ *
+ * Unique field is 'name' by default and can be overwrite via
+ * adding attribute nameFinder into the respective noun. see /noun/subject.
+ *
+ * If unique field is present and the noun does require SQL limit, there are
+ * the following cases:
+ *
+ * 1) Unique field has single value without wildcard: set limit to 1.
+ *    Eg: opts = { where: { [Op.iLike]: { UniqueFieldName: 'someValue' } } };
+ *    Limit: 1
+ *
  * 2) Unique field can have multiple values - set limit to the number of values
- *    Eg: opts = { where: { uniqField:
-          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: 'someName2' }] },
-        } };
- * 3) Unique field have single wildcard value - limit unchanged
-      Eg: opts = { where: { [Op.iLike]: { uniqField: '%someValue%' } } };
- * 4) Unique field have multiple values one of which is wildcard value -
- *    limit unchanged
- *    Eg: opts = { where: { uniqField:
-          { [Op.or]: [{ [Op.iLike]: 'someName1' }, { [Op.iLike]: '%someName%' }] },
-        } };
+ *    Eg: opts = {
+ *      where:
+ *      {
+ *        UniqueFieldName: {
+ *          [Op.or]: [
+ *            { [Op.iLike]: 'someName1' }, { [Op.iLike]: 'someName2' },
+ *          ],
+ *        },
+ *      }
+ *    };
+ *    limit = 2.
+ *
+ * 3) Unique field has single value with wildcard: limit unchanged.
+ *    Eg: opts = { where: { [Op.iLike]: { UniqueFieldName: '%someValue%' } } };
+ *
+ * 4) Unique field has multiple values of which has wildcard: limit unchanged
+ *    Eg: opts = {
+ *        where: {
+ *          UniqueFieldName: {
+ *            [Op.or]: [
+ *              { [Op.iLike]: 'someName1' }, { [Op.iLike]: '%someName%' },
+ *            ] },
+ *        }
+ *      };
+ *
  * It is assumed that each field value will have $iLike operator applied.
  * @param  {Object} opts - Query options object
  * @param  {Object} props - The helpers/nouns module for the given DB model
  */
 function applyLimitIfUniqueField(opts, props) {
+  /*
+   * Attribute nameFinderWithoutLimit is a temp workaround until we define
+   * the best way to NOT change/restrict limit when unique field is the default
+   * (name) for some nouns.
+   */
+  if (props.nameFinderWithoutLimit) return;
+
   const uniqueFieldName = props.nameFinder || 'name';
   if (opts.where && opts.where[uniqueFieldName]) {
     const optsWhereOR = opts.where[uniqueFieldName][Op.or];
@@ -300,7 +330,7 @@ function applyLimitIfUniqueField(opts, props) {
 }
 
 /**
- * Builds the "options" object to pass intto the Sequelize find command.
+ * Builds the "options" object to pass into the Sequelize find command.
  *
  * @param {Object} params - The request params
  * @param {Object} props - The helpers/nouns module for the given DB model
@@ -342,14 +372,12 @@ function options(params, props) {
     }
   }
 
-  if (filter) {
-    opts.where = toSequelizeWhere(filter, props);
-    if (props.modifyWhereClause) {
-      props.modifyWhereClause(params, opts);
-    }
-
-    applyLimitIfUniqueField(opts, props);
+  opts.where = toSequelizeWhere(filter, props);
+  if (props.modifyWhereClause) {
+    props.modifyWhereClause(params, opts);
   }
+
+  applyLimitIfUniqueField(opts, props);
 
   return opts;
 } // options
