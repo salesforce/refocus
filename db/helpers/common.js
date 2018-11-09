@@ -183,7 +183,10 @@ function validateSettings(settings) {
       .description('Rules for bots to share data with eachother in this room'),
     initialBotData: joi.object().optional()
       .description('Initial botData to be created in the room.'),
-  });
+  }).unknown();
+
+  // We just want to validate the sharedContext field and the initialBotData fields.
+  // .unknown() allows any other field to escape any validation.
 
   validateObject(settings, settingsSchema);
 } // validateSettings
