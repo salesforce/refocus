@@ -187,8 +187,6 @@ module.exports = function roomType(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         const bots = inst.dataValues.bots;
-        console.log(inst.dataValues.settings.initialBotDataValues);
-
         return new seq.Promise((resolve, reject) => {
           if (!bots) {
             resolve(inst);
