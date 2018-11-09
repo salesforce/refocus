@@ -15,7 +15,6 @@ const fu = require('./findUtils');
 const COUNT_HEADER_NAME = require('../../constants').COUNT_HEADER_NAME;
 const httpStatus = require('../../constants').httpStatus;
 const redisCache = require('../../../../cache/redisCache').client.cache;
-const config = require('../../../../config');
 
 /**
  * Finds all matching records but only returns a subset of the results for
@@ -33,19 +32,20 @@ const config = require('../../../../config');
  *  find command
  */
 function doFindAndCountAll(reqResNext, props, opts, resultObj) {
-  return u.getScopedModel(props, opts.attributes).findAndCountAll(opts)
-  .then((o) => {
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    reqResNext.res.set(COUNT_HEADER_NAME, o.count);
-    return o.rows.map((row) => {
-      if (props.modelName === 'Lens') {
-        delete row.dataValues.library;
-      }
+  return u.getScopedModel(props, opts.attributes)
+    .findAndCountAll(opts)
+    .then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      reqResNext.res.set(COUNT_HEADER_NAME, o.count);
+      return o.rows.map((row) => {
+        if (props.modelName === 'Lens') {
+          delete row.dataValues.library;
+        }
 
-      return u.responsify(row, props, reqResNext.req.method);
-    });
-  })
-  .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
+        return u.responsify(row, props, reqResNext.req.method);
+      });
+    })
+    .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
 } // doFindAndCountAll
 
 /**
@@ -68,26 +68,26 @@ function doFindResponse(reqResNext, props, opts, resultObj) {
   }
 
   return doFindAndCountAll(reqResNext, props, opts, resultObj)
-  .then((retval) => {
-    u.sortArrayObjectsByField(props, retval);
+    .then((retVal) => {
+      u.sortArrayObjectsByField(props, retVal);
 
-    // loop through remove values to delete property
-    if (props.fieldsToExclude) {
-      for (let i = retval.length - 1; i >= 0; i--) {
-        u.removeFieldsFromResponse(props.fieldsToExclude, retval[i]);
+      // loop through remove values to delete property
+      if (props.fieldsToExclude) {
+        for (let i = retVal.length - 1; i >= 0; i--) {
+          u.removeFieldsFromResponse(props.fieldsToExclude, retVal[i]);
+        }
       }
-    }
 
-    if (props.cacheKey) {
-      // cache the object by cacheKey.
-      const strObj = JSON.stringify(retval);
-      redisCache.setex(props.cacheKey, props.cacheExpiry, strObj);
-    }
+      if (props.cacheKey) {
+        // cache the object by cacheKey.
+        const strObj = JSON.stringify(retVal);
+        redisCache.setex(props.cacheKey, props.cacheExpiry, strObj);
+      }
 
-    u.logAPI(reqResNext.req, resultObj, retval);
-    reqResNext.res.status(httpStatus.OK).json(retval);
-  })
-  .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
+      u.logAPI(reqResNext.req, resultObj, retVal);
+      reqResNext.res.status(httpStatus.OK).json(retVal);
+    })
+    .catch((err) => u.handleError(reqResNext.next, err, props.modelName));
 }
 
 /**
@@ -109,16 +109,16 @@ module.exports = function doFind(req, res, next, props) {
       if (cacheErr || !reply) {
         // if err or no reply, get resuls from db and set redis cache
         return doFindResponse({ req, res, next }, props, opts, resultObj);
-      } else {
-        // get from cache
-        try {
-          const dbObj = JSON.parse(reply);
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          u.logAPI(req, resultObj, dbObj);
-          res.status(httpStatus.OK).json(dbObj);
-        } catch (err) {
-          u.handleError(next, err, props.modelName);
-        }
+      }
+
+      // get from cache
+      try {
+        const dbObj = JSON.parse(reply);
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        u.logAPI(req, resultObj, dbObj);
+        res.status(httpStatus.OK).json(dbObj);
+      } catch (err) {
+        u.handleError(next, err, props.modelName);
       }
     });
   } else {

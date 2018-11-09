@@ -366,9 +366,7 @@ module.exports = {
         const dataValues = samp.dataValues ? samp.dataValues : samp;
 
         // loop through remove values to delete property
-        if (helper.fieldsToExclude) {
-          u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
-        }
+        u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
 
         /*
          * Send the upserted sample to the client by publishing it to the redis
@@ -485,9 +483,7 @@ module.exports = {
       const retval = u.responsify(o, helper, req.method);
 
       // loop through remove values to delete property
-      if (helper.fieldsToExclude) {
-        u.removeFieldsFromResponse(helper.fieldsToExclude, retval);
-      }
+      u.removeFieldsFromResponse(helper.fieldsToExclude, retval);
 
       /* send the updated sample to the client by publishing it to the redis
       channel */

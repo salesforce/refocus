@@ -4790,7 +4790,7 @@ paths:
       summary: Get generatorTemplate
       tags: [ generatorTemplates ]
       description: >-
-        Retrieve the specified generatoTemplate.
+        Retrieve the specified generatorTemplate.
       operationId: getGeneratorTemplate
       parameters:
         -
@@ -4819,7 +4819,7 @@ paths:
       tags: [ generatorTemplates ]
       description: >-
         Update the specified generatorTemplate. Requires user to have write
-        permision. If a field is not included in the query body, that field
+        permission. If a field is not included in the query body, that field
         will not be updated.
       operationId: patchGeneratorTemplate
       parameters:
@@ -5023,6 +5023,45 @@ paths:
           $ref: "#/responses/403"
         404:
           $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
+  /generatorTemplates/{name}/{version}:
+    x-swagger-router-controller: generatorTemplates
+    get:
+      security:
+      - jwt: []
+      summary: Get generatorTemplate
+      tags: [ generatorTemplates ]
+      description: >-
+        Retrieve the specified generatorTemplate by name and version.
+      operationId: getGeneratorTemplateByNameAndVersion
+      parameters:
+      -
+        name: name
+        in: path
+        description: >-
+          The name of the generatorTemplate to be retrieved.
+        required: true
+        type: string
+      -
+        name: version
+        in: path
+        description: >-
+          The version of the generatorTemplate to be retrieved.
+        required: true
+        type: string
+      responses:
+        200:
+          description: >-
+            Success, returns a single generatorTemplate
+          schema:
+            type: object
+            items:
+              $ref: "#/definitions/GeneratorTemplateResponse"
+        400:
+          $ref: "#/responses/400"
         default:
           $ref: "#/responses/genericError"
 
