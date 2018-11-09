@@ -54,7 +54,7 @@ module.exports = function roomType(seq, dataTypes) {
       validate: {
         validateObject(value) {
           common.validateSettings(value);
-        }
+        },
       },
       comment: 'Key/Value pairs for user specific settings',
     },

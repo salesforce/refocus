@@ -111,11 +111,12 @@ describe('tests/db/model/room/create.js >', () => {
       room.type = roomType.id;
       room.settings = {
         initialBotData: {
-          roomType.bots[0]: {
+          [roomType.bots[0]]: {
             initialData: botDataString,
           },
         },
-      }
+      };
+
       return Room.create(room);
     })
     .then((room) => BotData.findOne({ room: room.id }))
@@ -166,8 +167,8 @@ describe('tests/db/model/room/create.js >', () => {
       const room = u.getStandard();
       room.type = roomType.id;
       room.settings = {
-        'sharedContext': 123
-      }
+        sharedContext: 123,
+      };
 
       return Room.create(room);
     })
@@ -188,8 +189,8 @@ describe('tests/db/model/room/create.js >', () => {
       const room = u.getStandard();
       room.type = roomType.id;
       room.settings = {
-        'initialBotData': "THIS IS A STRING"
-      }
+        initialBotData: 'THIS IS A STRING',
+      };
 
       return Room.create(room);
     })

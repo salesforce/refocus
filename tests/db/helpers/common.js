@@ -124,20 +124,20 @@ describe('tests/db/helpers/common.js >', () => {
           meanBot: {
             niceBot: {
               niceBotData: {
-                occupation: "${meanBot.meanBotData.occupation}",
+                occupation: '${meanBot.meanBotData.occupation}',
+              },
+            },
+          },
+          initialBotData: {
+            meanBot: {
+              meanBotData: '{"occupation":"farmer"}',
+            },
+            niceBot: {
+              niceBotData: '',
             },
           },
         },
-        initialBotData: {
-          meanBot: {
-            meanBotData: '{"occupation":"farmer"}'
-          },
-          niceBot: {
-            niceBotData: ''
-          },
-        },
-      },
-    }
+      };
 
       expect(() => common.validateSettings({})).to.not.throw();
     });
