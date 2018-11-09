@@ -9,10 +9,10 @@
 /**
  * db/model/token.js
  */
-
+const ms = require('ms');
+const Op = require('sequelize').Op;
 const constants = require('../constants');
 const common = require('../helpers/common');
-
 const assoc = {};
 
 module.exports = function token(seq, dataTypes) {
@@ -107,6 +107,36 @@ module.exports = function token(seq, dataTypes) {
       },
       attributes: ['id'],
     }));
+  };
+
+  /**
+   * Deletes tokens unused since the provided threshold. Deletes both revoked
+   * AND un-revoked tokens. Does nothing if the "since" threshold does not
+   * resolve to a negative number of milliseconds.
+   *
+   * @param {String|Integer} since - a time offset e.g. "-1d" for one day ago,
+   *  or numeric value -360000 for one minute ago.
+   * @returns {Promise<Integer>} number of records deleted
+   */
+  Token.deleteUnused = function (since) {
+    try {
+      // eslint-disable-next-line no-magic-numbers
+      const millis = ms(since) || 0;
+      if (millis < 0) { // eslint-disable-line no-magic-numbers
+        return Token.destroy({
+          where: {
+            lastUsed: {
+              [Op.lt]: new Date(Date.now() + ms(since)),
+            },
+          },
+        });
+      }
+    } catch (err) {
+      // NO-OP
+    }
+
+    // we deleted zero records
+    return Promise.resolve(0); // eslint-disable-line no-magic-numbers
   };
 
   /**
