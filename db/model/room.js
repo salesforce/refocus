@@ -22,7 +22,6 @@ const assoc = {};
 const roomEventNames = rtConstants.events.room;
 const pubOpts = rtConstants.pubOpts.room;
 const Op = require('sequelize').Op;
-const joi = require('joi');
 
 module.exports = function room(seq, dataTypes) {
   const Room = seq.define('Room', {
