@@ -14,6 +14,7 @@
 const helper = require('../helpers/nouns/generatorTemplates');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doFind = require('../helpers/verbs/doFind');
+const doFindOne = require('../helpers/verbs/doFindOne');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
@@ -47,6 +48,20 @@ module.exports = {
    */
   getGeneratorTemplate(req, res, next) {
     doGet(req, res, next, helper);
+  },
+
+  /**
+   * GET /generatorTemplates/{name}/{version}
+   *
+   * Retrieves the generatorTemplate by name and version and sends it back
+   * in the response.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getGeneratorTemplateByNameAndVersion(req, res, next) {
+    doFindOne(req, res, next, helper);
   },
 
   /**

@@ -15,6 +15,7 @@
 
 const doDelete = require('./doDelete');
 const doFind = require('./doFind');
+const doFindOne = require('./doFindOne');
 const doGet = require('./doGet');
 const doPatch = require('./doPatch');
 const doPost = require('./doPost');
@@ -23,6 +24,7 @@ const doPut = require('./doPut');
 module.exports = {
   doDelete,
   doFind,
+  doFindOne,
   doGet,
   doPatch,
   doPost,
