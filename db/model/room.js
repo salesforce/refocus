@@ -123,9 +123,10 @@ module.exports = function room(seq, dataTypes) {
        */
       afterCreate: (instance) => {
         const BotData = seq.models.BotData;
-        const initialBotData =
-          instance.dataValues.settings.initialBotData;
-        if (initialBotData) {
+        if (instance.dataValues.settings &&
+          instance.dataValues.settings.initialBotData) {
+          const initialBotData =
+            instance.dataValues.settings.initialBotData;
           Object.keys(initialBotData).forEach(bot => {
             const allBotData = initialBotData[bot];
             Object.keys(allBotData).forEach(botData => {
