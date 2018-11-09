@@ -24,13 +24,6 @@ const pubOpts = rtConstants.pubOpts.room;
 const Op = require('sequelize').Op;
 const joi = require('joi');
 
-const settingsSchema = joi.object().keys({
-  sharedContext: joi.object().optional()
-    .description('Rules for bots to share data with eachother in this room'),
-  initialBotData: joi.object().optional()
-    .description('Initial botData to be created in the room.'),
-});
-
 module.exports = function room(seq, dataTypes) {
   const Room = seq.define('Room', {
     id: {
@@ -60,7 +53,7 @@ module.exports = function room(seq, dataTypes) {
       allowNull: true,
       validate: {
         validateObject(value) {
-          common.validateObject(value, settingsSchema);
+          common.validateSettings(value);
         },
       },
       comment: 'Key/Value pairs for user specific settings',

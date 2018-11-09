@@ -173,6 +173,22 @@ function validateContextDef(contextDef, requiredProps) {
 } // validateContextDef
 
 /**
+ * A custom validator to validate the settings objects used by the room and roomType models.
+ * @param {Object} settings - The settings array.
+ * @throws {ValidationError} If the object does not pass the validation.
+ */
+function validateSettings(settings) {
+  const settingsSchema = joi.object().keys({
+    sharedContext: joi.object().optional()
+      .description('Rules for bots to share data with eachother in this room'),
+    initialBotData: joi.object().optional()
+      .description('Initial botData to be created in the room.'),
+  });
+
+  validateObject(settings, settingsSchema);
+} // validateSettings
+
+/**
  * Determine whether the tags have changed by doing a deep comparison
  * @param  {Object} inst - db instance
  * @returns {Boolean}
@@ -200,5 +216,6 @@ module.exports = {
   changeType,
   validateObject,
   validateContextDef,
+  validateSettings,
   tagsChanged,
 }; // exports

@@ -22,6 +22,7 @@
  */
 
 const constants = require('../constants');
+const common = require('../helpers/common');
 const u = require('../helpers/roomTypeUtils');
 const assoc = {};
 const Op = require('sequelize').Op;
@@ -50,13 +51,12 @@ module.exports = function roomType(seq, dataTypes) {
     settings: {
       type: dataTypes.JSON,
       allowNull: true,
-      comment: 'Key/Value pairs for user specific settings',
       validate: {
         validateObject(value) {
-          console.log(value)
-          console.log("aadasdsdfdsfbisgbfigbifgfbiugdib")
+          common.validateSettings(value);
         }
-      }
+      },
+      comment: 'Key/Value pairs for user specific settings',
     },
     rules: {
       type: dataTypes.ARRAY(dataTypes.JSONB),

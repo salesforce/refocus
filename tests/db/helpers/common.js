@@ -112,4 +112,44 @@ describe('tests/db/helpers/common.js >', () => {
       });
     });
   });
+
+  describe('Validate settings object', () => {
+    it('Ok, empty object is valid', () => {
+      expect(() => common.validateSettings({})).to.not.throw();
+    });
+
+    it('Ok, sharedContext and initialBotData are both valid', () => {
+      const settings = {
+        sharedContext: {
+          meanBot: {
+            niceBot: {
+              niceBotData: {
+                occupation: "${meanBot.meanBotData.occupation}",
+            },
+          },
+        },
+        initialBotData: {
+          meanBot: {
+            meanBotData: '{"occupation":"farmer"}'
+          },
+          niceBot: {
+            niceBotData: ''
+          },
+        },
+      },
+    }
+
+      expect(() => common.validateSettings({})).to.not.throw();
+    });
+
+    it('Fail, sharedContext field should be an Object', () => {
+      expect(() => common.validateSettings({ sharedContext: 'STRING' }))
+        .to.throw('ValidationError');
+    });
+
+    it('Fail, initialBotData field should be an object', () => {
+      expect(() => common.validateSettings({ initialBotData: 123 }))
+        .to.throw('ValidationError');
+    });
+  });
 });
