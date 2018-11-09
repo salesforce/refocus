@@ -15,9 +15,11 @@ const tu = require('../../../testUtils');
 const Room = tu.db.Room;
 const RoomType = tu.db.RoomType;
 const Bot = tu.db.Bot;
+const BotData = tu.db.botData;
 const u = require('./utils');
 const b = require('../bot/utils');
 const v = require('../roomType/utils');
+const bd = require('../botData/utils');
 const invalidValue = '^thisValueisAlwaysInvalid#';
 
 describe('tests/db/model/room/create.js >', () => {
@@ -94,6 +96,36 @@ describe('tests/db/model/room/create.js >', () => {
     .catch(done);
   });
 
+  it('ok, room created with bots and initial botData was created', (done) => {
+    const botDataString = `I'm the best bot!`;
+    let botName;
+    Bot.create(b.getStandard())
+    .then((bots) => {
+      botName = bots.name;
+      const rt = v.getStandard();
+      rt.bots = [bots.name];
+      return RoomType.create(rt);
+    })
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.type = roomType.id;
+      room.settings = {
+        initialBotData: {
+          roomType.bots[0]: {
+            initialData: botDataString,
+          },
+        },
+      }
+      return Room.create(room);
+    })
+    .then((room) => BotData.findOne({ room: room.id }))
+    .then((botData) => {
+      expect(BotData.value).to.equal(botDataString);
+      done();
+    })
+    .catch(done);
+  });
+
   it('fail, room name invalid', (done) => {
     RoomType.create(v.getStandard())
     .then((roomType) => {
@@ -123,6 +155,50 @@ describe('tests/db/model/room/create.js >', () => {
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
       expect(err.message.toLowerCase()).to.contain('validation error');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('fail, settings field sharedContext is invalid', (done) => {
+    RoomType.create(v.getStandard())
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.type = roomType.id;
+      room.settings = {
+        'sharedContext': 123
+      }
+
+      return Room.create(room);
+    })
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal(tu.valErrorName);
+      expect(err.source).to.equal('settings');
+      expect(err.message.toLowerCase()).to.contain('sharedContext');
+      expect(err.message.toLowerCase()).to.contain('must be an object');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('fail, settings field initialBotData is invalid', (done) => {
+    RoomType.create(v.getStandard())
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.type = roomType.id;
+      room.settings = {
+        'initialBotData': "THIS IS A STRING"
+      }
+
+      return Room.create(room);
+    })
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal(tu.valErrorName);
+      expect(err.source).to.equal('settings');
+      expect(err.message.toLowerCase()).to.contain('initialBotData');
+      expect(err.message.toLowerCase()).to.contain('must be an object');
       done();
     })
     .catch(done);

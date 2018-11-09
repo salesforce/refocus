@@ -51,6 +51,12 @@ module.exports = function roomType(seq, dataTypes) {
       type: dataTypes.JSON,
       allowNull: true,
       comment: 'Key/Value pairs for user specific settings',
+      validate: {
+        validateObject(value) {
+          console.log(value)
+          console.log("aadasdsdfdsfbisgbfigbifgfbiugdib")
+        }
+      }
     },
     rules: {
       type: dataTypes.ARRAY(dataTypes.JSONB),
@@ -181,6 +187,7 @@ module.exports = function roomType(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         const bots = inst.dataValues.bots;
+        console.log(inst.dataValues.settings.initialBotDataValues);
 
         return new seq.Promise((resolve, reject) => {
           if (!bots) {

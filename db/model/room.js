@@ -14,6 +14,7 @@
  */
 
 const constants = require('../constants');
+const common = require('../helpers/common');
 const commonUtils = require('../../utils/common');
 const realTime = require('../../realtime/redisPublisher');
 const rtConstants = require('../../realtime/constants');
@@ -21,6 +22,14 @@ const assoc = {};
 const roomEventNames = rtConstants.events.room;
 const pubOpts = rtConstants.pubOpts.room;
 const Op = require('sequelize').Op;
+const joi = require('joi');
+
+const settingsSchema = joi.object().keys({
+  sharedContext: joi.object().optional()
+    .description('Rules for bots to share data with eachother in this room'),
+  initialBotData: joi.object().optional()
+    .description('Initial botData to be created in the room.'),
+});
 
 module.exports = function room(seq, dataTypes) {
   const Room = seq.define('Room', {
@@ -49,6 +58,11 @@ module.exports = function room(seq, dataTypes) {
     settings: {
       type: dataTypes.JSON,
       allowNull: true,
+      validate: {
+        validateObject(value) {
+          common.validateObject(value, settingsSchema);
+        },
+      },
       comment: 'Key/Value pairs for user specific settings',
     },
     active: {
@@ -116,6 +130,25 @@ module.exports = function room(seq, dataTypes) {
        * @returns {Promise} which resolves to the instance
        */
       afterCreate: (instance) => {
+        const BotData = seq.models.BotData;
+        const initialBotData =
+          instance.dataValues.settings.initialBotData;
+        if (initialBotData) {
+          Object.keys(initialBotData).forEach(bot => {
+            const allBotData = initialBotData[bot];
+            Object.keys(allBotData).forEach(botData => {
+              const data = {
+                name: botData,
+                roomId: instance.dataValues.id,
+                botId: bot,
+                value: allBotData[botData],
+              };
+
+              BotData.create(data);
+            });
+          });
+        }
+
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(), roomEventNames.add,
