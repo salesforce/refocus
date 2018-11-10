@@ -15,6 +15,7 @@ const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
 const u = require('../helpers/collectorUtils');
 const dbUtils = require('../utils');
+const activityLogUtil = require('../../utils/activityLog');
 const Promise = require('bluebird');
 const assoc = {};
 const collectorConfig = require('../../config/collectorConfig');
@@ -203,10 +204,21 @@ module.exports = function collector(seq, dataTypes) {
    */
   Collector.checkMissedHeartbeat = function () {
     return Collector.missedHeartbeat()
-    .map((coll) =>
-      coll.update({ status: collectorStatus.MissedHeartbeat })
-    );
+    .map((coll) => {
+      logMissedHeartbeat(coll);
+      return coll.update({ status: collectorStatus.MissedHeartbeat });
+    });
   }; // checkMissedHeartbeat
+
+  function logMissedHeartbeat(coll) {
+    const logObj = {
+      collector: coll.name,
+      lastHeartbeat: coll.lastHeartbeat.getTime(),
+      delta: Date.now() - coll.lastHeartbeat.getTime(),
+    };
+
+    activityLogUtil.printActivityLogString(logObj, 'missedHeartbeat');
+  } // logMissedHeartbeat
 
   Collector.postImport = function (models) {
 

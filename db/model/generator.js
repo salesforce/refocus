@@ -14,6 +14,7 @@ const common = require('../helpers/common');
 const dbUtils = require('../utils');
 const sgUtils = require('../helpers/generatorUtil');
 const cryptUtils = require('../../utils/cryptUtils');
+const activityLogUtil = require('../../utils/activityLog');
 const constants = require('../constants');
 const dbErrors = require('../dbErrors');
 const hbUtils = require('../../api/v1/helpers/verbs/heartbeatUtils');
@@ -481,6 +482,8 @@ module.exports = function generator(seq, dataTypes) {
       newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive());
     }
 
+    logAssignment(this.name, this.currentCollector, newColl);
+
     // We could use setCurrentCollector, but that would result in database saves
     // that would be unnecessary and complicate our logic in the db hooks.
     // Instead, we set the foreign key (collectorId) from collector model.
@@ -488,7 +491,35 @@ module.exports = function generator(seq, dataTypes) {
     // a database reload.
     this.collectorId = newColl ? newColl.id : null;
     this.currentCollector = newColl || null;
-  };
+  }; // assignToCollector
+
+  function logAssignment(gen, prevColl, newColl) {
+    prevColl = prevColl && prevColl.name || null;
+    newColl = newColl && newColl.name || null;
+
+    let action;
+    let type;
+    if (!prevColl && newColl) {
+      type = 'assigned';
+      action = `assigned to ${newColl}`;
+    } else if (prevColl && !newColl) {
+      type = 'unassigned';
+      action = `unassigned from ${prevColl}`;
+    } else if (prevColl && newColl) {
+      type = 'reassigned';
+      action = `${prevColl} -> ${newColl}`;
+    }
+
+    const logObj = {
+      generator: gen,
+      action,
+      type,
+      previousCollector: prevColl,
+      newCollector: newColl,
+    };
+
+    activityLogUtil.printActivityLogString(logObj, 'collectorAssignment');
+  } // logAssignment
 
   return Generator;
 };
