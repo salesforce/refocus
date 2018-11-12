@@ -111,7 +111,7 @@ describe('tests/db/model/room/create.js >', () => {
       room.type = roomType.id;
       room.settings = {
         initialBotData: {
-          [roomType.bots[0]]: {
+          [roomType.bots[0].name]: {
             initialData: botDataString,
           },
         },
@@ -175,9 +175,6 @@ describe('tests/db/model/room/create.js >', () => {
     .then(() => done(tu.valError))
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
-      expect(err.source).to.equal('settings');
-      expect(err.message.toLowerCase()).to.contain('sharedContext');
-      expect(err.message.toLowerCase()).to.contain('must be an object');
       done();
     })
     .catch(done);
@@ -197,9 +194,6 @@ describe('tests/db/model/room/create.js >', () => {
     .then(() => done(tu.valError))
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
-      expect(err.source).to.equal('settings');
-      expect(err.message.toLowerCase()).to.contain('initialBotData');
-      expect(err.message.toLowerCase()).to.contain('must be an object');
       done();
     })
     .catch(done);
