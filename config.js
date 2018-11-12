@@ -133,6 +133,7 @@ const clockJobConfig = {
   },
   useWorker: {
     checkMissedCollectorHeartbeat: true,
+    deleteUnusedTokens: true,
     jobCleanup: true,
     sampleTimeout: true,
   },
