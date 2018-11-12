@@ -133,7 +133,8 @@ describe('tests/cache/models/samples/upsert.js, ' +
         }
 
         expect(res.body.errors[0].description)
-        .to.be.equal('subject not found');
+        .to.be.equal('subject for this sample was not found or has ' +
+          'isPublished=false');
         done();
       });
     });
@@ -163,13 +164,14 @@ describe('tests/cache/models/samples/upsert.js, ' +
         }
 
         expect(res.body.errors[0].description)
-        .to.be.equal('aspect not found');
+        .to.be.equal('aspect for this sample was not found or has ' +
+          'isPublished=false');
         done();
       });
     });
   });
 
-  describe(`unpublished subject >`, () => {
+  describe('unpublished subject >', () => {
     let unPublishedSubjectAbsolutePath;
 
     // unpublish the subject
@@ -203,7 +205,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
     });
   });
 
-  describe(`unpublished aspect >`, () => {
+  describe('unpublished aspect >', () => {
     let updatedAspect;
 
     // unpublish the aspects
