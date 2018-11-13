@@ -501,13 +501,13 @@ module.exports = function generator(seq, dataTypes) {
     let type;
     if (!prevColl && newColl) {
       type = 'assigned';
-      action = `assigned to ${newColl}`;
+      action = `assigned_to_${newColl}`;
     } else if (prevColl && !newColl) {
       type = 'unassigned';
-      action = `unassigned from ${prevColl}`;
+      action = `unassigned_from_${prevColl}`;
     } else if (prevColl && newColl) {
       type = 'reassigned';
-      action = `${prevColl} -> ${newColl}`;
+      action = `${prevColl}->${newColl}`;
     }
 
     const logObj = {
