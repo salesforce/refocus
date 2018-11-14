@@ -278,14 +278,18 @@ function updateSampleAttributes(curr, prev, aspect) {
 /**
  * Throws custom error object based on object type for sample upsert.
  *
- * @param  {string}  objectType - Object type - subject or aspect
+ * @param  {String}  objectType - Object type - subject or aspect
  * @param  {Boolean} isBulk - If the caller method is bulk upsert
+ * @param  {String} sampleName - The sample name
  * @throws {Object} Error object
  */
-function handleUpsertError(objectType, isBulk) {
+function handleUpsertError(objectType, isBulk, sampleName) {
   const err = new redisErrors.ResourceNotFoundError({
-    explanation: `${objectType} not found`,
+    explanation: `${objectType} for this sample was not found or has ` +
+      'isPublished=false',
   });
+
+  if (sampleName) err.sample = sampleName;
 
   if (isBulk) {
     const errObj = { isFailed: true, explanation: err };
@@ -368,11 +372,11 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
   .then((responses) => {
     [subject, aspect, sample] = responses;
     if (!subject || subject.isPublished === 'false') {
-      handleUpsertError(constants.objectType.subject, isBulk);
+      handleUpsertError(constants.objectType.subject, isBulk, sampleName);
     }
 
     if (!aspect || aspect.isPublished === 'false') {
-      handleUpsertError(constants.objectType.aspect, isBulk);
+      handleUpsertError(constants.objectType.aspect, isBulk, sampleName);
     }
 
     sampleQueryBodyObj.subjectId = subject.id;
@@ -471,10 +475,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     return cleanAddSubjectToSample(updatedSamp, subject);
   })
   .catch((err) => {
-    if (isBulk) {
-      return err;
-    }
-
+    if (isBulk) return err;
     throw err;
   });
 } // upsertOneSample
@@ -546,6 +547,7 @@ module.exports = {
       return redisOps.executeBatchCmds(cmds);
     })
     .then(() => redisOps.executeBatchCmds(cmds))
+
     /* Attach aspect and links to sample. */
     .then(() => cleanAddAspectToSample(sampObjToReturn, aspect));
   }, // deleteSample
@@ -989,6 +991,7 @@ module.exports = {
     }
 
     return redisClient.sortAsync(sortArgs)
+
     /*
      * Prefilter based on sample name, if specified. Then, for each of the
      * remaining sample keys, derive the aspect name and key from the sample
