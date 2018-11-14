@@ -22,6 +22,7 @@ describe('tests/jobQueue/index.js >', () => {
       expect(workerCount).to.deep.equal({
         createAuditEvents: 1,
         bulkUpsertSamples: 1,
+        deleteUnusedTokens: 1,
         getHierarchy: 1,
         bulkDeleteSubjects: 1,
         checkMissedCollectorHeartbeat: 1,
@@ -37,6 +38,7 @@ describe('tests/jobQueue/index.js >', () => {
       WORKER_JOB_CONCURRENCY_bulkUpsertSamples: 2,
       WORKER_JOB_CONCURRENCY_getHierarchy: 3,
       WORKER_JOB_CONCURRENCY_bulkDeleteSubjects: 4,
+      WORKER_JOB_CONCURRENCY_deleteUnusedTokens: 5,
     };
 
     return runWorker(env)
@@ -44,6 +46,7 @@ describe('tests/jobQueue/index.js >', () => {
       expect(workerCount).to.deep.equal({
         createAuditEvents: 1,
         bulkUpsertSamples: 2,
+        deleteUnusedTokens: 5,
         getHierarchy: 3,
         bulkDeleteSubjects: 4,
         checkMissedCollectorHeartbeat: 1,
@@ -65,6 +68,7 @@ describe('tests/jobQueue/index.js >', () => {
       expect(workerCount).to.deep.equal({
         createAuditEvents: 1,
         bulkUpsertSamples: 1,
+        deleteUnusedTokens: 1,
         getHierarchy: 1,
         bulkDeleteSubjects: 1,
         checkMissedCollectorHeartbeat: 1,
