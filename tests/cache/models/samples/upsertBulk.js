@@ -201,10 +201,19 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
       },
     ])
     .then((response) => {
+      expect(response[0].isFailed).to.be.true;
+      expect(response[0].explanation).to.have.property('sample',
+        `${tu.namePrefix}NOT_EXIST|${tu.namePrefix}Aspect1`);
+      expect(response[0].explanation).to.have.property('explanation',
+        'subject for this sample was not found or has isPublished=false');
       expect(response[1].isFailed).to.be.true;
-      expect(response[1].isFailed).to.be.true;
+      expect(response[1].explanation).to.have.property('sample',
+        `${tu.namePrefix}Subject|${tu.namePrefix}NOT_EXIST`);
+      expect(response[1].explanation).to.have.property('explanation',
+        'aspect for this sample was not found or has isPublished=false');
       done();
-    });
+    })
+      .catch(done);
   });
 
   it('all succeed with relatedLinks', (done) => {
