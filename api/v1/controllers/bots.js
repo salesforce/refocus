@@ -24,6 +24,7 @@ const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const redisCache = require('../../../cache/redisCache').client.cache;
 const logger = require('winston');
+const featureToggles = require('feature-toggles');
 
 module.exports = {
 
@@ -144,7 +145,11 @@ module.exports = {
       helper.model.create(seqObj)
         .then((o) => {
           o.dataValues.ui = uiObj;
-          o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name,{ IsBot: true });
+          if (featureToggles.isFeatureEnabled('addIsBotToToken')) {
+            o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name,{ IsBot: true });
+          } else {
+            o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name);
+          }
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
           u.logAPI(req, resultObj, o.dataValues);
           return res.status(httpStatus.CREATED)
@@ -190,7 +195,9 @@ module.exports = {
     })
     .then((o) => {
       o.dataValues.ui = uiObj;
-      o.dataValues.token = jwtUtil.createToken(o.dataValues.name, o.dataValues.name,{ IsBot: true });
+      if (featureToggles.isFeatureEnabled('addIsBotToToken')) {
+        o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name,{ IsBot: true });
+      }
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, o.dataValues);
       res.status(httpStatus.CREATED).json(u.responsify(o, helper, req.method));
