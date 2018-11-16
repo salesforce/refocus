@@ -154,7 +154,6 @@ function loadView(app, passport) {
       (req, res) => {
         const copyOfUser = JSON.parse(JSON.stringify(req.user));
         delete copyOfUser.password;
-        console.log("req",req.session.token)
         const trackObj = {
           userSession: req.session.token,
           trackingId: viewConfig.trackingId,

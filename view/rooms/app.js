@@ -1017,7 +1017,6 @@ window.onload = () => {
   _user = JSON.parse(user.replace(/&quot;/g, '"')
     .replace(/apos;/g, "'"));
   let room;
-  console.log("userSession",userSession)
   _userSession = userSession;
 
   u.getPromiseWithUrl(GET_ROOM)
