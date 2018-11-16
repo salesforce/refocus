@@ -146,17 +146,6 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     });
   });
 
-  it('Simple GET with name', (done) => {
-    api.get(`${path}/${template1.name}`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err) => {
-      if (err) return done(err);
-
-      done();
-    });
-  });
-
   it('Must GET a single GT when valid name and version', (done) => {
     api.get(`${path}/${template1.name}/${template1.version}`)
       .set('Authorization', token)
@@ -200,13 +189,41 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
       });
   });
 
-  it('Simple GET with name in lowercase', (done) => {
+  it('error, Simple GET with name, 400', (done) => {
+    api.get(`${path}/${template1.name}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) return done(err);
+      expect(res.body.errors[0].source).to.be.equal('GeneratorTemplate');
+      expect(res.body.errors[0].message).to
+        .include('cannot GET this resource by name');
+      done();
+    });
+  });
+
+  it('error, Simple GET with name in lowercase, 400', (done) => {
     api.get(`${path}/${template1.name.toLowerCase()}`)
     .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err) => {
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
       if (err) return done(err);
+      expect(res.body.errors[0].source).to.be.equal('GeneratorTemplate');
+      expect(res.body.errors[0].message).to
+        .include('cannot GET this resource by name');
+      done();
+    });
+  });
 
+  it('error, Simple GET with name which does not exist, 400', (done) => {
+    api.get(`${path}/notExist`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) return done(err);
+      expect(res.body.errors[0].source).to.be.equal('GeneratorTemplate');
+      expect(res.body.errors[0].message).to
+        .include('cannot GET this resource by name');
       done();
     });
   });

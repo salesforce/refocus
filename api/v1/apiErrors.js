@@ -153,6 +153,17 @@ errors.create({
   'in your Sample Generator\'s context',
 });
 
+errors.create({
+  scope: exports,
+  code: 11112,
+  status: 400,
+  name: 'InvalidKey',
+  parent: this.ValidationError,
+  fields: [],
+  defaultMessage: 'You cannot GET this resource by name, try using id as ' +
+    'key or name as query parameter, e.g. ?name=<name>',
+});
+
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------

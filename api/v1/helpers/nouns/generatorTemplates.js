@@ -37,7 +37,7 @@ module.exports = {
     user: 'user',
   },
 
-  nameFinderWithoutLimit: true,
+  nonUniqueName: true,
 
 }; // exports
 
