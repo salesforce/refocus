@@ -175,7 +175,6 @@ module.exports = {
   putBots(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const reqObj = req.swagger.params;
-    const seqObj = {};
     const uiObj = {};
     u.findByKey(helper, req.swagger.params)
     .then((o) => u.isWritable(req, o))
@@ -197,7 +196,7 @@ module.exports = {
     .then((o) => {
       o.dataValues.ui = uiObj;
       if (featureToggles.isFeatureEnabled('addIsBotToToken')) {
-        o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name, { IsBot: true });
+        o.dataValues.token = jwtUtil.createToken(o.dataValues.name, o.dataValues.name, { IsBot: true });
       }
 
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
