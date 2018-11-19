@@ -24,7 +24,7 @@ describe('tests/db/model/collectorGroup/find.js >', () => {
     tu.createUser('testUser')
     .then((user) => {
       createdUser = user;
-      const collectorGroupObj = u.getCollectorGroupObj();
+      const collectorGroupObj = u.createCollectorGroup();
       collectorGroupObj.createdBy = user.id;
       return CollectorGroup.create(collectorGroupObj); // create collectorGroup
     })
@@ -72,7 +72,7 @@ describe('tests/db/model/collectorGroup/find.js >', () => {
   });
 
   it('Find all', (done) => {
-    const collectorGroupObj = u.getCollectorGroupObj();
+    const collectorGroupObj = u.createCollectorGroup();
     collectorGroupObj.name += 'Second';
     CollectorGroup.create(collectorGroupObj) // create second collector group
     .then(() => CollectorGroup.findAll()) // find all collector groups

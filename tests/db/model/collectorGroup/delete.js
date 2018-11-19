@@ -21,7 +21,7 @@ describe('tests/db/model/collectorGroup/delete.js >', () => {
   beforeEach((done) => {
     tu.createUser('testUser')
     .then((user) => {
-      const collectorGroupObj = u.getCollectorGroupObj();
+      const collectorGroupObj = u.createCollectorGroup();
       collectorGroupObj.createdBy = user.id;
       return CollectorGroup.create(collectorGroupObj); // create collector group
     })

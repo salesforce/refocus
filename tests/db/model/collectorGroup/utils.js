@@ -49,7 +49,7 @@ module.exports = {
     return JSON.parse(JSON.stringify(collector));
   },
 
-  getCollectorGroupObj() {
+  createCollectorGroup() {
     return JSON.parse(JSON.stringify(standardCollectorGroup));
   },
 

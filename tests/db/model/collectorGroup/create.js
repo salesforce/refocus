@@ -32,7 +32,7 @@ describe('tests/db/model/collectorGroup/create.js >', () => {
 
   it('ok, create with all fields, check collectorGroup writer', (done) => {
     let cgObj;
-    const collectorGroup = u.getCollectorGroupObj();
+    const collectorGroup = u.createCollectorGroup();
     collectorGroup.createdBy = createdUser.id;
     CollectorGroup.create(collectorGroup) // create collectorGroup
     .then((cg) => { // check fields
@@ -63,7 +63,7 @@ describe('tests/db/model/collectorGroup/create.js >', () => {
   });
 
   it('not ok, Create collectorGroup, error if invalid name', (done) => {
-    const collectorGroup = u.getCollectorGroupObj();
+    const collectorGroup = u.createCollectorGroup();
     collectorGroup.name = 'Invalid@name';
     CollectorGroup.create(collectorGroup)
     .then(() => done(tu.valError))
@@ -79,7 +79,7 @@ describe('tests/db/model/collectorGroup/create.js >', () => {
 
   it('not ok, Create collectorGroup, error if description not provided',
   (done) => {
-    const collectorGroup = u.getCollectorGroupObj();
+    const collectorGroup = u.createCollectorGroup();
     delete collectorGroup.description;
     CollectorGroup.create(collectorGroup)
     .then(() => done(tu.valError))
@@ -113,7 +113,7 @@ describe('tests/db/model/collectorGroup/create.js >', () => {
     );
 
     it('ok, collectorGroup created with one collector', (done) => {
-      const collGroupObj = u.getCollectorGroupObj();
+      const collGroupObj = u.createCollectorGroup();
       CollectorGroup.create(collGroupObj) // create collectorGroup
       .then((cg) => cg.addCollector(collectorCreated))
       .then((cg) => cg.getCollectors())
@@ -137,7 +137,7 @@ describe('tests/db/model/collectorGroup/create.js >', () => {
       Collector.create(collectorObjSecond) // create collector
       .then((collDbObj) => {
         collectorCreatedSecond = collDbObj;
-        const collGroupObj = u.getCollectorGroupObj();
+        const collGroupObj = u.createCollectorGroup();
         return CollectorGroup.create(collGroupObj);  // create collectorGroup
       })
       .then((cg) =>
@@ -159,7 +159,7 @@ describe('tests/db/model/collectorGroup/create.js >', () => {
 
     it('collector not assigned to collectorGroup if collector does ' +
       'not exist', (done) => {
-      const collGroupObj = u.getCollectorGroupObj();
+      const collGroupObj = u.createCollectorGroup();
       collectorCreated.destroy() // delete collector
       .then(() => CollectorGroup.create(collGroupObj)) // create collectorGroup
 
