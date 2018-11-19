@@ -31,6 +31,8 @@ if (heartbeatLatencyToleranceMillis < FLOOR) {
   heartbeatLatencyToleranceMillis = 1000 * LATENCY_DEFAULT;
 }
 
+const sslOnly = +pe.COLLECTOR_SSL_ONLY || false;
+
 module.exports = {
   /*
    * Each collector will send a heartbeat every <heartbeatIntervalMillis>
@@ -50,6 +52,8 @@ module.exports = {
    */
   heartbeatLatencyToleranceMillis,
 
+  maxSamplesPerBulkUpsert: +pe.COLLECTOR_MAX_SAMPLES_PER_BULK_REQUEST || 1000,
+
   /*
    * Collector will send a batch of samples up to Refocus at least every
    * <sampleUpsertQueueTimeMillis> milliseconds, or more frequently if there
@@ -57,5 +61,10 @@ module.exports = {
    */
   sampleUpsertQueueTimeMillis:
     +pe.COLLECTOR_SAMPLE_UPSERT_QUEUE_TIME_MILLIS || 15000,
-  maxSamplesPerBulkUpsert: +pe.COLLECTOR_MAX_SAMPLES_PER_BULK_REQUEST || 1000,
+
+  /*
+   * If flagged true, Refocus Collector will accept only external sources
+   * as HTTPS.
+   */
+  sslOnly,
 };
