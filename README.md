@@ -62,7 +62,7 @@ See the [Quickstart](https://salesforce.github.io/refocus/docs/01-quickstart.htm
         the threshold of what we should consider "unused". Set the value
         to a negative time offset like `-30d` if you want to consider a
         token unused if it has not been used in the last 30 days.
-1. If you want Refocus Collectors collecting only from sources using HTTPS, set environment variable `COLLECTOR_REQUIRE_SSL_TO_REMOTE_DATA_SOURCE` to `true`.
+1. If you want to require SSL for connections from Refocus Collectors to the remote data sources, set environment variable ``COLLECTOR_REQUIRE_SSL_TO_REMOTE_DATA_SOURCE`` to ``true.``
 
 ### IP Restrictions
 By default, there are no IP restrictions for Refocus access. An admin can configure IP restrictions by adding a config var in Heroku with name ```IP_WHITELIST``` and value array of IP ranges, eg. ```[ [1.2.3.4, 1.2.3.8], [7.6.5.4, 7.6.9.9], [8.8.8.8, 9.9.9.9] ]```. Only the specified IP ranges will be allowed access to Refocus.
