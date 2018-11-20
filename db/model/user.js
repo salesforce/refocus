@@ -278,6 +278,11 @@ module.exports = function user(seq, dataTypes) {
       through: 'CollectorWriters',
       foreignKey: 'userId',
     });
+    assoc.writableCollectorGroups = User.belongsToMany(models.CollectorGroup, {
+      as: 'writableCollectorGroups',
+      through: 'CollectorGroupWriters',
+      foreignKey: 'userId',
+    });
     assoc.tokens = User.hasMany(models.Token, {
       as: 'tokens',
       foreignKey: 'createdBy',
