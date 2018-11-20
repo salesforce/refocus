@@ -31,7 +31,11 @@ if (heartbeatLatencyToleranceMillis < FLOOR) {
   heartbeatLatencyToleranceMillis = 1000 * LATENCY_DEFAULT;
 }
 
-const sslOnly = +pe.COLLECTOR_SSL_ONLY || false;
+let requireSslToRemoteDataSource = false;
+if (pe.COLLECTOR_REQUIRE_SSL_TO_REMOTE_DATA_SOURCE &&
+  pe.COLLECTOR_REQUIRE_SSL_TO_REMOTE_DATA_SOURCE.toLowerCase() === 'true') {
+  requireSslToRemoteDataSource = true;
+}
 
 module.exports = {
   /*
@@ -66,5 +70,5 @@ module.exports = {
    * If flagged true, Refocus Collector will accept only external sources
    * as HTTPS.
    */
-  sslOnly,
+  requireSslToRemoteDataSource,
 };
