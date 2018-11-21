@@ -153,6 +153,17 @@ errors.create({
   'in your Sample Generator\'s context',
 });
 
+errors.create({
+  scope: exports,
+  code: 11112,
+  status: 400,
+  name: 'InvalidKey',
+  parent: this.ValidationError,
+  fields: [],
+  defaultMessage: 'This resource has a multipart key. Try using name as a ' +
+  'query parameter to return a list of all records with this name, e.g. ?name=',
+});
+
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------
