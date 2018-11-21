@@ -37,7 +37,7 @@ module.exports = {
     user: 'user',
   },
 
-  nonUniqueName: true,
+  hasMultipartKey: true,
 
 }; // exports
 

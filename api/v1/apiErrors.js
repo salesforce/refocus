@@ -160,8 +160,8 @@ errors.create({
   name: 'InvalidKey',
   parent: this.ValidationError,
   fields: [],
-  defaultMessage: 'You cannot GET this resource by name, try using id as ' +
-    'key or name as query parameter, e.g. ?name=<name>',
+  defaultMessage: 'This resource has a multipart key. Try using name as a ' +
+  'query parameter to return a list of all records with this name, e.g. ?name=',
 });
 
 // ----------------------------------------------------------------------------

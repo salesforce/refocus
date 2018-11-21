@@ -197,7 +197,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
       if (err) return done(err);
       expect(res.body.errors[0].source).to.be.equal('GeneratorTemplate');
       expect(res.body.errors[0].message).to
-        .include('cannot GET this resource by name');
+        .include('This resource has a multipart key');
       done();
     });
   });
@@ -210,7 +210,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
       if (err) return done(err);
       expect(res.body.errors[0].source).to.be.equal('GeneratorTemplate');
       expect(res.body.errors[0].message).to
-        .include('cannot GET this resource by name');
+        .include('This resource has a multipart key');
       done();
     });
   });
@@ -223,7 +223,20 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
       if (err) return done(err);
       expect(res.body.errors[0].source).to.be.equal('GeneratorTemplate');
       expect(res.body.errors[0].message).to
-        .include('cannot GET this resource by name');
+        .include('This resource has a multipart key');
+      done();
+    });
+  });
+
+  it('error, Simple GET with name which looks like id, 400', (done) => {
+    api.get(`${path}/1234567890`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) return done(err);
+      expect(res.body.errors[0].source).to.be.equal('GeneratorTemplate');
+      expect(res.body.errors[0].message).to
+        .include('This resource has a multipart key');
       done();
     });
   });

@@ -456,7 +456,7 @@ function findByIdThenName(model, key, opts, props) {
 
       /* The resource has non-unique name and hence GET /{resource}/$name is
       not allowed */
-      if (props && props.nonUniqueName) {
+      if (props && props.hasMultipartKey) {
         const err = new apiErrors.InvalidKey();
         err.resource = model.name;
         err.key = key;
@@ -718,7 +718,7 @@ function findByKey(props, params, extraAttributes) {
 
   /* The resource has non-unique name and hence GET /{resource}/$name is
   not allowed */
-  if (props && props.nonUniqueName) {
+  if (props && props.hasMultipartKey) {
     const err = new apiErrors.InvalidKey();
     err.resource = scopedModel.name;
     err.key = key;

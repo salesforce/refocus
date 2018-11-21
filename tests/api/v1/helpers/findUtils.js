@@ -207,7 +207,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
 
     it('Must not change limit when single unique field is default and ' +
       'does NOT require limit', () => {
-      const noun = { nonUniqueName: true };
+      const noun = { hasMultipartKey: true };
       const opts = {
         limit: 100,
         where: {
@@ -316,7 +316,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
       ' value and does not require limit', () => {
       const props = {
         nameFinder: 'absolutePath',
-        nonUniqueName: true,
+        hasMultipartKey: true,
       };
       const opts = {
         limit: 100,
@@ -345,7 +345,7 @@ describe('tests/api/v1/helpers/findUtils.js', () => {
 
     it('Must not change limit when unique field is default, has multiple ' +
       'value and does not require limit', () => {
-      const props = { nonUniqueName: true };
+      const props = { hasMultipartKey: true };
       const opts = {
         limit: 10,
         where: {

@@ -298,11 +298,11 @@ function toSequelizeOrder(sortOrder) {
  */
 function applyLimitIfUniqueField(opts, props) {
   /*
-   * Attribute nonUniqueName is a temp workaround until we define
+   * Attribute hasMultipartKey is a temp workaround until we define
    * the best way to NOT change/restrict limit when unique field is the default
    * (name) for some nouns.
    */
-  if (props.nonUniqueName) return;
+  if (props.hasMultipartKey) return;
 
   const uniqueFieldName = props.nameFinder || 'name';
   if (opts.where && opts.where[uniqueFieldName]) {
