@@ -209,6 +209,10 @@ module.exports = function collector(seq, dataTypes) {
   }; // checkMissedHeartbeat
 
   Collector.postImport = function (models) {
+    assoc.collectorGroup = Collector.belongsTo(models.CollectorGroup, {
+      as: 'collectorGroup',
+      foreignKey: 'collectorGroupId',
+    });
 
     assoc.currentGenerators = Collector.hasMany(models.Generator, {
       as: 'currentGenerators',

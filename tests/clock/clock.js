@@ -46,6 +46,7 @@ describe('tests/clock/clock.js >', function () {
     const expectedCount = {
       checkMissedCollectorHeartbeat: intervalsInHour('15s'),
       deactivateRooms: intervalsInHour('5m'),
+      deleteUnusedTokens: intervalsInHour('1d'),
       jobCleanup: intervalsInHour('30m'),
       resetJobCounter: intervalsInHour('2h'),
       sampleTimeout: intervalsInHour('30s'),
