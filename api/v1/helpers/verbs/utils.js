@@ -442,16 +442,27 @@ function findByName(model, key, opts) {
  * @param {String} key - The id or name to search for
  * @param {Object} opts - The Sequelize options to send with the find
  *  operation
+ * @param {Object} props - The helpers/nouns module for the given DB model
  * @returns {Promise} which resolves to the record found, or rejects with
  *  ResourceNotFoundError if record not found
  */
-function findByIdThenName(model, key, opts) {
+function findByIdThenName(model, key, opts, props) {
   return new Promise((resolve, reject) => {
     const wh = opts.where;
     delete opts.where;
     model.findById(key, opts)
     .then((found) => found)
     .catch(() => {
+
+      /* The resource has non-unique name and hence GET /{resource}/$name is
+      not allowed */
+      if (props && props.hasMultipartKey) {
+        const err = new apiErrors.InvalidKey();
+        err.resource = model.name;
+        err.key = key;
+        throw err;
+      }
+
       opts.where = wh;
       return findByName(model, key, opts);
     })
@@ -700,12 +711,21 @@ function findByKey(props, params, extraAttributes) {
   // If the models key auto-increments then the key will be an
   // integer and still should find records by ID.
   if (common.looksLikeId(key)) {
-    return findByIdThenName(scopedModel, key, opts);
+    return findByIdThenName(scopedModel, key, opts, props);
   } else if ((typeof key === 'number') && (key % 1 === 0)) {
-    return findByIdThenName(scopedModel, key, opts);
+    return findByIdThenName(scopedModel, key, opts, props);
   }
 
-  return findByName(scopedModel, key, opts);
+  /* The resource has non-unique name and hence GET /{resource}/$name is
+  not allowed */
+  if (props && props.hasMultipartKey) {
+    const err = new apiErrors.InvalidKey();
+    err.resource = scopedModel.name;
+    err.key = key;
+    throw err;
+  }
+
+  return findByName(scopedModel, key, opts, props);
 } // findByKey
 
 /**
