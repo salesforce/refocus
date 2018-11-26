@@ -11345,6 +11345,42 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
+    delete:
+      security:
+        - jwt: []
+      summary: Delete collector from the group.
+      tags: [ collectorGroups ]
+      description: >-
+        Delete collector from group if any collector named in the array is not already associated with this group.
+      operationId: deleteCollectorFromGroup
+      parameters:
+        - name: name
+          in: path
+          description: >-
+            The name of the collector group.
+          required: true
+          type: string
+        - name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >-
+              List of collectors
+      responses:
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
 
 # =============================================================================
 definitions:
