@@ -57,19 +57,9 @@ module.exports = (job, done) => {
         }
 
         successCount++;
-        if (featureToggles.isFeatureEnabled('publishSampleInPromiseChain')) {
-          // Wait for publish to complete before resolving the promise.
-          return publisher.publishSample(result, subHelper.model);
-        }
 
-        /*
-         * Resolve the promise right away, *before* we actually publish
-         * the sample. Under heavy load, publish a sample can get backed up
-         * because we are looking up the subject info and including that in
-         * the payload of the real-time event.
-         */
-        publisher.publishSample(result, subHelper.model);
-        return Promise.resolve();
+        // Wait for publish to complete before resolving the promise.
+        return publisher.publishSample(result, subHelper.model);
       }));
     })
     .then(() => {
