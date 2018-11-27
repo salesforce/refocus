@@ -12881,7 +12881,10 @@ definitions:
           system-wide minimum sample upsert queue time will be defined in Refocus config;
           a Refocus admin will also be able to override that with a MINIMUM_SAMPLE_UPSERT_QUEUE_TIME
           environment variable.
-
+      requireSslToRemoteDataSource:
+        type: boolean
+        description: >-
+          Default false. Refocus Collector will accept only external sources as HTTPS when set as true.
   GeneratorsAddedResponse:
     type: array
     description: >-

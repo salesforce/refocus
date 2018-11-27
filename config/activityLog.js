@@ -27,6 +27,14 @@ module.exports = {
     uri: 'None',
     user: 'None',
   },
+  collectorAssignment: {
+    activity: 'collectorAssignment',
+    generator: 'None',
+    action: 'None',
+    type: 'None',
+    previousCollector: 'None',
+    newCollector: 'None',
+  },
   env: {
     activity: 'env',
     name: 'None',
@@ -78,6 +86,12 @@ module.exports = {
     totalTime: '0ms',
     uri: 'None',
     user: 'None',
+  },
+  missedHeartbeat: {
+    activity: 'missedHeartbeat',
+    collector: 'None',
+    lastHeartbeat: 'None',
+    delta: 'None',
   },
   pubStats: {
     activity: 'pubStats',

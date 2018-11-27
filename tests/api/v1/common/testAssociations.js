@@ -58,6 +58,11 @@ function testAssociations(path, associations, joiSchema, conf) {
   });
 
   it('get by key includes associations', (done) => {
+    // GET /v1/generatorTemplates/name is invalid
+    if (path === '/v1/generatorTemplates') {
+      return done();
+    }
+
     api.get(`${path}/${recordId}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -71,6 +76,11 @@ function testAssociations(path, associations, joiSchema, conf) {
   });
 
   it('get by key with field param does not include associations', (done) => {
+    // GET /v1/generatorTemplates/name is invalid
+    if (path === '/v1/generatorTemplates') {
+      return done();
+    }
+
     api.get(`${path}/${recordId}?fields=name`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -101,6 +111,11 @@ function testAssociations(path, associations, joiSchema, conf) {
 
   associations.forEach((assoc) => {
     it(`get by key: an association can be specified as a field param (${assoc})`, (done) => {
+      // GET /v1/generatorTemplates/name is invalid
+      if (path === '/v1/generatorTemplates') {
+        return done();
+      }
+
       api.get(`${path}/${recordId}?fields=name,${assoc}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
