@@ -45,6 +45,14 @@ const viewmap = {
   '/rooms/:key': 'rooms',
 };
 
+const refocusMonitoringUrls = ['/aspects', '/aspects/:key',
+  '/aspects/:key/edit', '/subjects', '/subjects/:key',
+  '/subjects/:key/edit', '/samples', '/samples/:key',
+  '/samples/:key/edit', '/perspectives', '/perspectives/:key'];
+
+const refocusRoomsUrls = ['/rooms', '/rooms/types', '/rooms/types/:key',
+  '/rooms/new/:key', '/rooms/new/', '/rooms/new/'];
+
 /**
  * Checks if the user is authenticated and and there is a valid session
  * @param  {Object}   req  Request object
@@ -161,7 +169,28 @@ function loadView(app, passport) {
           transportProtocol: viewConfig.socketIOtransportProtocol,
         };
 
-        res.render(viewmap[key], trackObj);
+        const refocusMonitoringUrl = 'http://localhost://3001';
+        const refocusRoomsUrl = 'http://localhost://3002';
+        const featureToggleRedirect = true;
+
+        // Env Vars:
+        // featureToggleRedirect
+        // redirectToRefocusRooms && refocusRoomsUrl
+        // redirectToRefocusMonitoring && refocusMonitoringUrl
+
+        if (featureToggleRedirect) {
+          const redirectToRefocusMonitoring = true;
+          if (redirectToRefocusRooms && refocusRoomsUrl &&
+            refocusRoomsUrls.includes(key)) {
+            return res.redirect(refocusRoomsUrl + req.url);
+          else if (redirectToRefocusMonitoring && refocusMonitoringUrl &&
+            refocusMonitoringUrls.includes(key)) {
+            return res.redirect(refocusMonitoringUrl + req.url);
+          }
+        }
+
+          res.render(viewmap[key], trackObj);
+        }
       }
     )
   );
