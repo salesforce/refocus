@@ -196,7 +196,11 @@ module.exports = {
     .then((o) => {
       o.dataValues.ui = uiObj;
       if (featureToggles.isFeatureEnabled('addIsBotToToken')) {
-        o.dataValues.token = jwtUtil.createToken(o.dataValues.name, o.dataValues.name, { IsBot: true });
+        o.dataValues.token = jwtUtil.createToken(
+          o.dataValues.name,
+          o.dataValues.name,
+          { IsBot: true }
+        );
       }
 
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
