@@ -184,7 +184,7 @@ const shortTermToggles = {
   requireHelpEmailOrHelpUrl: environmentVariableTrue(
     pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
 
-  // adds isbot to token and returns token on patches not just posts
+  // adds isBot to token and returns token on patches not just posts
   addIsBotToToken: environmentVariableTrue(
     pe, 'ADD_ISBOT_TO_TOKEN'),
 }; // shortTermToggles
