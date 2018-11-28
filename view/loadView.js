@@ -178,19 +178,18 @@ function loadView(app, passport) {
         // redirectToRefocusRooms && refocusRoomsUrl
         // redirectToRefocusMonitoring && refocusMonitoringUrl
 
-        if (featureToggleRedirect) {
-          const redirectToRefocusMonitoring = true;
-          if (redirectToRefocusRooms && refocusRoomsUrl &&
-            refocusRoomsUrls.includes(key)) {
-            return res.redirect(refocusRoomsUrl + req.url);
-          else if (redirectToRefocusMonitoring && refocusMonitoringUrl &&
-            refocusMonitoringUrls.includes(key)) {
-            return res.redirect(refocusMonitoringUrl + req.url);
-          }
-        }
+        // if (featureToggleRedirect) {
+        //   const redirectToRefocusMonitoring = true;
+        //   if (redirectToRefocusRooms && refocusRoomsUrl &&
+        //     refocusRoomsUrls.includes(key)) {
+        //     return res.redirect(refocusRoomsUrl + req.url);
+        //   } else if (redirectToRefocusMonitoring && refocusMonitoringUrl &&
+        //     refocusMonitoringUrls.includes(key)) {
+        //     return res.redirect(refocusMonitoringUrl + req.url);
+        //   }
+        // }
 
-          res.render(viewmap[key], trackObj);
-        }
+        res.render(viewmap[key], trackObj);
       }
     )
   );
