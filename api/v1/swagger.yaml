@@ -11157,6 +11157,8 @@ paths:
         201:
           description: >-
             Created.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
         400:
           $ref: "#/responses/400"
         403:
