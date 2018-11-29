@@ -1,8 +1,8 @@
 'use strict';
 
 module.exports = {
-  up: (queryInterface, Sequelize) => {
-    return queryInterface.addColumn(
+  up: (queryInterface, Sequelize) =>
+    queryInterface.addColumn(
       'Collectors',
       'collectorGroupId',
       {
@@ -12,13 +12,11 @@ module.exports = {
           key: 'id',
         },
       }
-    );
-  },
+    ),
 
-  down: (queryInterface, Sequelize) => {
-    return queryInterface.removeColumn(
+  down: (queryInterface, Sequelize) =>
+    queryInterface.removeColumn(
       'Collectors',
       'collectorGroupId'
-    );
-  }
+    ),
 };
