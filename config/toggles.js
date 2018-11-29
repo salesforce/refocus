@@ -179,6 +179,10 @@ const shortTermToggles = {
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
   requireHelpEmailOrHelpUrl: environmentVariableTrue(
     pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
+
+  // adds isBot to token and returns token on patches not just posts
+  addIsBotToToken: environmentVariableTrue(
+    pe, 'ADD_ISBOT_TO_TOKEN'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
