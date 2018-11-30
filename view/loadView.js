@@ -51,7 +51,7 @@ const refocusMonitoringUrls = ['/aspects', '/aspects/:key',
   '/samples/:key/edit', '/perspectives', '/perspectives/:key'];
 
 const refocusRoomsUrls = ['/rooms', '/rooms/types', '/rooms/types/:key',
-  '/rooms/new/:key', '/rooms/new/', '/rooms/new/'];
+  '/rooms/new/:key', '/rooms/new/', '/rooms/:key'];
 
 /**
  * Checks if the user is authenticated and and there is a valid session
@@ -169,25 +169,35 @@ function loadView(app, passport) {
           transportProtocol: viewConfig.socketIOtransportProtocol,
         };
 
-        const refocusMonitoringUrl = 'http://localhost://3001';
-        const refocusRoomsUrl = 'http://localhost://3002';
-        const featureToggleRedirect = true;
-
         // Env Vars:
         // featureToggleRedirect
         // redirectToRefocusRooms && refocusRoomsUrl
         // redirectToRefocusMonitoring && refocusMonitoringUrl
 
-        // if (featureToggleRedirect) {
-        //   const redirectToRefocusMonitoring = true;
-        //   if (redirectToRefocusRooms && refocusRoomsUrl &&
-        //     refocusRoomsUrls.includes(key)) {
-        //     return res.redirect(refocusRoomsUrl + req.url);
-        //   } else if (redirectToRefocusMonitoring && refocusMonitoringUrl &&
-        //     refocusMonitoringUrls.includes(key)) {
-        //     return res.redirect(refocusMonitoringUrl + req.url);
-        //   }
-        // }
+        const featureToggleRedirect = true;
+        const redirectToRefocusRooms = true;
+        const redirectToRefocusMonitoring = false;
+
+        const refocusMonitoringUrl = 'http://localhost:3001';
+        const refocusRoomsUrl = 'http://localhost:3002';
+
+        console.log(featureToggleRedirect);
+        console.log(redirectToRefocusRooms && refocusRoomsUrl)
+        console.log(refocusRoomsUrls.includes(key))
+        console.log(key)
+
+        if (featureToggleRedirect) {
+
+
+          if (redirectToRefocusRooms && refocusRoomsUrl &&
+            refocusRoomsUrls.includes(key)) {
+            console.log("aaa")
+            return res.redirect(refocusRoomsUrl + req.url);
+          } else if (redirectToRefocusMonitoring && refocusMonitoringUrl &&
+            refocusMonitoringUrls.includes(key)) {
+            return res.redirect(refocusMonitoringUrl + req.url);
+          }
+        }
 
         res.render(viewmap[key], trackObj);
       }
