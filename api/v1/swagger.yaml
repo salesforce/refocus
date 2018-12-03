@@ -11117,6 +11117,273 @@ paths:
         default:
           $ref: "#/responses/genericError"
 
+  # ---------------------------------------------------------------------------
+  /collectorGroups:
+    x-swagger-router-controller: collectorGroups
+    post:
+      security:
+        - jwt: []
+      summary: Create a new collector group
+      tags: [ collectorGroups ]
+      description: >-
+        Create a new collector group if all the collectors aren't already assigned to a different group.
+      operationId: createCollectorGroups
+      parameters:
+        - name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create a collector group.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the collector group.
+              name:
+                type: string
+                maxLength: 60
+                description: A unique and descriptive name for the collector group.
+              collectors:
+                description: List of collectors for the group.
+                type: array
+                items:
+                  type: string
+            required:
+              - name
+      responses:
+        201:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+  /collectorGroups/{name}:
+    x-swagger-router-controller: collectorGroups
+    delete:
+      security:
+        - jwt: []
+      summary: Delete collector group.
+      tags: [ collectorGroups ]
+      description: >-
+        Delete collector group if it isn't in use by a Sample Generator.
+      operationId: deleteCollectorGroups
+      parameters:
+        - name: name
+          in: path
+          description: >-
+            The name of the collector group.
+          required: true
+          type: string
+      responses:
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  /collectorGroups/{name}/collectors:
+    x-swagger-router-controller: collectorGroups
+    post:
+      security:
+        - jwt: []
+      summary: Add a collector to the group
+      tags: [ collectorGroups ]
+      description: >-
+        Add a collector to the group if any collector named in the array isn't already in the list or isn't already
+        assigned to a different group.
+      operationId: addCollectorsToGroup
+      parameters:
+        - name: name
+          in: path
+          description: >-
+            The name of the collector group.
+          required: true
+          type: string
+        - name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >-
+              List of collectors
+      responses:
+        201:
+          description: >-
+            One or more collectors were added to the group.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update collector group (partial).
+      tags: [ collectorGroups ]
+      description: >-
+        Update the specified fields. If patching the list of collectors, it will replace the current list.
+        It will update if all collectors named in the array aren't already assigned to a different group.
+      operationId: patchCollectorGroups
+      parameters:
+        - name: name
+          in: path
+          description: The name of the collector group.
+          required: true
+          type: string
+        - name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: >
+              A collector group.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  A description of the collector group.
+              name:
+                type: string
+                maxLength: 60
+                description: >
+                  A unique and descriptive name for the collector group.
+              collectors:
+                description: List of collectors for the group.
+                type: array
+                items:
+                  type: string
+      responses:
+        200:
+          description: Success, returns the updated collector group.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/404"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Update collector group.
+      tags: [ collectorGroups ]
+      description: >-
+        Update all fields, replacing any existing values, and if a field is not provided, it resets to default
+        (e.g. empty array of collectors, empty description).
+      operationId: putCollectorGroups
+      parameters:
+        - name: name
+          in: path
+          description: The name of the collector group.
+          required: true
+          type: string
+        - name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: >
+              A collector group.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  A description of the collector group.
+              name:
+                type: string
+                maxLength: 60
+                description: >
+                  A unique and descriptive name for the collector group.
+              collectors:
+                description: List of collectors for the group.
+                type: array
+                items:
+                  type: string
+      responses:
+        200:
+          description: Success, returns the updated collector group.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/404"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    delete:
+      security:
+        - jwt: []
+      summary: Delete collector from the group.
+      tags: [ collectorGroups ]
+      description: >-
+        Delete collector from group if any collector named in the array is not already associated with this group.
+      operationId: deleteCollectorFromGroup
+      parameters:
+        - name: name
+          in: path
+          description: >-
+            The name of the collector group.
+          required: true
+          type: string
+        - name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >-
+              List of collectors
+      responses:
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
 # =============================================================================
 definitions:
 
@@ -13254,6 +13521,36 @@ definitions:
           An array of errors, if any errors were encountered while attempting to bulk delete subjects.
         items:
           type: object
+
+  CollectorGroupsResponse:
+    type: object
+    description: >-
+      The group of collectors
+    properties:
+      description:
+        type: string
+        maxLength: 4096
+        description: >
+          A description of the collector group.
+      createdBy:
+        readOnly: true
+        type: string
+        description: >
+          Id of the user who created the collector group.
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The collector group id.
+      name:
+        type: string
+        readOnly: true
+        description: The collector group name.
+      collectors:
+        description: List of collectors for the group.
+        type: array
+        items:
+          type: string
 
 # =============================================================================
 parameters:
