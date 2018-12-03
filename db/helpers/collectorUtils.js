@@ -93,10 +93,8 @@ function assignUnassignedGenerators() {
   // which is an association and can't be looked up with a normal where clause
   return utils.seq.models.Generator.findAll(
     { where: { isActive: true, collectorId: null } }
-  ).map((g) => {
-    g.assignToCollector();
-    return g.save();
-  });
+  ).map((g) => g.assignToCollector()
+    .then(() => g.save()));
 }
 
 module.exports = {

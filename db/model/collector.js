@@ -328,10 +328,8 @@ module.exports = function collector(seq, dataTypes) {
    */
   Collector.prototype.reassignGenerators = function () {
     return this.getCurrentGenerators()
-    .map((g) => {
-      g.assignToCollector();
-      return g.save();
-    });
+    .map((g) => g.assignToCollector()
+      .then(() => g.save()));
   };
 
   Collector.prototype.isWritableBy = function (who) {
