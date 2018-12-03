@@ -242,8 +242,8 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
      * use the default perspective (or the first perspective in alphabetical
      * order if no perspective is defined as the default).
      */
-    const landingPageUrl = process.env.LANDING_PAGE_URL || '/perspectives';
-    app.get('/', (req, res) => res.redirect(landingPageUrl));
+    app.get('/', (req, res) =>
+      res.redirect(process.env.LANDING_PAGE_URL || '/perspectives'));
 
     // Set the JSON payload limit.
     app.use(bodyParser.json({ limit: conf.payloadLimit }));
