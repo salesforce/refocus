@@ -107,8 +107,7 @@ const longTermToggles = {
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
 
-  // Will redirect to different instance of refocus if REDIRECT_TO_ROOMS ||
-  // REDIRECT_TO_MONITORING are also set.
+  // Toggle to redirect to different instance of refocus
   enableRedirectDifferentInstance: environmentVariableTrue(pe,
     'ENABLE_REDIRECT_DIFFERENT_INSTANCE'),
 
