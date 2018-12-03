@@ -157,10 +157,18 @@ function getRedirectUrlSSO(req) {
   return redirectUrl;
 }
 
+/**
+ * Gets the redirect URI if we should redirect to a different instance of refocus
+ * for a view.
+ *
+ * @param  {String} viewKey - Key of the view being loaded.
+ * @param  {String} reqUrl - Url of the request.
+ * @returns {String} - Empty string if it should not redirect, otherwise the full
+ * uri that should be redirected to.
+ */
 function getRedirectURI(viewKey, reqUrl) {
   const refocusMonitoringUrl = process.env.REFOCUS_MONITORING_BASE_URL;
   const refocusRoomsUrl = process.env.REFOCUS_ROOMS_BASE_URL;
-
   const shouldRedirectToRooms = process.env.SHOULD_REDIRECT_FOR_ROOMS &&
     refocusRoomsUrl && refocusRoomsViews.includes(viewKey);
   const shouldRedirectToMonitoring = process.env.SHOULD_REDIRECT_FOR_MONITORING &&
