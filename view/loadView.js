@@ -14,6 +14,7 @@
 
 'use strict'; // eslint-disable-line strict
 
+const featureToggles = require('feature-toggles');
 const SSOConfig = require('../db/index').SSOConfig;
 const User = require('../db/index').User;
 const Profile = require('../db/index').Profile;
@@ -22,6 +23,9 @@ const viewConfig = require('../viewConfig');
 const jwtUtil = require('../utils/jwtUtil');
 const httpStatus = require('./constants').httpStatus;
 const url = require('url');
+
+const redirectFeature =
+  featureToggles.isFeatureEnabled('enableRedirectDifferentInstance');
 
 // protected urls
 const viewmap = {
@@ -153,6 +157,24 @@ function getRedirectUrlSSO(req) {
   return redirectUrl;
 }
 
+function getRedirectURI(viewKey, reqUrl) {
+  const refocusMonitoringUrl = process.env.REFOCUS_MONITORING_BASE_URL;
+  const refocusRoomsUrl = process.env.REFOCUS_ROOMS_BASE_URL;
+
+  const shouldRedirectToRooms = process.env.SHOULD_REDIRECT_FOR_ROOMS &&
+    refocusRoomsUrl && refocusRoomsViews.includes(viewKey);
+  const shouldRedirectToMonitoring = process.env.SHOULD_REDIRECT_FOR_MONITORING &&
+    refocusMonitoringUrl && refocusMonitoringViews.includes(viewKey);
+
+  if (shouldRedirectToRooms) {
+    return refocusRoomsUrl + reqUrl;
+  } else if (shouldRedirectToMonitoring) {
+    return refocusMonitoringUrl + reqUrl;
+  }
+
+  return '';
+}
+
 function loadView(app, passport) {
   const keys = Object.keys(viewmap);
   keys.forEach((key) =>
@@ -170,23 +192,10 @@ function loadView(app, passport) {
           transportProtocol: viewConfig.socketIOtransportProtocol,
         };
 
-        const featureToggleRedirect = true;
-        const redirectToRefocusRooms = false;
-        const redirectToRefocusMonitoring = true;
-
-        const refocusMonitoringUrl = 'http://localhost:3000';
-        const refocusRoomsUrl = 'http://localhost:3002';
-
-        if (featureToggleRedirect) {
-          const shouldRedirectToRooms = redirectToRefocusRooms && refocusRoomsUrl &&
-            refocusRoomsViews.includes(key);
-          const shouldRedirectToMonitoring = redirectToRefocusMonitoring && refocusMonitoringUrl &&
-            refocusMonitoringViews.includes(key);
-
-          if (shouldRedirectToRooms) {
-            return res.redirect(refocusRoomsUrl + req.url);
-          } else if (shouldRedirectToMonitoring) {
-            return res.redirect(refocusMonitoringUrl + req.url);
+        if (redirectFeature) {
+          const redirectURI = getRedirectURI(key, req.url);
+          if (redirectURI.length) {
+            return res.redirect(redirectURI);
           }
         }
 
@@ -351,5 +360,6 @@ function loadView(app, passport) {
 
 module.exports = {
   loadView,
-  samlAuthentication // for testing
+  samlAuthentication, // for testing
+  getRedirectURI, // for testing
 }; // exports

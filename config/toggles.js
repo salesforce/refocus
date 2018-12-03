@@ -107,6 +107,11 @@ const longTermToggles = {
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
 
+  // Will redirect to different instance of refocus if REDIRECT_TO_ROOMS ||
+  // REDIRECT_TO_MONITORING are also set.
+  enableRedirectDifferentInstance: environmentVariableTrue(pe,
+    'ENABLE_REDIRECT_DIFFERENT_INSTANCE'),
+
   // Enable redis client connection logging.
   enableRedisConnectionLogging: environmentVariableTrue(pe,
     'ENABLE_REDIS_CONNECTION_LOGGING'),
