@@ -38,7 +38,6 @@ describe('tests/view/loadView.js', () => {
       expect(redirectURI.length).to.be.above(ZERO);
       expect(redirectURI).to
         .equal('http://localhost:9999/perspectives/perspectiveName');
-
     });
 
     it('ok, should redirect to rooms instance of refocus', () => {
@@ -49,7 +48,6 @@ describe('tests/view/loadView.js', () => {
       expect(redirectURI.length).to.be.above(ZERO);
       expect(redirectURI).to
         .equal('http://localhost:2018/rooms');
-
     });
 
     it('ok, redirect should keep parameters', () => {
