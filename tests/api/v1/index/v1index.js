@@ -80,7 +80,7 @@ describe('tests/api/v1/index/v1index.js >', () => {
   describe('/ >', () => {
     afterEach(() => {
       delete process.env.LANDING_PAGE_URL;
-    })
+    });
 
     it('/ should redirect to /perspectives', (done) => {
       api.get('/')
