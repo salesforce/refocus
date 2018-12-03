@@ -11,7 +11,7 @@
  */
 
 const expect = require('chai').expect;
-const loadView = require('../../view/loadView.js');
+const loadView = require('../../../view/loadView.js');
 const ZERO = 0;
 
 describe('tests/view/loadView.js', () => {
