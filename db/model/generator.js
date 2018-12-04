@@ -345,7 +345,7 @@ module.exports = function generator(seq, dataTypes) {
         'currentCollector',
         'possibleCollectors',
       ], Generator),
-      { override: true },
+      { override: true }
     );
   };
 
