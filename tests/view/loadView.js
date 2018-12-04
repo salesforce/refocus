@@ -11,15 +11,12 @@
  */
 
 const expect = require('chai').expect;
-
-
 const loadView = require('../../view/loadView.js');
 
 const ZERO = 0;
 
 describe('tests/view/loadView.js', () => {
   describe('getRedirectURI function', () => {
-
     afterEach(() => {
       delete process.env.SHOULD_REDIRECT_FOR_MONITORING;
       delete process.env.SHOULD_REDIRECT_FOR_ROOMS;

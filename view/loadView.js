@@ -16,8 +16,8 @@
 
 const featureToggles = require('feature-toggles');
 const SSOConfig = require('../db/index').SSOConfig;
-const User = require('../db/index');
-const Profile = require('../db/index');
+const User = require('../db/index').User;
+const Profile = require('../db/index').Profile;
 const SamlStrategy = require('passport-saml').Strategy;
 const viewConfig = require('../viewConfig');
 const jwtUtil = require('../utils/jwtUtil');
