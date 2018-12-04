@@ -286,7 +286,7 @@ module.exports = function collector(seq, dataTypes) {
         'currentGenerators',
         'possibleGenerators',
       ], Collector),
-      { override: true },
+      { override: true }
     );
 
   };
