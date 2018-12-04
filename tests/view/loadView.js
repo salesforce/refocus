@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/view/loadView/loadView.js
+ * tests/view/loadView.js
  */
 
 const expect = require('chai').expect;
