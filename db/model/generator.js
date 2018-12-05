@@ -479,7 +479,6 @@ module.exports = function generator(seq, dataTypes) {
     .then(() => g);
   }; // updateForHeartbeat
 
-
   /**
    * Out of all the possible collectors that are running and alive, find the
    * one with the fewest number of currently assigned generators. Break ties
