@@ -26,6 +26,18 @@ function makePostPromise(params, props, req) {
   return props.model.create(toPost, req.user);
 }
 
+function makeBulkPostPromise(params, props, req) {
+  const toPost = params.queryBody.value;
+  const promises = [];
+
+  toPost.forEach((item) => {
+    item.createdBy = req.user ? req.user.id : undefined;
+    promises.push(props.model.create(item, req.user));
+  })
+
+  return Promise.all(promises);
+}
+
 /**
  *
  * @param {Object} o Sequelize object
@@ -56,4 +68,5 @@ function handlePostResult(o, resultObj, props, res, req) {
 module.exports = {
   handlePostResult,
   makePostPromise,
+  makeBulkPostPromise
 };

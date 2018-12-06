@@ -3861,6 +3861,69 @@ paths:
         default:
           $ref: "#/responses/genericError"
 
+
+# ---------------------------------------------------------------------------
+  /events/bulk:
+    x-swagger-router-controller: events
+    post:
+      security:
+        - jwt: []
+      summary: Create or update events
+      tags: [ events ]
+      description: >-
+        Create or update multiple events.
+      operationId: postBulkEvents
+      parameters:
+        -
+          name: queryBody
+          description: Request body
+          in: body
+          schema:
+            type: array
+            items:
+              type: object
+              description: >
+                TODO
+              properties:
+                log:
+                  type: string
+                  description: Human readable log line to describe the context.
+                context:
+                  type: object
+                  description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
+                roomId:
+                  type: integer
+                  description: Room that this event relates to.
+                botId:
+                  type: string
+                  description: Bot that this event relates to.
+                botDataId:
+                  type: string
+                  description: Bot Data that this event relates to.
+                botActionId:
+                  type: string
+                  description: Bot Action that this event relates to.
+                userId:
+                  type: string
+                  description: User that this event relates to.
+              required:
+                - log
+      responses:
+        200:
+          description: >-
+            Success, returns OK
+          schema:
+            $ref: "#/definitions/BulkUpsertResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+
   # ---------------------------------------------------------------------------
   /events/{key}:
     x-swagger-router-controller: events

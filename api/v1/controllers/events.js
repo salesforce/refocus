@@ -16,6 +16,7 @@ const helper = require('../helpers/nouns/events');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPost = require('../helpers/verbs/doPost');
+const doPostBulk = require('../helpers/verbs/doPostBulk');
 const DEFAULT_LIMIT = config.botEventLimit;
 
 module.exports = {
@@ -73,5 +74,9 @@ module.exports = {
   postEvents(req, res, next) {
     doPost(req, res, next, helper);
   },
+
+  postBulkEvents(req, res, next) {
+    doPostBulk(req, res, next, helper);
+  }
 
 }; // exports
