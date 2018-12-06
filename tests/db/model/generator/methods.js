@@ -394,5 +394,18 @@ describe('tests/db/model/generator/methods.js >', () => {
         expect(generator3.currentCollector.id).to.equal(collector2.id);
       })
     );
+
+    it('No available collector', () =>
+
+      generator1.updateWithCollectors({ // gen1 -> coll1
+        isActive: true,
+        possibleCollectors: [coll1.name],
+      })
+      .then(() => collector1.update({ status: collectorStatuses.Stopped }))
+      .then(() => generator1.reload())
+      .then(() => {
+        expect(generator1.currentCollector).to.equal(null);
+      })
+    );
   });
 });

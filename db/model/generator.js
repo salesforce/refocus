@@ -589,6 +589,8 @@ module.exports = function generator(seq, dataTypes) {
         });
       }
 
+      // inactive generator or no possibleCollectors
+      logAssignment(this.name, this.currentCollector, null);
       this.collectorId = null;
       this.currentCollector = null;
       return Promise.resolve();
