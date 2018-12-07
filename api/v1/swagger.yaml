@@ -1347,7 +1347,7 @@ paths:
                 - resourceType
                 - resourceName
       responses:
-        200:
+        201:
           description: >-
             Created.
           schema:
@@ -3861,17 +3861,16 @@ paths:
         default:
           $ref: "#/responses/genericError"
 
-
 # ---------------------------------------------------------------------------
   /events/bulk:
     x-swagger-router-controller: events
     post:
       security:
         - jwt: []
-      summary: Create or update events
+      summary: Create events in bulk.
       tags: [ events ]
       description: >-
-        Create or update multiple events.
+        Create multiple events at once.
       operationId: postBulkEvents
       parameters:
         -
@@ -3882,8 +3881,7 @@ paths:
             type: array
             items:
               type: object
-              description: >
-                TODO
+              description: Create event properties
               properties:
                 log:
                   type: string
@@ -3909,11 +3907,15 @@ paths:
               required:
                 - log
       responses:
-        200:
+        201:
           description: >-
-            Success, returns OK
+            Created
           schema:
-            $ref: "#/definitions/BulkUpsertResponse"
+            type: array
+            items:
+              $ref: "#/definitions/EventResponse"
+              description: >-
+                Event properties
         400:
           $ref: "#/responses/400"
         403:
@@ -3922,7 +3924,6 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
-
 
   # ---------------------------------------------------------------------------
   /events/{key}:
