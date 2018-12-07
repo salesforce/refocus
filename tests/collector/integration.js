@@ -629,10 +629,6 @@ describe('tests/collector/integration.js >', function () {
     });
   });
 
-  // TODO: some of these tests are flapping because the bulkUpsert request can't
-  // be correctly waited on, because the post promise is obscured by the upsert queue
-  // TODO: add to main test script once that's fixed and tests pass consistenly:
-  // "test-all": "npm run test-main && npm run test-extra && npm run test-collector",
   describe('assignment >', () => {
     describe('generator updated >', () => {
       beforeEach(() => {
@@ -772,18 +768,15 @@ describe('tests/collector/integration.js >', function () {
       afterEach(() => clearInterval(interval));
 
       beforeEach(() =>
-        Promise.join(
-          u.doStart(coll1),
-          u.doStart(coll2),
-        )
-        .then(() => Promise.join(
-          u.postGenerator(gen1),
-          u.postGenerator(gen2),
-        ))
-        .then(() => Promise.join(
-          forkUtils.doStop(coll1),
-          forkUtils.doStop(coll2),
-        ))
+        Promise.resolve()
+        .then(() => u.doStart(coll1))
+        .then(() => u.doStart(coll2))
+
+        .then(() => u.postGenerator(gen1))
+        .then(() => u.postGenerator(gen2))
+
+        .then(() => forkUtils.doStop(coll2))
+        .then(() => forkUtils.doStop(coll1))
       );
 
       it('started', () =>
@@ -803,10 +796,10 @@ describe('tests/collector/integration.js >', function () {
       );
 
       it('stopped', () =>
-        Promise.join(
-          u.doStart(coll1),
-          u.doStart(coll2),
-        )
+        Promise.resolve()
+        .then(() => u.doStart(coll1))
+        .then(() => u.doStart(coll2))
+
         .then(() => Promise.join(
           u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
           u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
@@ -823,10 +816,10 @@ describe('tests/collector/integration.js >', function () {
       );
 
       it('pause/resume', () =>
-        Promise.join(
-          u.doStart(coll1),
-          u.doStart(coll2),
-        )
+        Promise.resolve()
+          .then(() => u.doStart(coll1))
+          .then(() => u.doStart(coll2))
+
         .then(() => Promise.join(
           u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
           u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
@@ -845,6 +838,7 @@ describe('tests/collector/integration.js >', function () {
         ))
 
         .then(() => u.postStatus('Stop', coll2))
+        .then(() => u.expectHeartbeatStatus(coll2, 'Stopped'))
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
@@ -862,10 +856,10 @@ describe('tests/collector/integration.js >', function () {
       );
 
       it('missed heartbeat', () =>
-        Promise.join(
-          u.doStart(coll1),
-          u.doStart(coll2),
-        )
+        Promise.resolve()
+        .then(() => u.doStart(coll1))
+        .then(() => u.doStart(coll2))
+
         .then(() => Promise.join(
           u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
           u.expectBulkUpsertNames(coll2, ['sub2|asp2']),

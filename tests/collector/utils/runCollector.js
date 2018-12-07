@@ -50,14 +50,17 @@ process.on('message', (msg) => {
 process.on('message', (msg) => {
   if (msg.blockHeartbeat) {
     nock.disableNetConnect();
+    process.send({ blocked: true });
   } else if (msg.unblockHeartbeat) {
     nock.enableNetConnect();
+    process.send({ unblocked: true });
   }
 });
 
 // run the command file
 const cmd = process.argv[2];
-const command = require('@salesforce/refocus-collector')[cmd]();
+// const command = require('@salesforce/refocus-collector')[cmd]();
+const command = require('../../../../refocus-collector')[cmd]();
 if (command.then) {
   command.then(() => process.send({ started: true }));
 } else {
