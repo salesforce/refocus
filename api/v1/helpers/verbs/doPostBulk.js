@@ -13,7 +13,7 @@ const u = require('./utils');
 const pu = require('./postUtils');
 
 /**
- * Creates a new record and sends it back in the json response with status
+ * Creates new records and sends it back in the json response with status
  * code 201.
  *
  * @param {IncomingMessage} req - The request object

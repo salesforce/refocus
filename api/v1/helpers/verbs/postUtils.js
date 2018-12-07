@@ -26,6 +26,12 @@ function makePostPromise(params, props, req) {
   return props.model.create(toPost, req.user);
 }
 
+/**
+ * @param {Object} params From swagger
+ * @param {Object} props The helpers/nouns module for the given DB model
+ * @param {Object} req From express
+ * @returns {Promise} - which resolves to an array of created instances
+ */
 function makeBulkPostPromise(params, props, req) {
   const toPost = params.queryBody.value;
   const promises = [];
