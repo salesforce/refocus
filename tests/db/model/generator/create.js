@@ -19,6 +19,7 @@ const gUtil = require('../../../../db/helpers/generatorUtil');
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const GlobalConfig = tu.db.GlobalConfig;
+const CollectorGroup = tu.db.CollectorGroup;
 const cryptUtils = require('../../../../utils/cryptUtils');
 const dbConstants = require('../../../../db/constants');
 
@@ -67,6 +68,27 @@ describe('tests/db/model/generator/create.js >', () => {
       expect(o.generatorTemplate.version).to.equal('1.0.0');
       expect(typeof o.getWriters).to.equal('function');
       expect(typeof o.getPossibleCollectors).to.equal('function');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('ok, set collector group', (done) => {
+    generator.name = tu.namePrefix + 'gen-test-cg';
+    let collGroup;
+    CollectorGroup.create({
+      name: `${tu.namePrefix}test-collector-group`,
+      description: 'This is test collector group',
+    })
+    .then((cg) => {
+      collGroup = cg;
+      return Generator.create(generator);
+    })
+    .then((g) => g.setCollectorGroup(collGroup))
+    .then((o) => {
+      expect(o.id).to.not.equal(undefined);
+      expect(o.name).to.equal(generator.name);
+      expect(o.collectorGroupId).to.equal(collGroup.id);
       done();
     })
     .catch(done);
