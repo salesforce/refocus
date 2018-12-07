@@ -176,8 +176,7 @@ const interceptConfig = {
     path: '/samples/upsert/bulk',
     collectorNamePath: 'req.headers.collector-name',
     expectedInterval: () => Math.max(
-      ...[gen1, gen2].map(g => g.intervalSecs * 1000),
-      config.collector.sampleUpsertQueueTimeMillis,
+      ...[gen1, gen2].map(g => g.intervalSecs * 1000)
     ),
     expectedRequestKeys: null,
     expectedResponseKeys: null,
@@ -216,8 +215,6 @@ describe('tests/collector/integration.js >', function () {
   beforeEach(() => {
     config.collector.heartbeatIntervalMillis = ms('15s');
     config.collector.heartbeatLatencyToleranceMillis = ms('5s');
-    config.collector.sampleUpsertQueueTimeMillis = ms('15s');
-    config.collector.maxSamplesPerBulkUpsert = 1;
   });
 
   afterEach(() => forkUtils.killAllCollectors());
@@ -315,7 +312,7 @@ describe('tests/collector/integration.js >', function () {
 
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub*'),
-        u.expectBulkUpsertNames(coll1, ['sub1|asp1'], ['sub2|asp1']),
+        u.expectBulkUpsertNames(coll1, ['sub1|asp1', 'sub2|asp1']),
       ))
     );
 
@@ -335,7 +332,7 @@ describe('tests/collector/integration.js >', function () {
 
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
-        u.expectBulkUpsertNames(coll1, ['sub1|asp1'], ['sub1|asp2']),
+        u.expectBulkUpsertNames(coll1, ['sub1|asp1', 'sub1|asp2']),
       ))
     );
 
@@ -451,58 +448,6 @@ describe('tests/collector/integration.js >', function () {
         .then(() => u.getStatus(coll1))
         .then((res) => expect(res.body.status).to.equal('MissedHeartbeat'))
         .then(() => forkUtils.unblockHeartbeat(coll1))
-      );
-
-      it('sampleUpsertQueueTimeMillis', () => {
-        config.collector.maxSamplesPerBulkUpsert = 10;
-        config.collector.sampleUpsertQueueTimeMillis = ms('15s');
-        return u.doStart(coll1)
-        .then(() => u.awaitHeartbeat())
-
-        .then(() => u.awaitBulkUpsert())
-        .then(() => u.awaitBulkUpsert())
-        .then(({ waitTime }) => {
-          expect(waitTime).to.be.closeTo(ms('60s'), ms('10s'));
-          config.collector.sampleUpsertQueueTimeMillis = ms('120s');
-        })
-
-        .then(() => u.awaitHeartbeat())
-        .then(({ res }) => expect(res.body.collectorConfig).to.include({
-          sampleUpsertQueueTimeMillis: ms('120s'),
-        }))
-
-        .then(() => u.awaitBulkUpsert())
-        .then(() => u.awaitBulkUpsert())
-        .then(({ waitTime }) => {
-          expect(waitTime).to.be.closeTo(ms('120s'), ms('10s'));
-        });
-      });
-
-      it('maxSamplesPerBulkUpsert', () =>
-        u.patchGenerator(gen1.name, {
-          subjectQuery: '?absolutePath=sub*',
-          aspects: ['asp1', 'asp2'],
-        })
-
-        .then(() => u.doStart(coll1))
-        .then(() => u.awaitHeartbeat())
-        .then(() => u.expectBulkUpsertNames(coll1,
-          ['sub1|asp1'], ['sub1|asp2'], ['sub2|asp1'], ['sub2|asp2']
-        ))
-
-        .then(() => u.awaitHeartbeat())
-        .then(() => {
-          config.collector.maxSamplesPerBulkUpsert = 2;
-        })
-
-        .then(() => u.awaitHeartbeat())
-        .then(({ res }) => expect(res.body.collectorConfig).to.include({
-          maxSamplesPerBulkUpsert: 2,
-        }))
-
-        .then(() => u.expectBulkUpsertNames(coll1,
-          ['sub1|asp1', 'sub1|asp2'], ['sub2|asp1', 'sub2|asp2']
-        ))
       );
     });
 
