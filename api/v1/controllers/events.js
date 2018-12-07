@@ -77,6 +77,5 @@ module.exports = {
 
   postBulkEvents(req, res, next) {
     doPostBulk(req, res, next, helper);
-  }
-
+  },
 }; // exports

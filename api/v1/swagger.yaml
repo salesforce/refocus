@@ -1347,7 +1347,7 @@ paths:
                 - resourceType
                 - resourceName
       responses:
-        201:
+        200:
           description: >-
             Created.
           schema:
