@@ -59,8 +59,7 @@ process.on('message', (msg) => {
 
 // run the command file
 const cmd = process.argv[2];
-// const command = require('@salesforce/refocus-collector')[cmd]();
-const command = require('../../../../refocus-collector')[cmd]();
+const command = require('@salesforce/refocus-collector')[cmd]();
 if (command.then) {
   command.then(() => process.send({ started: true }));
 } else {
