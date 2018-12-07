@@ -74,5 +74,5 @@ function handlePostResult(o, resultObj, props, res, req) {
 module.exports = {
   handlePostResult,
   makePostPromise,
-  makeBulkPostPromise
+  makeBulkPostPromise,
 };
