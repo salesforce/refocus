@@ -7,10 +7,8 @@
  */
 
 /**
- * api/v1/helpers/verbs/doPost.js
+ * api/v1/helpers/verbs/doPostBulk.js
  */
-'use strict'; // eslint-disable-line strict
-
 const u = require('./utils');
 const pu = require('./postUtils');
 
