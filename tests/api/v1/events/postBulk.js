@@ -75,7 +75,7 @@ describe('tests/api/v1/events/postBulk.js >', () => {
       }
 
       expect(res.body.errors.length).to.equal(ONE);
-      expect(res.body.errors[ZERO].source).to.equal('0')
+      expect(res.body.errors[ZERO].source).to.equal('0');
       expect(res.body.errors[ZERO].message).to
         .equal('Missing required property: log');
       done();

@@ -39,7 +39,7 @@ function makeBulkPostPromise(params, props, req) {
   toPost.forEach((item) => {
     item.createdBy = req.user ? req.user.id : undefined;
     promises.push(props.model.create(item, req.user));
-  })
+  });
 
   return Promise.all(promises);
 }
