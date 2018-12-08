@@ -20,6 +20,7 @@ const dbErrors = require('../dbErrors');
 const hbUtils = require('../../api/v1/helpers/verbs/heartbeatUtils');
 const ValidationError = dbErrors.ValidationError;
 const semverRegex = require('semver-regex');
+const featureToggles = require('feature-toggles');
 const assoc = {};
 const joi = require('joi');
 
@@ -501,41 +502,46 @@ module.exports = function generator(seq, dataTypes) {
      current and possible generators */
     for (let i = 0; i < upCollectors.length; i++) {
       const ithCollector = upCollectors[i];
-      const promise = new Promise((resolve, reject) => {
+      let promise;
 
-        /* If current generators and possible generators are present in
-        ithCollector object, just return the map.
-         */
-        if (ithCollector.currentGenerators && ithCollector.possibleGenerators) {
-          resolve({
-            collector: ithCollector,
-            numCurrentGen: ithCollector.currentGenerators.length,
-            numPossibleGen: ithCollector.possibleGenerators.length,
-          });
-        }
+      /* If current generators and possible generators are present in
+      ithCollector object, just return the map.
+       */
+      if (ithCollector.currentGenerators && ithCollector.possibleGenerators) {
+        promise = Promise.resolve({
+          collector: ithCollector,
+          numCurrentGen: ithCollector.currentGenerators.length,
+          numPossibleGen: ithCollector.possibleGenerators.length,
+        });
+      } else {
 
         // If current/possible generators info not in obj, get the info from db
-        let numCurrGen = 0;
-        return ithCollector.getCurrentGenerators()
-        .then((gens) => {
-          numCurrGen = gens.length;
-          return ithCollector.getPossibleGenerators();
-        })
-        .then((possibleGens) => {
-          resolve({
-            collector: ithCollector,
+        promise = dbUtils.seq.models.Collector.findById(ithCollector.id)
+        .then((c) => {
+          let numCurrGen = 0;
+          let numPossGen = 0;
+
+          if (c.currentGenerators && c.possibleGenerators) {
+            numCurrGen = c.currentGenerators.length;
+            numPossGen = c.possibleGenerators.length;
+          }
+
+          return Promise.resolve({
+            collector: c,
             numCurrentGen: numCurrGen,
-            numPossibleGen: possibleGens.length,
+            numPossibleGen: numPossGen,
           });
-        })
-        .catch(reject);
-      });
+        });
+      }
 
       promises.push(promise);
     }
 
     return Promise.all(promises)
     .then((collectorInfoArr) => {
+      if (!collectorInfoArr.length) {
+        return Promise.resolve();
+      }
 
       // find collector with least number of current generators
       let mostAvailCollectorInfo = collectorInfoArr[0];
@@ -574,26 +580,21 @@ module.exports = function generator(seq, dataTypes) {
     .then(() => {
       const possibleCollectors = this.possibleCollectors;
       if (this.isActive && possibleCollectors && possibleCollectors.length) {
-        return getMostAvailableCollector(possibleCollectors)
-        .then((mostAvailCollector) => {
-          logAssignment(this.name, this.currentCollector, mostAvailCollector);
-
-          // We could use setCurrentCollector, but that would result in database
-          // saves that would be unnecessary and complicate our logic in the db
-          // hooks. Instead, we set the foreign key (collectorId) from collector
-          // model. We also mock the currentCollector on the instance to avoid
-          // needing a database reload.
-          this.collectorId = mostAvailCollector ? mostAvailCollector.id : null;
-          this.currentCollector = mostAvailCollector || null;
-          return Promise.resolve();
-        });
+        return getMostAvailableCollector(possibleCollectors);
       }
 
-      // inactive generator or no possibleCollectors
-      logAssignment(this.name, this.currentCollector, null);
-      this.collectorId = null;
-      this.currentCollector = null;
       return Promise.resolve();
+    })
+    .then((mostAvailCollector) => {
+      logAssignment(this.name, this.currentCollector, mostAvailCollector);
+
+      // We could use setCurrentCollector, but that would result in database
+      // saves that would be unnecessary and complicate our logic in the db
+      // hooks. Instead, we set the foreign key (collectorId) from collector
+      // model. We also mock the currentCollector on the instance to avoid
+      // needing a database reload.
+      this.collectorId = mostAvailCollector ? mostAvailCollector.id : null;
+      this.currentCollector = mostAvailCollector || null;
     });
   }; // assignToCollector
 
