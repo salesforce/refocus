@@ -160,65 +160,110 @@ module.exports = function generator(seq, dataTypes) {
       }, // beforeCreate
 
       beforeUpdate(inst /* , opts */) {
-        return Promise.all([
-          Promise.resolve().then(() => {
-            let isCurrentCollectorIncluded = true;
+        if (featureToggles.isFeatureEnabled('distributeGenerators')) {
+          const promises = [];
 
-            // if possibleCollectors have changed, check if the currentCollector
-            // is still included
-            if (inst.possibleCollectors && inst.changed('possibleCollectors')) {
-              isCurrentCollectorIncluded = inst.possibleCollectors.some(
-                (coll) => coll.name === inst.currentCollector.name
-              );
-            }
+          let isCurrentCollectorIncluded = true;
 
-            /*
-             Assign to collector in following cases:
-             1) isActive is changed.
-             2) If possibleCollectors are changed and this generator current
-              collector is not included in the changed possibleCollectors.
-             3) If possibleCollectors are changed and collector is not assigned
-              to generator
-             */
-            if (
-                inst.changed('isActive') ||
-                !isCurrentCollectorIncluded ||
-                (inst.changed('possibleCollectors') && !inst.currentCollector)
-               ) {
-              return inst.assignToCollector();
-            }
+          // if possibleCollectors have changed, check if the currentCollector
+          // is still included
+          if (inst.possibleCollectors && inst.changed('possibleCollectors')) {
+            isCurrentCollectorIncluded = inst.possibleCollectors.some(
+              (coll) => coll.name === inst.currentCollector.name
+            );
+          }
 
-            return Promise.resolve();
-          }),
-          Promise.resolve().then(() => {
+          /*
+           Assign to collector in following cases:
+           1) isActive is changed.
+           2) If possibleCollectors are changed and this generator current
+            collector is not included in the changed possibleCollectors.
+           3) If possibleCollectors are changed and collector is not assigned
+            to generator
+           */
+          if (
+              inst.changed('isActive') ||
+              !isCurrentCollectorIncluded ||
+              (inst.changed('possibleCollectors') && !inst.currentCollector)
+             ) {
+            promises.push(inst.assignToCollector()); // promise
+          }
+
+          if (inst.changed('generatorTemplate') || inst.changed('context')) {
             const gtName = inst.generatorTemplate.name;
             const gtVersion = inst.generatorTemplate.version;
 
-            if (inst.changed('generatorTemplate') || inst.changed('context')) {
-              return seq.models.GeneratorTemplate
-                .getSemverMatch(gtName, gtVersion)
-                .then((gt) => {
-                  if (!gt) {
-                    throw new ValidationError('No Generator Template matches ' +
-                    `name: ${gtName} and version: ${gtVersion}`);
-                  }
+            promises.push(seq.models.GeneratorTemplate // promise
+              .getSemverMatch(gtName, gtVersion)
+              .then((gt) => {
+                if (!gt) {
+                  throw new ValidationError('No Generator Template matches ' +
+                  `name: ${gtName} and version: ${gtVersion}`);
+                }
 
-                  sgUtils.validateGeneratorCtx(
-                    inst.context, gt.contextDefinition
-                  );
+                sgUtils.validateGeneratorCtx(
+                  inst.context, gt.contextDefinition
+                );
 
-                  return cryptUtils
-                    .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
-                    .catch(() => {
-                      throw new dbErrors
-                        .SampleGeneratorContextEncryptionError();
-                    });
+                return cryptUtils
+                  .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
+                  .catch(() => {
+                    throw new dbErrors
+                      .SampleGeneratorContextEncryptionError();
+                  });
+              }));
+          }
+
+          return Promise.all(promises);
+        } // feature toggle
+
+        const gtName = inst.generatorTemplate.name;
+        const gtVersion = inst.generatorTemplate.version;
+
+        let isCurrentCollectorIncluded = true;
+
+        // if possibleCollectors have changed, check if the currentCollector
+        // is still included
+        if (inst.possibleCollectors && inst.changed('possibleCollectors')) {
+          isCurrentCollectorIncluded = inst.possibleCollectors.some(
+            (coll) => coll.name === inst.currentCollector.name
+          );
+        }
+
+        /*
+         Assign to collector in following cases:
+         1) isActive is changed.
+         2) If possibleCollectors are changed and this generator current
+          collector is not included in the changed possibleCollectors.
+         3) If possibleCollectors are changed and collector is not assigned
+          to generator
+         */
+        if (
+            inst.changed('isActive') ||
+            !isCurrentCollectorIncluded ||
+            (inst.changed('possibleCollectors') && !inst.currentCollector)
+           ) {
+          inst.assignToCollector();
+        }
+
+        if (inst.changed('generatorTemplate') || inst.changed('context')) {
+          return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
+            .then((gt) => {
+              if (!gt) {
+                throw new ValidationError('No Generator Template matches ' +
+                `name: ${gtName} and version: ${gtVersion}`);
+              }
+
+              sgUtils.validateGeneratorCtx(inst.context, gt.contextDefinition);
+              return cryptUtils
+                .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
+                .catch(() => {
+                  throw new dbErrors.SampleGeneratorContextEncryptionError();
                 });
-            }
+            });
+        }
 
-            return Promise.resolve();
-          }),
-        ]);
+        return inst;
       }, // beforeUpdate
 
       beforeDestroy(inst /* , opts */) {
@@ -576,26 +621,45 @@ module.exports = function generator(seq, dataTypes) {
    * currentCollector field and expects the caller to save later.
    */
   Generator.prototype.assignToCollector = function () {
-    return Promise.resolve()
-    .then(() => {
-      const possibleCollectors = this.possibleCollectors;
-      if (this.isActive && possibleCollectors && possibleCollectors.length) {
-        return getMostAvailableCollector(possibleCollectors);
-      }
+    if (featureToggles.isFeatureEnabled('distributeGenerators')) {
+      return Promise.resolve()
+      .then(() => {
+        const possibleCollectors = this.possibleCollectors;
+        if (this.isActive && possibleCollectors && possibleCollectors.length) {
+          return getMostAvailableCollector(possibleCollectors);
+        }
 
-      return Promise.resolve();
-    })
-    .then((mostAvailCollector) => {
-      logAssignment(this.name, this.currentCollector, mostAvailCollector);
+        return Promise.resolve();
+      })
+      .then((mostAvailCollector) => {
+        logAssignment(this.name, this.currentCollector, mostAvailCollector);
 
-      // We could use setCurrentCollector, but that would result in database
-      // saves that would be unnecessary and complicate our logic in the db
-      // hooks. Instead, we set the foreign key (collectorId) from collector
-      // model. We also mock the currentCollector on the instance to avoid
-      // needing a database reload.
-      this.collectorId = mostAvailCollector ? mostAvailCollector.id : null;
-      this.currentCollector = mostAvailCollector || null;
-    });
+        // We could use setCurrentCollector, but that would result in database
+        // saves that would be unnecessary and complicate our logic in the db
+        // hooks. Instead, we set the foreign key (collectorId) from collector
+        // model. We also mock the currentCollector on the instance to avoid
+        // needing a database reload.
+        this.collectorId = mostAvailCollector ? mostAvailCollector.id : null;
+        this.currentCollector = mostAvailCollector || null;
+      });
+    }
+
+    const possibleCollectors = this.possibleCollectors;
+    let newColl;
+    if (this.isActive && possibleCollectors && possibleCollectors.length) {
+      possibleCollectors.sort((c1, c2) => c1.name > c2.name);
+      newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive());
+    }
+
+    logAssignment(this.name, this.currentCollector, newColl);
+
+    // We could use setCurrentCollector, but that would result in database saves
+    // that would be unnecessary and complicate our logic in the db hooks.
+    // Instead, we set the foreign key (collectorId) from collector model.
+    // We also mock the currentCollector on the instance to avoid needing
+    // a database reload.
+    this.collectorId = newColl ? newColl.id : null;
+    this.currentCollector = newColl || null;
   }; // assignToCollector
 
   function logAssignment(gen, prevColl, newColl) {

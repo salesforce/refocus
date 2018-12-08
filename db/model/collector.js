@@ -22,6 +22,7 @@ const collectorConfig = require('../../config/collectorConfig');
 const heartbeatUtils = require('../../api/v1/helpers/verbs/heartbeatUtils');
 const MS_PER_SEC = 1000;
 const collectorStatus = constants.collectorStatuses;
+const featureToggles = require('feature-toggles');
 
 module.exports = function collector(seq, dataTypes) {
   const Collector = seq.define('Collector', {
@@ -327,9 +328,17 @@ module.exports = function collector(seq, dataTypes) {
    * @returns {Promise<Array<Generator>>}
    */
   Collector.prototype.reassignGenerators = function () {
+    if (featureToggles.isFeatureEnabled('distributeGenerators')) {
+      return this.getCurrentGenerators()
+      .map((g) => g.assignToCollector()
+        .then(() => g.save()));
+    }
+
     return this.getCurrentGenerators()
-    .map((g) => g.assignToCollector()
-      .then(() => g.save()));
+    .map((g) => {
+      g.assignToCollector();
+      return g.save();
+    });
   };
 
   Collector.prototype.isWritableBy = function (who) {

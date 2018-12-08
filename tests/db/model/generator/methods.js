@@ -20,6 +20,7 @@ const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const collectorStatuses = require('../../../../db/constants').collectorStatuses;
+const featureToggles = require('feature-toggles');
 
 describe('tests/db/model/generator/methods.js >', () => {
   let clock;
@@ -131,9 +132,7 @@ describe('tests/db/model/generator/methods.js >', () => {
       .then(() => {
         expect(generator1.currentCollector.name).to.equal(collector3.name);
         expect(generator1.currentCollector.id).to.equal(collector3.id);
-        return generator1.assignToCollector();
-      })
-      .then(() => {
+        generator1.assignToCollector();
         expect(generator1.currentCollector).to.equal(null);
       })
     );
@@ -151,9 +150,7 @@ describe('tests/db/model/generator/methods.js >', () => {
       .then(() => {
         expect(generator1.currentCollector.name).to.equal(collector3.name);
         expect(generator1.currentCollector.id).to.equal(collector3.id);
-        return generator1.assignToCollector();
-      })
-      .then(() => {
+        generator1.assignToCollector();
         expect(generator1.currentCollector).to.equal(null);
       })
     );
@@ -165,21 +162,15 @@ describe('tests/db/model/generator/methods.js >', () => {
       })
       .then(() => {
         expect(generator1.currentCollector).to.equal(null);
-        return generator1.assignToCollector();
-      })
-      .then(() => {
+        generator1.assignToCollector();
         expect(generator1.currentCollector).to.equal(null);
       })
     );
 
-    it('collectors not specified (not assigned)', (done) => {
+    it('collectors not specified (not assigned)', () => {
       expect(generator1.currentCollector).to.equal(null);
-      generator1.assignToCollector()
-      .then(() => {
-        expect(generator1.currentCollector).to.equal(null);
-        done();
-      })
-      .catch(done);
+      generator1.assignToCollector();
+      expect(generator1.currentCollector).to.equal(null);
     });
 
     it('collectors not specified (unassigned)', () =>
@@ -188,15 +179,100 @@ describe('tests/db/model/generator/methods.js >', () => {
       .then(() => {
         expect(generator1.currentCollector.name).to.equal(collector3.name);
         expect(generator1.currentCollector.id).to.equal(collector3.id);
-        return generator1.assignToCollector();
-      })
-      .then(() => {
+        generator1.assignToCollector();
         expect(generator1.currentCollector).to.equal(null);
       })
     );
+
+    describe('with distributeGenerators toggle on > ', () => {
+      const initialFeatureState = featureToggles
+        .isFeatureEnabled('distributeGenerators');
+      before(() => tu.toggleOverride('distributeGenerators', true));
+      after(() => tu.toggleOverride(
+        'distributeGenerators', initialFeatureState));
+
+      it('collectors specified, isActive=false (unassigned)', () =>
+        generator1.updateWithCollectors({
+          isActive: false,
+          possibleCollectors: [coll2.name, coll3.name],
+        })
+        .then(() => generator1.update({ collectorId: collector3.id }))
+        .then(() => generator1.reload())
+        .then(() => {
+          expect(generator1.currentCollector.name).to.equal(collector3.name);
+          expect(generator1.currentCollector.id).to.equal(collector3.id);
+          return generator1.assignToCollector();
+        })
+        .then(() => {
+          expect(generator1.currentCollector).to.equal(null);
+        })
+      );
+
+      it('collectors specified, none available (unassigned)', () =>
+        Promise.all([
+          collector2.update({ lastHeartbeat: 0 }),
+          generator1.updateWithCollectors({
+            isActive: true,
+            possibleCollectors: [coll2.name],
+          }),
+        ])
+        .then(() => generator1.update({ collectorId: collector3.id }))
+        .then(() => generator1.reload())
+        .then(() => {
+          expect(generator1.currentCollector.name).to.equal(collector3.name);
+          expect(generator1.currentCollector.id).to.equal(collector3.id);
+          return generator1.assignToCollector();
+        })
+        .then(() => {
+          expect(generator1.currentCollector).to.equal(null);
+        })
+      );
+
+      it('collectors specified, isActive=false', () =>
+        generator1.updateWithCollectors({
+          isActive: false,
+          possibleCollectors: [coll2.name, coll3.name],
+        })
+        .then(() => {
+          expect(generator1.currentCollector).to.equal(null);
+          return generator1.assignToCollector();
+        })
+        .then(() => {
+          expect(generator1.currentCollector).to.equal(null);
+        })
+      );
+
+      it('collectors not specified (not assigned)', (done) => {
+        expect(generator1.currentCollector).to.equal(null);
+        generator1.assignToCollector()
+        .then(() => {
+          expect(generator1.currentCollector).to.equal(null);
+          done();
+        })
+        .catch(done);
+      });
+
+      it('collectors not specified (unassigned)', () =>
+        generator1.update({ collectorId: collector3.id })
+        .then(() => generator1.reload())
+        .then(() => {
+          expect(generator1.currentCollector.name).to.equal(collector3.name);
+          expect(generator1.currentCollector.id).to.equal(collector3.id);
+          return generator1.assignToCollector();
+        })
+        .then(() => {
+          expect(generator1.currentCollector).to.equal(null);
+        })
+      );
+    });
   });
 
   describe('getMostAvailableCollector >', () => {
+    const initialFeatureState = featureToggles
+      .isFeatureEnabled('distributeGenerators');
+    before(() => tu.toggleOverride('distributeGenerators', true));
+    after(() => tu.toggleOverride('distributeGenerators', initialFeatureState));
+
     const coll4 = {
       name: 'collector4',
       version: '1.0.0',
