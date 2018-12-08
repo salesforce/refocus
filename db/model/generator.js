@@ -342,6 +342,11 @@ module.exports = function generator(seq, dataTypes) {
   };
 
   Generator.postImport = function (models) {
+    assoc.collectorGroup = Generator.belongsTo(models.CollectorGroup, {
+      as: 'collectorGroup',
+      foreignKey: 'collectorGroupId',
+    });
+
     assoc.user = Generator.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',

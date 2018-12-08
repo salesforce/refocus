@@ -110,6 +110,7 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Collector, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
+    .then(() => tu.forceDelete(tu.db.CollectorGroup, testStartTime))
     .then(() => done())
     .catch(done);
   },
