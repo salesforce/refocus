@@ -194,7 +194,7 @@ const interceptConfig = {
 u.setupInterception(interceptConfig);
 
 describe('tests/collector/integration.js >', function () {
-  this.timeout(5000);
+  this.timeout(10000);
 
   before(() =>
     tu.createUserAndToken()
