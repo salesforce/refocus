@@ -87,6 +87,12 @@ module.exports = function collectorgroup(seq, dataTypes) {
     });
 
     CollectorGroup.addScope('defaultScope', {
+      include: [
+        {
+          model: models.Collector.scope('embed'),
+          as: 'collectors',
+        },
+      ],
       order: ['name'],
     }, { override: true });
   };

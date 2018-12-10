@@ -401,12 +401,22 @@ module.exports = function generator(seq, dataTypes) {
       ],
     });
 
+    Generator.addScope('collectorGroup', {
+      include: [
+        {
+          association: assoc.collectorGroup,
+          attributes: ['id', 'name', 'description'],
+        },
+      ],
+    });
+
     Generator.addScope('defaultScope',
       dbUtils.combineScopes([
         'baseScope',
         'user',
         'currentCollector',
         'possibleCollectors',
+        'collectorGroup',
       ], Generator),
       { override: true }
     );
@@ -421,6 +431,17 @@ module.exports = function generator(seq, dataTypes) {
    */
   Generator.validateCollectors = function (collectorNames) {
     return sgUtils.validateCollectors(seq, collectorNames);
+  };
+
+  /**
+   * Accessed by API. if pass, return a Promise with the collectorGroup.
+   * If fail, return a rejected Promise
+   *
+   * @param {String} collectorGroupName collectorGroup name
+   * @returns {Promise} with collectorGroup if pass, error if fail
+   */
+  Generator.validateCollectorGroup = function (collectorGroupName) {
+    return sgUtils.validateCollectorGroup(seq, collectorGroupName);
   };
 
   /**
@@ -452,6 +473,14 @@ module.exports = function generator(seq, dataTypes) {
     .then((gen) => {
       createdGenerator = gen;
       return createdGenerator.addPossibleCollectors(collectors);
+    })
+    .then(() => {
+      if (requestBody.collectorGroup) {
+        return sgUtils.validateCollectorGroup(seq, requestBody.collectorGroup)
+        .then((_collGroup) => createdGenerator.setCollectorGroup(_collGroup));
+      }
+
+      return Promise.resolve();
     })
     .then(() => createdGenerator.reload());
   };
@@ -489,6 +518,14 @@ module.exports = function generator(seq, dataTypes) {
       this.possibleCollectors = this.possibleCollectors.concat(collectors);
 
       return this.addPossibleCollectors(collectors);
+    })
+    .then(() => {
+      if (requestBody.collectorGroup) {
+        return sgUtils.validateCollectorGroup(seq, requestBody.collectorGroup)
+        .then((_collGroup) => this.setCollectorGroup(_collGroup));
+      }
+
+      return Promise.resolve();
     })
     .then(() => this.update(requestBody))
     .then(() => this.reload());
