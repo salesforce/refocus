@@ -680,10 +680,6 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .to.have.property('heartbeatIntervalMillis', 15000);
           expect(res.body.collectorConfig)
           .to.have.property('heartbeatLatencyToleranceMillis', 5000);
-          expect(res.body.collectorConfig)
-          .to.have.property('sampleUpsertQueueTimeMillis', 15000);
-          expect(res.body.collectorConfig)
-          .to.have.property('maxSamplesPerBulkUpsert', 1000);
           expect(res.body.collectorConfig).to.have.property('status');
           expect(res.body.collectorConfig).to.have
             .property('requireSslToRemoteDataSource', false);
@@ -701,10 +697,6 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           .to.have.property('heartbeatIntervalMillis', 10000);
           expect(res.body.collectorConfig)
           .to.have.property('heartbeatLatencyToleranceMillis', 5000);
-          expect(res.body.collectorConfig)
-          .to.have.property('sampleUpsertQueueTimeMillis', 15000);
-          expect(res.body.collectorConfig)
-          .to.have.property('maxSamplesPerBulkUpsert', 1000);
           expect(res.body.collectorConfig).to.have.property('status');
           expect(res.body.collectorConfig).to.have
             .property('requireSslToRemoteDataSource', true);
