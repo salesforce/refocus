@@ -36,6 +36,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
   const generator = u.getGenerator();
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   u.createSGtoSGTMapping(generatorTemplate, generator);
+  let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
 
   before((done) => {
     Promise.all([
@@ -53,6 +54,11 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       token = returnedToken;
       return GeneratorTemplate.create(generatorTemplate);
     })
+    .then(() => tu.db.CollectorGroup.create(collectorGroup1))
+    .then((cg) => {
+      collectorGroup1 = cg;
+      return cg.addCollector(collector1);
+    })
     .then(u.createGeneratorAspects())
     .then(() => done())
     .catch(done);
@@ -69,6 +75,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       collector2.name,
       collector3.name,
     ];
+    localGenerator.collectorGroup = collectorGroup1.name;
     api.post(path)
     .set('Authorization', token)
     .send(localGenerator)
@@ -82,6 +89,13 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       const collectorNames = res.body.possibleCollectors.map((collector) =>
         collector.name);
       expect(collectorNames).to.deep.equal(sortedNames);
+
+      const { collectorGroup } = res.body;
+      expect(collectorGroup.name).to.equal(collectorGroup1.name);
+      expect(collectorGroup.description).to.equal(collectorGroup1.description);
+      expect(collectorGroup.collectors.length).to.equal(ONE);
+      expect(collectorGroup.collectors[0].name).to.equal(collector1.name);
+      expect(collectorGroup.collectors[0].status).to.equal(collector1.status);
       return done();
     });
   });
