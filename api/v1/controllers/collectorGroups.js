@@ -10,8 +10,10 @@
  * api/v1/controllers/collectorGroups.js
  */
 'use strict'; // eslint-disable-line strict
-const doPost = require('../helpers/verbs/doPost');
 const helper = require('../helpers/nouns/collectorGroups');
+const apiUtils = require('./utils');
+const verbUtils = require('../helpers/verbs/utils');
+const CREATED = require('../constants').httpStatus.CREATED;
 
 /**
  * POST /collectorGroups
@@ -23,7 +25,25 @@ const helper = require('../helpers/nouns/collectorGroups');
  * @param {Function} next - The next middleware function in the stack
  */
 function createCollectorGroups(req, res, next) {
-  doPost(req, res, next, helper);
+  apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
+
+  const resultObj = { reqStartTime: req.timestamp };
+  const params = req.swagger.params;
+
+  verbUtils.mergeDuplicateArrayElements(params.queryBody.value, helper);
+
+  const body = params.queryBody.value;
+  body.createdBy = req.user.id;
+
+  helper.model.createCollectorGroup(body)
+  .then((collectorGroup) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    const recordCountOverride = null;
+    verbUtils.logAPI(req, resultObj, collectorGroup, recordCountOverride);
+    res.status(CREATED)
+      .json(verbUtils.responsify(collectorGroup, helper, req.method));
+  })
+  .catch((err) => verbUtils.handleError(next, err, helper.modelName));
 }
 
 module.exports = {

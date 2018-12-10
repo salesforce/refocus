@@ -11,6 +11,7 @@
  */
 
 const common = require('../helpers/common');
+const collectorUtils = require('../helpers/collectorUtils');
 const constants = require('../constants');
 const assoc = {};
 
@@ -94,7 +95,6 @@ module.exports = function collectorgroup(seq, dataTypes) {
   /**
    * Instance Methods:
    */
-
   CollectorGroup.prototype.isWritableBy = function (who) {
     return new seq.Promise((resolve /* , reject */) =>
       this.getWriters()
@@ -108,6 +108,33 @@ module.exports = function collectorgroup(seq, dataTypes) {
         resolve(found.length === 1);
       }));
   }; // isWritableBy
+
+  CollectorGroup.createCollectorGroup = function (requestBody) {
+    let collectorGroup;
+    let collectors;
+
+    return Promise.resolve()
+      .then(() => {
+        if (requestBody.collectors && requestBody.collectors.length > 0) {
+          return collectorUtils.validate(seq, requestBody.collectors);
+        }
+
+        return []; // Todo might be removed when saving empty collectors.
+      })
+      .then((_collectors) =>
+        collectors = _collectors
+      )
+      .then(() => collectorGroup = CollectorGroup.build(requestBody))
+      .then(() => {
+        collectorGroup.collectors = collectors;
+        return collectorGroup.save();
+      })
+      .then((persistedCollectorGroup) => {
+        collectorGroup = persistedCollectorGroup;
+        return collectorGroup.addCollector(collectors);
+      })
+      .then(() => collectorGroup.reload());
+  };
 
   return CollectorGroup;
 };

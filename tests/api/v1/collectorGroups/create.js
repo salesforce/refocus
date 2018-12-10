@@ -22,7 +22,7 @@ const collectorCreate = require('../collectors/utils').getCollectorToCreate();
 describe('tests/api/v1/collectorGroups/create.js >', () => {
   let token;
   const collectorObj1 = collectorCreate;
-  const collectorObj2 = collectorCreate;
+  // const collectorObj2 = collectorCreate;
 
   before((done) => {
     tu.createToken()
@@ -69,7 +69,7 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
       });
   });
 
-  it('Must create a collector group with one collector in the list', (done) => {
+  it.only('Must create a collector group with one collector in the list', (done) => {
     api.post('/v1/collectorGroups')
       .set('Authorization', token)
       .send({

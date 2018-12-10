@@ -13,6 +13,7 @@
 const common = require('../helpers/common');
 const dbUtils = require('../utils');
 const sgUtils = require('../helpers/generatorUtil');
+const collectorUtils = require('../helpers/collectorUtils');
 const cryptUtils = require('../../utils/cryptUtils');
 const activityLogUtil = require('../../utils/activityLog');
 const constants = require('../constants');
@@ -357,12 +358,12 @@ module.exports = function generator(seq, dataTypes) {
    * @returns {Promise} with collectors if pass, error if fail
    */
   Generator.validateCollectors = function (collectorNames) {
-    return sgUtils.validateCollectors(seq, collectorNames);
+    return collectorUtils.validate(seq, collectorNames);
   };
 
   /**
-   * 1. validate the collectors field: if succeed, save the collectors in temp var for
-   *  attaching to the generator. if fail, abort the operation
+   * 1. validate the collectors field: if succeed, save the collectors in temp
+   * var for attaching to the generator. if fail, abort the operation
    * 2. create the generator
    * 3. add the saved collectors (if any)
    *
@@ -375,7 +376,8 @@ module.exports = function generator(seq, dataTypes) {
     let collectors;
 
     return Promise.resolve()
-    .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
+    .then(() => collectorUtils.validate(seq,
+      requestBody.possibleCollectors))
     .then((_collectors) => collectors = _collectors)
     .then(() => createdGenerator = Generator.build(requestBody))
     .then(() => {
@@ -414,7 +416,8 @@ module.exports = function generator(seq, dataTypes) {
    */
   Generator.prototype.updateWithCollectors = function (requestBody) {
     return Promise.resolve()
-    .then(() => sgUtils.validateCollectors(seq, requestBody.possibleCollectors))
+    .then(() => collectorUtils
+      .validate(seq, requestBody.possibleCollectors))
     .then((collectors) => {
       // prevent overwrite of reloaded collectors on update
       delete requestBody.possibleCollectors;
