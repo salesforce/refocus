@@ -13239,7 +13239,7 @@ definitions:
         items:
           type: object
       collectorGroup:
-         description: Specifies et of collectors this Sample Generator should try to use.
+         description: Specifies set of collectors this Sample Generator should try to use.
          type: object
       aspects:
         description: Names of the aspects.
