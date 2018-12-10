@@ -56,16 +56,6 @@ module.exports = {
    */
   heartbeatLatencyToleranceMillis,
 
-  maxSamplesPerBulkUpsert: +pe.COLLECTOR_MAX_SAMPLES_PER_BULK_REQUEST || 1000,
-
-  /*
-   * Collector will send a batch of samples up to Refocus at least every
-   * <sampleUpsertQueueTimeMillis> milliseconds, or more frequently if there
-   * are more than <maxSamplesPerBulkUpsert> samples queued up.
-   */
-  sampleUpsertQueueTimeMillis:
-    +pe.COLLECTOR_SAMPLE_UPSERT_QUEUE_TIME_MILLIS || 15000,
-
   /*
    * If flagged true, Refocus Collector will accept only external sources
    * as HTTPS.
