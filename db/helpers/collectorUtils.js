@@ -18,6 +18,7 @@ const Joi = require('joi');
 const ValidationError = require('../dbErrors').ValidationError;
 const semverRegex = require('semver-regex');
 const utils = require('../utils.js');
+const featureToggles = require('feature-toggles');
 
 const osInfoSchema = Joi.object().keys({
   arch: Joi.string(),
@@ -91,6 +92,14 @@ function assignUnassignedGenerators() {
   // finds all unassigned generators (those with no currentCollector).
   // Use collectorId because it's a field on the db model, vs currentCollector
   // which is an association and can't be looked up with a normal where clause
+
+  if (featureToggles.isFeatureEnabled('distributeGenerators')) {
+    return utils.seq.models.Generator.findAll(
+      { where: { isActive: true, collectorId: null } }
+    ).map((g) => g.assignToCollector()
+      .then(() => g.save()));
+  }
+
   return utils.seq.models.Generator.findAll(
     { where: { isActive: true, collectorId: null } }
   ).map((g) => {
