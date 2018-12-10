@@ -22,8 +22,10 @@ const featureToggles = require('feature-toggles');
  */
 function logInvalidHmsetValues(key, obj) {
   if (featureToggles.isFeatureEnabled('logInvalidHmsetValues')) {
-    for (let _key in obj) {
-      if ((obj[_key] === undefined) || Array.isArray(obj[_key])) {
+    for (const _key in obj) {
+      if (_key === null || obj[_key] === null ||
+        (obj[_key] === undefined) || Array.isArray(obj[_key])) {
+        // eslint-disable-next-line no-console
         console.trace('Invalid hmset params: key ' + key +
           ' with undefined or array field: ' + _key + ', received: ' +
           JSON.stringify(obj));
