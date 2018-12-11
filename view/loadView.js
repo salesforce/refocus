@@ -22,6 +22,10 @@ const viewConfig = require('../viewConfig');
 const jwtUtil = require('../utils/jwtUtil');
 const httpStatus = require('./constants').httpStatus;
 const url = require('url');
+const featureToggles = require('feature-toggles');
+
+const redirectFeature =
+  featureToggles.isFeatureEnabled('enableRedirectDifferentInstance');
 
 // protected urls
 const viewmap = {
@@ -44,6 +48,13 @@ const viewmap = {
   '/rooms/new/': 'rooms/new',
   '/rooms/:key': 'rooms',
 };
+
+const refocusPerspectivesViews = ['/aspects', '/aspects/:key',
+  '/aspects/:key/edit', '/subjects', '/subjects/:key',
+  '/subjects/:key/edit', '/samples', '/samples/:key',
+  '/samples/:key/edit', '/perspectives', '/perspectives/:key'];
+ const refocusRoomsViews = ['/rooms', '/rooms/types', '/rooms/types/:key',
+  '/rooms/new/:key', '/rooms/new/', '/rooms/:key'];
 
 /**
  * Checks if the user is authenticated and and there is a valid session
@@ -145,6 +156,31 @@ function getRedirectUrlSSO(req) {
   return redirectUrl;
 }
 
+/**
+ * Gets the redirect URI if we should redirect to a different instance of refocus
+ * for a view.
+ *
+ * @param  {String} viewKey - Key of the view being loaded.
+ * @param  {String} reqUrl - Url of the request.
+ * @returns {String} - Empty string if it should not redirect, otherwise the full
+ * uri that should be redirected to.
+ */
+function getRedirectURI(viewKey, reqUrl) {
+  const refocusPerspectivesUrl = process.env.REFOCUS_PERSPECTIVES_BASE_URL;
+  const refocusRoomsUrl = process.env.REFOCUS_ROOMS_BASE_URL;
+  const shouldRedirectToRooms = process.env.SHOULD_REDIRECT_FOR_ROOMS &&
+    refocusRoomsUrl && refocusRoomsViews.includes(viewKey);
+  const shouldRedirectToPerspectives =
+    process.env.SHOULD_REDIRECT_FOR_PERSPECTIVES &&
+    refocusPerspectivesUrl && refocusPerspectivesViews.includes(viewKey);
+   if (shouldRedirectToRooms) {
+    return refocusRoomsUrl + reqUrl;
+  } else if (shouldRedirectToPerspectives) {
+    return refocusPerspectivesUrl + reqUrl;
+  }
+   return '';
+} // This function is temporary - remove when separate deployment has settled
+
 function loadView(app, passport) {
   const keys = Object.keys(viewmap);
   keys.forEach((key) =>
@@ -161,6 +197,14 @@ function loadView(app, passport) {
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
           transportProtocol: viewConfig.socketIOtransportProtocol,
         };
+
+        // This is temporary - remove when separate deployment has settled
+        if (redirectFeature) {
+          const redirectURI = getRedirectURI(key, req.url);
+          if (redirectURI.length) {
+            return res.redirect(redirectURI);
+          }
+        }
 
         res.render(viewmap[key], trackObj);
       }
