@@ -27,7 +27,7 @@ function logInvalidHmsetValues(key, obj) {
         (obj[_key] === undefined) || Array.isArray(obj[_key])) {
         // eslint-disable-next-line no-console
         console.trace('Invalid hmset params: key ' + key +
-          ' with undefined or array field: ' + _key + ', received: ' +
+          ' with invalid field: ' + _key + ', received: ' +
           JSON.stringify(obj));
         break;
       }
