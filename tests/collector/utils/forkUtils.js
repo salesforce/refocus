@@ -105,10 +105,20 @@ function setToken(_token) {
 
 function blockHeartbeat(collectorName) {
   subprocesses[collectorName].send({ blockHeartbeat: true });
+  return new Promise((resolve) => {
+    subprocesses[collectorName].on('message', (msg) => {
+      if (msg.blocked) resolve();
+    });
+  });
 }
 
 function unblockHeartbeat(collectorName) {
   subprocesses[collectorName].send({ unblockHeartbeat: true });
+  return new Promise((resolve) => {
+    subprocesses[collectorName].on('message', (msg) => {
+      if (msg.unblocked) resolve();
+    });
+  });
 }
 
 function awaitExit(collectorName) {
@@ -156,10 +166,13 @@ function tick(ms) {
 }
 
 function tickSync(clock, ms) {
-  const timerResults = [];
+  const timerFuncs = [];
   makeTimersSync();
   clock.tick(ms);
-  return Promise.all(timerResults);
+  return Promise.each(
+    timerFuncs,
+    (runNextTimerToCompletion) => runNextTimerToCompletion(),
+  );
 
   function makeTimersSync() {
     if (!clock.timers) return;
@@ -169,24 +182,28 @@ function tickSync(clock, ms) {
       }
 
       timer.func = (...args) => {
-        const result = timer.originalFunc.apply(null, args);
-        timerResults.push(result);
+        const result = timer.originalFunc.bind(null, args);
+        timerFuncs.push(result);
       };
     });
-    return timerResults;
+    return timerFuncs;
   }
 }
 
 let tickingPromises = [];
 let readyToTick = [];
 function tickUntilComplete(awaitFunc, collectorName) {
-  const promise = awaitFunc(collectorName);
-  readyToTick.push(promise);
+  const awaitPromise = awaitFunc(collectorName);
+  readyToTick.push(awaitPromise);
+  let tickPromise;
   if (!tickingPromises.length) {
-    tickUntilAllComplete();
+    tickPromise = tickUntilAllComplete();
+  } else {
+    tickPromise = Promise.resolve();
   }
 
-  return promise;
+  // make sure we don't resolve until all ticking is complete
+  return tickPromise.then(() => awaitPromise);
 
   function tickUntilAllComplete() {
     tickingPromises.push(...readyToTick);
