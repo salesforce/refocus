@@ -13,6 +13,7 @@
 const common = require('../helpers/common');
 const collectorUtils = require('../helpers/collectorUtils');
 const constants = require('../constants');
+const dbUtils = require('../utils');
 const assoc = {};
 
 module.exports = function collectorgroup(seq, dataTypes) {
@@ -87,9 +88,27 @@ module.exports = function collectorgroup(seq, dataTypes) {
       foreignKey: 'createdBy',
     });
 
-    CollectorGroup.addScope('defaultScope', {
+    CollectorGroup.addScope('baseScope', {
       order: ['name'],
-    }, { override: true });
+    });
+
+    CollectorGroup.addScope('collectors', {
+      include: [
+        {
+          model: models.Collector.scope('embed'),
+          as: 'collectors',
+          required: false
+        },
+      ],
+    });
+
+    CollectorGroup.addScope('defaultScope',
+      dbUtils.combineScopes([
+        'baseScope',
+        'collectors',
+      ], CollectorGroup),
+      { override: true }
+    );
   };
 
   /**
@@ -110,30 +129,32 @@ module.exports = function collectorgroup(seq, dataTypes) {
   }; // isWritableBy
 
   CollectorGroup.createCollectorGroup = function (requestBody) {
-    let collectorGroup;
     let collectors;
 
     return Promise.resolve()
       .then(() => {
-        if (requestBody.collectors && requestBody.collectors.length > 0) {
-          return collectorUtils.validate(seq, requestBody.collectors);
+        if (!(requestBody.collectors && requestBody.collectors.length > 0)) {
+          return [];
         }
 
-        return []; // Todo might be removed when saving empty collectors.
+        return collectorUtils
+          .validate(seq, requestBody.collectors)
+          .then((validCollectors) => {
+            const alreadyAssigned = validCollectors
+              .filter((collector) => collector.collectorGroupId);
+
+            if (alreadyAssigned && alreadyAssigned.length > 0) {
+              const names = alreadyAssigned.map((c) => c.name);
+              const message = `Collector ${names} already assigned to a different group`;
+              throw new Error(message);
+            }
+
+            collectors = validCollectors;
+          });
       })
-      .then((_collectors) =>
-        collectors = _collectors
-      )
-      .then(() => collectorGroup = CollectorGroup.build(requestBody))
-      .then(() => {
-        collectorGroup.collectors = collectors;
-        return collectorGroup.save();
-      })
-      .then((persistedCollectorGroup) => {
-        collectorGroup = persistedCollectorGroup;
-        return collectorGroup.addCollector(collectors);
-      })
-      .then(() => collectorGroup.reload());
+      .then(() => CollectorGroup.create(requestBody))
+      .then((collectorGroup) => collectorGroup.setCollectors(collectors))
+      .then((collectorGroup) => collectorGroup.reload());
   };
 
   return CollectorGroup;

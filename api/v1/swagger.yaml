@@ -13550,7 +13550,7 @@ definitions:
         description: List of collectors for the group.
         type: array
         items:
-          type: string
+          type: object
 
 # =============================================================================
 parameters:
