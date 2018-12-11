@@ -237,11 +237,13 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
     app.use(helmet.noSniff());
 
     /*
-     * Redirect '/' to the application landing page, which right now is the
-     * default perspective (or the first perspective in alphabetical order if
-     * no perspective is defined as the default).
+     * Redirect '/' to the application landing page, which is the environment
+     * variable `LANDING_PAGE_URL` if it is defined. If it is not defined then
+     * use the default perspective (or the first perspective in alphabetical
+     * order if no perspective is defined as the default).
      */
-    app.get('/', (req, res) => res.redirect('/perspectives'));
+    app.get('/', (req, res) =>
+      res.redirect(process.env.LANDING_PAGE_URL || '/perspectives'));
 
     // Set the JSON payload limit.
     app.use(bodyParser.json({ limit: conf.payloadLimit }));
