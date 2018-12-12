@@ -238,8 +238,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
 
     /*
      * NOTE: this is a *temporary* hack which will change once we implement UX
-     * designs. This is just to give existing Refocus Rooms users the ability
-     * to switch over to a different Refocus instance.
+     * designs.
      *
      * Redirect '/' to the application landing page, which is the environment
      * variable `LANDING_PAGE_URL` if it is defined. If it is not defined then
