@@ -97,7 +97,7 @@ module.exports = function collectorgroup(seq, dataTypes) {
         {
           model: models.Collector.scope('embed'),
           as: 'collectors',
-          required: false
+          required: false,
         },
       ],
     });
