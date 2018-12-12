@@ -237,6 +237,10 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
     app.use(helmet.noSniff());
 
     /*
+     * NOTE: this is a *temporary* hack which will change once we implement UX
+     * designs. This is just to give existing Refocus Rooms users the ability
+     * to switch over to a different Refocus instance.
+     *
      * Redirect '/' to the application landing page, which is the environment
      * variable `LANDING_PAGE_URL` if it is defined. If it is not defined then
      * use the default perspective (or the first perspective in alphabetical
