@@ -168,11 +168,10 @@ function getRedirectUrlSSO(req) {
 function getRedirectURI(viewKey, reqUrl) {
   const refocusPerspectivesUrl = process.env.REFOCUS_PERSPECTIVES_BASE_URL;
   const refocusRoomsUrl = process.env.REFOCUS_ROOMS_BASE_URL;
-  const shouldRedirectToRooms = process.env.SHOULD_REDIRECT_FOR_ROOMS &&
-    refocusRoomsUrl && refocusRoomsViews.includes(viewKey);
-  const shouldRedirectToPerspectives =
-    process.env.SHOULD_REDIRECT_FOR_PERSPECTIVES &&
-    refocusPerspectivesUrl && refocusPerspectivesViews.includes(viewKey);
+  const shouldRedirectToRooms = refocusRoomsUrl &&
+    refocusRoomsViews.includes(viewKey);
+  const shouldRedirectToPerspectives = refocusPerspectivesUrl &&
+    refocusPerspectivesViews.includes(viewKey);
    if (shouldRedirectToRooms) {
     return refocusRoomsUrl + reqUrl;
   } else if (shouldRedirectToPerspectives) {
