@@ -41,6 +41,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
   const generator = u.getGenerator();
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   u.createSGtoSGTMapping(generatorTemplate, generator);
+  let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
   const toPut = {
     name: 'refocus-ok-generator',
     description: 'Collect status data patched with name',
@@ -79,6 +80,11 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
       token = returnedToken;
       return GeneratorTemplate.create(generatorTemplate);
     })
+    .then(() => tu.db.CollectorGroup.create(collectorGroup1))
+    .then((cg) => {
+      collectorGroup1 = cg;
+      return cg.addCollector(collector1);
+    })
     .then(u.createGeneratorAspects())
     .then(() => done())
     .catch(done);
@@ -93,6 +99,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
       // add collector 1 to possible list of collectors of generator
       return generatorInst.addPossibleCollectors([collector1]);
     })
+    .then(() => generatorInst.setCollectorGroup(collectorGroup1))
     .then(() => generatorInst.reload())
     .then(() => done())
     .catch(done);
@@ -103,7 +110,7 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('ok: wipes out collectors', (done) => {
+  it('ok: wipes out collectors and collectorGroup', (done) => {
     api.put(`${path}/${generatorId}`)
     .set('Authorization', token)
     .send(toPut)
@@ -113,10 +120,48 @@ describe('tests/api/v1/generators/putWithCollector.js >', () => {
         return done(err);
       }
 
-      const { name, possibleCollectors } = res.body;
+      const { name, possibleCollectors, collectorGroup } = res.body;
       expect(name).to.equal(toPut.name);
       expect(possibleCollectors.length).to.equal(ZERO);
+      expect(collectorGroup).to.equal(undefined);
       return done();
+    });
+  });
+
+  it('ok: replace collectorGroup', (done) => {
+    let collectorGroup2 = { name: `${tu.namePrefix}-cg2`, description: 'test' };
+    const withCollectors = JSON.parse(JSON.stringify(toPut));
+    withCollectors.possibleCollectors = [collector1.name, collector2.name, collector3.name];
+    withCollectors.collectorGroup = collectorGroup2.name;
+
+    tu.db.CollectorGroup.create(collectorGroup2)
+    .then((cg) => {
+      collectorGroup2 = cg;
+      return cg.addCollector(collector2);
+    })
+    .then(() => {
+      api.put(`${path}/${generatorId}`)
+      .set('Authorization', token)
+      .send(withCollectors)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        const { possibleCollectors, collectorGroup } = res.body;
+        expect(Array.isArray(possibleCollectors)).to.be.true;
+        expect(possibleCollectors.length).to.equal(THREE);
+        const collectorNames = possibleCollectors.map((collector) => collector.name);
+        expect(collectorNames).to.deep.equal(sortedNames);
+
+        expect(collectorGroup.name).to.equal(collectorGroup2.name);
+        expect(collectorGroup.description).to.equal(collectorGroup2.description);
+        expect(collectorGroup.collectors.length).to.equal(ONE);
+        expect(collectorGroup.collectors[0].name).to.equal(collector2.name);
+        expect(collectorGroup.collectors[0].status).to.equal(collector2.status);
+        return done();
+      });
     });
   });
 

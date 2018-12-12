@@ -90,20 +90,25 @@ function setupInterceptFuncs(interceptConfig) {
 
   function awaitRequest(conf, collectorName='') {
     const timeout = conf.expectedInterval && conf.expectedInterval() * 1.5;
-    const msg = `${conf.reqType} timeout ${timeout}`;
+    const msg = `${conf.reqType} ${collectorName} (${timeout})`;
 
-    const timeoutPromise = new Promise((resolve) => {
-      conf.timeoutMap[collectorName];
-      const resolveArray = conf.timeoutMap[collectorName];
-      if (!resolveArray) conf.timeoutMap[collectorName] = [resolve];
-      else resolveArray.push(resolve);
-    })
-    .timeout(timeout, msg)
-    .catch(Promise.TimeoutError, (err) => {
-      conf.promiseMap[collectorName].shift();
-      conf.timeoutMap[collectorName].shift();
-      return Promise.reject(err);
-    });
+    let timeoutPromise;
+    if (timeout) {
+      timeoutPromise = new Promise((resolve) => {
+        conf.timeoutMap[collectorName];
+        const resolveArray = conf.timeoutMap[collectorName];
+        if (!resolveArray) conf.timeoutMap[collectorName] = [resolve];
+        else resolveArray.push(resolve);
+      })
+      .timeout(timeout, msg)
+      .catch(Promise.TimeoutError, (err) => {
+        conf.promiseMap[collectorName].shift();
+        conf.timeoutMap[collectorName].shift();
+        return Promise.reject(err);
+      });
+    } else {
+      timeoutPromise = Promise.resolve();
+    }
 
     const awaitPromise = new Promise((resolve) => {
       const startTime = Date.now();

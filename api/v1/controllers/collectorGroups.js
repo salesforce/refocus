@@ -37,11 +37,12 @@ function createCollectorGroups(req, res, next) {
 
   helper.model.createCollectorGroup(body)
   .then((collectorGroup) => {
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
     const recordCountOverride = null;
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
     verbUtils.logAPI(req, resultObj, collectorGroup, recordCountOverride);
-    res.status(CREATED)
-      .json(verbUtils.responsify(collectorGroup, helper, req.method));
+
+    const response = verbUtils.responsify(collectorGroup, helper, req.method);
+    res.status(CREATED).json(response);
   })
   .catch((err) => verbUtils.handleError(next, err, helper.modelName));
 }

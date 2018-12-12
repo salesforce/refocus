@@ -11,18 +11,13 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
-const samstoinit = require('../../../../cache/sampleStoreInit');
-const Promise = require('bluebird');
 const testStartTime = new Date();
 
 module.exports = {
   forceDelete(done) {
-    Promise.join(
-      samstoinit.eradicate(),
-      tu.forceDelete(tu.db.Collector, testStartTime)
+    tu.forceDelete(tu.db.Collector, testStartTime)
       .then(() => tu.forceDelete(tu.db.CollectorGroup, testStartTime))
-    )
-    .then(() => done())
-    .catch(done);
+      .then(() => done())
+      .catch(done);
   },
 };

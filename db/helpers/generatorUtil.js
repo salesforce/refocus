@@ -93,7 +93,39 @@ function validateSubjectQuery(subjectQuery) {
   return subjectQuery;
 }
 
+/**
+ * Used by db model.
+ * Validate the collectorGroup name field: if succeed, return a promise with
+ * the collectorGroup.
+ * If fail, reject Promise with the appropriate error
+ *
+ * @param {Object} seq the Sequelize object
+ * @param {String} collectorGroup name
+ * @returns {Promise} with collectorGroup if validation pass,
+ * rejected promise with the appropriate error otherwise.
+ */
+function validateCollectorGroup(seq, collectorGroupName) {
+  if (!collectorGroupName) {
+    return Promise.resolve(null);
+  }
+
+  return new seq.Promise((resolve, reject) =>
+    seq.models.CollectorGroup.findOne({ where: { name: collectorGroupName } })
+      .then((_cg) => {
+        if (_cg) {
+          resolve(_cg);
+        }
+
+        const err = new dbErrors.ResourceNotFoundError();
+        err.resourceType = 'CollectorGroup';
+        err.resourceKey = collectorGroupName;
+        reject(err);
+      })
+  );
+}
+
 module.exports = {
   validateGeneratorCtx,
   validateSubjectQuery,
+  validateCollectorGroup,
 };

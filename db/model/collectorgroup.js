@@ -145,8 +145,9 @@ module.exports = function collectorgroup(seq, dataTypes) {
 
             if (alreadyAssigned && alreadyAssigned.length > 0) {
               const names = alreadyAssigned.map((c) => c.name);
-              const message = `Collector ${names} already assigned to a different group`;
-              throw new Error(message);
+              const msg = 'Collector ' + names +
+                ' already assigned to a different group';
+              throw new Error(msg);
             }
 
             collectors = validCollectors;

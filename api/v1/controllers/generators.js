@@ -225,6 +225,8 @@ module.exports = {
       instance.possibleCollectors = _collectors;
       return instance.setPossibleCollectors(_collectors);
     })
+    .then(() => helper.model.validateCollectorGroup(toPut.collectorGroup))
+    .then((_collGroup) => instance.setCollectorGroup(_collGroup))
     .then(() => u.updateInstance(instance, puttableFields, toPut))
     .then(() => instance.reload())
     .then((retVal) =>

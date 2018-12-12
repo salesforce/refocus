@@ -50,8 +50,10 @@ process.on('message', (msg) => {
 process.on('message', (msg) => {
   if (msg.blockHeartbeat) {
     nock.disableNetConnect();
+    process.send({ blocked: true });
   } else if (msg.unblockHeartbeat) {
     nock.enableNetConnect();
+    process.send({ unblocked: true });
   }
 });
 
