@@ -267,9 +267,17 @@ function updateSampleAttributes(curr, prev, aspect) {
     rlinks = curr[sampFields.RLINKS];
   } else if (!prev) { // if we are creating new sample
     rlinks = []; // default value
+  } else if (prev[sampFields.RLINKS] && prev[sampFields.RLINKS] !== '[]') {
+    /* retain previous related links if query body does not have attribute */
+    rlinks = JSON.parse(prev[sampFields.RLINKS]);
   }
 
-  if (rlinks) curr[sampFields.RLINKS] = JSON.stringify(rlinks);
+  if (rlinks) {
+    curr[sampFields.RLINKS] = JSON.stringify(rlinks);
+  } else {
+    /* safeguard against sending null argument to hmset command */
+    delete curr[sampFields.RLINKS];
+  }
 
   if (!prev) curr[sampFields.CREATED_AT] = now;
   curr[sampFields.UPD_AT] = now;
