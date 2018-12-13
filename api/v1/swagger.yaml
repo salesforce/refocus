@@ -11460,7 +11460,7 @@ definitions:
     properties:
       name:
         type: string
-        maxLength: 25
+        maxLength: 60
         readOnly: true
         description: >
           Name of the related link.
@@ -11481,8 +11481,8 @@ definitions:
       name:
         type: string
         minLength: 1
-        maxLength: 25
-        pattern: ^[0-9A-Za-z_\\ -]{1,25}$
+        maxLength: 60
+        pattern: ^[0-9A-Za-z_\\ -]{1,60}$
         description: >
           Name of the related link.
       url:

@@ -38,7 +38,7 @@ describe(`tests/api/v1/subjects/postRelatedLinks.js, POST ${path} >`, () => {
   it('post subject with relatedLinks', (done) => {
     const subjectToPost = { name: `${tu.namePrefix}NorthAmerica` };
     const relatedLinks = [
-      { name: 'link1', url: 'https://samples.com' },
+      { name: 'refocuslinknametotestcharacterlength', url: 'https://samples.com' },
       { name: 'link2', url: 'https://samples.com' },
     ];
     subjectToPost.relatedLinks = relatedLinks;
