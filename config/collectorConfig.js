@@ -37,6 +37,21 @@ if (pe.COLLECTOR_REQUIRE_SSL_TO_REMOTE_DATA_SOURCE &&
   requireSslToRemoteDataSource = true;
 }
 
+let timeoutResponseMillis = 10000;
+if (Number(pe.COLLECTOR_TIMEOUT_RESPONSE_MILLIS) > 0) {
+  timeoutResponseMillis = Number(pe.COLLECTOR_TIMEOUT_RESPONSE_MILLIS);
+}
+
+let timeoutDeadlineMillis = 30000;
+if (Number(pe.COLLECTOR_TIMEOUT_DEADLINE_MILLIS) > 0) {
+  timeoutDeadlineMillis = Number(pe.COLLECTOR_TIMEOUT_DEADLINE_MILLIS);
+}
+
+let maxRetries = 3;
+if (Number(pe.COLLECTOR_MAX_RETRIES) > -1) {
+  maxRetries = Number(pe.COLLECTOR_MAX_RETRIES);
+}
+
 module.exports = {
   /*
    * Each collector will send a heartbeat every <heartbeatIntervalMillis>
@@ -61,4 +76,11 @@ module.exports = {
    * as HTTPS.
    */
   requireSslToRemoteDataSource,
+
+  /*
+   * Retry behavior
+   */
+  timeoutResponseMillis,
+  timeoutDeadlineMillis,
+  maxRetries,
 };
