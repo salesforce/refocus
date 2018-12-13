@@ -136,6 +136,10 @@ const longTermToggles = {
   // Disable HTTP, i.e. only use https
   requireHttps: environmentVariableTrue(pe, 'REQUIRE_HTTPS'),
 
+  // Toggle to redirect to different instance of refocus
+  enableRedirectDifferentInstance: environmentVariableTrue(pe,
+    'ENABLE_REDIRECT_DIFFERENT_INSTANCE'),
+
 }; // longTermToggles
 
 /*
