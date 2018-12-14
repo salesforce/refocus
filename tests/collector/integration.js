@@ -673,14 +673,14 @@ describe('tests/collector/integration.js >', function () {
     });
 
     it('encrypted', () => {
-      const sgt2 = JSON.parse(JSON.stringify(sgt));
-      sgt2.name = 'template2';
-      sgt2.contextDefinition.username = {
+      const sgt3 = JSON.parse(JSON.stringify(sgt));
+      sgt3.name = 'template3';
+      sgt3.contextDefinition.username = {
         description: 'username',
         required: true,
         encrypted: true,
       };
-      sgt2.contextDefinition.password = {
+      sgt3.contextDefinition.password = {
         description: 'password',
         required: true,
         encrypted: true,
@@ -697,9 +697,9 @@ describe('tests/collector/integration.js >', function () {
           username: 'testUser',
           password: 'testPassword',
         };
-      gu.createSGtoSGTMapping(sgt2, gen4);
+      gu.createSGtoSGTMapping(sgt3, gen4);
 
-      return GeneratorTemplate.create(sgt2)
+      return GeneratorTemplate.create(sgt3)
       .then(() => u.doStart(coll1))
       .then(() => u.awaitHeartbeat())
       .then(() => u.postGenerator(gen4))
