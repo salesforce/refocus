@@ -683,6 +683,12 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           expect(res.body.collectorConfig).to.have.property('status');
           expect(res.body.collectorConfig).to.have
             .property('requireSslToRemoteDataSource', false);
+          expect(res.body.collectorConfig).to.have
+            .property('timeoutResponseMillis', 10000);
+          expect(res.body.collectorConfig).to.have
+            .property('timeoutDeadlineMillis', 30000);
+          expect(res.body.collectorConfig).to.have
+            .property('maxRetries', 3);
         })
         .then(done).catch(done);
       });
@@ -690,7 +696,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       it('change config', (done) => {
         config.collector.heartbeatIntervalMillis = 10000;
         config.collector.requireSslToRemoteDataSource = true;
-
+        config.collector.maxRetries = 5;
         u.sendHeartbeat({ collector: coll1, tokens: collTokens })
         .then((res) => {
           expect(res.body.collectorConfig)
@@ -700,6 +706,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
           expect(res.body.collectorConfig).to.have.property('status');
           expect(res.body.collectorConfig).to.have
             .property('requireSslToRemoteDataSource', true);
+          expect(res.body.collectorConfig).to.have.property('maxRetries', 5);
         })
         .then(done).catch(done);
       });
