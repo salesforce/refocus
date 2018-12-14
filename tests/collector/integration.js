@@ -374,11 +374,12 @@ describe('tests/collector/integration.js >', function () {
       .then(() => u.awaitHeartbeat())
       .then(({ res }) => expect(res.body.generatorsUpdated).to.have.lengthOf(1))
 
-      .then(() => u.awaitBulkUpsert() // new interval is > 60s
+      .then(() => u.awaitBulkUpsert()) // right after heartbeat
+      .then(() => u.awaitBulkUpsert() // 120s later, times out
       .should.eventually.be.rejectedWith(Promise.TimeoutError))
 
       .then(() => gen1.intervalSecs = 120)  // update the promise timeout
-      .then(() => u.awaitBulkUpsert()) // 120s after heartbeat
+      .then(() => u.awaitBulkUpsert()) // right after heartbeat
       .then(() => u.awaitBulkUpsert()) // 120s later, doesn't timeout
       .then(() => gen1.intervalSecs = 60)  // reset the promise timeout
     );
@@ -433,6 +434,7 @@ describe('tests/collector/integration.js >', function () {
         .then(({ res }) => expect(res.body.collectorConfig).to.include({
           heartbeatIntervalMillis: ms('50s'),
         }))
+        .then(() => u.awaitHeartbeat())
 
         .then(() => u.awaitHeartbeat())
         .then(({ waitTime }) => {
