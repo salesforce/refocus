@@ -191,7 +191,31 @@ const interceptConfig = {
   },
 };
 
+// set up mock data
+const mockResponse = {
+  sub1: {
+    asp1: '1',
+    asp2: '2',
+  },
+  sub2: {
+    asp1: '3',
+    asp2: '4',
+  },
+};
+
+const nockConfig = [
+  {
+    url: 'http://www.example.com',
+    method: 'get',
+    path: '/',
+    status: 200,
+    response: mockResponse,
+    headers: { 'Content-Type': 'application/json' },
+  },
+];
+
 u.setupInterception(interceptConfig);
+forkUtils.setupMocking(nockConfig);
 
 describe('tests/collector/integration.js >', function () {
   this.timeout(10000);
@@ -538,6 +562,247 @@ describe('tests/collector/integration.js >', function () {
       .then(() => u.expectBulkUpsertSamples(coll1, [
         { name: 'sub1|asp1', value: '1_' },
       ]));
+    });
+  });
+
+  describe('with OAuth', () => {
+    let nockConfig;
+    beforeEach(() => {
+      nockConfig = [
+        {
+          // return token only if correct details are provided
+          url: 'http://www.example.com',
+          method: 'post',
+          path: '/login',
+          matchBody: {
+            username: 'testUser',
+            password: 'testPassword',
+            grant_type: 'password',
+            client_id: '11bogus',
+            client_secret: '11bogus%^',
+          },
+          status: 200,
+          response: {
+            accessToken: 'eegduygsugfiusguguygyfkufyg',
+          },
+          headers: { 'Content-Type': 'application/json' },
+        }, {
+          // otherwise return unauthorized
+          url: 'http://www.example.com',
+          method: 'post',
+          path: '/login',
+          status: 401,
+        }, {
+          // return mock response only if correct token is provided
+          url: 'http://www.example.com',
+          method: 'get',
+          path: '/',
+          matchHeaders: { Authorization: 'Bearer eegduygsugfiusguguygyfkufyg' },
+          status: 200,
+          response: mockResponse,
+          headers: { 'Content-Type': 'application/json' },
+        }, {
+          // otherwise return unauthorized
+          url: 'http://www.example.com',
+          method: 'get',
+          path: '/',
+          status: 401,
+        },
+      ];
+    });
+
+    beforeEach(() => forkUtils.setupMocking(nockConfig));
+
+    before((done) => {
+      GlobalConfig.create({
+        key: dbConstants.SGEncryptionKey,
+        value: '1234567890',
+      })
+      .then(() => GlobalConfig.create({
+        key: dbConstants.SGEncryptionAlgorithm,
+        value: 'aes-256-cbc',
+      }))
+      .then(() => done())
+      .catch(done);
+    });
+    after(() => GlobalConfig.destroy({ truncate: true, force: true }));
+
+    let connection;
+    beforeEach(() => {
+      connection = {
+        simple_oauth: {
+          credentials: {
+            client: {
+              id: '11bogus',
+              secret: '11bogus%^',
+            },
+            auth: {
+              tokenHost: 'http://www.example.com/',
+              tokenPath: '/login',
+            },
+            options: {
+              bodyFormat: 'json',
+            },
+          },
+          tokenConfig: {
+            username: 'testUser',
+            password: 'testPassword',
+          },
+          tokenFormat: 'Bearer {accessToken}',
+          method: 'ownerPassword',
+        },
+      };
+    });
+
+    it('basic', () => {
+      const gen4 = JSON.parse(JSON.stringify(gen1));
+      gen4.name = 'generator4';
+      gen4.connection = connection;
+
+      return Promise.resolve()
+      .then(() => u.doStart(coll1))
+      .then(() => u.awaitHeartbeat())
+      .then(() => u.postGenerator(gen4))
+
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        expect(req.body).to.deep.equal([
+          { name: 'sub1|asp1', value: '1' },
+        ]);
+      });
+    });
+
+    it('encrypted', () => {
+      const sgt3 = JSON.parse(JSON.stringify(sgt));
+      sgt3.name = 'template3';
+      sgt3.contextDefinition.username = {
+        description: 'username',
+        required: true,
+        encrypted: true,
+      };
+      sgt3.contextDefinition.password = {
+        description: 'password',
+        required: true,
+        encrypted: true,
+      };
+
+      const gen4 = JSON.parse(JSON.stringify(gen1));
+      gen4.name = 'generator4';
+      gen4.connection = connection;
+      gen4.connection.simple_oauth.tokenConfig = {
+        username: '{{username}}',
+        password: '{{password}}',
+      },
+        gen4.context = {
+          username: 'testUser',
+          password: 'testPassword',
+        };
+      gu.createSGtoSGTMapping(sgt3, gen4);
+
+      return GeneratorTemplate.create(sgt3)
+      .then(() => u.doStart(coll1))
+      .then(() => u.awaitHeartbeat())
+      .then(() => u.postGenerator(gen4))
+      .then(() => u.awaitHeartbeat())
+      .then(({ res }) => {
+        const gen = res.body.generatorsAdded[0];
+        const simpleOAuth = gen.connection.simple_oauth;
+        expect(simpleOAuth.tokenConfig.username).to.equal('{{username}}');
+        expect(simpleOAuth.tokenConfig.password).to.equal('{{password}}');
+
+        expect(gen.context.username).to.be.a('string').with.lengthOf(32);
+        expect(gen.context.password).to.be.a('string').with.lengthOf(32);
+      })
+
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        expect(req.body).to.deep.equal([
+          { name: 'sub1|asp1', value: '1' },
+        ]);
+      });
+    });
+
+    it('incorrect password (fails to get token)', () => {
+      const gen4 = JSON.parse(JSON.stringify(gen1));
+      gen4.name = 'generator4';
+      gen4.connection = connection;
+      gen4.connection.simple_oauth.tokenConfig.password = '...';
+
+      return Promise.resolve()
+      .then(() => u.doStart(coll1))
+      .then(() => u.awaitHeartbeat())
+      .then(() => u.postGenerator(gen4))
+
+      .then(() =>
+        u.awaitBulkUpsert()
+        .should.eventually.be.rejectedWith(Promise.TimeoutError)
+      );
+    });
+
+    it('token expires, requests new one and retries', () => {
+      const gen4 = JSON.parse(JSON.stringify(gen1));
+      gen4.name = 'generator4';
+      gen4.connection = connection;
+
+      return Promise.resolve()
+      .then(() => u.doStart(coll1))
+      .then(() => u.awaitHeartbeat())
+      .then(() => u.postGenerator(gen4))
+
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        expect(req.body).to.deep.equal([
+          { name: 'sub1|asp1', value: '1' },
+        ]);
+      })
+
+      .then(() => {
+        nockConfig[2].matchHeaders.Authorization = 'Bearer 12345';
+        nockConfig[0].response.accessToken = '12345';
+        forkUtils.setupMocking(nockConfig);
+      })
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        expect(req.body).to.deep.equal([
+          { name: 'sub1|asp1', value: '1' },
+        ]);
+      });
+    });
+
+    it('no retry if status other than unauthorized', () => {
+      const gen4 = JSON.parse(JSON.stringify(gen1));
+      gen4.name = 'generator4';
+      gen4.connection = connection;
+
+      return Promise.resolve()
+      .then(() => u.doStart(coll1))
+      .then(() => u.awaitHeartbeat())
+      .then(() => u.postGenerator(gen4))
+
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        expect(req.body).to.deep.equal([
+          { name: 'sub1|asp1', value: '1' },
+        ]);
+      })
+
+      .then(() => {
+        nockConfig[2].matchHeaders.Authorization = 'Bearer 12345';
+        nockConfig[0].response.accessToken = '12345';
+        nockConfig[3].status = 400;
+        forkUtils.setupMocking(nockConfig);
+      })
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        expect(req.body).to.deep.equal([
+          {
+            name: 'sub1|asp1',
+            value: 'ERROR',
+            messageCode: 'ERROR',
+            messageBody: 'http://www.example.com returned HTTP status 400: undefined',
+          },
+        ]);
+      });
     });
   });
 
