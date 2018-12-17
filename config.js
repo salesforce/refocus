@@ -126,7 +126,7 @@ const clockJobConfig = {
     deleteUnusedTokens: '1d',
     jobCleanup: '30m',
     kueStatsActivityLogs: '1m',
-    pubStatsLogs: '1m',
+    pubsubStatsLogs: '1m',
     queueStatsActivityLogs: '1m',
     resetJobCounter: '2h',
     sampleTimeout: '30s',
@@ -139,7 +139,7 @@ const clockJobConfig = {
   },
   toggles: {
     kueStatsActivityLogs: 'enableKueStatsActivityLogs',
-    pubStatsLogs: 'enablePubStatsLogs',
+    pubsubStatsLogs: 'enablePubsubStatsLogs',
     queueStatsActivityLogs: 'enableQueueStatsActivityLogs',
   },
 };
