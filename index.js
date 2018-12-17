@@ -97,6 +97,9 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   const RedisStore = require('connect-redis')(session);
   const rstore = new RedisStore({ url: conf.redis.instanceUrl.session });
   socketIOSetup.init(io, rstore);
+  const processName = (process.env.DYNO ? process.env.DYNO + ':' : '') +
+    clusterProcessId;
+  require('./realtime/redisSubscriber')(io)(processName);
 
   // pass passport for configuration
   require('./config/passportconfig')(passportModule);
@@ -177,8 +180,6 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   const swaggerDoc = yaml.safeLoad(swaggerFile);
 
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
-    let processName = clusterProcessId;
-
     /*
      * Custom middleware to add timestamp and node cluster worker id to the
      * request.
@@ -200,16 +201,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
        * the process is not started from throng).
        */
       if (process.env.DYNO) req.dyno = process.env.DYNO;
-      processName = (req.dyno ? req.dyno + ':' : '') + clusterProcessId;
       req.process = processName;
-
-      /*
-       * We moved this "require" here so that each subscriber knows which
-       * process it's running in, which is important for tracking pubsub counts
-       * and times.
-       */
-      require('./realtime/redisSubscriber')(io, processName);
-
       next();
     });
 

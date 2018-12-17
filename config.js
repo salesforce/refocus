@@ -148,8 +148,8 @@ const clockJobConfig = {
 const jobConcurrency = {};
 Object.keys(jobType).forEach((jobName) => {
   /*
-   * Use underscore (_) as separator here - colon (:) doesn't work
-   *  consistently in env var names in heroku.
+   * Use underscore (_) as separator here - colon (:) doesn't work consistently
+   * in env var names in heroku.
    */
   const envValue = pe[`WORKER_JOB_CONCURRENCY_${jobName}`];
   jobConcurrency[jobName] = envValue || 1;
