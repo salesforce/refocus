@@ -43,7 +43,6 @@ function generateLogObjects() {
   ];
   return Promise.all(dataRetrievalPromises)
     .then((res) => {
-      console.log('res', res);
       [processes, pubCounts, pubTimes] = res;
       const subDataRetrievalPromises = [];
       processes.forEach((processName) => {
@@ -58,7 +57,6 @@ function generateLogObjects() {
     })
     .then((res) => {
       subData = res;
-      console.log('subData', subData);
       return redis.delAsync(keysToDelete);
     })
     .then(() => {
