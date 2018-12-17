@@ -202,15 +202,16 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
       if (process.env.DYNO) req.dyno = process.env.DYNO;
       processName = (req.dyno ? req.dyno + ':' : '') + clusterProcessId;
       req.process = processName;
+
+      /*
+       * We moved this "require" here so that each subscriber knows which
+       * process it's running in, which is important for tracking pubsub counts
+       * and times.
+       */
+      require('./realtime/redisSubscriber')(io, processName);
+
       next();
     });
-
-    /*
-     * We moved this "require" down here so that each subscriber knows which
-     * process it's running in, which is important for tracking pubsub numbers
-     * and times.
-     */
-    require('./realtime/redisSubscriber')(io, processName);
 
     const staticOptions = {
       etag: true,
