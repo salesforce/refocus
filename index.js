@@ -22,6 +22,7 @@ const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 const sampleStore = require('./cache/sampleStoreInit');
 const conf = require('./config');
 const signal = require('./signal/signal');
+const ONE = 1;
 
 /**
  * Entry point for each clustered process.
@@ -176,6 +177,16 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   const swaggerFile = fs // eslint-disable-line no-sync
     .readFileSync(conf.api.swagger.doc, ENCODING);
   const swaggerDoc = yaml.safeLoad(swaggerFile);
+
+  if (featureToggles.isFeatureEnabled('hideRoutes')) {
+    for (let _path in swaggerDoc.paths) {
+      if (swaggerDoc.paths.hasOwnProperty(_path)) {
+        if (conf.hiddenRoutes.includes(_path.split('/')[ONE])) {
+          delete swaggerDoc.paths[_path];
+        }
+      }
+    }
+  }
 
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
     /*

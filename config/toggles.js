@@ -107,6 +107,9 @@ const longTermToggles = {
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
 
+  // Hide routes
+  hideRoutes: environmentVariableTrue(pe, 'HIDE_ROUTES'),
+
   // Enable redis client connection logging.
   enableRedisConnectionLogging: environmentVariableTrue(pe,
     'ENABLE_REDIS_CONNECTION_LOGGING'),
