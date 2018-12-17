@@ -99,7 +99,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   socketIOSetup.init(io, rstore);
   const processName = (process.env.DYNO ? process.env.DYNO + ':' : '') +
     clusterProcessId;
-  require('./realtime/redisSubscriber')(io)(processName);
+  require('./realtime/redisSubscriber')(io, processName);
 
   // pass passport for configuration
   require('./config/passportconfig')(passportModule);
