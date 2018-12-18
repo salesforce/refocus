@@ -37,6 +37,21 @@ if (pe.COLLECTOR_REQUIRE_SSL_TO_REMOTE_DATA_SOURCE &&
   requireSslToRemoteDataSource = true;
 }
 
+let timeoutResponseMillis = 10000;
+if (Number(pe.COLLECTOR_TIMEOUT_RESPONSE_MILLIS) > 0) {
+  timeoutResponseMillis = Number(pe.COLLECTOR_TIMEOUT_RESPONSE_MILLIS);
+}
+
+let timeoutDeadlineMillis = 30000;
+if (Number(pe.COLLECTOR_TIMEOUT_DEADLINE_MILLIS) > 0) {
+  timeoutDeadlineMillis = Number(pe.COLLECTOR_TIMEOUT_DEADLINE_MILLIS);
+}
+
+let maxRetries = 3;
+if (Number(pe.COLLECTOR_MAX_RETRIES) > -1) {
+  maxRetries = Number(pe.COLLECTOR_MAX_RETRIES);
+}
+
 module.exports = {
   /*
    * Each collector will send a heartbeat every <heartbeatIntervalMillis>
@@ -56,19 +71,16 @@ module.exports = {
    */
   heartbeatLatencyToleranceMillis,
 
-  maxSamplesPerBulkUpsert: +pe.COLLECTOR_MAX_SAMPLES_PER_BULK_REQUEST || 1000,
-
-  /*
-   * Collector will send a batch of samples up to Refocus at least every
-   * <sampleUpsertQueueTimeMillis> milliseconds, or more frequently if there
-   * are more than <maxSamplesPerBulkUpsert> samples queued up.
-   */
-  sampleUpsertQueueTimeMillis:
-    +pe.COLLECTOR_SAMPLE_UPSERT_QUEUE_TIME_MILLIS || 15000,
-
   /*
    * If flagged true, Refocus Collector will accept only external sources
    * as HTTPS.
    */
   requireSslToRemoteDataSource,
+
+  /*
+   * Retry behavior
+   */
+  timeoutResponseMillis,
+  timeoutDeadlineMillis,
+  maxRetries,
 };

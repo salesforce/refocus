@@ -43,7 +43,7 @@
     "start-clock": "node clock/index.js",
     "start-worker": "node worker/index.js",
     "test": "npm run reset-coverage && npm run test-all && npm run report",
-    "test-all": "npm run test-main && npm run test-extra",
+    "test-all": "npm run test-main && npm run test-extra && npm run test-collector",
     "test-api": "npm run test-with-coverage -- --recursive tests/api",
     "test-api-log": "ENABLE_API_ACTIVITY_LOGS=true npm run test-with-coverage -- --recursive tests/api",
     "test-cache": "npm run test-cache-jobQueue && npm run test-cache-models && npm run test-cache-misc",
@@ -68,8 +68,8 @@
     "watch": "npm-watch"
   },
   "dependencies": {
-    "@salesforce/refocus-collector": "^1.0.1",
-    "adm-zip": "0.4.7",
+    "@salesforce/refocus-collector": "^1.1.0",
+    "adm-zip": "0.4.11",
     "autoprefixer": "^6.0.3",
     "babel-core": "^6.26.3",
     "babel-eslint": "^6.0.4",
@@ -133,6 +133,7 @@
     "nock": "^3.6.0",
     "npm": "^3.10.9",
     "npm-watch": "^0.1.6",
+    "original-fs": "^1.0.0",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
     "passport-saml": "^0.15.0",

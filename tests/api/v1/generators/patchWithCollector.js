@@ -133,6 +133,32 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
     });
   });
 
+  it('ok: PATCH collectorGroup', (done) => {
+    const cgObj = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+    tu.db.CollectorGroup.create(cgObj)
+    .then((cg) => cg.addCollector(collector1))
+    .then(() => {
+      api.patch(`${path}/${generatorId}`)
+      .set('Authorization', token)
+      .send({ collectorGroup: cgObj.name })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        const { collectorGroup } = res.body;
+        expect(collectorGroup.name).to.equal(cgObj.name);
+        expect(collectorGroup.description).to.equal(cgObj.description);
+        expect(collectorGroup.collectors.length).to.equal(ONE);
+        expect(collectorGroup.collectors[0].name).to.equal(collector1.name);
+        expect(collectorGroup.collectors[0].status).to.equal(collector1.status);
+        done();
+      });
+    })
+    .catch(done);
+  });
+
   it('400 error with duplicate collectors in request body', (done) => {
     const _collectors = [collector1.name, collector1.name];
     api.patch(`${path}/${generatorId}`)
