@@ -75,6 +75,25 @@ module.exports = function event(seq, dataTypes) {
    * Class Methods:
    */
 
+  /**
+   * Upsert multiple samples concurrently.
+   * @param  {Array} toUpsert - An array of sample objects to upsert
+   * @param {Object} user - The user performing the write operation
+   * @param {Array} readOnlyFields - An array of read-only-fields
+   * @returns {Array} - Resolves to an array of resolved promises
+   */
+  Event.bulkUpsertByName = function (toUpsert, user) {
+    const promises = toUpsert.map((s) => {
+        try {
+          return Event.create(s, user, true);
+        } catch (err) {
+          return Promise.resolve({ explanation: err, isFailed: true });
+        }
+      }
+    );
+    return seq.Promise.all(promises);
+  }; // bulkUpsertByName
+
   Event.getEventAssociations = function () {
     return assoc;
   };
