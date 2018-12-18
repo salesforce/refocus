@@ -64,6 +64,7 @@ module.exports = {
     user: 'user',
     possibleCollectors: 'possibleCollectors',
     currentCollector: 'currentCollector',
+    collectorGroup: 'collectorGroup',
   },
 
   /*
