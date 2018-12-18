@@ -7,92 +7,81 @@
  */
 
 /**
- * tests/clock/jobs/pubStatsLogs.js
+ * tests/clock/jobs/pubsubStatsLogs.js
  */
 const expect = require('chai').expect;
-const p = require('../../../clock/scheduledJobs/pubStatsLogs');
+const p = require('../../../clock/scheduledJobs/pubsubStatsLogs');
 const rcache = require('../../../cache/redisCache').client.cache;
-const PUB_STATS_HASH = require('../../../realtime/constants').pubStatsHash;
+const pubsubStatsKeys = require('../../../realtime/constants').pubsubStatsKeys;
+const ZERO = 0;
 
-describe('tests/clock/jobs/pubStatsLogs >', () => {
-  describe('toLogObj >', () => {
-    it('ok', () => {
-      expect(p.toLogObj('x.y.z', 1)).to.deep.equal({
-        activity: 'pubStats',
-        key: 'x.y.z',
-        count: 1,
-      });
-    });
-
-    it('null key', () => {
-      expect(p.toLogObj(null, 100)).to.deep.equal({
-        activity: 'pubStats',
-        key: 'None',
-        count: 100,
-      });
-    });
-
-    it('non-string key', () => {
-      expect(p.toLogObj(3.1415927, 100)).to.deep.equal({
-        activity: 'pubStats',
-        key: 'None',
-        count: 100,
-      });
-    });
-
-    it('zero-length key', () => {
-      expect(p.toLogObj('', 100)).to.deep.equal({
-        activity: 'pubStats',
-        key: 'None',
-        count: 100,
-      });
-    });
-
-    it('null count', () => {
-      expect(p.toLogObj('ab.cd.ef', null)).to.deep.equal({
-        activity: 'pubStats',
-        key: 'ab.cd.ef',
-        count: 0,
-      });
-    });
-
-    it('non-numeric count', () => {
-      expect(p.toLogObj('ab.cd.ef', 'yellow')).to.deep.equal({
-        activity: 'pubStats',
-        key: 'ab.cd.ef',
-        count: 0,
-      });
-    });
-
-    it('negative count', () => {
-      expect(p.toLogObj('ab.cd.ef', -47)).to.deep.equal({
-        activity: 'pubStats',
-        key: 'ab.cd.ef',
-        count: 0,
-      });
-    });
-  });
-
+describe('tests/clock/jobs/pubsubStatsLogs >', () => {
   describe('generateLogObjects >', () => {
     beforeEach(() => {
-      rcache.hincrby(PUB_STATS_HASH, 'a.a.a', 1);
-      rcache.hincrby(PUB_STATS_HASH, 'b.b.b', 10);
-      rcache.hincrby(PUB_STATS_HASH, 'c.c.c', 100);
+      rcache.sadd(`${pubsubStatsKeys.sub.processes}`, '1');
+      rcache.sadd(`${pubsubStatsKeys.sub.processes}`, '2');
+      rcache.hincrby(pubsubStatsKeys.pub.count, 'a.a.a', 1);
+      rcache.hincrby(pubsubStatsKeys.pub.time, 'a.a.a', 10);
+      rcache.hincrby(`${pubsubStatsKeys.sub.count}:1`, 'a.a.a', 100);
+      rcache.hincrby(`${pubsubStatsKeys.sub.time}:1`, 'a.a.a', 1000);
+      rcache.hincrby(`${pubsubStatsKeys.sub.count}:2`, 'a.a.a', 100);
+      rcache.hincrby(`${pubsubStatsKeys.sub.time}:2`, 'a.a.a', 1000);
+      rcache.hincrby(pubsubStatsKeys.pub.count, 'b.b.b', 2);
+      rcache.hincrby(pubsubStatsKeys.pub.time, 'b.b.b', 20);
+      rcache.hincrby(`${pubsubStatsKeys.sub.count}:1`, 'b.b.b', 200);
+      rcache.hincrby(`${pubsubStatsKeys.sub.time}:1`, 'b.b.b', 2000);
+      rcache.hincrby(`${pubsubStatsKeys.sub.count}:2`, 'b.b.b', 200);
+      rcache.hincrby(`${pubsubStatsKeys.sub.time}:2`, 'b.b.b', 2000);
     });
-
-    afterEach(() => rcache.del(PUB_STATS_HASH));
 
     it('ok', (done) => {
       p.generateLogObjects()
       .then((arr) => {
         expect(arr).to.deep.equal([
-          { activity: 'pubStats', key: 'a.a.a', count: 1 },
-          { activity: 'pubStats', key: 'b.b.b', count: 10 },
-          { activity: 'pubStats', key: 'c.c.c', count: 100 },
+          {
+            activity: 'pubsub',
+            key: 'a.a.a',
+            process: '1',
+            pubCount: '1',
+            pubTime: '10',
+            subCount: '100',
+            subTime: '1000',
+          },
+          {
+            activity: 'pubsub',
+            key: 'b.b.b',
+            process: '1',
+            pubCount: '2',
+            pubTime: '20',
+            subCount: '200',
+            subTime: '2000',
+          },
+          {
+            activity: 'pubsub',
+            key: 'a.a.a',
+            process: '2',
+            pubCount: '1',
+            pubTime: '10',
+            subCount: '100',
+            subTime: '1000',
+          },
+          {
+            activity: 'pubsub',
+            key: 'b.b.b',
+            process: '2',
+            pubCount: '2',
+            pubTime: '20',
+            subCount: '200',
+            subTime: '2000',
+          },
         ]);
-        return rcache.existsAsync(PUB_STATS_HASH);
+        return rcache.existsAsync(pubsubStatsKeys.sub.processes);
       })
-      .then((exists) => expect(exists).to.deep.equal(0))
+      .then((exists) => expect(exists).to.deep.equal(ZERO))
+      .then(() => rcache.existsAsync(pubsubStatsKeys.pub.count))
+      .then((exists) => expect(exists).to.deep.equal(ZERO))
+      .then(() => rcache.existsAsync(pubsubStatsKeys.sub.count + ':2'))
+      .then((exists) => expect(exists).to.deep.equal(ZERO))
       .then(() => done())
       .catch(done);
     });
