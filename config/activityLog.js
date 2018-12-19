@@ -80,7 +80,7 @@ module.exports = {
     limit: '0/0',
     method: 'None', // one of HTTP verbs
     requestBytes: 0,
-    request_id: 'None',
+    request_id: 'None', // eslint-disable-line camelcase
     responseBytes: 0,
     token: 'None',
     totalTime: '0ms',
@@ -93,10 +93,14 @@ module.exports = {
     lastHeartbeat: 'None',
     delta: 'None',
   },
-  pubStats: {
-    activity: 'pubStats',
+  pubsub: {
+    activity: 'pubsub',
     key: 'None',
-    count: 0,
+    process: 'None',
+    pubCount: 0,
+    pubTime: 0,
+    subCount: 0,
+    subTime: 0,
   },
   queueStats: {
     activity: 'queueStats',
@@ -124,7 +128,7 @@ module.exports = {
     activity: 'unauthorized',
     ipAddress: 'None',
     method: 'None',
-    request_id: 'None',
+    request_id: 'None', // eslint-disable-line camelcase
     uri: 'None',
   },
   worker: {
@@ -138,7 +142,7 @@ module.exports = {
     queueTime: 'None',
     queueResponseTime: 'None',
     recordCount: 0,
-    request_id: 'None',
+    request_id: 'None', // eslint-disable-line camelcase
     token: 'None',
     totalTime: 'None',
     user: 'None',
