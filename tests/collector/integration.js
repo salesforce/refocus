@@ -176,8 +176,7 @@ const interceptConfig = {
     path: '/samples/upsert/bulk',
     collectorNamePath: 'req.headers.collector-name',
     expectedInterval: () => Math.max(
-      ...[gen1, gen2].map(g => g.intervalSecs * 1000),
-      config.collector.sampleUpsertQueueTimeMillis,
+      ...[gen1, gen2].map(g => g.intervalSecs * 1000)
     ),
     expectedRequestKeys: null,
     expectedResponseKeys: null,
@@ -192,10 +191,34 @@ const interceptConfig = {
   },
 };
 
+// set up mock data
+const mockResponse = {
+  sub1: {
+    asp1: '1',
+    asp2: '2',
+  },
+  sub2: {
+    asp1: '3',
+    asp2: '4',
+  },
+};
+
+const nockConfig = [
+  {
+    url: 'http://www.example.com',
+    method: 'get',
+    path: '/',
+    status: 200,
+    response: mockResponse,
+    headers: { 'Content-Type': 'application/json' },
+  },
+];
+
 u.setupInterception(interceptConfig);
+forkUtils.setupMocking(nockConfig);
 
 describe('tests/collector/integration.js >', function () {
-  this.timeout(5000);
+  this.timeout(10000);
 
   before(() =>
     tu.createUserAndToken()
@@ -216,8 +239,6 @@ describe('tests/collector/integration.js >', function () {
   beforeEach(() => {
     config.collector.heartbeatIntervalMillis = ms('15s');
     config.collector.heartbeatLatencyToleranceMillis = ms('5s');
-    config.collector.sampleUpsertQueueTimeMillis = ms('15s');
-    config.collector.maxSamplesPerBulkUpsert = 1;
   });
 
   afterEach(() => forkUtils.killAllCollectors());
@@ -315,7 +336,7 @@ describe('tests/collector/integration.js >', function () {
 
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub*'),
-        u.expectBulkUpsertNames(coll1, ['sub1|asp1'], ['sub2|asp1']),
+        u.expectBulkUpsertNames(coll1, ['sub1|asp1', 'sub2|asp1']),
       ))
     );
 
@@ -335,7 +356,7 @@ describe('tests/collector/integration.js >', function () {
 
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
-        u.expectBulkUpsertNames(coll1, ['sub1|asp1'], ['sub1|asp2']),
+        u.expectBulkUpsertNames(coll1, ['sub1|asp1', 'sub1|asp2']),
       ))
     );
 
@@ -353,11 +374,12 @@ describe('tests/collector/integration.js >', function () {
       .then(() => u.awaitHeartbeat())
       .then(({ res }) => expect(res.body.generatorsUpdated).to.have.lengthOf(1))
 
-      .then(() => u.awaitBulkUpsert() // new interval is > 60s
+      .then(() => u.awaitBulkUpsert()) // right after heartbeat
+      .then(() => u.awaitBulkUpsert() // 120s later, times out
       .should.eventually.be.rejectedWith(Promise.TimeoutError))
 
       .then(() => gen1.intervalSecs = 120)  // update the promise timeout
-      .then(() => u.awaitBulkUpsert()) // 120s after heartbeat
+      .then(() => u.awaitBulkUpsert()) // right after heartbeat
       .then(() => u.awaitBulkUpsert()) // 120s later, doesn't timeout
       .then(() => gen1.intervalSecs = 60)  // reset the promise timeout
     );
@@ -412,6 +434,7 @@ describe('tests/collector/integration.js >', function () {
         .then(({ res }) => expect(res.body.collectorConfig).to.include({
           heartbeatIntervalMillis: ms('50s'),
         }))
+        .then(() => u.awaitHeartbeat())
 
         .then(() => u.awaitHeartbeat())
         .then(({ waitTime }) => {
@@ -451,58 +474,6 @@ describe('tests/collector/integration.js >', function () {
         .then(() => u.getStatus(coll1))
         .then((res) => expect(res.body.status).to.equal('MissedHeartbeat'))
         .then(() => forkUtils.unblockHeartbeat(coll1))
-      );
-
-      it('sampleUpsertQueueTimeMillis', () => {
-        config.collector.maxSamplesPerBulkUpsert = 10;
-        config.collector.sampleUpsertQueueTimeMillis = ms('15s');
-        return u.doStart(coll1)
-        .then(() => u.awaitHeartbeat())
-
-        .then(() => u.awaitBulkUpsert())
-        .then(() => u.awaitBulkUpsert())
-        .then(({ waitTime }) => {
-          expect(waitTime).to.be.closeTo(ms('60s'), ms('10s'));
-          config.collector.sampleUpsertQueueTimeMillis = ms('120s');
-        })
-
-        .then(() => u.awaitHeartbeat())
-        .then(({ res }) => expect(res.body.collectorConfig).to.include({
-          sampleUpsertQueueTimeMillis: ms('120s'),
-        }))
-
-        .then(() => u.awaitBulkUpsert())
-        .then(() => u.awaitBulkUpsert())
-        .then(({ waitTime }) => {
-          expect(waitTime).to.be.closeTo(ms('120s'), ms('10s'));
-        });
-      });
-
-      it('maxSamplesPerBulkUpsert', () =>
-        u.patchGenerator(gen1.name, {
-          subjectQuery: '?absolutePath=sub*',
-          aspects: ['asp1', 'asp2'],
-        })
-
-        .then(() => u.doStart(coll1))
-        .then(() => u.awaitHeartbeat())
-        .then(() => u.expectBulkUpsertNames(coll1,
-          ['sub1|asp1'], ['sub1|asp2'], ['sub2|asp1'], ['sub2|asp2']
-        ))
-
-        .then(() => u.awaitHeartbeat())
-        .then(() => {
-          config.collector.maxSamplesPerBulkUpsert = 2;
-        })
-
-        .then(() => u.awaitHeartbeat())
-        .then(({ res }) => expect(res.body.collectorConfig).to.include({
-          maxSamplesPerBulkUpsert: 2,
-        }))
-
-        .then(() => u.expectBulkUpsertNames(coll1,
-          ['sub1|asp1', 'sub1|asp2'], ['sub2|asp1', 'sub2|asp2']
-        ))
       );
     });
 
@@ -591,6 +562,247 @@ describe('tests/collector/integration.js >', function () {
       .then(() => u.expectBulkUpsertSamples(coll1, [
         { name: 'sub1|asp1', value: '1_' },
       ]));
+    });
+  });
+
+  describe('with OAuth', () => {
+    let nockConfig;
+    beforeEach(() => {
+      nockConfig = [
+        {
+          // return token only if correct details are provided
+          url: 'http://www.example.com',
+          method: 'post',
+          path: '/login',
+          matchBody: {
+            username: 'testUser',
+            password: 'testPassword',
+            grant_type: 'password',
+            client_id: '11bogus',
+            client_secret: '11bogus%^',
+          },
+          status: 200,
+          response: {
+            accessToken: 'eegduygsugfiusguguygyfkufyg',
+          },
+          headers: { 'Content-Type': 'application/json' },
+        }, {
+          // otherwise return unauthorized
+          url: 'http://www.example.com',
+          method: 'post',
+          path: '/login',
+          status: 401,
+        }, {
+          // return mock response only if correct token is provided
+          url: 'http://www.example.com',
+          method: 'get',
+          path: '/',
+          matchHeaders: { Authorization: 'Bearer eegduygsugfiusguguygyfkufyg' },
+          status: 200,
+          response: mockResponse,
+          headers: { 'Content-Type': 'application/json' },
+        }, {
+          // otherwise return unauthorized
+          url: 'http://www.example.com',
+          method: 'get',
+          path: '/',
+          status: 401,
+        },
+      ];
+    });
+
+    beforeEach(() => forkUtils.setupMocking(nockConfig));
+
+    before((done) => {
+      GlobalConfig.create({
+        key: dbConstants.SGEncryptionKey,
+        value: '1234567890',
+      })
+      .then(() => GlobalConfig.create({
+        key: dbConstants.SGEncryptionAlgorithm,
+        value: 'aes-256-cbc',
+      }))
+      .then(() => done())
+      .catch(done);
+    });
+    after(() => GlobalConfig.destroy({ truncate: true, force: true }));
+
+    let connection;
+    beforeEach(() => {
+      connection = {
+        simple_oauth: {
+          credentials: {
+            client: {
+              id: '11bogus',
+              secret: '11bogus%^',
+            },
+            auth: {
+              tokenHost: 'http://www.example.com/',
+              tokenPath: '/login',
+            },
+            options: {
+              bodyFormat: 'json',
+            },
+          },
+          tokenConfig: {
+            username: 'testUser',
+            password: 'testPassword',
+          },
+          tokenFormat: 'Bearer {accessToken}',
+          method: 'ownerPassword',
+        },
+      };
+    });
+
+    it('basic', () => {
+      const gen4 = JSON.parse(JSON.stringify(gen1));
+      gen4.name = 'generator4';
+      gen4.connection = connection;
+
+      return Promise.resolve()
+      .then(() => u.doStart(coll1))
+      .then(() => u.awaitHeartbeat())
+      .then(() => u.postGenerator(gen4))
+
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        expect(req.body).to.deep.equal([
+          { name: 'sub1|asp1', value: '1' },
+        ]);
+      });
+    });
+
+    it('encrypted', () => {
+      const sgt3 = JSON.parse(JSON.stringify(sgt));
+      sgt3.name = 'template3';
+      sgt3.contextDefinition.username = {
+        description: 'username',
+        required: true,
+        encrypted: true,
+      };
+      sgt3.contextDefinition.password = {
+        description: 'password',
+        required: true,
+        encrypted: true,
+      };
+
+      const gen4 = JSON.parse(JSON.stringify(gen1));
+      gen4.name = 'generator4';
+      gen4.connection = connection;
+      gen4.connection.simple_oauth.tokenConfig = {
+        username: '{{username}}',
+        password: '{{password}}',
+      },
+        gen4.context = {
+          username: 'testUser',
+          password: 'testPassword',
+        };
+      gu.createSGtoSGTMapping(sgt3, gen4);
+
+      return GeneratorTemplate.create(sgt3)
+      .then(() => u.doStart(coll1))
+      .then(() => u.awaitHeartbeat())
+      .then(() => u.postGenerator(gen4))
+      .then(() => u.awaitHeartbeat())
+      .then(({ res }) => {
+        const gen = res.body.generatorsAdded[0];
+        const simpleOAuth = gen.connection.simple_oauth;
+        expect(simpleOAuth.tokenConfig.username).to.equal('{{username}}');
+        expect(simpleOAuth.tokenConfig.password).to.equal('{{password}}');
+
+        expect(gen.context.username).to.be.a('string').with.lengthOf(32);
+        expect(gen.context.password).to.be.a('string').with.lengthOf(32);
+      })
+
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        expect(req.body).to.deep.equal([
+          { name: 'sub1|asp1', value: '1' },
+        ]);
+      });
+    });
+
+    it('incorrect password (fails to get token)', () => {
+      const gen4 = JSON.parse(JSON.stringify(gen1));
+      gen4.name = 'generator4';
+      gen4.connection = connection;
+      gen4.connection.simple_oauth.tokenConfig.password = '...';
+
+      return Promise.resolve()
+      .then(() => u.doStart(coll1))
+      .then(() => u.awaitHeartbeat())
+      .then(() => u.postGenerator(gen4))
+
+      .then(() =>
+        u.awaitBulkUpsert()
+        .should.eventually.be.rejectedWith(Promise.TimeoutError)
+      );
+    });
+
+    it('token expires, requests new one and retries', () => {
+      const gen4 = JSON.parse(JSON.stringify(gen1));
+      gen4.name = 'generator4';
+      gen4.connection = connection;
+
+      return Promise.resolve()
+      .then(() => u.doStart(coll1))
+      .then(() => u.awaitHeartbeat())
+      .then(() => u.postGenerator(gen4))
+
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        expect(req.body).to.deep.equal([
+          { name: 'sub1|asp1', value: '1' },
+        ]);
+      })
+
+      .then(() => {
+        nockConfig[2].matchHeaders.Authorization = 'Bearer 12345';
+        nockConfig[0].response.accessToken = '12345';
+        forkUtils.setupMocking(nockConfig);
+      })
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        expect(req.body).to.deep.equal([
+          { name: 'sub1|asp1', value: '1' },
+        ]);
+      });
+    });
+
+    it('no retry if status other than unauthorized', () => {
+      const gen4 = JSON.parse(JSON.stringify(gen1));
+      gen4.name = 'generator4';
+      gen4.connection = connection;
+
+      return Promise.resolve()
+      .then(() => u.doStart(coll1))
+      .then(() => u.awaitHeartbeat())
+      .then(() => u.postGenerator(gen4))
+
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        expect(req.body).to.deep.equal([
+          { name: 'sub1|asp1', value: '1' },
+        ]);
+      })
+
+      .then(() => {
+        nockConfig[2].matchHeaders.Authorization = 'Bearer 12345';
+        nockConfig[0].response.accessToken = '12345';
+        nockConfig[3].status = 400;
+        forkUtils.setupMocking(nockConfig);
+      })
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        expect(req.body).to.deep.equal([
+          {
+            name: 'sub1|asp1',
+            value: 'ERROR',
+            messageCode: 'ERROR',
+            messageBody: 'http://www.example.com returned HTTP status 400: undefined',
+          },
+        ]);
+      });
     });
   });
 
@@ -684,10 +896,6 @@ describe('tests/collector/integration.js >', function () {
     });
   });
 
-  // TODO: some of these tests are flapping because the bulkUpsert request can't
-  // be correctly waited on, because the post promise is obscured by the upsert queue
-  // TODO: add to main test script once that's fixed and tests pass consistenly:
-  // "test-all": "npm run test-main && npm run test-extra && npm run test-collector",
   describe('assignment >', () => {
     describe('generator updated >', () => {
       beforeEach(() => {
@@ -827,18 +1035,15 @@ describe('tests/collector/integration.js >', function () {
       afterEach(() => clearInterval(interval));
 
       beforeEach(() =>
-        Promise.join(
-          u.doStart(coll1),
-          u.doStart(coll2),
-        )
-        .then(() => Promise.join(
-          u.postGenerator(gen1),
-          u.postGenerator(gen2),
-        ))
-        .then(() => Promise.join(
-          forkUtils.doStop(coll1),
-          forkUtils.doStop(coll2),
-        ))
+        Promise.resolve()
+        .then(() => u.doStart(coll1))
+        .then(() => u.doStart(coll2))
+
+        .then(() => u.postGenerator(gen1))
+        .then(() => u.postGenerator(gen2))
+
+        .then(() => forkUtils.doStop(coll2))
+        .then(() => forkUtils.doStop(coll1))
       );
 
       it('started', () =>
@@ -858,10 +1063,10 @@ describe('tests/collector/integration.js >', function () {
       );
 
       it('stopped', () =>
-        Promise.join(
-          u.doStart(coll1),
-          u.doStart(coll2),
-        )
+        Promise.resolve()
+        .then(() => u.doStart(coll1))
+        .then(() => u.doStart(coll2))
+
         .then(() => Promise.join(
           u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
           u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
@@ -878,10 +1083,10 @@ describe('tests/collector/integration.js >', function () {
       );
 
       it('pause/resume', () =>
-        Promise.join(
-          u.doStart(coll1),
-          u.doStart(coll2),
-        )
+        Promise.resolve()
+          .then(() => u.doStart(coll1))
+          .then(() => u.doStart(coll2))
+
         .then(() => Promise.join(
           u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
           u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
@@ -900,6 +1105,7 @@ describe('tests/collector/integration.js >', function () {
         ))
 
         .then(() => u.postStatus('Stop', coll2))
+        .then(() => u.expectHeartbeatStatus(coll2, 'Stopped'))
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
@@ -917,10 +1123,10 @@ describe('tests/collector/integration.js >', function () {
       );
 
       it('missed heartbeat', () =>
-        Promise.join(
-          u.doStart(coll1),
-          u.doStart(coll2),
-        )
+        Promise.resolve()
+        .then(() => u.doStart(coll1))
+        .then(() => u.doStart(coll2))
+
         .then(() => Promise.join(
           u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
           u.expectBulkUpsertNames(coll2, ['sub2|asp2']),

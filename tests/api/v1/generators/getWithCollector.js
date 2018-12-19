@@ -30,6 +30,7 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
   let collector1 = { name: 'hello', version: '1.0.0' };
   let collector2 = { name: 'beautiful', version: '1.0.0' };
   let collector3 = { name: 'world', version: '1.0.0' };
+  let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
 
   const generatorTemplate = gtUtil.getGeneratorTemplate();
 
@@ -62,6 +63,11 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
       collector2 = collectors[ONE];
       collector3 = collectors[TWO];
     })
+    .then(() => tu.db.CollectorGroup.create(collectorGroup1))
+    .then((cg) => {
+      collectorGroup1 = cg;
+      return cg.addCollector(collector1);
+    })
     .then(() => tu.createToken())
     .then((returnedToken) => {
       token = returnedToken;
@@ -78,7 +84,9 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
     })
     .then((gen) => {
       genWithOneCollector.id = gen.id;
-
+      return gen.setCollectorGroup(collectorGroup1);
+    })
+    .then(() => {
       genWithThreeCollectors.isActive = true;
       genWithThreeCollectors.currentCollector = collector1.name;
       genWithThreeCollectors.possibleCollectors =
@@ -119,6 +127,16 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
       expect(res.body[ONE].id).to.not.equal(undefined);
       expect(res.body[TWO].possibleCollectors.length).to.equal(ZERO);
       expect(res.body[TWO].id).to.not.equal(undefined);
+
+      // check collectorGroup
+      expect(res.body[ONE].collectorGroup.name).to.equal(collectorGroup1.name);
+      expect(res.body[ONE].collectorGroup.description)
+      .to.equal(collectorGroup1.description);
+      expect(res.body[ONE].collectorGroup.collectors.length).to.equal(ONE);
+      expect(res.body[ONE].collectorGroup.collectors[0].name)
+      .to.equal(collector1.name);
+      expect(res.body[ONE].collectorGroup.collectors[0].status)
+      .to.equal(collector1.status);
       return done();
     });
   });
@@ -136,6 +154,29 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
       const collectorNames = res.body.possibleCollectors.map((collector) =>
         collector.name);
       expect(collectorNames).to.deep.equal(sortedNames);
+      return done();
+    });
+  });
+
+  it('get individual generator yields non-empty collectorGroup field',
+  (done) => {
+    api.get(`${path}/${genWithOneCollector.id}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      // check collectorGroup
+      expect(res.body.collectorGroup.name).to.equal(collectorGroup1.name);
+      expect(res.body.collectorGroup.description)
+      .to.equal(collectorGroup1.description);
+      expect(res.body.collectorGroup.collectors.length).to.equal(ONE);
+      expect(res.body.collectorGroup.collectors[0].name)
+      .to.equal(collector1.name);
+      expect(res.body.collectorGroup.collectors[0].status)
+      .to.equal(collector1.status);
       return done();
     });
   });

@@ -4083,6 +4083,9 @@ paths:
                  type: array
                  items:
                    type: string
+              collectorGroup:
+                 description: Name of set of collectors this Sample Generator should try to use.
+                 type: string
               aspects:
                 description: List of one or more Aspects you want to collect Samples for.
                 type: array
@@ -4255,6 +4258,9 @@ paths:
                 type: array
                 items:
                   type: string
+              collectorGroup:
+                 description: Name of set of collectors this Sample Generator should try to use.
+                 type: string
               isActive:
                 type: boolean
                 description: >-
@@ -4377,6 +4383,9 @@ paths:
                 type: array
                 items:
                   type: string
+              collectorGroup:
+                 description: Name of set of collectors this Sample Generator should try to use.
+                 type: string
               isActive:
                 type: boolean
                 description: >-
@@ -11451,7 +11460,7 @@ definitions:
     properties:
       name:
         type: string
-        maxLength: 25
+        maxLength: 60
         readOnly: true
         description: >
           Name of the related link.
@@ -11472,8 +11481,8 @@ definitions:
       name:
         type: string
         minLength: 1
-        maxLength: 25
-        pattern: ^[0-9A-Za-z_\\ -]{1,25}$
+        maxLength: 60
+        pattern: ^[0-9A-Za-z_\\ -]{1,60}$
         description: >
           Name of the related link.
       url:
@@ -13229,6 +13238,9 @@ definitions:
         type: array
         items:
           type: object
+      collectorGroup:
+         description: Specifies set of collectors this Sample Generator should try to use.
+         type: object
       aspects:
         description: Names of the aspects.
         type: array
@@ -13310,6 +13322,9 @@ definitions:
         type: array
         items:
           type: object
+      collectorGroup:
+         description: Specifies set of collectors this Sample Generator should try to use.
+         type: object
       aspects:
         description: Array of aspects.
         type: array
@@ -13678,6 +13693,7 @@ parameters:
         - currentCollector
         - user
         - possibleCollectors
+        - collectorGroup
 
   GeneratorTemplateFieldsParam:
     name: fields

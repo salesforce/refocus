@@ -15,7 +15,11 @@ const Promise = require('bluebird');
 const fork = require('child_process').fork;
 const conf = require('../../../config');
 
-const clock = sinon.useFakeTimers(Date.now());
+const clock = sinon.useFakeTimers({
+  // override so we don't mock setImmediate
+  toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],
+  now: Date.now(),
+});
 const subprocesses = {};
 const url = `localhost:${conf.port}`;
 let token;
@@ -29,10 +33,19 @@ module.exports = {
   blockHeartbeat,
   unblockHeartbeat,
   killAllCollectors,
+  setupMocking,
   tick,
   tickSync,
   tickUntilComplete,
 };
+
+let nockConfig;
+function setupMocking(conf) {
+  nockConfig = conf;
+  Object.values(subprocesses).forEach((subprocess) =>
+    subprocess.send({ nockConfig })
+  );
+}
 
 function doCommand({ command, name, url, token, refocusProxy, dataSourceProxy }) {
   const args = [command];
@@ -48,7 +61,7 @@ function doFork(args) {
   const opts = {
     silent: true,
     env: {},
-    /* env: { DEBUG: 'refocus-collector:*' }, */
+    // env: { DEBUG: 'refocus-collector:*' },
   };
   const forkPath = require.resolve('./runCollector');
   const subprocess = fork(forkPath, args, opts);
@@ -72,6 +85,7 @@ function doStart(name) {
     delete subprocesses[name];
   });
   subprocess.send({ startTime: Date.now() });
+  subprocess.send({ nockConfig });
   return new Promise((resolve) => subprocess.on('message', (msg) => {
     if (msg.started) resolve(subprocess);
   }));
@@ -105,10 +119,20 @@ function setToken(_token) {
 
 function blockHeartbeat(collectorName) {
   subprocesses[collectorName].send({ blockHeartbeat: true });
+  return new Promise((resolve) => {
+    subprocesses[collectorName].on('message', (msg) => {
+      if (msg.blocked) resolve();
+    });
+  });
 }
 
 function unblockHeartbeat(collectorName) {
   subprocesses[collectorName].send({ unblockHeartbeat: true });
+  return new Promise((resolve) => {
+    subprocesses[collectorName].on('message', (msg) => {
+      if (msg.unblocked) resolve();
+    });
+  });
 }
 
 function awaitExit(collectorName) {
@@ -156,10 +180,13 @@ function tick(ms) {
 }
 
 function tickSync(clock, ms) {
-  const timerResults = [];
+  const timerFuncs = [];
   makeTimersSync();
   clock.tick(ms);
-  return Promise.all(timerResults);
+  return Promise.each(
+    timerFuncs,
+    (runNextTimerToCompletion) => runNextTimerToCompletion(),
+  );
 
   function makeTimersSync() {
     if (!clock.timers) return;
@@ -169,24 +196,28 @@ function tickSync(clock, ms) {
       }
 
       timer.func = (...args) => {
-        const result = timer.originalFunc.apply(null, args);
-        timerResults.push(result);
+        const result = timer.originalFunc.bind(null, args);
+        timerFuncs.push(result);
       };
     });
-    return timerResults;
+    return timerFuncs;
   }
 }
 
 let tickingPromises = [];
 let readyToTick = [];
 function tickUntilComplete(awaitFunc, collectorName) {
-  const promise = awaitFunc(collectorName);
-  readyToTick.push(promise);
+  const awaitPromise = awaitFunc(collectorName);
+  readyToTick.push(awaitPromise);
+  let tickPromise;
   if (!tickingPromises.length) {
-    tickUntilAllComplete();
+    tickPromise = tickUntilAllComplete();
+  } else {
+    tickPromise = Promise.resolve();
   }
 
-  return promise;
+  // make sure we don't resolve until all ticking is complete
+  return tickPromise.then(() => awaitPromise);
 
   function tickUntilAllComplete() {
     tickingPromises.push(...readyToTick);
