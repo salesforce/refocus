@@ -106,7 +106,7 @@ module.exports = {
       u.logAPI(req, resultObj, body, value.length);
       return Promise.resolve(res.status(httpStatus.OK).json(body));
     } // bulkPost
-    
+
     bulkPost(req.user)
       .catch((err) => u.handleError(next, err, helper.modelName));
   }, // bulkPostEvent

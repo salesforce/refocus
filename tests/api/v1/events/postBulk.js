@@ -46,7 +46,7 @@ describe('tests/api/v1/events/postBulk.js >', () => {
     api.post(`${path}`)
     .set('Authorization', token)
     .send(eventsArray)
-    .expect(constants.httpStatus.CREATED)
+    .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);
