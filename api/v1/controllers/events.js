@@ -115,51 +115,33 @@ module.exports = {
      * with status and body
      */
     function bulkUpsert(user) {
-      console.log('aaa')
-
-        console.log("bbb");
-      if (featureToggles.isFeatureEnabled('qqq')) {  
+      if (featureToggles.isFeatureEnabled('enableWorkerProcessA')) {  
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
-        const wrappedBulkUpsertData = {};
-        wrappedBulkUpsertData.upsertData = value;
-        wrappedBulkUpsertData.user = user;
-        wrappedBulkUpsertData.reqStartTime = resultObj.reqStartTime;
+        const wrappedBulkPostData = {};
+        wrappedBulkPostData.upsertData = value;
+        wrappedBulkPostData.user = user;
+        wrappedBulkPostData.reqStartTime = resultObj.reqStartTime;
         const jobPromise = jobWrapper
-          .createPromisifiedJob(jobType.bulkUpsertEvents,
-            wrappedBulkUpsertData, req);
+          .createPromisifiedJob(jobType.bulkPostEvents,
+            wrappedBulkPostData, req);
         return jobPromise.then((job) => {
           // set the job id in the response object before it is returned
           body.jobId = job.id;
           u.logAPI(req, resultObj, body, value.length);
-          console.log(body)
           return res.status(httpStatus.OK).json(body);
         })
         .catch((err) => {
-          console.log("qqqqq")
-          console.log(err);
           u.handleError(next, err, helper.modelName)});
       }
-  
-      console.log("asdsadasdasdsdsdas")
-      /*
-       * Send the upserted sample to the client by publishing it to the
-       * redis channel
-       */
-      helper.model.bulkUpsertByName(value, user)
-      .then((samples) => samples.forEach((sample) => {
-        console.log("aaaaaaaaaa")
-        console.log(sample)
-      }));
+
+      helper.model.bulkCreate(value, user);
       u.logAPI(req, resultObj, body, value.length);
       return Promise.resolve(res.status(httpStatus.OK).json(body));
     } // bulkUpsert
     
     bulkUpsert(req.user)
-      .catch((err) => {
-        console.log(err);
-        console.log("aaaaaa")
-        u.handleError(next, err, helper.modelName)});
+      .catch((err) => u.handleError(next, err, helper.modelName));
   }, // bulkUpsertSample
 
   /**
