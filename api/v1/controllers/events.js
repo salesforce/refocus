@@ -94,12 +94,12 @@ module.exports = {
     const body = { status: 'OK' };
 
     /**
-     * Performs bulk upsert through worker, cache, or db model.
-     * Works regardless of whether user if provided or not.
+     * Performs bulk upsert through the db model.
+     * Works regardless of whether user is provided or not.
      *
      * @param {Object} user Sequelize result. Optional
      * @returns {Promise} a promise that resolves to the response object
-     * with status and body
+     * with status and body,
      */
     function bulkPost(user) {
       helper.model.bulkCreate(value, user);
