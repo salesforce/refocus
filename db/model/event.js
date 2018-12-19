@@ -82,9 +82,9 @@ module.exports = function event(seq, dataTypes) {
    * @returns {Array} - Resolves to an array of resolved promises
    */
   Event.bulkCreate = function (toCreate, user) {
-    const promises = toCreate.map((s) => {
+    const promises = toCreate.map((event) => {
       try {
-        return Event.create(s, user, true);
+        return Event.create(event, user);
       } catch (err) {
         return Promise.resolve({ explanation: err, isFailed: true });
       }
