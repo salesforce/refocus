@@ -52,7 +52,7 @@ describe('tests/api/v1/events/postBulk.js >', () => {
         return done(err);
       }
 
-      expect(res.body.length).to.equal(TWO);
+      expect(res.body.status).to.equal('OK');
       expect(res.body[ZERO].log).to.equal(event1.log);
       expect(res.body[ONE].log).to.equal(event2.log);
       done();

@@ -3860,7 +3860,7 @@ paths:
           $ref: "#/responses/403"
         default:
           $ref: "#/responses/genericError"
-          
+
   # ---------------------------------------------------------------------------
   /events/bulk:
     x-swagger-router-controller: events
