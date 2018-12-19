@@ -16,40 +16,48 @@ const subPerspective = require('../cache/redisCache').client.subPerspective;
 const subBot = require('../cache/redisCache').client.subBot;
 const featureToggles = require('feature-toggles');
 const rtUtils = require('./utils');
-const PUB_STATS_HASH = require('./constants').pubStatsHash;
-const logger = require('winston');
+const pubsubStatsKeys = require('./constants').pubsubStatsKeys;
+const ZERO = 0;
+const ONE = 1;
 
 /**
- * Store pub stats in redis cache, count by key. Note that we're using the
- * async redis command here; we don't require the hincrby command to complete
- * before moving on to other work, so we're not wrapping it in a promise.
+ * Store pub stats in redis cache by process name, tracking count and subscribe
+ * time by key. Note that we're using the async redis command here; we don't
+ * require the hincrby command to complete before moving on to other work, so
+ * we're not wrapping it in a promise.
  *
- * @param {String} key - The publish key
+ * @param {String} processName - The process name
+ * @param {String} key - The event type
+ * @param {Object} obj - The object being published
  */
-function trackPublishKey(key) {
-  rcache.hincrbyAsync(PUB_STATS_HASH, key, 1);
-}
+function trackStats(processName, key, obj) {
+  const elapsed = Date.now() - new Date(obj.updatedAt);
+  rcache.saddAsync(`${pubsubStatsKeys.sub.processes}`, processName);
+  rcache.hincrbyAsync(`${pubsubStatsKeys.sub.count}:${processName}`, key, ONE);
+  rcache.hincrbyAsync(`${pubsubStatsKeys.sub.time}:${processName}`, key,
+    elapsed);
+} // trackStats
 
 /**
- * Redis subscriber uses socket.io to broadcast.
+ * Redis subscriber uses socket.io to broadcast messages to Perspectives and
+ * Bots.
  *
  * @param {Socket.io} io - Socket.io's Server API
- * @param {Object} sub - Redis subscriber instance
+ * @param {String} processName - Process name
  */
-module.exports = (io) => {
-  // Broadcast messages to Perspectives and Bots
+module.exports = (io, processName) => {
   [subBot, subPerspective].forEach((s) => {
-    s.on('message', (channel, mssgStr) => {
-      const mssgObj = JSON.parse(mssgStr);
-      const key = Object.keys(mssgObj)[0];
-      const parsedObj = rtUtils.parseObject(mssgObj[key], key);
-      let { pubOpts } = parsedObj;
+    s.on('message', (channel, messageAsString) => {
+      const obj = JSON.parse(messageAsString);
+      const key = Object.keys(obj)[ZERO];
+      const parsedObj = rtUtils.parseObject(obj[key], key);
+      const { pubOpts } = parsedObj;
 
       // Deleting pubOpts from parsedObj before passing it to the emitter
       delete parsedObj.pubOpts;
 
-      if (featureToggles.isFeatureEnabled('enablePubStatsLogs')) {
-        trackPublishKey(key);
+      if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
+        trackStats(processName, key, parsedObj);
       }
 
       /*
