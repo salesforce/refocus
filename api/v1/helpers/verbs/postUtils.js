@@ -27,24 +27,6 @@ function makePostPromise(params, props, req) {
 }
 
 /**
- * @param {Object} params From swagger
- * @param {Object} props The helpers/nouns module for the given DB model
- * @param {Object} req From express
- * @returns {Promise} - which resolves to an array of created instances
- */
-function makeBulkPostPromise(params, props, req) {
-  const toPost = params.queryBody.value;
-  const promises = [];
-
-  toPost.forEach((item) => {
-    item.createdBy = req.user ? req.user.id : undefined;
-    promises.push(props.model.create(item, req.user));
-  });
-
-  return Promise.all(promises);
-}
-
-/**
  *
  * @param {Object} o Sequelize object
  * @param {Object} resultObj For logging
@@ -74,5 +56,4 @@ function handlePostResult(o, resultObj, props, res, req) {
 module.exports = {
   handlePostResult,
   makePostPromise,
-  makeBulkPostPromise,
 };

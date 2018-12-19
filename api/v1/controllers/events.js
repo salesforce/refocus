@@ -11,20 +11,14 @@
  */
 'use strict';
 
-const featureToggles = require('feature-toggles');
-const apiErrors = require('../apiErrors');
 const config = require('../../../config.js');
 const helper = require('../helpers/nouns/events');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPost = require('../helpers/verbs/doPost');
-const doPostBulk = require('../helpers/verbs/doPostBulk');
 const u = require('../helpers/verbs/utils');
-const publisher = u.publisher;
 const httpStatus = require('../constants').httpStatus;
 const DEFAULT_LIMIT = config.botEventLimit;
-const kueSetup = require('../../../jobQueue/setup');
-const kue = kueSetup.kue;
 
 module.exports = {
 
