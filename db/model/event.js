@@ -76,7 +76,7 @@ module.exports = function event(seq, dataTypes) {
    */
 
   /**
-   * Upsert multiple Events concurrently.
+   * Creates multiple Events concurrently.
    * @param  {Array} toCreate - An array of Event objects to create
    * @param {Object} user - The user performing the write operation
    * @returns {Array} - Resolves to an array of resolved promises

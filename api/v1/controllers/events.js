@@ -82,24 +82,17 @@ module.exports = {
     doPost(req, res, next, helper);
   },
 
-  postBulkEvents(req, res, next) {
-    doPostBulk(req, res, next, helper);
-  },
-
-
   /**
-   * POST /samples/upsert/bulk
+   * POST /events/bulk
    *
-   * Upserts multiple samples. Returns "OK" without waiting for the upserts to
-   * happen. When "enableWorkerProcess" is set to true, the bulk upsert is
-   * enqueued to be processed by a separate worker process and the response
-   * is returned with a job id.
+   * Upserts multiple events. Returns "OK" without waiting for the creates to
+   * happen.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    * @returns {Promise} - A promise that resolves to the response object,
-   * indicating merely that the bulk upsert request has been received.
+   * indicating merely that the bulk create request has been received.
    */
   bulkPostEvent(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
@@ -114,73 +107,14 @@ module.exports = {
      * @returns {Promise} a promise that resolves to the response object
      * with status and body
      */
-    function bulkUpsert(user) {
-      if (featureToggles.isFeatureEnabled('enableWorkerProcessA')) {  
-        const jobType = require('../../../jobQueue/setup').jobType;
-        const jobWrapper = require('../../../jobQueue/jobWrapper');
-        const wrappedBulkPostData = {};
-        wrappedBulkPostData.upsertData = value;
-        wrappedBulkPostData.user = user;
-        wrappedBulkPostData.reqStartTime = resultObj.reqStartTime;
-        const jobPromise = jobWrapper
-          .createPromisifiedJob(jobType.bulkPostEvents,
-            wrappedBulkPostData, req);
-        return jobPromise.then((job) => {
-          // set the job id in the response object before it is returned
-          body.jobId = job.id;
-          u.logAPI(req, resultObj, body, value.length);
-          return res.status(httpStatus.OK).json(body);
-        })
-        .catch((err) => {
-          u.handleError(next, err, helper.modelName)});
-      }
-
+    function bulkPost(user) {
       helper.model.bulkCreate(value, user);
       u.logAPI(req, resultObj, body, value.length);
       return Promise.resolve(res.status(httpStatus.OK).json(body));
-    } // bulkUpsert
+    } // bulkPost
     
-    bulkUpsert(req.user)
+    bulkPost(req.user)
       .catch((err) => u.handleError(next, err, helper.modelName));
-  }, // bulkUpsertSample
-
-  /**
-   * GET /samples/upsert/bulk/{key}/status
-   *
-   * Retrieves the status of the bulk upsert job and sends it back in the
-   * response
-   * @param {IncomingMessage} req - The request object
-   * @param {ServerResponse} res - The response object
-   * @param {Function} next - The next middleware function in the stack
-   */
-  getEventBulkStatus(req, res, next) {
-    const resultObj = { reqStartTime: req.timestamp };
-    const reqParams = req.swagger.params;
-    const jobId = reqParams.key.value;
-    console.log(jobId)
-    kue.Job.get(jobId, (_err, job) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
-      /*
-       * throw the "ResourceNotFoundError" if there is an error in getting the
-       * job or the job is not a bulkUpsert job
-       */
-      if (_err || !job || job.type !== kueSetup.jobType.bulkUpsertEvents) {
-        console.log(_err);
-        console.log(job.type);
-        console.log(kueSetup.jobType.bulkPostEvent)
-        const err = new apiErrors.ResourceNotFoundError();
-        return u.handleError(next, err, helper.modelName);
-      }
-
-      console.log(job._state)
-      // return the job status and the errors in the response
-      const ret = {};
-      ret.status = job._state;
-      ret.errors = job.result ? job.result.errors : [];
-      u.logAPI(req, resultObj, ret);
-      return res.status(httpStatus.OK).json(ret);
-    });
-  },
+  }, // bulkPostEvent
 }; // exports
 
