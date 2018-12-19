@@ -176,7 +176,6 @@ function calculateJobPriority(prioritize, deprioritize, req) {
  *  when the jobQueue is created in test mode.
  */
 function createPromisifiedJob(jobName, data, req) {
-  console.log("create promisified job")
   const startTime = Date.now();
   const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
     conf.deprioritizeJobsFrom, req);

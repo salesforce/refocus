@@ -3860,8 +3860,8 @@ paths:
           $ref: "#/responses/403"
         default:
           $ref: "#/responses/genericError"
-
-# ---------------------------------------------------------------------------
+          
+  # ---------------------------------------------------------------------------
   /events/bulk:
     x-swagger-router-controller: events
     post:
@@ -3911,7 +3911,7 @@ paths:
           description: >-
             Created
           schema:
-            $ref: "#/definitions/BulkUpsertResponse"
+            $ref: "#/definitions/BulkCreateResponse"
         400:
           $ref: "#/responses/400"
         403:
@@ -3920,40 +3920,8 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
-
-# ---------------------------------------------------------------------------
-  /events/bulk/{key}/status:
-    x-swagger-router-controller: events
-    get:
-      security:
-        - jwt: []
-      summary: Get sample upsert job status
-      tags: [ samples ]
-      description: >-
-        Retrieve the status of the job identified by id in the request.
-      operationId: getEventBulkStatus
-      parameters:
-        -
-          name: key
-          in: path
-          description: >-
-            The id the job
-          required: true
-          type: integer
-      responses:
-        200:
-          description: >-
-            Success.
-          schema:
-            $ref: "#/definitions/GetBulkUpsertStatusResponse"
-        400:
-          $ref: "#/responses/400"
-        404:
-          $ref: "#/responses/404"
-        default:
-          $ref: "#/responses/genericError"
-
-# ---------------------------------------------------------------------------
+          
+  # ---------------------------------------------------------------------------
   /events/{key}:
     x-swagger-router-controller: events
     get:
@@ -13066,6 +13034,19 @@ definitions:
       userId:
         type: string
         description: The user ID in which the event deals with
+
+  BulkCreateResponse:
+    type: object
+    description: >
+      Status of bulk create request.
+    properties:
+      status:
+        type: string
+        enum:
+          - OK
+        readOnly: true
+        description: >
+          Status.
 
   BotActionResponse:
     type: object

@@ -114,7 +114,6 @@ const waitingSigKillTimeout = +pe.WAITING_SIG_KILL_TIMEOUT || 60000;
 const jobType = {
   createAuditEvents: 'createAuditEvents',
   bulkUpsertSamples: 'bulkUpsertSamples',
-  bulkPostEvents: 'bulkUpsertEvents',
   getHierarchy: 'getHierarchy',
   bulkDeleteSubjects: 'bulkDeleteSubjects',
 };
