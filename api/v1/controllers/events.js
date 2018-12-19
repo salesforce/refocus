@@ -99,7 +99,7 @@ module.exports = {
      *
      * @param {Object} user Sequelize result. Optional
      * @returns {Promise} a promise that resolves to the response object
-     * with status and body,
+     * with status and body.
      */
     function bulkPost(user) {
       helper.model.bulkCreate(value, user);
