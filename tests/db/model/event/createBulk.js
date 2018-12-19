@@ -29,7 +29,7 @@ describe('tests/db/model/event/createBulk.js >', () => {
 
     Event.bulkCreate([
       testEvent1,
-      testEvent2
+      testEvent2,
     ])
     .then((res) => {
       expect(res.length).to.equal(TWO);
@@ -50,7 +50,7 @@ describe('tests/db/model/event/createBulk.js >', () => {
 
     Event.bulkCreate([
       testEvent1,
-      testEvent2
+      testEvent2,
     ])
     .catch((err) => {
       expect(err.message)
