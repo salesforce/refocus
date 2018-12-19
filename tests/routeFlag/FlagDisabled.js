@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/routeFlag/FlagDisabled.js
+ * tests/api/v1/routeFlag/flagDisabled.js
  */
 'use strict';
 
