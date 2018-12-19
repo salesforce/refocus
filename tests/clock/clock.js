@@ -14,6 +14,14 @@ const ms = require('ms');
 const u = require('./utils/utils');
 const redisClient = require('../../cache/redisCache').client.clock;
 
+function intervalsInDay(interval) {
+  return Math.floor(ms('24h') / ms(interval));
+}
+
+function intervalsInHour(interval) {
+  return Math.floor(ms('1h') / ms(interval));
+}
+
 describe('tests/clock/clock.js >', function () {
   this.timeout(5000);
 
@@ -62,7 +70,7 @@ describe('tests/clock/clock.js >', function () {
 
   it('toggles on', () => {
     const env = {
-      ENABLE_ACTIVITY_LOGS: 'kueStats,pubStats,queueStats',
+      ENABLE_ACTIVITY_LOGS: 'kueStats,pubsubStats,queueStats',
       ENABLE_REDIS_SAMPLE_STORE: 'true',
     };
 
@@ -71,7 +79,7 @@ describe('tests/clock/clock.js >', function () {
       deactivateRooms: intervalsInHour('5m'),
       jobCleanup: intervalsInHour('30m'),
       kueStatsActivityLogs: intervalsInHour('1m'),
-      pubStatsLogs: intervalsInHour('1m'),
+      pubsubStatsLogs: intervalsInHour('1m'),
       queueStatsActivityLogs: intervalsInHour('1m'),
       resetJobCounter: intervalsInHour('2h'),
       sampleTimeout: intervalsInHour('30s'),
@@ -87,11 +95,12 @@ describe('tests/clock/clock.js >', function () {
 
   it('override intervals', () => {
     const env = {
+      // eslint-disable-next-line camelcase
       CLOCK_JOB_INTERVAL_checkMissedCollectorHeartbeat: '1m',
-      CLOCK_JOB_INTERVAL_deactivateRooms: '2m',
-      CLOCK_JOB_INTERVAL_jobCleanup: '3m',
-      CLOCK_JOB_INTERVAL_resetJobCounter: '4m',
-      CLOCK_JOB_INTERVAL_sampleTimeout: '5m',
+      CLOCK_JOB_INTERVAL_deactivateRooms: '2m', // eslint-disable-line camelcase
+      CLOCK_JOB_INTERVAL_jobCleanup: '3m', // eslint-disable-line camelcase
+      CLOCK_JOB_INTERVAL_resetJobCounter: '4m', // eslint-disable-line camelcase
+      CLOCK_JOB_INTERVAL_sampleTimeout: '5m', // eslint-disable-line camelcase
     };
 
     const expectedCount = {
@@ -109,12 +118,4 @@ describe('tests/clock/clock.js >', function () {
       });
     });
   });
-
-  function intervalsInDay(interval) {
-    return Math.floor(ms('24h') / ms(interval));
-  }
-
-  function intervalsInHour(interval) {
-    return Math.floor(ms('1h') / ms(interval));
-  }
 });
