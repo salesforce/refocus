@@ -3927,8 +3927,8 @@ paths:
     get:
       security:
         - jwt: []
-      summary: Get sample upsert job status
-      tags: [ samples ]
+      summary: Get event bulk job status
+      tags: [ events ]
       description: >-
         Retrieve the status of the job identified by id in the request.
       operationId: getEventBulkStatus
