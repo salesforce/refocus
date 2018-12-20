@@ -52,9 +52,8 @@ describe('tests/db/model/event/createBulk.js >', () => {
       testEvent1,
       testEvent2,
     ])
-    .catch((err) => {
-      expect(err.message)
-        .to.equal('notNull Violation: Event.log cannot be null');
+    .then((res) => {
+      expect(res[ONE].isFailed).to.equal(true);
       done();
     });
   });
