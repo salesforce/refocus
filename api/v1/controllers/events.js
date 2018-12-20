@@ -124,7 +124,8 @@ module.exports = {
           return res.status(httpStatus.OK).json(body);
         })
         .catch((err) => {
-          u.handleError(next, err, helper.modelName)});
+          u.handleError(next, err, helper.modelName);
+        });
       }
 
       helper.model.bulkCreate(value, user);
