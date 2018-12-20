@@ -9,7 +9,7 @@
 /**
  * realtime/constants.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const bot = {
   client: 'pubBot',
@@ -113,5 +113,15 @@ module.exports = {
 
   },
 
-  pubStatsHash: 'pubstats',
+  pubsubStatsKeys: {
+    pub: {
+      count: 'pubSubStats:pubCount',
+      time: 'pubSubStats:pubTime',
+    },
+    sub: {
+      count: 'pubSubStats:subCount',
+      time: 'pubSubStats:subTime',
+      processes: 'pubSubStats:subProcesses',
+    },
+  },
 };

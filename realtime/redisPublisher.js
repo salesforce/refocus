@@ -17,6 +17,25 @@ const pubPerspective = client.pubPerspective;
 const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const logger = require('winston');
+const featureToggles = require('feature-toggles');
+const rcache = require('../cache/redisCache').client.cache;
+const pubsubStatsKeys = require('./constants').pubsubStatsKeys;
+const ONE = 1;
+
+/**
+ * Store pub stats in redis cache, tracking count and publish time by key. Note
+ * that we're using the async redis command here; we don't require the hincrby
+ * command to complete before moving on to other work, so we're not wrapping it
+ * in a promise.
+ *
+ * @param {String} key - The event type
+ * @param {Object} obj - The object being published
+ */
+function trackStats(key, obj) {
+  const elapsed = Date.now() - new Date(obj.updatedAt);
+  rcache.hincrbyAsync(pubsubStatsKeys.pub.count, key, ONE);
+  rcache.hincrbyAsync(pubsubStatsKeys.pub.time, key, elapsed);
+} // trackStats
 
 /**
  * When passed an sample object, either a sequelize sample object or
@@ -97,6 +116,10 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
     obj[event] = prepared;
   }
 
+  if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
+    trackStats(event, obj[event]);
+  }
+
   pubClient.publish(channelName, JSON.stringify(obj));
   return obj;
 } // publishObject
@@ -140,7 +163,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     })
     .catch((err) => {
       // Any failure on publish sample must not stop the next promise.
-      logger.error('Error to publish sample - ' + err);
+      logger.error('publishSample error', err);
       return Promise.resolve();
     });
 } // publishSample
