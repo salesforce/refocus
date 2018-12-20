@@ -11,6 +11,8 @@
  */
 'use strict';
 
+const featureToggles = require('feature-toggles');
+const apiErrors = require('../apiErrors');
 const config = require('../../../config.js');
 const helper = require('../helpers/nouns/events');
 const doFind = require('../helpers/verbs/doFind');
@@ -19,6 +21,9 @@ const doPost = require('../helpers/verbs/doPost');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const DEFAULT_LIMIT = config.botEventLimit;
+
+const kueSetup = require('../../../jobQueue/setup');
+const kue = kueSetup.kue;
 
 module.exports = {
 
@@ -102,6 +107,26 @@ module.exports = {
      * with status and body.
      */
     function bulkPost(user) {
+      if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
+        const jobType = require('../../../jobQueue/setup').jobType;
+        const jobWrapper = require('../../../jobQueue/jobWrapper');
+        const wrappedBulkPostData = {};
+        wrappedBulkPostData.createData = value;
+        wrappedBulkPostData.user = user;
+        wrappedBulkPostData.reqStartTime = resultObj.reqStartTime;
+        const jobPromise = jobWrapper
+          .createPromisifiedJob(jobType.bulkPostEvents,
+            wrappedBulkPostData, req);
+        return jobPromise.then((job) => {
+          // set the job id in the response object before it is returned
+          body.jobId = job.id;
+          u.logAPI(req, resultObj, body, value.length);
+          return res.status(httpStatus.OK).json(body);
+        })
+        .catch((err) => {
+          u.handleError(next, err, helper.modelName)});
+      }
+
       helper.model.bulkCreate(value, user);
       u.logAPI(req, resultObj, body, value.length);
       return Promise.resolve(res.status(httpStatus.OK).json(body));
@@ -110,5 +135,38 @@ module.exports = {
     bulkPost(req.user)
       .catch((err) => u.handleError(next, err, helper.modelName));
   }, // bulkPostEvent
-}; // exports
 
+  /**
+   * GET /events/bulk/{key}/status
+   *
+   * Retrieves the status of the bulk create job and sends it back in the
+   * response
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getEventBulkStatus(req, res, next) {
+    const resultObj = { reqStartTime: req.timestamp };
+    const reqParams = req.swagger.params;
+    const jobId = reqParams.key.value;
+    kue.Job.get(jobId, (_err, job) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+      /*
+       * throw the "ResourceNotFoundError" if there is an error in getting the
+       * job or the job is not a bulkPostEvents job
+       */
+      if (_err || !job || job.type !== kueSetup.jobType.bulkPostEvents) {
+        const err = new apiErrors.ResourceNotFoundError();
+        return u.handleError(next, err, helper.modelName);
+      }
+
+      // return the job status and the errors in the response
+      const ret = {};
+      ret.status = job._state;
+      ret.errors = job.result ? job.result.errors : [];
+      u.logAPI(req, resultObj, ret);
+      return res.status(httpStatus.OK).json(ret);
+    });
+  },
+}; // exports
