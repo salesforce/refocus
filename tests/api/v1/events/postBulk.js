@@ -36,6 +36,10 @@ describe('tests/api/v1/events/postBulk.js >', () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
+  after(() => {
+    tu.toggleOverride('enableWorkerProcess', false);
+  });
+
   it('Pass, POST an array of events', (done) => {
     const event1 = u.getStandard();
     const event2 = u.getStandard();
@@ -53,6 +57,28 @@ describe('tests/api/v1/events/postBulk.js >', () => {
       }
 
       expect(res.body.status).to.equal('OK');
+      done();
+    });
+  });
+
+  it('Pass, response contins jobId as enableWorkerProcess=true', (done) => {
+    tu.toggleOverride('enableWorkerProcess', true);
+    const event1 = u.getStandard();
+    const event2 = u.getStandard();
+    event1.log = 'This is event 1';
+    event2.log = 'This is event 2';
+    const eventsArray = [event1, event2];
+
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(eventsArray)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).to.have.property('jobId');
       done();
     });
   });

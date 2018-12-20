@@ -118,7 +118,7 @@ module.exports = {
           .createPromisifiedJob(jobType.bulkPostEvents,
             wrappedBulkPostData, req);
         return jobPromise.then((job) => {
-          // set the job id in the response object before it is returned
+          // Set the jobId in the response object before it is returned
           body.jobId = job.id;
           u.logAPI(req, resultObj, body, value.length);
           return res.status(httpStatus.OK).json(body);
@@ -128,6 +128,7 @@ module.exports = {
         });
       }
 
+      // If enableWorkerProcess is toggled off, just carry out with web dynosåååå
       helper.model.bulkCreate(value, user);
       u.logAPI(req, resultObj, body, value.length);
       return Promise.resolve(res.status(httpStatus.OK).json(body));
