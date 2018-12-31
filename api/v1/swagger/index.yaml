@@ -2407,7 +2407,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/definitions/BotResponse"
+              $ref: "./definitions/bot.yaml#/BotResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -2497,7 +2497,7 @@ paths:
           description: >-
             Created bot
           schema:
-            $ref: "#/definitions/BotResponse"
+            $ref: "./definitions/bot.yaml#/BotResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -2531,7 +2531,7 @@ paths:
           description: >-
             Success, Deleted Bot
           schema:
-            $ref: "#/definitions/BotResponse"
+            $ref: "./definitions/bot.yaml#/BotResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -2576,7 +2576,7 @@ paths:
           description: >-
             Success, returns specified bot
           schema:
-            $ref: "#/definitions/BotResponse"
+            $ref: "./definitions/bot.yaml#/BotResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -2648,7 +2648,7 @@ paths:
           description: >-
             Updated field
           schema:
-            $ref: "#/definitions/BotResponse"
+            $ref: "./definitions/bot.yaml#/BotResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -2740,7 +2740,7 @@ paths:
           description: >-
             Created bot
           schema:
-            $ref: "#/definitions/BotResponse"
+            $ref: "./definitions/bot.yaml#/BotResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -12902,43 +12902,6 @@ definitions:
         type: string
         description: >
           Timestamp at which the the write permission was modified
-
-  BotResponse:
-    type: object
-    description: A response for information about a bot
-    properties:
-      id:
-        type: string
-        description: The UUID for the bot
-      name:
-        type: string
-        description: The unique readable name for the bot
-      url:
-        type: string
-        description: The URL of the bot server
-      ui:
-        type: object
-        description: The UI of the bot
-        properties:
-          name:
-            type: string
-            description: The name of the UI file.
-          size:
-            type: integer
-            description: The size of the UI file (bytes)
-      active:
-        type: boolean
-        description: Flag for if a bot is active with communication
-      actions:
-        type: array
-        description: A list of actions that a bot can perform
-        items:
-          type: object
-      data:
-        type: array
-        description: A list of data that a bot can provide
-        items:
-          type: object
 
   EventResponse:
     type: object
