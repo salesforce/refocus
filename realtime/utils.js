@@ -203,6 +203,7 @@ function perspectiveEmit(nspComponents, obj) {
     applyFilter(statusFilter, obj.status);
 } // perspectiveEmit
 
+// OLD - remove along with namespace toggles
 /**
  * Returns true if this object should be emitted as a real-time event to a
  * namespace (representing a room) given the various filters passed in here
@@ -245,6 +246,7 @@ function shouldIEmitThisObj(nspString, obj, pubOpts) {
     return perspectiveEmit(nspComponents, obj);
   }
 
+  // OLD - remove along with namespace toggles
   if (absPathNsp === botAbsolutePath) {
     return botEmit(nspComponents, obj, pubOpts);
   }
@@ -252,6 +254,7 @@ function shouldIEmitThisObj(nspString, obj, pubOpts) {
   return false;
 }
 
+// OLD - remove along with namespace toggles
 /**
  * When passed a perspective object, it returns a namespace string based on the
  * fields set in the prespective object. A namespace string is of the format
@@ -282,6 +285,7 @@ function getPerspectiveNamespaceString(inst) {
   return namespace;
 }
 
+// OLD - remove along with namespace toggles
 /**
  * When passed a room object, it returns a namespace string based on the
  * fields set in the room object.
@@ -297,6 +301,7 @@ function getBotsNamespaceString(inst) {
   return namespace;
 }
 
+// OLD - remove along with namespace toggles
 /**
  * Initializes a socketIO namespace based on the perspective object.
  * @param {Instance} inst - The perspective instance.
@@ -310,6 +315,7 @@ function initializePerspectiveNamespace(inst, io) {
   return io;
 }
 
+// OLD - remove along with namespace toggles
 /**
  * Initializes a socketIO namespace based on the bot object.
  * @param {Instance} inst - The perspective instance.
@@ -321,6 +327,48 @@ function initializeBotNamespace(inst, io) {
   const nspString = getBotsNamespaceString(inst);
   io.of(nspString);
   return io;
+}
+
+// NEW
+/**
+ * Initialize a socketIO namespace with a connect event adding sockets to the
+ * appropriate room.
+ * @param {String} namespace - The namespace to initialize
+ * @param {Socket.io} io - The socketio's server side object
+ */
+function initializeNamespace(namespace, io) {
+  io.of(namespace).on('connect', (socket) => {
+    const q = socket.handshake.query;
+    const roomName = q.id;
+    socket.join(roomName);
+  });
+}
+
+// NEW
+/**
+ * Set up connect/disconnect events to keep track of which rooms are active for
+ * the namespace
+ * @param {String} namespace - The namespace to initialize
+ * @param {Socket.io} io - The socketio's server side object
+ */
+const connectedPerspectives = new Set();
+function trackConnectedRooms(namespace, io) {
+  io.of(namespace).on('connect', (socket) => {
+    const q = socket.handshake.query;
+    const roomName = q.id;
+    connectedPerspectives.add(roomName);
+
+    socket.on('disconnect', () => {
+      const allSockets = Object.values(io.of(namespace).connected);
+      const roomIsActive = allSockets.some((socket) =>
+        Object.keys(socket.rooms).includes(room)
+      );
+
+      if (!roomIsActive) {
+        connectedPerspectives.removeRoom(room);
+      }
+    });
+  });
 }
 
 /**
@@ -450,7 +498,12 @@ module.exports = {
   getPerspectiveNamespaceString,
   initializeBotNamespace,
   initializePerspectiveNamespace,
+  initializeNamespace,
+  trackConnectedRooms,
+  connectedPerspectives,
   isIpWhitelisted,
   parseObject,
   shouldIEmitThisObj,
+  perspectiveEmit,
+  botEmit,
 }; // exports

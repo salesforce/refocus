@@ -50,6 +50,7 @@ function getUserFromSession(sid, redisStore) {
   });
 } // getUserFromSession
 
+// OLD - remove along with namespace toggles
 /**
  * Fetches all the perspectives and calls initializeNamespace to initialize
  * a socketIO namespace for each one.
@@ -202,7 +203,19 @@ function init(io, redisStore) {
     } // no cookie
   }); // on connect
 
-  return setupNamespace(io); // executes only on server start
+  // NEW
+  if (featureToggles.isFeatureEnabled('useNewNamespaceFormat')) {
+    // executes only on server start
+    rtUtils.initializeNamespace('bots', io);
+    rtUtils.initializeNamespace('rooms', io);
+    rtUtils.initializeNamespace('perspectives', io);
+    rtUtils.trackConnectedRooms('perspectives', io);
+  }
+
+  // OLD
+  if (featureToggles.isFeatureEnabled('useOldNamespaceFormat')) {
+    return setupNamespace(io); // executes only on server start
+  }
 } // init
 
 module.exports = {
