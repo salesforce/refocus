@@ -581,7 +581,6 @@ module.exports = {
    *  indicating that the bulk subject delete request has been received.
    */
   deleteSubjects(req, res, next) {
-    console.log("MMMMM")
     const subjectDataWrapper = {};
     subjectDataWrapper.subjects = req.swagger.params.queryBody.value;
     subjectDataWrapper.user = req.user;
@@ -604,8 +603,6 @@ module.exports = {
         return res.status(httpStatus.OK).json(body);
       })
       .catch((err) => {
-        console.log("PPPPPPPP")
-        console.log(err);
         u.handleError(next, err, helper.modelName);
       });
   },
