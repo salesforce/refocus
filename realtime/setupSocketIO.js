@@ -204,7 +204,7 @@ function init(io, redisStore) {
   }); // on connect
 
   // NEW
-  if (featureToggles.isFeatureEnabled('useNewNamespaceFormat')) {
+  if (toggle.isFeatureEnabled('useNewNamespaceFormat')) {
     // executes only on server start
     rtUtils.initializeNamespace('bots', io);
     rtUtils.initializeNamespace('rooms', io);
@@ -213,7 +213,7 @@ function init(io, redisStore) {
   }
 
   // OLD
-  if (featureToggles.isFeatureEnabled('useOldNamespaceFormat')) {
+  if (toggle.isFeatureEnabled('useOldNamespaceFormat')) {
     return setupNamespace(io); // executes only on server start
   }
 } // init

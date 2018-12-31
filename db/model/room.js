@@ -207,12 +207,12 @@ module.exports = function room(seq, dataTypes) {
       attributes: ['id', 'name'],
       include: [
         {
-          model: models.RoomType,
+          model: seq.models.RoomType,
           as: 'type',
           attributes: ['id', 'name'],
           include: [
             {
-              model: models.Bot,
+              model: seq.models.Bot,
               as: 'bots',
               attributes: ['id', 'name'],
               through: { attributes: [] },
