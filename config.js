@@ -25,7 +25,7 @@ const port = pe.PORT || defaultPort;
 const defaultPayloadLimit = '200MB';
 const payloadLimit = pe.REQUEST_PAYLOAD_LIMIT || defaultPayloadLimit;
 const newRelicKey = pe.NEW_RELIC_LICENSE_KEY || '';
-const pgdatabase = pe.PGDATABASE || 'focusdb';
+const pgdatabase = pe.PGDATABASE || 'focusdb-test';
 const pguser = pe.PGUSER || 'postgres';
 const pgpass = pe.PGPASS || 'postgres';
 const pghost = pe.PGHOST || 'localhost';
@@ -170,7 +170,7 @@ module.exports = {
       offset: 0,
     },
     swagger: {
-      doc: './api/v1/swagger.yaml',
+      doc: './api/v1/swagger/index.yaml',
       router: {
         controllers: './api/v1/controllers',
       },

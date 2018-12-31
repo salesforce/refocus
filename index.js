@@ -17,12 +17,12 @@
 /* eslint-disable global-require */
 /* eslint-disable no-process-env */
 const throng = require('throng');
+const JsonRefs = require('json-refs');
 const DEFAULT_WEB_CONCURRENCY = 1;
 const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 const sampleStore = require('./cache/sampleStoreInit');
 const conf = require('./config');
 const signal = require('./signal/signal');
-const ONE = 1;
 
 /**
  * Entry point for each clustered process.
@@ -98,9 +98,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   const RedisStore = require('connect-redis')(session);
   const rstore = new RedisStore({ url: conf.redis.instanceUrl.session });
   socketIOSetup.init(io, rstore);
-  const processName = (process.env.DYNO ? process.env.DYNO + ':' : '') +
-    clusterProcessId;
-  require('./realtime/redisSubscriber')(io, processName);
+  require('./realtime/redisSubscriber')(io);
 
   // pass passport for configuration
   require('./config/passportconfig')(passportModule);
@@ -175,149 +173,144 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   app.set('views', path.join(__dirname, 'view'));
   app.set('view engine', 'pug');
 
-  // Initialize the Swagger middleware
-  const swaggerFile = fs // eslint-disable-line no-sync
-    .readFileSync(conf.api.swagger.doc, ENCODING);
-  const swaggerDoc = yaml.safeLoad(swaggerFile);
+  // Enables Swagger Schema to be multiple files
+  const swaggerRefOptions = {
+    loaderOptions: {
+      processContent: (res, callback) => {
+        callback(undefined, yaml.safeLoad(res.text));
+      },
+    },
+  };
 
-  if (featureToggles.isFeatureEnabled('hideRoutes')) {
-    for (let _path in swaggerDoc.paths) {
-      if (swaggerDoc.paths.hasOwnProperty(_path)) {
-        if (conf.hiddenRoutes.includes(_path.split('/')[ONE])) {
-          delete swaggerDoc.paths[_path];
+  JsonRefs.resolveRefsAt('./api/v1/swagger/index.yaml', swaggerRefOptions)
+  .then(({ resolved }) => {
+    const swaggerDoc = resolved;
+
+    swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
+      /*
+       * Custom middleware to add timestamp and node cluster worker id to the
+       * request.
+       */
+      app.use((req, res, next) => {
+        req.timestamp = Date.now();
+        req.clusterProcessId = clusterProcessId;
+
+        // Add "request_id" if header is set by host system, e.g. heroku.
+        if (req.headers && req.headers['x-request-id']) {
+          req.request_id = req.headers['x-request-id'];
         }
-      }
-    }
-  }
 
-  swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
-    /*
-     * Custom middleware to add timestamp and node cluster worker id to the
-     * request.
-     */
-    app.use((req, res, next) => {
-      req.timestamp = Date.now();
-      req.clusterProcessId = clusterProcessId;
+        /*
+         * Add dyno and/or clusterProcessId to request--helpful to have when
+         * logging. "process.env.DYNO" is only available when deployed to heroku,
+         * so ignore if it's not available. "clusterProcessId" represents the
+         * cluster worker id if the process is started from throng (it is zero if
+         * the process is not started from throng).
+         */
+        if (process.env.DYNO) req.dyno = process.env.DYNO;
+        req.process = (req.dyno ? req.dyno + ':' : '') + clusterProcessId;
 
-      // Add "request_id" if header is set by host system, e.g. heroku.
-      if (req.headers && req.headers['x-request-id']) {
-        req.request_id = req.headers['x-request-id'];
-      }
+        next();
+      });
+
+      const staticOptions = {
+        etag: true,
+        setHeaders(res, path, stat) {
+          res.set('ETag', etag(stat));
+
+          // give me the latest copy unless I already have the latest copy.
+          res.set('Cache-Control', 'public, max-age=0');
+        },
+      };
+
+      app.use('/static', express.static(path.join(__dirname, 'public'),
+        staticOptions));
+
+      // Set the X-XSS-Protection HTTP header as a basic protection against XSS
+      app.use(helmet.xssFilter());
 
       /*
-       * Add dyno and/or clusterProcessId to request--helpful to have when
-       * logging. "process.env.DYNO" is only available when deployed to heroku,
-       * so ignore if it's not available. "clusterProcessId" represents the
-       * cluster worker id if the process is started from throng (it is zero if
-       * the process is not started from throng).
+       * Allow specified routes to be accessed from Javascript outside of Refocus
+       * through cross-origin resource sharing
+       * e.g. A bot that needs to get current botData from Refocus
        */
-      if (process.env.DYNO) req.dyno = process.env.DYNO;
-      req.process = processName;
-      next();
-    });
+      conf.corsRoutes.forEach((rte) => app.use(rte, cors()));
 
-    const staticOptions = {
-      etag: true,
-      setHeaders(res, path, stat) {
-        res.set('ETag', etag(stat));
+      // Only let me be framed by people of the same origin
+      app.use(helmet.frameguard());  // Same-origin by default
 
-        // give me the latest copy unless I already have the latest copy.
-        res.set('Cache-Control', 'public, max-age=0');
-      },
-    };
+      // Remove the X-Powered-By header (which is on by default in Express)
+      app.use(helmet.hidePoweredBy());
 
-    app.use('/static', express.static(path.join(__dirname, 'public'),
-      staticOptions));
+      // Keep browsers from sniffing mimetypes
+      app.use(helmet.noSniff());
 
-    // Set the X-XSS-Protection HTTP header as a basic protection against XSS
-    app.use(helmet.xssFilter());
+      /*
+       * Redirect '/' to the application landing page, which right now is the
+       * default perspective (or the first perspective in alphabetical order if
+       * no perspective is defined as the default).
+       */
+      app.get('/', (req, res) => res.redirect('/perspectives'));
 
-    /*
-     * Allow specified routes to be accessed from Javascript outside of Refocus
-     * through cross-origin resource sharing
-     * e.g. A bot that needs to get current botData from Refocus
-     */
-    conf.corsRoutes.forEach((rte) => app.use(rte, cors()));
+      // Set the JSON payload limit.
+      app.use(bodyParser.json({ limit: conf.payloadLimit }));
 
-    // Only let me be framed by people of the same origin
-    app.use(helmet.frameguard());  // Same-origin by default
+      /*
+       * Interpret Swagger resources and attach metadata to request - must be
+       * first in swagger-tools middleware chain.
+       */
+      app.use(mw.swaggerMetadata());
 
-    // Remove the X-Powered-By header (which is on by default in Express)
-    app.use(helmet.hidePoweredBy());
+      // Use token security in swagger api routes
+      app.use(mw.swaggerSecurity({
+        jwt: (req, authOrSecDef, scopes, cb) => {
+          jwtUtil.verifyToken(req, cb);
+        },
+      }));
 
-    // Keep browsers from sniffing mimetypes
-    app.use(helmet.noSniff());
-
-    /*
-     * NOTE: this is a *temporary* hack which will change once we implement UX
-     * designs.
-     *
-     * Redirect '/' to the application landing page, which is the environment
-     * variable `LANDING_PAGE_URL` if it is defined. If it is not defined then
-     * use the default perspective (or the first perspective in alphabetical
-     * order if no perspective is defined as the default).
-     */
-    app.get('/', (req, res) =>
-      res.redirect(process.env.LANDING_PAGE_URL || '/perspectives'));
-
-    // Set the JSON payload limit.
-    app.use(bodyParser.json({ limit: conf.payloadLimit }));
-
-    /*
-     * Interpret Swagger resources and attach metadata to request - must be
-     * first in swagger-tools middleware chain.
-     */
-    app.use(mw.swaggerMetadata());
-
-    // Use token security in swagger api routes
-    app.use(mw.swaggerSecurity({
-      jwt: (req, authOrSecDef, scopes, cb) => {
-        jwtUtil.verifyToken(req, cb);
-      },
-    }));
-
-    /*
-     * Set up API rate limits. Note that we are doing this *after* the
-     * swaggerSecurity middleware so that jwtUtil.verifyToken will already
-     * have been executed so that all of the request headers it adds are
-     * available for the express-limiter "lookup".
-     * Set the "lookup" attribute to a string or array to do a value lookup on
-     * the request object. For example, if we wanted to apply API request
-     * limits by user name and IP address, we could set lookup to
-     * ['headers.UserName', 'headers.x-forwarded-for'].
-     */
-    const methods = conf.expressLimiterMethod;
-    const paths = conf.expressLimiterPath;
-    methods.forEach((method) => {
-      method = method.toLowerCase();
-      if (paths && paths.length && app[method]) {
-        try {
-          app[method](paths, rateLimit);
-        } catch (err) {
-          console.error(`Failed to initialize limiter for ${method} ${paths}`);
-          console.error(err);
+      /*
+       * Set up API rate limits. Note that we are doing this *after* the
+       * swaggerSecurity middleware so that jwtUtil.verifyToken will already
+       * have been executed so that all of the request headers it adds are
+       * available for the express-limiter "lookup".
+       * Set the "lookup" attribute to a string or array to do a value lookup on
+       * the request object. For example, if we wanted to apply API request
+       * limits by user name and IP address, we could set lookup to
+       * ['headers.UserName', 'headers.x-forwarded-for'].
+       */
+      const methods = conf.expressLimiterMethod;
+      const paths = conf.expressLimiterPath;
+      methods.forEach((method) => {
+        method = method.toLowerCase();
+        if (paths && paths.length && app[method]) {
+          try {
+            app[method](paths, rateLimit);
+          } catch (err) {
+            console.error(`Failed to initialize limiter for ${method} ${paths}`);
+            console.error(err);
+          }
         }
-      }
+      });
+
+      // Validate Swagger requests
+      app.use(mw.swaggerValidator(conf.api.swagger.validator));
+
+      /*
+       * Route validated requests to appropriate controller. Since Swagger Router
+       * will actually return a response, it should be as close to the end of your
+       * middleware chain as possible.
+       */
+      app.use(mw.swaggerRouter(conf.api.swagger.router));
+
+      // Serve the Swagger documents and Swagger UI
+      app.use(mw.swaggerUi({
+        apiDocs: swaggerDoc.basePath + '/api-docs', // API documetation as JSON
+        swaggerUi: swaggerDoc.basePath + '/docs', // API documentation as HTML
+      }));
+
+      // Handle Errors
+      app.use(errorHandler);
     });
-
-    // Validate Swagger requests
-    app.use(mw.swaggerValidator(conf.api.swagger.validator));
-
-    /*
-     * Route validated requests to appropriate controller. Since Swagger Router
-     * will actually return a response, it should be as close to the end of your
-     * middleware chain as possible.
-     */
-    app.use(mw.swaggerRouter(conf.api.swagger.router));
-
-    // Serve the Swagger documents and Swagger UI
-    app.use(mw.swaggerUi({
-      apiDocs: swaggerDoc.basePath + '/api-docs', // API documetation as JSON
-      swaggerUi: swaggerDoc.basePath + '/docs', // API documentation as HTML
-    }));
-
-    // Handle Errors
-    app.use(errorHandler);
   });
 
   // Setup for session
