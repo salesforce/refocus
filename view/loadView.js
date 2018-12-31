@@ -22,10 +22,9 @@ const viewConfig = require('../viewConfig');
 const jwtUtil = require('../utils/jwtUtil');
 const httpStatus = require('./constants').httpStatus;
 const url = require('url');
-const featureToggles = require('feature-toggles');
+const ft = require('feature-toggles');
 
-const redirectFeature =
-  featureToggles.isFeatureEnabled('enableRedirectDifferentInstance');
+const redirectFeature = ft.isFeatureEnabled('enableRedirectDifferentInstance');
 
 // protected urls
 const viewmap = {
@@ -195,6 +194,7 @@ function loadView(app, passport) {
           user: JSON.stringify(copyOfUser).replace(/'/g,"apos;"),
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
           transportProtocol: viewConfig.socketIOtransportProtocol,
+          useNewNamespaceFormat: ft.isFeatureEnabled('useNewNamespaceFormat'),
         };
 
         // This is temporary - remove when separate deployment has settled

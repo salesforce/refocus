@@ -672,14 +672,26 @@ function confirmUserExit() {
  * are connected install the bots in the room.
  *
  * @param  {Array} bots - Array of Bots
+ * @param  {String} roomId - The room id
  */
-function setupSocketIOClient(bots) {
+function setupSocketIOClient(bots, roomId) {
   // Map Bot Ids to Bot Names
   bots.forEach((bot) => {
     botInfo[bot.body.id] = bot.body.name;
   });
 
-  const socket = _io('/', { transports: ['websocket'] });
+  let socket;
+  if (useNewNamespaceFormat) {
+    const options = {
+      query: {
+        id: roomId,
+      },
+      transports: ['websocket'],
+    };
+    socket = _io('/rooms', options);
+  } else {
+    socket = _io('/', { transports: ['websocket'] });
+  }
 
   // Socket Event Names
   const settingsChangedEventName =
@@ -1071,7 +1083,7 @@ window.onload = () => {
     }
   })
   .then((res) => {
-    res && setupSocketIOClient(res);
+    res && setupSocketIOClient(res, room.id);
     uPage.removeSpinner();
   });
 };

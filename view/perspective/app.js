@@ -154,8 +154,6 @@ function setupSocketIOClient(persBody) {
    * Add the perspective name as a query param so that it's available server-
    * side on connect.
    */
-  const namespace = u.getNamespaceString(persBody) +
-    `?p=${persBody.name}`;
 
   /*
    * If transProtocol is set, initialize the socket.io client with the
@@ -166,16 +164,28 @@ function setupSocketIOClient(persBody) {
    * clientProtocol string. Finally, we split the comma-seperated values into
    * an array.
    */
-  const options = {};
-  if (_transProtocol) {
-    options.transports = _transProtocol.replace(/\s*,\s*/g, ',').split(',');
+
+  let transports;
+  if (WEBSOCKET_ONLY) {
+    transports = ['websocket'];
+  } else if (_transProtocol) {
+    transports = _transProtocol.replace(/\s*,\s*/g, ',').split(',');
   }
 
   let socket;
-  if (WEBSOCKET_ONLY) {
-    socket = _io(namespace, { transports: ['websocket'] });
+  if (useNewNamespaceFormat) {
+    const options = {
+      query: {
+        p: persBody.name,
+        id: u.getNamespaceString(persBody),
+      },
+      transports,
+    };
+
+    socket = _io('/perspectives', options);
   } else {
-    socket = _io(namespace, options);
+    const namespace = u.getNamespaceString(persBody) + `?p=${persBody.name}`;
+    socket = _io(namespace, { transports });
   }
 
   socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
