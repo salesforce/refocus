@@ -195,6 +195,12 @@ const shortTermToggles = {
   // reassign generators among running collectors to distribute load
   distributeGenerators: environmentVariableTrue(
     pe, 'DISTRIBUTE_GENERATORS'),
+
+  // use old socket.io namespace format
+  useOldNamespaceFormat: environmentVariableTrue(pe, 'USE_OLD_NAMESPACE_FORMAT'),
+
+  // use new socket.io namespace/room format
+  useNewNamespaceFormat: environmentVariableTrue(pe, 'USE_NEW_NAMESPACE_FORMAT'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

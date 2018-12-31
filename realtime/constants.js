@@ -66,7 +66,9 @@ module.exports = {
     },
 
     room: {
+      // OLD - remove along with namespace toggles
       add: 'refocus.internal.realtime.bot.namespace.initialize',
+
       upd: 'refocus.internal.realtime.room.settingsChanged',
       del: 'refocus.internal.realtime.room.remove',
     },
@@ -78,9 +80,11 @@ module.exports = {
       nc: 'refocus.internal.realtime.sample.nochange',
     },
 
+    // OLD - remove along with namespace toggles
     perspective: {
       initialize: 'refocus.internal.realtime.perspective.namespace.initialize',
     },
+
   },
 
   bot,
