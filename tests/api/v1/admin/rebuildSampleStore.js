@@ -38,7 +38,7 @@ describe('tests/api/v1/admin/rebuildSampleStore.js >', () => {
      * Register a non-admin user and an admin user; grab the predefined admin
      * user's token
      */
-    before(function(done) {
+    before(function (done) {
       this.timeout(8000);
       tu.toggleOverride(sampleStore.constants.featureName, false);
       tu.createToken()
