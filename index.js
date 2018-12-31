@@ -24,6 +24,8 @@ const sampleStore = require('./cache/sampleStoreInit');
 const conf = require('./config');
 const signal = require('./signal/signal');
 
+const ONE = 1;
+
 /**
  * Entry point for each clustered process.
  *
@@ -186,6 +188,16 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   .then(({ resolved }) => {
     const swaggerDoc = resolved;
 
+    if (featureToggles.isFeatureEnabled('hideRoutes')) {
+      for (let _path in swaggerDoc.paths) {
+        if (swaggerDoc.paths.hasOwnProperty(_path)) {
+          if (conf.hiddenRoutes.includes(_path.split('/')[ONE])) {
+            delete swaggerDoc.paths[_path];
+          }
+        }
+      }
+    }
+
     swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
       /*
        * Custom middleware to add timestamp and node cluster worker id to the
@@ -246,11 +258,16 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
       app.use(helmet.noSniff());
 
       /*
-       * Redirect '/' to the application landing page, which right now is the
-       * default perspective (or the first perspective in alphabetical order if
-       * no perspective is defined as the default).
+       * NOTE: this is a *temporary* hack which will change once we implement UX
+       * designs.
+       *
+       * Redirect '/' to the application landing page, which is the environment
+       * variable `LANDING_PAGE_URL` if it is defined. If it is not defined then
+       * use the default perspective (or the first perspective in alphabetical
+       * order if no perspective is defined as the default).
        */
-      app.get('/', (req, res) => res.redirect('/perspectives'));
+      app.get('/', (req, res) =>
+        res.redirect(process.env.LANDING_PAGE_URL || '/perspectives'));
 
       // Set the JSON payload limit.
       app.use(bodyParser.json({ limit: conf.payloadLimit }));

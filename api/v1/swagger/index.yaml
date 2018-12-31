@@ -12373,12 +12373,6 @@ definitions:
           Filter by sortBy; asterisk (*) wildcards ok.
           Max 254 characters; case insensitive; allows alpha-numeric characters,
           underscore (_) and dash (-).
-      parentId:
-        type: string
-        readOnly: true
-        description: >
-          The id of the subject's parent, empty if this subject is at the root of
-          the hierarchy.
       parentAbsolutePath:
         type: string
         readOnly: true
