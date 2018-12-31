@@ -100,7 +100,9 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   const RedisStore = require('connect-redis')(session);
   const rstore = new RedisStore({ url: conf.redis.instanceUrl.session });
   socketIOSetup.init(io, rstore);
-  require('./realtime/redisSubscriber')(io);
+  const processName = (process.env.DYNO ? process.env.DYNO + ':' : '') +
+    clusterProcessId;
+  require('./realtime/redisSubscriber')(io, processName);
 
   // pass passport for configuration
   require('./config/passportconfig')(passportModule);
