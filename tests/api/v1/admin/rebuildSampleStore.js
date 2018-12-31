@@ -83,7 +83,7 @@ describe('tests/api/v1/admin/rebuildSampleStore.js >', () => {
       .expect(constants.httpStatus.FORBIDDEN)
       .end(done);
     });
-  }).timeout(10000);
+  });
 
   describe(`POST ${path} (feature is on) >`, () => {
     let token;
