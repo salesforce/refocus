@@ -94,6 +94,10 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
           .to.be.equal('coll-group-description-one-collector');
         expect(res.body).to.have.property('collectors');
         expect(res.body.collectors.length).to.be.equal(1);
+        const coll = res.body.collectors[0];
+        expect(coll).to.have.keys('id', 'name', 'status');
+        expect(coll.name).to.equal('coll-1');
+        expect(coll.status).to.equal('Stopped');
         return done();
       });
   });

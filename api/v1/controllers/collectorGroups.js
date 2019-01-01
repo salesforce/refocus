@@ -24,7 +24,7 @@ const CREATED = require('../constants').httpStatus.CREATED;
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
  */
-function createCollectorGroups(req, res, next) {
+function createCollectorGroup(req, res, next) {
   apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
 
   const resultObj = { reqStartTime: req.timestamp };
@@ -48,5 +48,5 @@ function createCollectorGroups(req, res, next) {
 }
 
 module.exports = {
-  createCollectorGroups,
+  createCollectorGroup,
 };
