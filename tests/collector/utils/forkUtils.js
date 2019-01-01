@@ -15,7 +15,11 @@ const Promise = require('bluebird');
 const fork = require('child_process').fork;
 const conf = require('../../../config');
 
-const clock = sinon.useFakeTimers(Date.now());
+const clock = sinon.useFakeTimers({
+  // override so we don't mock setImmediate
+  toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],
+  now: Date.now(),
+});
 const subprocesses = {};
 const url = `localhost:${conf.port}`;
 let token;
@@ -29,10 +33,19 @@ module.exports = {
   blockHeartbeat,
   unblockHeartbeat,
   killAllCollectors,
+  setupMocking,
   tick,
   tickSync,
   tickUntilComplete,
 };
+
+let nockConfig;
+function setupMocking(conf) {
+  nockConfig = conf;
+  Object.values(subprocesses).forEach((subprocess) =>
+    subprocess.send({ nockConfig })
+  );
+}
 
 function doCommand({ command, name, url, token, refocusProxy, dataSourceProxy }) {
   const args = [command];
@@ -48,7 +61,7 @@ function doFork(args) {
   const opts = {
     silent: true,
     env: {},
-    /* env: { DEBUG: 'refocus-collector:*' }, */
+    // env: { DEBUG: 'refocus-collector:*' },
   };
   const forkPath = require.resolve('./runCollector');
   const subprocess = fork(forkPath, args, opts);
@@ -72,6 +85,7 @@ function doStart(name) {
     delete subprocesses[name];
   });
   subprocess.send({ startTime: Date.now() });
+  subprocess.send({ nockConfig });
   return new Promise((resolve) => subprocess.on('message', (msg) => {
     if (msg.started) resolve(subprocess);
   }));

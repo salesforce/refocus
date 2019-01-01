@@ -22,6 +22,7 @@ const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 const sampleStore = require('./cache/sampleStoreInit');
 const conf = require('./config');
 const signal = require('./signal/signal');
+const ONE = 1;
 
 /**
  * Entry point for each clustered process.
@@ -97,7 +98,9 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   const RedisStore = require('connect-redis')(session);
   const rstore = new RedisStore({ url: conf.redis.instanceUrl.session });
   socketIOSetup.init(io, rstore);
-  require('./realtime/redisSubscriber')(io);
+  const processName = (process.env.DYNO ? process.env.DYNO + ':' : '') +
+    clusterProcessId;
+  require('./realtime/redisSubscriber')(io, processName);
 
   // pass passport for configuration
   require('./config/passportconfig')(passportModule);
@@ -177,6 +180,16 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
     .readFileSync(conf.api.swagger.doc, ENCODING);
   const swaggerDoc = yaml.safeLoad(swaggerFile);
 
+  if (featureToggles.isFeatureEnabled('hideRoutes')) {
+    for (let _path in swaggerDoc.paths) {
+      if (swaggerDoc.paths.hasOwnProperty(_path)) {
+        if (conf.hiddenRoutes.includes(_path.split('/')[ONE])) {
+          delete swaggerDoc.paths[_path];
+        }
+      }
+    }
+  }
+
   swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
     /*
      * Custom middleware to add timestamp and node cluster worker id to the
@@ -199,8 +212,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
        * the process is not started from throng).
        */
       if (process.env.DYNO) req.dyno = process.env.DYNO;
-      req.process = (req.dyno ? req.dyno + ':' : '') + clusterProcessId;
-
+      req.process = processName;
       next();
     });
 

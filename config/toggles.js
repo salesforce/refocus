@@ -92,7 +92,8 @@ const longTermToggles = {
     'kueStats'),
   enableLimiterActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'limiter'),
-  enablePubStatsLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'pubStats'),
+  enablePubsubStatsLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'pubsubStats'),
   enableQueueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'queueStats'),
   enableRealtimeActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
@@ -106,6 +107,9 @@ const longTermToggles = {
 
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
+
+  // Hide routes
+  hideRoutes: environmentVariableTrue(pe, 'HIDE_ROUTES'),
 
   // Enable redis client connection logging.
   enableRedisConnectionLogging: environmentVariableTrue(pe,

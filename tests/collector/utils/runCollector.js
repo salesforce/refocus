@@ -15,29 +15,35 @@ const sinon = require('sinon');
 const u = require('./forkUtils');
 let clock;
 
-// set up mock data
-const mockResponse = {
-  sub1: {
-    asp1: '1',
-    asp2: '2',
-  },
-  sub2: {
-    asp1: '3',
-    asp2: '4',
-  },
-};
+// mock the data sources for the collector
+process.on('message', (msg) => {
+  if (msg.nockConfig) {
+    nock.cleanAll();
 
-// mock the data source for the collector
-const dataSourceUrl = 'http://www.example.com';
-nock(dataSourceUrl)
-.persist()
-.get('/')
-.reply(200, mockResponse, { 'Content-Type': 'application/json' });
+    msg.nockConfig.forEach((conf) => {
+      let interceptor = nock(conf.url);
+
+      interceptor.persist()
+      [conf.method](conf.path, conf.matchBody)
+      .reply(conf.status, conf.response, conf.headers);
+
+      if (conf.matchHeaders) {
+        Object.entries(conf.matchHeaders).forEach(([header, value]) => {
+          interceptor.matchHeader(header, value);
+        });
+      }
+    });
+  }
+});
 
 // setup mock time
 process.on('message', (msg) => {
   if (msg.startTime) {
-    clock = sinon.useFakeTimers(msg.startTime);
+    clock = sinon.useFakeTimers({
+      // override so we don't mock setImmediate
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],
+      now: msg.startTime,
+    });
   } else if (msg.tick) {
     u.tickSync(clock, msg.tick)
     .then(() => {
@@ -58,8 +64,15 @@ process.on('message', (msg) => {
 });
 
 // run the command file
+let collector;
+try {
+  collector = require('../../../../refocus-collector'); // local testing
+} catch (err) {
+  collector = require('@salesforce/refocus-collector'); // travis
+}
+
 const cmd = process.argv[2];
-const command = require('@salesforce/refocus-collector')[cmd]();
+const command = collector[cmd]();
 if (command.then) {
   command.then(() => process.send({ started: true }));
 } else {

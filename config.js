@@ -126,7 +126,7 @@ const clockJobConfig = {
     deleteUnusedTokens: '1d',
     jobCleanup: '30m',
     kueStatsActivityLogs: '1m',
-    pubStatsLogs: '1m',
+    pubsubStatsLogs: '1m',
     queueStatsActivityLogs: '1m',
     resetJobCounter: '2h',
     sampleTimeout: '30s',
@@ -139,7 +139,7 @@ const clockJobConfig = {
   },
   toggles: {
     kueStatsActivityLogs: 'enableKueStatsActivityLogs',
-    pubStatsLogs: 'enablePubStatsLogs',
+    pubsubStatsLogs: 'enablePubsubStatsLogs',
     queueStatsActivityLogs: 'enableQueueStatsActivityLogs',
   },
 };
@@ -148,8 +148,8 @@ const clockJobConfig = {
 const jobConcurrency = {};
 Object.keys(jobType).forEach((jobName) => {
   /*
-   * Use underscore (_) as separator here - colon (:) doesn't work
-   *  consistently in env var names in heroku.
+   * Use underscore (_) as separator here - colon (:) doesn't work consistently
+   * in env var names in heroku.
    */
   const envValue = pe[`WORKER_JOB_CONCURRENCY_${jobName}`];
   jobConcurrency[jobName] = envValue || 1;
