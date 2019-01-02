@@ -205,9 +205,12 @@ module.exports = function subject(seq, dataTypes) {
         const isSubjectPublished = inst.changed('isPublished') &&
           inst.isPublished;
 
+        /*
+         * Execute this outside the promise chain because we don't need to keep
+         * the caller waiting while we do that redis cleanup.
+         */
         if (isSubjectUnpublished) {
-          promiseArr.push(
-            subjectUtils.removeRelatedSamples(inst.dataValues, seq));
+          subjectUtils.removeRelatedSamples(inst.dataValues, seq);
         }
 
         if (inst.changed('absolutePath')) {
@@ -232,9 +235,11 @@ module.exports = function subject(seq, dataTypes) {
             );
           }
 
-          // remove all the related samples
-          promiseArr.push(
-            subjectUtils.removeRelatedSamples(inst._previousDataValues, seq));
+          /*
+           * Execute this outside the promise chain because we don't need to
+           * keep the caller waiting while we do that redis cleanup.
+           */
+          subjectUtils.removeRelatedSamples(inst._previousDataValues, seq);
         }
 
         if (inst.changed('parentAbsolutePath') ||
@@ -251,7 +256,7 @@ module.exports = function subject(seq, dataTypes) {
               }
             }
 
-            return;
+
           })
           .catch((err) => {
             throw err;
@@ -330,8 +335,11 @@ module.exports = function subject(seq, dataTypes) {
               par.decrement('childCount');
             }
 
-            // remove the subject and its related samples
-            return subjectUtils.removeFromRedis(inst.dataValues, seq);
+            /*
+             * Execute this outside the promise chain because we don't need to
+             * keep the caller waiting while we do that redis cleanup.
+             */
+            subjectUtils.removeFromRedis(inst.dataValues, seq);
           })
           .then(() => {
             // send the subject delete event if the subject was published
@@ -404,10 +412,10 @@ module.exports = function subject(seq, dataTypes) {
                 }
               }
 
-              return;
+
             });
           } else {
-            return;
+
           }
         }
 
