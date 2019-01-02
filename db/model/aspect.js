@@ -273,9 +273,10 @@ module.exports = function aspect(seq, dataTypes) {
            * list of index and the related sample hashes. Deletes old aspect
            * name from subject-to-aspect resource maps. Deletes aspect-to-
            * subject resource map with old aspect name as key.
+           * Execute this outside the promise chain because we don't need to
+           * keep the caller waiting while we do that redis cleanup.
            */
-          promiseArr.push(u.removeAspectRelatedSamples(
-            inst._previousDataValues, seq));
+          u.removeAspectRelatedSamples(inst._previousDataValues, seq);
         } else if (isPublishedChanged) {
           // Prevent any changes to original inst dataValues object
           const instDataObj = JSON.parse(JSON.stringify(inst.get()));
@@ -289,8 +290,10 @@ module.exports = function aspect(seq, dataTypes) {
              * list of index and the related sample hashes. Deletes aspect
              * name from subject-to-aspect resource maps. Deletes aspect-to-
              * subject resource map with aspect name as key.
+             * Execute this outside the promise chain because we don't need to
+             * keep the caller waiting while we do that redis cleanup.
              */
-            promiseArr.push(u.removeAspectRelatedSamples(inst.dataValues, seq));
+            u.removeAspectRelatedSamples(inst.dataValues, seq);
           }
         } else if (inst.isPublished) {
           const instChanged = {};
@@ -328,7 +331,11 @@ module.exports = function aspect(seq, dataTypes) {
         if (inst.isPublished && (inst.changed('criticalRange') ||
          inst.changed('warningRange') || inst.changed('infoRange') ||
         inst.changed('okRange'))) {
-          promiseArr.push(u.removeAspectRelatedSamples(inst.dataValues, seq));
+          /*
+           * Execute this outside the promise chain because we don't need to
+           * keep the caller waiting while we do that redis cleanup.
+           */
+          u.removeAspectRelatedSamples(inst.dataValues, seq);
         }
 
         return seq.Promise.all(promiseArr)
@@ -342,15 +349,14 @@ module.exports = function aspect(seq, dataTypes) {
        * list of index and the related sample hashes. Deletes aspect
        * name from subject-to-aspect resource maps. Deletes aspect-to-
        * subject resource map with aspect name as key.
+       * Execute these outside the promise chain because we don't need to
+       * keep the caller waiting while we do that redis cleanup.
        *
        * @param {Aspect} inst - The deleted instance
-       * @returns {Promise}
        */
       afterDelete(inst /* , opts */) {
-        return Promise.join(
-          redisOps.deleteKey(aspectType, inst.name),
-          u.removeAspectRelatedSamples(inst.dataValues, seq)
-        );
+        redisOps.deleteKey(aspectType, inst.name);
+        u.removeAspectRelatedSamples(inst.dataValues, seq);
       }, // hooks.afterDelete
 
       /**
