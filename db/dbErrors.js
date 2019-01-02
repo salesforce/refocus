@@ -120,7 +120,7 @@ errors.create({
   status: 400,
   name: 'DuplicateCollectorError',
   parent: this.ValidationError,
-  defaultMessage: 'You cannot map duplicate Collectors to a Generator.',
+  defaultMessage: 'You cannot map duplicate Collectors to this Object.',
 });
 errors.create({
   scope: exports,
