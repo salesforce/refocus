@@ -347,6 +347,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     let subjectWithPrefix;
     Subject.findById(ipar)
     .then((s) => s.destroy())
+    .then(() => new Promise((resolve) => setTimeout(resolve, 250)))
     .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       expect(members.length).to.equal(0);
@@ -382,8 +383,9 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     .then((s) => s.update({ isPublished: false }))
     .then((subj) => {
       subjectWithPrefix = redisStore.toKey('sample', subj.absolutePath);
-      return rcli.smembersAsync(sampleIndexName);
     })
+    .then(() => new Promise((resolve) => setTimeout(resolve, 250)))
+    .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');

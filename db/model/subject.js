@@ -235,11 +235,8 @@ module.exports = function subject(seq, dataTypes) {
             );
           }
 
-          /*
-           * Execute this outside the promise chain because we don't need to
-           * keep the caller waiting while we do that redis cleanup.
-           */
-          subjectUtils.removeRelatedSamples(inst._previousDataValues, seq);
+          promiseArr.push(
+            subjectUtils.removeRelatedSamples(inst._previousDataValues, seq));
         }
 
         if (inst.changed('parentAbsolutePath') ||
