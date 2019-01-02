@@ -376,6 +376,7 @@ describe('tests/db/model/subject/delete.js >', () => {
         return Subject.findById(subject.id);
       })
       .then((subj) => subj.destroy())
+      .then(() => new Promise((resolve) => setTimeout(resolve, 250)))
       .then(() => Sample.findOne(sample))
       .then((samp) => {
         expect(samp).to.equal(null);
