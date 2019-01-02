@@ -179,11 +179,17 @@ module.exports = function room(seq, dataTypes) {
       },
       onDelete: 'CASCADE',
     });
+
+    assoc.createdBy = Room.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+    });
+
     assoc.writers = Room.belongsToMany(models.User, {
       as: 'writers',
       through: 'RoomWriters',
       foreignKey: 'roomId',
     });
+
     Room.addScope('namespace', {
       attributes: ['id', 'name'],
       where: {
