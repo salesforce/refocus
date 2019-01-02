@@ -216,6 +216,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     let oldName;
     let newName;
     let subjectAbsPath;
+    let newKey;
 
     samstoinit.populate()
     .then(() => Subject.findById(ipar))
@@ -228,10 +229,10 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       return asp.update({ name: asp.name + '_newName' });
     })
     .then((asp) => {
-      const newKey = redisStore.toKey('aspect', asp.name);
+      newKey = redisStore.toKey('aspect', asp.name);
       newName = asp.name;
-      return rcli.sismemberAsync(aspectIndexName, newKey);
     })
+    .then(() => rcli.sismemberAsync(aspectIndexName, newKey))
     .then((ok) => {
       // new key should be found
       expect(ok).to.equal(1);
@@ -332,8 +333,9 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .then((a) => a.destroy())
     .then((a) => {
       aspectName = a.name;
-      return rcli.smembersAsync(sampleIndexName);
     })
+    .then(() => new Promise((resolve) => setTimeout(resolve, 250)))
+    .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');
@@ -426,6 +428,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       aspectName = a.name;
       return a.update({ isPublished: false });
     })
+    .then(() => new Promise((resolve) => setTimeout(resolve, 250)))
     .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
@@ -462,7 +465,8 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .then(() => Subject.findById(ipar))
     .then((s) => {
       subjectAbsPath = s.absolutePath;
-      return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subjectAbsPath));
+      return redisOps.executeCommand(
+        redisOps.getSubjAspMapMembers(subjectAbsPath));
     })
     .then((res) => {
       expect(res.length).to.be.equal(2);
@@ -473,6 +477,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       aspectName = a.name;
       return a.update({ okRange: [0, 10] });
     })
+    .then(() => new Promise((resolve) => setTimeout(resolve, 250)))
     .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
@@ -490,7 +495,8 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       expect(members.length).to.equal(0);
 
       // corresponding subaspmap should not have this aspect
-      return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subjectAbsPath));
+      return redisOps.executeCommand(
+        redisOps.getSubjAspMapMembers(subjectAbsPath));
     })
     .then((res) => {
       // temperature aspect deleted from subaspmap

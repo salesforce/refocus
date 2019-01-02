@@ -273,10 +273,9 @@ module.exports = function aspect(seq, dataTypes) {
            * list of index and the related sample hashes. Deletes old aspect
            * name from subject-to-aspect resource maps. Deletes aspect-to-
            * subject resource map with old aspect name as key.
-           * Execute this outside the promise chain because we don't need to
-           * keep the caller waiting while we do that redis cleanup.
            */
-          u.removeAspectRelatedSamples(inst._previousDataValues, seq);
+          promiseArr.push(
+            u.removeAspectRelatedSamples(inst._previousDataValues, seq));
         } else if (isPublishedChanged) {
           // Prevent any changes to original inst dataValues object
           const instDataObj = JSON.parse(JSON.stringify(inst.get()));
