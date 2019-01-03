@@ -14,6 +14,7 @@ const sinon = require('sinon');
 const Promise = require('bluebird');
 const fork = require('child_process').fork;
 const conf = require('../../../config');
+const awaitImmediate = require('util').promisify(setImmediate);
 
 const clock = sinon.useFakeTimers({
   // override so we don't mock setImmediate
@@ -206,28 +207,32 @@ function tickSync(clock, ms) {
 
 let tickingPromises = [];
 let readyToTick = [];
+let readyToResolve = [];
 function tickUntilComplete(awaitFunc, collectorName) {
   const awaitPromise = awaitFunc(collectorName);
   readyToTick.push(awaitPromise);
-  let tickPromise;
   if (!tickingPromises.length) {
-    tickPromise = tickUntilAllComplete();
-  } else {
-    tickPromise = Promise.resolve();
+    tickUntilAllComplete();
   }
 
-  // make sure we don't resolve until all ticking is complete
-  return tickPromise.then(() => awaitPromise);
+  // wait until the end of the tick cycle to resolve
+  return awaitPromise
+  .then((res) => new Promise((resolve) =>
+    readyToResolve.push(() => resolve(res))
+  ));
 
   function tickUntilAllComplete() {
     tickingPromises.push(...readyToTick);
     tickingPromises = tickingPromises.filter((promise) => promise.isPending());
     readyToTick = [];
     if (tickingPromises.length) {
-      return tick(1000)
-      .then(() =>
-        tickUntilAllComplete(tickingPromises)
-      );
+      return awaitImmediate()
+      .then(() => tick(1000))
+      .then(() => {
+        readyToResolve.forEach(resolve => resolve());
+        readyToResolve = [];
+        return tickUntilAllComplete(tickingPromises);
+      });
     }
   }
 }
