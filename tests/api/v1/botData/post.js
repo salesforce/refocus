@@ -71,8 +71,6 @@ describe('tests/api/v1/botData/post.js >', () => {
       }
 
       expect(res.body.name).to.equal(u.name);
-      console.log("KRIS TEST");
-      console.log(res.body);
       expect(res.body).to.have.property('createdBy');
       done();
     });
