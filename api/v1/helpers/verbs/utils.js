@@ -21,6 +21,7 @@ const realtimeEvents = require('../../../../realtime/constants').events;
 const redisCache = require('../../../../cache/redisCache').client.cache;
 const Op = require('sequelize').Op;
 const md5 = require('md5');
+const ADMIN_OVERRIDE_KEYWORD = 'admin';
 
 /**
  * @param {Object} o Sequelize instance
@@ -299,9 +300,11 @@ function buildFieldList(params, props) {
 } // buildFieldList
 
 /**
- * Checks if the model instance is writable by a user. The username is extracted
- * from the header if present, if not the user name of the logged in user is
- * used.
+ * Checks if the model instance is writable by a user. The username is
+ * extracted from the header if present, if not the user name of the logged in
+ * user is used. An admin user can edit/delete any record, even write-protected
+ * records, as long as they include query param override=admin in the request.
+ *
  * @param {Object} req  - The request object
  * @param {Object}  modelInst - DB Model instance
  * @returns {Promise} - A promise which resolves to the modle instance when
@@ -313,7 +316,10 @@ function isWritable(req, modelInst) {
       resolve(modelInst);
     }
 
-    if (req.user) {
+    if (req.user && req.headers && req.headers.IsAdmin && req.query &&
+      req.query.override === ADMIN_OVERRIDE_KEYWORD) {
+      resolve(modelInst);
+    } else if (req.user) {
       modelInst.isWritableBy(req.user.name)
       .then((ok) => ok ? resolve(modelInst) : reject(new apiErrors
         .ForbiddenError('Insufficient Privileges')))
