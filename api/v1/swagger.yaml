@@ -11136,7 +11136,7 @@ paths:
       tags: [ collectorGroups ]
       description: >-
         Create a new collector group if all the collectors aren't already assigned to a different group.
-      operationId: createCollectorGroups
+      operationId: createCollectorGroup
       parameters:
         - name: queryBody
           description: Request body.
@@ -13580,7 +13580,7 @@ definitions:
         description: List of collectors for the group.
         type: array
         items:
-          type: string
+          type: object
 
 # =============================================================================
 parameters:

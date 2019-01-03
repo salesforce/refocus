@@ -15,6 +15,7 @@ const sinon = require('sinon');
 const interceptor = require('express-interceptor');
 const Promise = require('bluebird');
 const supertest = require('supertest');
+const ms = require('ms');
 const app = require('../../../index').app;
 const tu = require('../../testUtils');
 const forkUtils = require('./forkUtils');
@@ -41,7 +42,6 @@ module.exports = {
   expectHeartbeatGens,
   expectHeartbeatStatus,
   expectSubjectQuery,
-  expectBulkUpsertNames,
   expectBulkUpsertSamples,
 };
 
@@ -151,20 +151,33 @@ function setupInterceptFuncs(interceptConfig) {
       promiseArray = conf.promiseMap[''];
     }
 
-    const resolveTimeout = timeoutArray.shift();
-    const promise = promiseArray.shift();
-
     const reqObj = req;
     req = {
       body: JSON.parse(JSON.stringify(reqObj.body)),
       url: reqObj.url,
     };
 
-    const waitTime = promise ? Date.now() - promise.startTime : null;
     Promise.resolve()
-    .then(() => resolveTimeout && resolveTimeout())
+
+    // cancel timeouts
+    .then(() => {
+      timeoutArray.forEach((resolveTimeout) => {
+        resolveTimeout && resolveTimeout();
+      });
+      timeoutArray.splice(0);
+    })
+
+    // run the original method
     .then(() => originalMethod(reqObj, res, next))
-    .then(() => promise && promise.resolve({ req, res, waitTime }));
+
+    // resolve await promises
+    .then(() => {
+      promiseArray.forEach((promise) => {
+        const waitTime = promise ? Date.now() - promise.startTime : null;
+        promise && promise.resolve({ req, res, waitTime });
+      });
+      promiseArray.splice(0);
+    });
   }
 }
 
@@ -250,28 +263,66 @@ function expectSubjectQuery(collectorName, expectedSubjectQuery) {
   });
 }
 
-function expectBulkUpsertNames(collectorName, ...expectedUpserts) {
-  return Promise.map(expectedUpserts, () =>
-    this.awaitBulkUpsert(collectorName)
-  )
-  .then((allUpserts) => {
-    const actualUpserts = allUpserts.map((singleUpsert) =>
-      singleUpsert.req.body.map(s => s.name).sort()
-    )
-    .sort();
-    expect(actualUpserts).to.deep.equal(expectedUpserts);
-  });
+function expectBulkUpsertSamples(collectorName, interval, ...expectedUpserts) {
+  return Promise.map(
+    expectedUpserts,
+    expectBulkUpsertInterval.bind(this, collectorName, interval),
+  );
 }
 
-function expectBulkUpsertSamples(collectorName, ...expectedUpserts) {
-  return Promise.map(expectedUpserts, () =>
-    this.awaitBulkUpsert(collectorName)
-  )
-  .then((allUpserts) => {
-    const actualUpserts = allUpserts.map((singleUpsert) =>
-      singleUpsert.req.body.sort()
-    )
-    .sort();
-    expect(actualUpserts).to.deep.equal(expectedUpserts);
+function expectBulkUpsertInterval(collectorName, expectedInterval, expectedSamples) {
+  const awaitBulkUpsert = this.awaitBulkUpsert;
+  expectedInterval = ms(expectedInterval);
+
+  expectedSamples = expectedSamples.map((s) =>
+    typeof s === 'string' ? { name: s } : s
+  );
+  expectedSamples.sort(sortByName);
+
+  let firstMatchTime;
+  return awaitMatch()
+  .then(() => firstMatchTime = Date.now())
+  .then(() => awaitMatch())
+  .then(() => {
+    const observedInterval = Date.now() - firstMatchTime;
+    expect(observedInterval).to.equal(expectedInterval);
   });
+
+  function awaitMatch(startTime=Date.now(), upsertsSeen=[]) {
+    return awaitBulkUpsert(collectorName)
+    .then(({ req }) => {
+      const samples = req.body.sort(sortByName);
+      upsertsSeen.push(samples);
+      const matches = samples.every((sample, i) =>
+        sample.name === expectedSamples[i].name
+      );
+      const intervalExceeded = Date.now() - startTime > expectedInterval * 2;
+      if (matches) {
+        samples.forEach((sample, i) => {
+          const expectedSample = expectedSamples[i];
+          expect(sample.name).to.equal(expectedSample.name);
+          if (expectedSample.value) {
+            expect(sample.value).to.equal(expectedSample.value);
+          }
+        });
+      } else if (intervalExceeded) {
+        throw Error(
+          `no match found for [${expectedSamples.map(s => s.name)}]. ` +
+          `seen so far: [${upsertsSeen.map((upsert) => `[${upsert.map(s => s.name)}]`)}]`
+        );
+      } else {
+        return awaitMatch(startTime, upsertsSeen);
+      }
+    });
+  }
+
+  function sortByName(s1, s2) {
+    if (s1.name < s2.name) {
+      return -1;
+    } else if (s1.name > s2.name) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
 }
