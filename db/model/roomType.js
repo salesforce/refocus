@@ -222,10 +222,16 @@ module.exports = function roomType(seq, dataTypes) {
     assoc.type = RoomType.hasMany(models.Room, {
       foreignKey: 'type',
     });
+
     assoc.bots = RoomType.belongsToMany(models.Bot, {
       foreignKey: 'roomTypeId',
       through: 'RoomTypeBots',
     });
+
+    assoc.createdBy = RoomType.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+    });
+
     assoc.writers = RoomType.belongsToMany(models.User, {
       as: 'writers',
       through: 'RoomTypeWriters',

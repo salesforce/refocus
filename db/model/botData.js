@@ -162,15 +162,22 @@ module.exports = function botData(seq, dataTypes) {
       foreignKey: 'roomId',
       allowNull: false,
     });
+
     assoc.room = BotData.belongsTo(models.Bot, {
       foreignKey: 'botId',
       allowNull: false,
     });
+
+    assoc.createdBy = RoomType.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+    });
+
     assoc.writers = BotData.belongsToMany(models.User, {
       as: 'writers',
       through: 'BotDataWriters',
       foreignKey: 'botId',
     });
+
     BotData.addScope('bdExists', (value) => ({
       where: {
         name: value.name,
@@ -200,4 +207,3 @@ module.exports = function botData(seq, dataTypes) {
 
   return BotData;
 };
-

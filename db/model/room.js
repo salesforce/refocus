@@ -214,4 +214,3 @@ module.exports = function room(seq, dataTypes) {
 
   return Room;
 };
-

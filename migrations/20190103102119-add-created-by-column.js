@@ -10,9 +10,10 @@
  * migrations/20190102164503-add-created-by-column.js
  */
 
+'use strict';
+
 module.exports = {
   up(qi, Sequelize) {
-    console.log("aaaqq")
     return qi.addColumn('Rooms', 'createdBy', {
       type: Sequelize.UUID,
       references: {
@@ -27,34 +28,18 @@ module.exports = {
         key: 'id',
       },
     }))
-    .then(() => qi.addColumn('BotAction', 'createdBy', {
-      type: Sequelize.UUID,
-      references: {
-        model: 'Users',
-        key: 'id',
-      },
-    }))
     .then(() => qi.addColumn('BotData', 'createdBy', {
       type: Sequelize.UUID,
       references: {
         model: 'Users',
         key: 'id',
       },
-    }))
-    .then(() => qi.addColumn('Event', 'createdBy', {
-      type: Sequelize.UUID,
-      references: {
-        model: 'Users',
-        key: 'id',
-      },
     }));
-  }
+  },
 
   down(qi, Sequelize) {
     return qi.removeColumn('Rooms', 'createdBy')
       .then(() => qi.removeColumn('RoomTypes', 'createdBy'))
-      .then(() => qi.removeColumn('BotAction', 'createdBy'))
-      .then(() => qi.removeColumn('BotData', 'createdBy'))
-      .then(() => qi.removeColumn('Event', 'createdBy'));
-  };
+      .then(() => qi.removeColumn('BotData', 'createdBy'));
+  }
 };
