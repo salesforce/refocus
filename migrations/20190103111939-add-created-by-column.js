@@ -41,5 +41,5 @@ module.exports = {
     return qi.removeColumn('Rooms', 'createdBy')
       .then(() => qi.removeColumn('RoomTypes', 'createdBy'))
       .then(() => qi.removeColumn('BotData', 'createdBy'));
-  }
+  },
 };
