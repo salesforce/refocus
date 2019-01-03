@@ -168,7 +168,7 @@ module.exports = function botData(seq, dataTypes) {
       allowNull: false,
     });
 
-    assoc.createdBy = RoomType.belongsTo(models.User, {
+    assoc.createdBy = BotData.belongsTo(models.User, {
       foreignKey: 'createdBy',
     });
 

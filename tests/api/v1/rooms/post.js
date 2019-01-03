@@ -58,6 +58,9 @@ describe('tests/api/v1/rooms/post.js >', () => {
       }
 
       expect(res.body.name).to.equal(u.name);
+      console.log("POST NUM 1")
+      console.log(res.body)
+      expect(res.body).to.have.property('createdBy');
       done();
     });
   });

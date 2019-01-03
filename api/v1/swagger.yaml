@@ -13450,6 +13450,11 @@ definitions:
       type:
         type: string
         description: The roomType being used in the specified room
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          Id of the User who created this room.
 
   RoomTypeResponse:
     type: object
@@ -13477,6 +13482,11 @@ definitions:
         items:
           type: string
         description: Array containing the bots to be used for rooms of this type
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          Id of the User who created this roomType.
 
   BotDataResponse:
     type: object
@@ -13497,6 +13507,11 @@ definitions:
       botId:
         type: string
         description: UUID of the specified bot in that room
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          Id of the User who created this roomType.
 
   BulkSubjectDeleteResponse:
     type: object

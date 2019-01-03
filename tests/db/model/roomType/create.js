@@ -32,6 +32,7 @@ describe('tests/db/model/roomType/create.js >', () => {
       expect(o).to.have.property('rules');
       expect(o).to.have.property('bots');
       expect(o).to.have.property('bots').to.equal(null);
+      expect(o).to.have.property('createdBy');
       done();
     })
   .catch(done);
