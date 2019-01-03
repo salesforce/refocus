@@ -216,7 +216,6 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     let oldName;
     let newName;
     let subjectAbsPath;
-    let newKey;
 
     samstoinit.populate()
     .then(() => Subject.findById(ipar))
@@ -229,10 +228,10 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       return asp.update({ name: asp.name + '_newName' });
     })
     .then((asp) => {
-      newKey = redisStore.toKey('aspect', asp.name);
+      const newKey = redisStore.toKey('aspect', asp.name);
       newName = asp.name;
+      return rcli.sismemberAsync(aspectIndexName, newKey);
     })
-    .then(() => rcli.sismemberAsync(aspectIndexName, newKey))
     .then((ok) => {
       // new key should be found
       expect(ok).to.equal(1);
