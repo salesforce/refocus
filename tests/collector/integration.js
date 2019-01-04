@@ -324,7 +324,7 @@ describe('tests/collector/integration.js >', function () {
       u.doStart(coll1)
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
-        u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
+        u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
       ))
 
       .then(() => u.patchGenerator(gen1.name, {
@@ -336,7 +336,7 @@ describe('tests/collector/integration.js >', function () {
 
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub*'),
-        u.expectBulkUpsertNames(coll1, ['sub1|asp1', 'sub2|asp1']),
+        u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1', 'sub2|asp1']),
       ))
     );
 
@@ -344,7 +344,7 @@ describe('tests/collector/integration.js >', function () {
       u.doStart(coll1)
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
-        u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
+        u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
       ))
 
       .then(() => u.patchGenerator(gen1.name, {
@@ -356,7 +356,7 @@ describe('tests/collector/integration.js >', function () {
 
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
-        u.expectBulkUpsertNames(coll1, ['sub1|asp1', 'sub1|asp2']),
+        u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1', 'sub1|asp2']),
       ))
     );
 
@@ -364,7 +364,7 @@ describe('tests/collector/integration.js >', function () {
       u.doStart(coll1)
       .then(() => Promise.join(
         u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
-        u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
+        u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
       ))
 
       .then(() => u.patchGenerator(gen1.name, {
@@ -386,7 +386,7 @@ describe('tests/collector/integration.js >', function () {
 
     it('context updated', () =>
       u.doStart(coll1)
-      .then(() => u.expectBulkUpsertSamples(coll1, [
+      .then(() => u.expectBulkUpsertSamples(coll1, '60s', [
         { name: 'sub1|asp1', value: '1' },
       ]))
 
@@ -397,7 +397,7 @@ describe('tests/collector/integration.js >', function () {
       .then(() => u.awaitHeartbeat())
       .then(({ res }) => expect(res.body.generatorsUpdated).to.have.lengthOf(1))
 
-      .then(() => u.expectBulkUpsertSamples(coll1, [
+      .then(() => u.expectBulkUpsertSamples(coll1, '60s', [
         { name: 'sub1|asp1', value: '1-' },
       ]))
     );
@@ -559,7 +559,7 @@ describe('tests/collector/integration.js >', function () {
         const ctxVal = res.body.generatorsAdded[0].context.ctxVar1;
         expect(ctxVal).to.be.a('string').with.lengthOf(32);
       })
-      .then(() => u.expectBulkUpsertSamples(coll1, [
+      .then(() => u.expectBulkUpsertSamples(coll1, '60s', [
         { name: 'sub1|asp1', value: '1_' },
       ]));
     });
@@ -922,8 +922,8 @@ describe('tests/collector/integration.js >', function () {
         ))
 
         .then(() => Promise.join(
-          u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
-          u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
         ))
       );
 
@@ -946,8 +946,8 @@ describe('tests/collector/integration.js >', function () {
         ))
 
         .then(() => Promise.join(
-          u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
-          u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
         ))
 
         .then(() => Promise.join(
@@ -969,7 +969,7 @@ describe('tests/collector/integration.js >', function () {
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
-          u.expectBulkUpsertNames(coll2, ['sub1|asp1'], ['sub2|asp2']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub1|asp1'], ['sub2|asp2']),
         ))
       );
 
@@ -992,8 +992,8 @@ describe('tests/collector/integration.js >', function () {
         ))
 
         .then(() => Promise.join(
-          u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
-          u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
         ))
 
         .then(() => u.awaitHeartbeat(coll1))
@@ -1003,14 +1003,14 @@ describe('tests/collector/integration.js >', function () {
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
-          u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
         ))
 
         .then(() => u.patchGenerator(gen1.name, { isActive: true }))
         .then(() => u.expectHeartbeatGens(coll1, { added: [gen1] }))
         .then(() => Promise.join(
-          u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
-          u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
         ))
       );
     });
@@ -1050,15 +1050,15 @@ describe('tests/collector/integration.js >', function () {
         u.doStart(coll1)
         .then(() => u.awaitHeartbeat(coll1))
         .then(() => Promise.join(
-          u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
           u.awaitBulkUpsert(coll2)
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
         ))
 
         .then(() => u.doStart(coll2))
         .then(() => Promise.join(
-          u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
-          u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
         ))
       );
 
@@ -1068,8 +1068,8 @@ describe('tests/collector/integration.js >', function () {
         .then(() => u.doStart(coll2))
 
         .then(() => Promise.join(
-          u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
-          u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
         ))
 
         .then(() => u.postStatus('Stop', coll1))
@@ -1078,7 +1078,7 @@ describe('tests/collector/integration.js >', function () {
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
-          u.expectBulkUpsertNames(coll2, ['sub1|asp1'], ['sub2|asp2']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub1|asp1'], ['sub2|asp2']),
         ))
       );
 
@@ -1088,8 +1088,8 @@ describe('tests/collector/integration.js >', function () {
           .then(() => u.doStart(coll2))
 
         .then(() => Promise.join(
-          u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
-          u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
         ))
 
         .then(() => u.postStatus('Pause', coll1))
@@ -1101,7 +1101,7 @@ describe('tests/collector/integration.js >', function () {
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
-          u.expectBulkUpsertNames(coll2, ['sub1|asp1'], ['sub2|asp2']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub1|asp1'], ['sub2|asp2']),
         ))
 
         .then(() => u.postStatus('Stop', coll2))
@@ -1116,7 +1116,7 @@ describe('tests/collector/integration.js >', function () {
         .then(() => u.postStatus('Resume', coll1))
         .then(() => u.expectHeartbeatGens(coll1, { added: [gen1] }))
         .then(() => Promise.join(
-          u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
           u.awaitBulkUpsert(coll2)
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
         ))
@@ -1128,8 +1128,8 @@ describe('tests/collector/integration.js >', function () {
         .then(() => u.doStart(coll2))
 
         .then(() => Promise.join(
-          u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
-          u.expectBulkUpsertNames(coll2, ['sub2|asp2']),
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
         ))
 
         .then(() => forkUtils.blockHeartbeat(coll1))
@@ -1140,7 +1140,7 @@ describe('tests/collector/integration.js >', function () {
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
-          u.expectBulkUpsertNames(coll2, ['sub1|asp1'], ['sub2|asp2']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub1|asp1'], ['sub2|asp2']),
         ))
 
         .then(() => forkUtils.doStop(coll2))
@@ -1154,7 +1154,7 @@ describe('tests/collector/integration.js >', function () {
         .then(() => forkUtils.unblockHeartbeat(coll1))
         .then(() => u.expectHeartbeatGens(coll1, { updated: [gen1] }))
         .then(() => Promise.join(
-          u.expectBulkUpsertNames(coll1, ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
           u.awaitBulkUpsert(coll2)
           .should.eventually.be.rejectedWith(Promise.TimeoutError),
         ))
