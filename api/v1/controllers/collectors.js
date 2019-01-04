@@ -170,6 +170,7 @@ function patchCollector(req, res, next) {
     });
     return u.handleError(next, err, helper.modelName);
   }
+
   return doPatch(req, res, next, helper);
 } // patchCollector
 
