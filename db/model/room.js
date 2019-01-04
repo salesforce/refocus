@@ -205,6 +205,8 @@ module.exports = function room(seq, dataTypes) {
           attributes: ['name', 'email', 'fullName'],
         },
       ],
+    }, {
+      override: true,
     });
   };
 

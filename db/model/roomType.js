@@ -246,6 +246,8 @@ module.exports = function roomType(seq, dataTypes) {
           attributes: ['name', 'email', 'fullName'],
         },
       ],
+    }, {
+      override: true,
     });
   };
 

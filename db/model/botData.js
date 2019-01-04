@@ -194,6 +194,8 @@ module.exports = function botData(seq, dataTypes) {
           attributes: ['name', 'email', 'fullName'],
         },
       ],
+    }, {
+      override: true,
     });
   };
 
