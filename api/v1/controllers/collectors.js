@@ -12,6 +12,8 @@
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
 const Promise = require('bluebird');
+const get = require('just-safe-get');
+const activityLogUtils = require('../../../utils/activityLog');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/collectors');
@@ -167,8 +169,7 @@ function patchCollector(req, res, next) {
       explanation: 'Authentication Failed',
     });
     return u.handleError(next, err, helper.modelName);
-  };
-
+  }
   return doPatch(req, res, next, helper);
 } // patchCollector
 
@@ -237,6 +238,7 @@ function heartbeat(req, res, next) {
   const timestamp = req.body.timestamp;
   const collectorNameFromToken = req.headers.TokenName;
   let collectorName;
+  const hblog = {};
 
   const retval = {
     collectorConfig: JSON.parse(JSON.stringify(config.collector)),
@@ -249,6 +251,7 @@ function heartbeat(req, res, next) {
   return u.findByKey(helper, req.swagger.params)
   .then((o) => {
     collectorName = o.name;
+    hblog.name = collectorName;
 
     /*
      * TODO: remove this 'if block', once spoofing between collectors can be
@@ -280,10 +283,17 @@ function heartbeat(req, res, next) {
         const processInfo = o.processInfo ? o.processInfo : {};
         Object.assign(processInfo, changedConfig.processInfo);
         o.set('processInfo', processInfo);
+        hblog.memExternal = get(processInfo, 'memoryUsage.external');
+        hblog.memHeapTotal = get(processInfo, 'memoryUsage.heapTotal');
+        hblog.memHeapUsed = get(processInfo, 'memoryUsage.heapUsed');
+        hblog.memRss = get(processInfo, 'memoryUsage.rss');
+        hblog.nodeVersion = get(processInfo, 'version');
+        hblog.uptime = get(processInfo, 'uptime');
       }
 
       if (changedConfig.version) {
         o.set('version', changedConfig.version);
+        hblog.version = changedConfig.version;
       }
     }
 
@@ -309,6 +319,9 @@ function heartbeat(req, res, next) {
     retval.generatorsAdded = generators[0];
     retval.generatorsDeleted = generators[1];
     retval.generatorsUpdated = generators[2];
+    hblog.generatorsAdded = retval.generatorsAdded.length;
+    hblog.generatorsDeleted = retval.generatorsDeleted.length;
+    hblog.generatorsUpdated = retval.generatorsUpdated.length;
   })
 
   // reset the tracked changes for this collector
@@ -327,6 +340,11 @@ function heartbeat(req, res, next) {
   .then((updated) => retval.generatorsUpdated = updated)
   .then(() => {
     u.logAPI(req, resultObj, retval);
+
+    if (featureToggles.isFeatureEnabled('enableCollectorHeartbeatLogs')) {
+      activityLogUtils.printActivityLogString(hblog, 'collectorHeartbeat');
+    }
+
     return res.status(httpStatus.OK).json(u.cleanAndStripNulls(retval));
   })
   .catch((err) => u.handleError(next, err, helper.modelName));
