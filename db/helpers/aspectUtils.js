@@ -128,7 +128,7 @@ function removeAspectRelatedSamples(aspect, seq) {
   })
   .then(() => redisOps.deleteKey(aspSubMapType, aspect.name))
   .tap((n) => {
-    debugRemoveAspectRelatedSamples(aspect.name, 'deleteKey')
+    debugRemoveAspectRelatedSamples(aspect.name, 'deleteKey');
   })
   .then(() => {
     const promises = [];
