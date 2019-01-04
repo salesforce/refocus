@@ -12945,6 +12945,11 @@ definitions:
         description: A list of data that a bot can provide
         items:
           type: object
+      installedBy:
+        readOnly: true
+        type: string
+        description: >
+          The user who created the bot
 
   EventResponse:
     type: object
