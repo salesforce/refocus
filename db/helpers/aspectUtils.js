@@ -12,7 +12,7 @@
  * Used by the Aspect model.
  */
 'use strict'; // eslint-disable-line strict
-
+const debugRemoveAspectRelatedSamples = require('debug')('removeAspectRelatedSamples');
 const sampleEvent = require('../../realtime/constants').events.sample;
 const InvalidRangeValuesError = require('../dbErrors').InvalidRangeValuesError;
 const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
@@ -103,17 +103,33 @@ function validateStatusRange(arr) {
  * @returns {Promise} which resolves to the deleted samples.
  */
 function removeAspectRelatedSamples(aspect, seq) {
+  debugRemoveAspectRelatedSamples(aspect.name, 'Start');
   let samples = [];
   return redisOps.deleteSampleKeys(aspSubMapType, aspect.name)
+  .tap((_samples) => {
+    debugRemoveAspectRelatedSamples(aspect.name,
+      `deleteSampleKeys (${_samples.length})`);
+  })
   .then((_samples) => {
     samples = _samples;
 
     // get subjects from aspect-to-subject mapping for this aspect
     return redisOps.executeCommand(redisOps.getAspSubjMapMembers(aspect.name));
   })
+  .tap((subjAbsPaths) => {
+    debugRemoveAspectRelatedSamples(aspect.name,
+      `getAspSubjMapMembers (${subjAbsPaths.length})`);
+  })
   .then((subjAbsPaths) => redisOps.executeBatchCmds(
     redisOps.deleteAspectFromSubjectResourceMaps(subjAbsPaths, aspect.name)))
+  .tap((n) => {
+    debugRemoveAspectRelatedSamples(aspect.name,
+      'deleteAspectFromSubjectResourceMaps');
+  })
   .then(() => redisOps.deleteKey(aspSubMapType, aspect.name))
+  .tap((n) => {
+    debugRemoveAspectRelatedSamples(aspect.name, 'deleteKey')
+  })
   .then(() => {
     const promises = [];
 
@@ -135,6 +151,9 @@ function removeAspectRelatedSamples(aspect, seq) {
     }
 
     return Promise.all(promises);
+  })
+  .tap((n) => {
+    debugRemoveAspectRelatedSamples(aspect.name, `publish (${n.length})`);
   });
 } // removeAspectRelatedSamples
 
