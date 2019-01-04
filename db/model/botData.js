@@ -168,8 +168,9 @@ module.exports = function botData(seq, dataTypes) {
       allowNull: false,
     });
 
-    assoc.createdBy = BotData.belongsTo(models.User, {
+    assoc.user = BotData.belongsTo(models.User, {
       foreignKey: 'createdBy',
+      as: 'user',
     });
 
     assoc.writers = BotData.belongsToMany(models.User, {
@@ -185,6 +186,15 @@ module.exports = function botData(seq, dataTypes) {
         roomId: value.roomId,
       },
     }));
+
+    BotData.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    });
   };
 
   BotData.bdExists = function (query) {

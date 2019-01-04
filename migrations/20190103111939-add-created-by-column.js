@@ -34,12 +34,20 @@ module.exports = {
         model: 'Users',
         key: 'id',
       },
+    }))
+    .then(() => qi.addColumn('Bots', 'installedBy', {
+      type: Sequelize.UUID,
+      references: {
+        model: 'Users',
+        key: 'id',
+      },
     }));
   },
 
   down(qi, Sequelize) {
     return qi.removeColumn('Rooms', 'createdBy')
       .then(() => qi.removeColumn('RoomTypes', 'createdBy'))
-      .then(() => qi.removeColumn('BotData', 'createdBy'));
+      .then(() => qi.removeColumn('BotData', 'createdBy'))
+      .then(() => qi.removeColumn('Bots', 'installedBy'));
   },
 };

@@ -283,6 +283,21 @@ module.exports = function user(seq, dataTypes) {
       through: 'CollectorGroupWriters',
       foreignKey: 'userId',
     });
+    assoc.writableBots = User.belongsToMany(models.Bots, {
+      as: 'writableBots',
+      through: 'BotWriters',
+      foreignKey: 'userId',
+    });
+    assoc.writableRoomTypes = User.belongsToMany(models.RoomTypes, {
+      as: 'writableRoomTypes',
+      through: 'RoomTypeWriters',
+      foreignKey: 'userId',
+    });
+    assoc.writableRooms = User.belongsToMany(models.Rooms, {
+      as: 'writableRooms',
+      through: 'RoomWriters',
+      foreignKey: 'userId',
+    });
     assoc.tokens = User.hasMany(models.Token, {
       as: 'tokens',
       foreignKey: 'createdBy',

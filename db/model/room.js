@@ -180,8 +180,9 @@ module.exports = function room(seq, dataTypes) {
       onDelete: 'CASCADE',
     });
 
-    assoc.createdBy = Room.belongsTo(models.User, {
+    assoc.user = Room.belongsTo(models.User, {
       foreignKey: 'createdBy',
+      as: 'user',
     });
 
     assoc.writers = Room.belongsToMany(models.User, {
@@ -195,6 +196,15 @@ module.exports = function room(seq, dataTypes) {
       where: {
         active: true,
       },
+    });
+
+    Room.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
     });
   };
 
