@@ -724,15 +724,16 @@ module.exports = function generator(seq, dataTypes) {
       action = `${prevColl}->${newColl}`;
     }
 
-    const logObj = {
-      generator: gen,
-      action,
-      type,
-      previousCollector: prevColl,
-      newCollector: newColl,
-    };
-
-    activityLogUtil.printActivityLogString(logObj, 'collectorAssignment');
+    if (featureToggles.isFeatureEnabled('enableCollectorAssignmentLogs')) {
+      const logObj = {
+        generator: gen,
+        action,
+        type,
+        previousCollector: prevColl,
+        newCollector: newColl,
+      };
+      activityLogUtil.printActivityLogString(logObj, 'collectorAssignment');
+    }
   } // logAssignment
 
   return Generator;
