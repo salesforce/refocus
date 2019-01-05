@@ -112,19 +112,9 @@ function assignUnassignedGenerators() {
   // Use collectorId because it's a field on the db model, vs currentCollector
   // which is an association and can't be looked up with a normal where clause
 
-  if (featureToggles.isFeatureEnabled('distributeGenerators')) {
-    return utils.seq.models.Generator.findAll(
-      { where: { isActive: true, collectorId: null } }
-    ).map((g) => g.assignToCollector()
-      .then(() => g.save()));
-  }
-
-  return utils.seq.models.Generator.findAll(
-    { where: { isActive: true, collectorId: null } }
-  ).map((g) => {
-    g.assignToCollector();
-    return g.save();
-  });
+  const findUnassigned = { where: { isActive: true, collectorId: null } };
+  return utils.seq.models.Generator.findAll(findUnassigned)
+    .map((g) => g.assignToCollector().then(() => g.save()));
 }
 
 /**
