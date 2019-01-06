@@ -82,6 +82,10 @@ function envVarIncludes(env, envVarName, str) {
 const longTermToggles = {
   // Activity logging
   enableApiActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'api'),
+  enableCollectorAssignmentLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'collectorAssignment'),
+  enableCollectorHeartbeatLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'collectorHeartbeat'),
   enableEnvActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'env'),
   enableJobActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'job'),
   enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
