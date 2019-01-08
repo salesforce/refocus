@@ -75,6 +75,19 @@ module.exports = function event(seq, dataTypes) {
    * Class Methods:
    */
 
+  /**
+   * Creates multiple Events concurrently.
+   * @param  {Array} toCreate - An array of Event objects to create
+   * @param {Object} user - The user performing the write operation
+   * @returns {Array} - Resolves to an array of resolved promises
+   */
+  Event.bulkCreate = function (toCreate, user) {
+    const promises = toCreate.map((event) => Event.create(event, user)
+      .catch((err) => Promise.resolve({ explanation: err, isFailed: true })));
+
+    return seq.Promise.all(promises);
+  }; // bulkCreate
+
   Event.getEventAssociations = function () {
     return assoc;
   };

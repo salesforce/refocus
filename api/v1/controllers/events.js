@@ -11,12 +11,19 @@
  */
 'use strict';
 
+const featureToggles = require('feature-toggles');
+const apiErrors = require('../apiErrors');
 const config = require('../../../config.js');
 const helper = require('../helpers/nouns/events');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPost = require('../helpers/verbs/doPost');
+const u = require('../helpers/verbs/utils');
+const httpStatus = require('../constants').httpStatus;
 const DEFAULT_LIMIT = config.botEventLimit;
+
+const kueSetup = require('../../../jobQueue/setup');
+const kue = kueSetup.kue;
 
 module.exports = {
 
@@ -74,4 +81,94 @@ module.exports = {
     doPost(req, res, next, helper);
   },
 
+  /**
+   * POST /events/bulk
+   *
+   * Upserts multiple events. Returns "OK" without waiting for the creates to
+   * happen.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   * @returns {Promise} - A promise that resolves to the response object,
+   * indicating merely that the bulk create request has been received.
+   */
+  bulkPostEvent(req, res, next) {
+    const resultObj = { reqStartTime: req.timestamp };
+    const value = req.swagger.params.queryBody.value;
+    const body = { status: 'OK' };
+
+    /**
+     * Performs bulk upsert through the db model.
+     * Works regardless of whether user is provided or not.
+     *
+     * @param {Object} user Sequelize result. Optional
+     * @returns {Promise} a promise that resolves to the response object
+     * with status and body.
+     */
+    function bulkPost(user) {
+      if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
+        const jobType = require('../../../jobQueue/setup').jobType;
+        const jobWrapper = require('../../../jobQueue/jobWrapper');
+        const wrappedBulkPostData = {};
+        wrappedBulkPostData.createData = value;
+        wrappedBulkPostData.user = user;
+        wrappedBulkPostData.reqStartTime = resultObj.reqStartTime;
+        const jobPromise = jobWrapper
+          .createPromisifiedJob(jobType.bulkPostEvents,
+            wrappedBulkPostData, req);
+        return jobPromise.then((job) => {
+          // Set the jobId in the response object before it is returned
+          body.jobId = job.id;
+          u.logAPI(req, resultObj, body, value.length);
+          return res.status(httpStatus.OK).json(body);
+        })
+        .catch((err) => {
+          u.handleError(next, err, helper.modelName);
+        });
+      }
+
+      // If enableWorkerProcess is toggled off, just carry out with web dynosåååå
+      helper.model.bulkCreate(value, user);
+      u.logAPI(req, resultObj, body, value.length);
+      return Promise.resolve(res.status(httpStatus.OK).json(body));
+    } // bulkPost
+
+    bulkPost(req.user)
+      .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // bulkPostEvent
+
+  /**
+   * GET /events/bulk/{key}/status
+   *
+   * Retrieves the status of the bulk create job and sends it back in the
+   * response
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getEventBulkStatus(req, res, next) {
+    const resultObj = { reqStartTime: req.timestamp };
+    const reqParams = req.swagger.params;
+    const jobId = reqParams.key.value;
+    kue.Job.get(jobId, (_err, job) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+      /*
+       * throw the "ResourceNotFoundError" if there is an error in getting the
+       * job or the job is not a bulkPostEvents job
+       */
+      if (_err || !job || job.type !== kueSetup.jobType.bulkPostEvents) {
+        const err = new apiErrors.ResourceNotFoundError();
+        return u.handleError(next, err, helper.modelName);
+      }
+
+      // return the job status and the errors in the response
+      const ret = {};
+      ret.status = job._state;
+      ret.errors = job.result ? job.result.errors : [];
+      u.logAPI(req, resultObj, ret);
+      return res.status(httpStatus.OK).json(ret);
+    });
+  },
 }; // exports
