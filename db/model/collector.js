@@ -328,17 +328,8 @@ module.exports = function collector(seq, dataTypes) {
    * @returns {Promise<Array<Generator>>}
    */
   Collector.prototype.reassignGenerators = function () {
-    if (featureToggles.isFeatureEnabled('distributeGenerators')) {
-      return this.getCurrentGenerators()
-      .map((g) => g.assignToCollector()
-        .then(() => g.save()));
-    }
-
     return this.getCurrentGenerators()
-    .map((g) => {
-      g.assignToCollector();
-      return g.save();
-    });
+      .map((g) => g.assignToCollector().then(() => g.save()));
   };
 
   Collector.prototype.isWritableBy = function (who) {
