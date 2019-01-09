@@ -11,7 +11,7 @@
  */
 const expect = require('chai').expect;
 const p = require('../../../clock/scheduledJobs/pubsubStatsLogs');
-const rcache = require('../../../cache/redisCache').client.cache;
+const rcache = require('../../../cache/redisCache').client.pubsubStats;
 const pubsubStatsKeys = require('../../../realtime/constants').pubsubStatsKeys;
 const ZERO = 0;
 
