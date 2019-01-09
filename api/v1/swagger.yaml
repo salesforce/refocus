@@ -3862,6 +3862,98 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+  /events/bulk:
+    x-swagger-router-controller: events
+    post:
+      security:
+        - jwt: []
+      summary: Create events in bulk.
+      tags: [ events ]
+      description: >-
+        Create multiple events at once.
+      operationId: bulkPostEvent
+      parameters:
+        -
+          name: queryBody
+          description: Request body
+          in: body
+          schema:
+            type: array
+            items:
+              type: object
+              description: Create event properties
+              properties:
+                log:
+                  type: string
+                  description: Human readable log line to describe the context.
+                context:
+                  type: object
+                  description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
+                roomId:
+                  type: integer
+                  description: Room that this event relates to.
+                botId:
+                  type: string
+                  description: Bot that this event relates to.
+                botDataId:
+                  type: string
+                  description: Bot Data that this event relates to.
+                botActionId:
+                  type: string
+                  description: Bot Action that this event relates to.
+                userId:
+                  type: string
+                  description: User that this event relates to.
+              required:
+                - log
+      responses:
+        200:
+          description: >-
+            Created
+          schema:
+            $ref: "#/definitions/BulkCreateResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+          
+  # ---------------------------------------------------------------------------
+  /events/bulk/{key}/status:
+    x-swagger-router-controller: events
+    get:
+      security:
+        - jwt: []
+      summary: Get event bulk job status
+      tags: [ events ]
+      description: >-
+        Retrieve the status of the job identified by id in the request.
+      operationId: getEventBulkStatus
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id the job
+          required: true
+          type: integer
+      responses:
+        200:
+          description: >-
+            Success.
+          schema:
+            $ref: "#/definitions/GetBulkUpsertStatusResponse"
+        400:
+          $ref: "#/responses/400"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
   /events/{key}:
     x-swagger-router-controller: events
     get:
@@ -12974,6 +13066,19 @@ definitions:
       userId:
         type: string
         description: The user ID in which the event deals with
+
+  BulkCreateResponse:
+    type: object
+    description: >
+      Status of bulk create request.
+    properties:
+      status:
+        type: string
+        enum:
+          - OK
+        readOnly: true
+        description: >
+          Status.
 
   BotActionResponse:
     type: object

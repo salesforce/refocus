@@ -18,7 +18,7 @@ const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
-const rcache = require('../cache/redisCache').client.cache;
+const rcache = require('../cache/redisCache').client.pubsubStats;
 const pubsubStatsKeys = require('./constants').pubsubStatsKeys;
 const ONE = 1;
 

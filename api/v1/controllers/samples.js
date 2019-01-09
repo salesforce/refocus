@@ -378,17 +378,10 @@ module.exports = {
         return res.status(httpStatus.OK)
           .json(u.responsify(samp, helper, req.method));
       });
-    }
+    } // doUpsert
 
     return doUpsert(req.user)
-    .catch((err) => {
-      // Tracking invalid sample name problems, e.g. missing name
-      if (err.name === 'ResourceNotFoundError') {
-        logger.error('api/v1/controllers/samples.upsertSample|', err);
-      }
-
-      return u.handleError(next, err, helper.modelName);
-    });
+      .catch((err) => u.handleError(next, err, helper.modelName));
   }, // upsertSample
 
   /**
