@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const emitter = require('./socketIOEmitter');
-const rcache = require('../cache/redisCache').client.cache;
+const rcache = require('../cache/redisCache').client.pubsubStats;
 const subPerspective = require('../cache/redisCache').client.subPerspective;
 const subBot = require('../cache/redisCache').client.subBot;
 const featureToggles = require('feature-toggles');
