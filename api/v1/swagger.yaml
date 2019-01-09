@@ -13616,7 +13616,7 @@ definitions:
         type: string
         readOnly: true
         description: >
-          Id of the User who created this roomType.
+          Id of the User who created this botData.
 
   BulkSubjectDeleteResponse:
     type: object
