@@ -16,7 +16,7 @@ const subPerspective = require('../cache/redisCache').client.subPerspective;
 const subBot = require('../cache/redisCache').client.subBot;
 const featureToggles = require('feature-toggles');
 const rtUtils = require('./utils');
-const pubsubStatsKeys = require('./constants').pubsubStatsKeys;
+const subKeys = require('./constants').pubsubStatsKeys.sub;
 const ZERO = 0;
 const ONE = 1;
 
@@ -32,10 +32,21 @@ const ONE = 1;
  */
 function trackStats(processName, key, obj) {
   const elapsed = Date.now() - new Date(obj.updatedAt);
-  rcache.saddAsync(`${pubsubStatsKeys.sub.processes}`, processName);
-  rcache.hincrbyAsync(`${pubsubStatsKeys.sub.count}:${processName}`, key, ONE);
-  rcache.hincrbyAsync(`${pubsubStatsKeys.sub.time}:${processName}`, key,
-    elapsed);
+  rcache.saddAsync(`${subKeys.processes}`, processName)
+    .catch((err) => {
+      console.error('redisSubscriber.trackStats SADD', subKeys.processes,
+        processName, err);
+    });
+  rcache.hincrbyAsync(`${subKeys.count}:${processName}`, key, ONE)
+    .catch((err) => {
+      console.error('redisSubscriber.trackStats HINCRBY', subKeys.count,
+        processName, key, ONE, err);
+    });
+  rcache.hincrbyAsync(`${subKeys.time}:${processName}`, key, elapsed)
+    .catch((err) => {
+      console.error('redisSubscriber.trackStats HINCRBY', subKeys.time,
+        processName, key, elapsed, err);
+    });
 } // trackStats
 
 /**
