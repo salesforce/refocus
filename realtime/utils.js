@@ -381,16 +381,30 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   const nameParts = sample.name.split('|');
   const subAbsPath = nameParts[0];
   const aspName = nameParts[1];
-  const subOpts = {
-    where: {
-      absolutePath: { [Op.iLike]: subAbsPath },
-    },
-  };
-  const aspOpts = {
-    where: {
-      name: { [Op.iLike]: aspName },
-    },
-  };
+
+  // Lookup by id is faster than case-insensitive ILIKE on absolutePath
+  let subFinder;
+  if (sample.subjectId) {
+    subFinder = subjectModel.findById(sample.subjectId);
+  } else {
+    subFinder = subjectModel.findOne({
+      where: {
+        absolutePath: { [Op.iLike]: subAbsPath },
+      },
+    });
+  }
+
+  // Lookup by id is faster than case-insensitive ILIKE on name
+  let aspFinder;
+  if (sample.aspectId) {
+    aspFinder = subjectModel.findById(sample.aspectId);
+  } else {
+    aspFinder = aspectModel.findOne({
+      where: {
+        name: { [Op.iLike]: aspName },
+      },
+    });
+  }
 
   if (sample.aspect) {
     redisStore.arrayObjsStringsToJson(
@@ -407,20 +421,20 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   }
 
   return Promise.all([
-    sample.aspect ? sample.aspect : aspectModel.findOne(aspOpts),
-    sample.subject ? sample.subject : subjectModel.findOne(subOpts),
+    sample.aspect ? sample.aspect : aspFinder,
+    sample.subject ? sample.subject : subFinder,
   ])
   .then((response) => {
     let asp = response[ASPECT_INDEX];
     let sub = response[SUBJECT_INDEX];
 
     if (!sub) {
-      const message = `Subject not found by Sample abs path ${subAbsPath}`;
+      const message = `Subject not found (${sample.subjectId || subAbsPath})`;
       throw new Error(message);
     }
 
     if (!asp) {
-      const message = `Aspect ${aspName} not found`;
+      const message = `Aspect not found (${sample.aspectId || aspName})`;
       throw new Error(message);
     }
 
