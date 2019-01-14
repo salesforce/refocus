@@ -492,8 +492,9 @@ describe('tests/collector/integration.js >', function () {
         .then(() => u.awaitHeartbeat())
         .then(({ req }) => {
           const conf = req.body.collectorConfig;
-          expect(conf).to.have.keys('processInfo');
-          expect(conf.processInfo).to.have.keys('memoryUsage', 'uptime');
+          expect(conf).to.have.keys('processInfo', 'osInfo', 'version');
+          expect(conf.processInfo).to.have.keys('execPath', 'memoryUsage',
+            'uptime', 'version', 'versions');
           processInfo.memoryUsage = conf.processInfo.memoryUsage;
           processInfo.uptime = conf.processInfo.uptime;
         })
