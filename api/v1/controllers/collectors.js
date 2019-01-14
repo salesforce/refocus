@@ -33,7 +33,6 @@ const decryptSGContextValues = require('../../../utils/cryptUtils')
 const encrypt = require('../../../utils/cryptUtils').encrypt;
 const GlobalConfig = require('../helpers/nouns/globalconfig').model;
 const config = require('../../../config');
-const GeneratorTemplate = require('../../../db/index').GeneratorTemplate;
 const Generator = require('../../../db/index').Generator;
 const encryptionAlgoForCollector = config.encryptionAlgoForCollector;
 const MINUS_ONE = -1;
@@ -272,30 +271,18 @@ function heartbeat(req, res, next) {
     o.set('lastHeartbeat', timestamp);
 
     // update metadata
-    const changedConfig = req.body.collectorConfig;
-    if (changedConfig) {
-      if (changedConfig.osInfo) {
-        const osInfo = o.osInfo ? o.osInfo : {};
-        Object.assign(osInfo, changedConfig.osInfo);
-        o.set('osInfo', osInfo);
-      }
-
-      if (changedConfig.processInfo) {
-        const processInfo = o.processInfo ? o.processInfo : {};
-        Object.assign(processInfo, changedConfig.processInfo);
-        o.set('processInfo', processInfo);
-        hblog.memExternal = get(processInfo, 'memoryUsage.external');
-        hblog.memHeapTotal = get(processInfo, 'memoryUsage.heapTotal');
-        hblog.memHeapUsed = get(processInfo, 'memoryUsage.heapUsed');
-        hblog.memRss = get(processInfo, 'memoryUsage.rss');
-        hblog.nodeVersion = get(processInfo, 'version');
-        hblog.uptime = get(processInfo, 'uptime');
-      }
-
-      if (changedConfig.version) {
-        o.set('version', changedConfig.version);
-        hblog.version = changedConfig.version;
-      }
+    const hbConfig = req.body.collectorConfig;
+    if (hbConfig) {
+      o.set('osInfo', hbConfig.osInfo);
+      o.set('processInfo', hbConfig.processInfo);
+      o.set('version', hbConfig.version);
+      hblog.memExternal = get(hbConfig.processInfo, 'memoryUsage.external');
+      hblog.memHeapTotal = get(hbConfig.processInfo, 'memoryUsage.heapTotal');
+      hblog.memHeapUsed = get(hbConfig.processInfo, 'memoryUsage.heapUsed');
+      hblog.memRss = get(hbConfig.processInfo, 'memoryUsage.rss');
+      hblog.nodeVersion = get(hbConfig.processInfo, 'version');
+      hblog.uptime = get(hbConfig.processInfo, 'uptime');
+      hblog.version = hbConfig.version;
     }
 
     return o.save();
