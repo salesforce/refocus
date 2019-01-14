@@ -16,6 +16,7 @@ module.exports = {
   up(qi, Sequelize) {
     return qi.addColumn('Rooms', 'createdBy', {
       type: Sequelize.UUID,
+      defaultValue: null,
       references: {
         model: 'Users',
         key: 'id',
@@ -23,6 +24,7 @@ module.exports = {
     })
     .then(() => qi.addColumn('RoomTypes', 'createdBy', {
       type: Sequelize.UUID,
+      defaultValue: null,
       references: {
         model: 'Users',
         key: 'id',
@@ -30,6 +32,7 @@ module.exports = {
     }))
     .then(() => qi.addColumn('BotData', 'createdBy', {
       type: Sequelize.UUID,
+      defaultValue: null,
       references: {
         model: 'Users',
         key: 'id',
@@ -37,6 +40,7 @@ module.exports = {
     }))
     .then(() => qi.addColumn('Bots', 'installedBy', {
       type: Sequelize.UUID,
+      defaultValue: null,
       references: {
         model: 'Users',
         key: 'id',
