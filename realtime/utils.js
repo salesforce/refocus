@@ -384,26 +384,30 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
 
   // Lookup by id is faster than case-insensitive ILIKE on absolutePath
   let subFinder;
-  if (sample.subjectId) {
-    subFinder = subjectModel.findById(sample.subjectId);
-  } else {
-    subFinder = subjectModel.findOne({
-      where: {
-        absolutePath: { [Op.iLike]: subAbsPath },
-      },
-    });
+  if (!sample.subject && subjectModel) {
+    if (sample.subjectId) {
+      subFinder = subjectModel.findById(sample.subjectId);
+    } else {
+      subFinder = subjectModel.findOne({
+        where: {
+          absolutePath: { [Op.iLike]: subAbsPath },
+        },
+      });
+    }
   }
 
   // Lookup by id is faster than case-insensitive ILIKE on name
   let aspFinder;
-  if (sample.aspectId) {
-    aspFinder = subjectModel.findById(sample.aspectId);
-  } else {
-    aspFinder = aspectModel.findOne({
-      where: {
-        name: { [Op.iLike]: aspName },
-      },
-    });
+  if (!sample.aspect && aspectModel) {
+    if (sample.aspectId) {
+      aspFinder = aspectModel.findById(sample.aspectId);
+    } else {
+      aspFinder = aspectModel.findOne({
+        where: {
+          name: { [Op.iLike]: aspName },
+        },
+      });
+    }
   }
 
   if (sample.aspect) {
