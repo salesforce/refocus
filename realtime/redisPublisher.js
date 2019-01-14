@@ -19,7 +19,7 @@ const sampleEvent = require('./constants').events.sample;
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
 const rcache = require('../cache/redisCache').client.pubsubStats;
-const pubsubStatsKeys = require('./constants').pubsubStatsKeys;
+const pubKeys = require('./constants').pubsubStatsKeys.pub;
 const ONE = 1;
 
 /**
@@ -33,8 +33,16 @@ const ONE = 1;
  */
 function trackStats(key, obj) {
   const elapsed = Date.now() - new Date(obj.updatedAt);
-  rcache.hincrbyAsync(pubsubStatsKeys.pub.count, key, ONE);
-  rcache.hincrbyAsync(pubsubStatsKeys.pub.time, key, elapsed);
+  rcache.hincrbyAsync(pubKeys.count, key, ONE)
+    .catch((err) => {
+      console.error('redisPublisher.trackStats HINCRBY', pubKeys.count, key,
+        ONE);
+    });
+  rcache.hincrbyAsync(pubKeys.time, key, elapsed)
+    .catch((err) => {
+      console.error('redisPublisher.trackStats HINCRBY', pubKeys.time, key,
+        elapsed, err);
+    });
 } // trackStats
 
 /**

@@ -56,6 +56,18 @@ module.exports = (job, done) => {
           return Promise.resolve();
         }
 
+        /*
+         * Don't bother calling publish if the object we have here is missing
+         * the name attribute.
+         * Add extra logging to try to continue get to the bottom of the
+         * ongoing problem with some "sample object does not contain name"
+         * errors.
+         */
+        if (!result.name) {
+          logger.error('sample object does not contain name???', result);
+          return Promise.resolve();
+        }
+
         successCount++;
 
         // Wait for publish to complete before resolving the promise.
