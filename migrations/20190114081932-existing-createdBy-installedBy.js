@@ -9,27 +9,27 @@
 
 module.exports = {
   up: function (qi, Sequelize) {
-    return qi.sequelize.transaction(() => 
-      qi.sequelize.query('UPDATE "Bots" SET "installedBy"='+
+    return qi.sequelize.transaction(() =>
+      qi.sequelize.query('UPDATE "Bots" SET "installedBy"=' +
         '(SELECT id from "Users" WHERE email=\'admin@refocus.admin\');'
       )
     ).then(() =>
-      qi.sequelize.query('UPDATE "RoomTypes" SET "createdBy"='+
+      qi.sequelize.query('UPDATE "RoomTypes" SET "createdBy"=' +
         '(SELECT id from "Users" WHERE email=\'admin@refocus.admin\');'
       )
     ).then(() =>
-      qi.sequelize.query('UPDATE "Rooms" SET "createdBy"='+
+      qi.sequelize.query('UPDATE "Rooms" SET "createdBy"=' +
         '(SELECT id from "Users" WHERE email=\'admin@refocus.admin\');'
       )
     ).then(() =>
-      qi.sequelize.query('UPDATE "BotData" SET "createdBy"='+
+      qi.sequelize.query('UPDATE "BotData" SET "createdBy"=' +
         '(SELECT id from "Users" WHERE email=\'admin@refocus.admin\');'
       )
     );
   },
 
   down: function (qi, Sequelize) {
-    return qi.sequelize.transaction(() => 
+    return qi.sequelize.transaction(() =>
       qi.sequelize.query('UPDATE "Bots" SET "installedBy"=NULL')
     ).then(() =>
       qi.sequelize.query('UPDATE "RoomTypes" SET "createdBy"=NULL')
