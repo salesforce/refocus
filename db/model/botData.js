@@ -162,15 +162,23 @@ module.exports = function botData(seq, dataTypes) {
       foreignKey: 'roomId',
       allowNull: false,
     });
+
     assoc.room = BotData.belongsTo(models.Bot, {
       foreignKey: 'botId',
       allowNull: false,
     });
+
+    assoc.user = BotData.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'user',
+    });
+
     assoc.writers = BotData.belongsToMany(models.User, {
       as: 'writers',
       through: 'BotDataWriters',
       foreignKey: 'botId',
     });
+
     BotData.addScope('bdExists', (value) => ({
       where: {
         name: value.name,
@@ -178,6 +186,17 @@ module.exports = function botData(seq, dataTypes) {
         roomId: value.roomId,
       },
     }));
+
+    BotData.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    }, {
+      override: true,
+    });
   };
 
   BotData.bdExists = function (query) {
@@ -200,4 +219,3 @@ module.exports = function botData(seq, dataTypes) {
 
   return BotData;
 };
-
