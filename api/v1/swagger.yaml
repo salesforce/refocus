@@ -13037,6 +13037,11 @@ definitions:
         description: A list of data that a bot can provide
         items:
           type: object
+      installedBy:
+        readOnly: true
+        type: string
+        description: >
+          The user who installed the bot
 
   EventResponse:
     type: object
@@ -13555,6 +13560,11 @@ definitions:
       type:
         type: string
         description: The roomType being used in the specified room
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          Id of the User who created this room.
 
   RoomTypeResponse:
     type: object
@@ -13582,6 +13592,11 @@ definitions:
         items:
           type: string
         description: Array containing the bots to be used for rooms of this type
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          Id of the User who created this roomType.
 
   BotDataResponse:
     type: object
@@ -13602,6 +13617,11 @@ definitions:
       botId:
         type: string
         description: UUID of the specified bot in that room
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          Id of the User who created this botData.
 
   BulkSubjectDeleteResponse:
     type: object
