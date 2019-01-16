@@ -222,14 +222,32 @@ module.exports = function roomType(seq, dataTypes) {
     assoc.type = RoomType.hasMany(models.Room, {
       foreignKey: 'type',
     });
+
     assoc.bots = RoomType.belongsToMany(models.Bot, {
       foreignKey: 'roomTypeId',
       through: 'RoomTypeBots',
     });
+
+    assoc.user = RoomType.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'user',
+    });
+
     assoc.writers = RoomType.belongsToMany(models.User, {
       as: 'writers',
       through: 'RoomTypeWriters',
       foreignKey: 'roomTypeId',
+    });
+
+    RoomType.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    }, {
+      override: true,
     });
   };
 
