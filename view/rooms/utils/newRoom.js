@@ -40,11 +40,17 @@ module.exports = {
    */
   createRoomFromParameters(paramaters) {
     const postUrl = '/v1/rooms';
+    let roomOrigin = paramaters.autoNaming ? 'auto_create' : 'web';
+    if (paramaters.origin) {
+      roomOrigin = paramaters.origin;
+    }
+
     const room = {
       name: paramaters.name,
       type: paramaters.roomType,
       externalId: paramaters.externalId,
       active: paramaters.active,
+      origin: roomOrigin,
     };
 
     return utils.postPromiseWithUrl(postUrl, room);
