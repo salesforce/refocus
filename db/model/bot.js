@@ -147,6 +147,10 @@ module.exports = function bot(seq, dataTypes) {
   };
 
   Bot.postImport = function (models) {
+    assoc.user = Bot.belongsTo(models.User, {
+      foreignKey: 'installedBy',
+      as: 'user',
+    });
     assoc.writers = Bot.belongsToMany(models.User, {
       as: 'writers',
       through: 'BotWriters',
@@ -162,6 +166,12 @@ module.exports = function bot(seq, dataTypes) {
     });
 
     Bot.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
       attributes: { exclude: ['ui'] },
     }, {
       override: true,

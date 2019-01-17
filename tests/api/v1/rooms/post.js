@@ -58,6 +58,9 @@ describe('tests/api/v1/rooms/post.js >', () => {
       }
 
       expect(res.body.name).to.equal(u.name);
+      expect(res.body).to.have.property('createdBy');
+      expect(res.body.user).to.have.property('email');
+      expect(res.body.user.email).to.equal('___testUser@refocus.com');
       done();
     });
   });

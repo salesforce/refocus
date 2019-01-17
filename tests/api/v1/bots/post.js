@@ -63,6 +63,7 @@ describe('tests/api/v1/bots/post.js >', () => {
       expect(res.body.displayName).to.equal(u.displayName);
       expect(res.body.helpUrl).to.equal(u.standard.helpUrl);
       expect(res.body.ownerUrl).to.equal(u.standard.ownerUrl);
+      expect(res.body).to.have.property('installedBy');
       done();
     });
   });
