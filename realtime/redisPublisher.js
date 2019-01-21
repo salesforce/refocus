@@ -101,7 +101,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   if (!inst || !event) return false;
 
   const obj = {};
-  obj[event] = inst;
+  obj[event] = inst.get ? inst.get() : inst;
 
   // set pub client and channel to perspective unless there are overrides opts
   let pubClient = pubPerspective;
