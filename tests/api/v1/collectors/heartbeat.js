@@ -326,7 +326,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .catch(done);
       });
 
-      //TODO: need to add DB validation that Generator.currentCollector exists
+      // TODO: need to add DB validation that Generator.currentCollector exists
       describe.skip('make sure updating a nonexistent collector doesnt modify ' +
       'the collectorMap >', () => {
         const coll4 = u.getCollectorToCreate();
@@ -743,7 +743,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         uptime: 0.500,
         version: 'v1.0.0',
         versions: {
-          http_parser: '1.0.0',
+          http_parser: '1.0.0', // eslint-disable-line camelcase
           node: '1.0.0',
           v8: '1.0.0',
           uv: '1.0.0',
@@ -757,17 +757,35 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       const originalVersion = '1.0.0';
 
       const changedOsInfo = {
+        arch: 'x64',
+        hostname: 'host1.abc.com',
+        platform: 'darwin',
         release: '16.7.1',
+        type: 'Darwin',
         username: 'user2',
       };
       const changedProcessInfo = {
+        execPath: '/usr/local/bin/node',
         memoryUsage: { rss: 2000, heapTotal: 1000, heapUsed: 1000 },
         uptime: 1.500,
+        version: 'v1.0.0',
+        versions: {
+          http_parser: '1.0.0', // eslint-disable-line camelcase
+          node: '1.0.0',
+          v8: '1.0.0',
+          uv: '1.0.0',
+          zlib: '1.0.0',
+          ares: '1.0.0',
+          icu: '1.0.0',
+          modules: '1.0.0',
+          openssl: '1.0.0',
+        },
       };
       const changedVersion = '1.0.1';
 
       const updatedOsInfo = JSON.parse(JSON.stringify(originalOsInfo));
-      const updatedProcessInfo = JSON.parse(JSON.stringify(originalProcessInfo));
+      const updatedProcessInfo =
+        JSON.parse(JSON.stringify(originalProcessInfo));
       Object.assign(updatedOsInfo, changedOsInfo);
       Object.assign(updatedProcessInfo, changedProcessInfo);
       const updatedVersion = changedVersion;
@@ -802,6 +820,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
             timestamp: Date.now(),
             collectorConfig: {
               osInfo: changedOsInfo,
+              version: originalVersion,
             },
           },
         }))
@@ -818,6 +837,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
             timestamp: Date.now(),
             collectorConfig: {
               processInfo: changedProcessInfo,
+              version: originalVersion,
             },
           },
         }))
@@ -862,7 +882,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
             collectorConfig: {
               osInfo: changedOsInfo,
               processInfo: changedProcessInfo,
-              version: changedVersion,
+              version: updatedVersion,
             },
           },
         }))
