@@ -131,7 +131,6 @@ describe('tests/api/v1/bots/get.js >', () => {
     .catch(done);
   });
 
-  /* TODO IMC please fix this test */
   it('Pass, get by id', (done) => {
     api.get(`${path}/${testBot.id}`)
     .set('Authorization', token)
