@@ -140,9 +140,7 @@ module.exports = {
 
   createStandard(userId) {
     const standardBot = standard;
-    if (userId) {
-      standardBot.installedBy = userId;
-    }
+    standardBot.installedBy = userId;
     return tu.db.Bot.create(standardBot);
   },
 

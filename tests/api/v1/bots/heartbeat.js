@@ -40,7 +40,7 @@ describe('tests/api/v1/bots/heartbeat.js >', () => {
       testBot = newBot;
       done();
     })
-    .catch((err) => console.log("qqqqzzzzz" + err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
