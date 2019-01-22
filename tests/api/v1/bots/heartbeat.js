@@ -22,18 +22,20 @@ const tu = require('../../../testUtils');
 describe('tests/api/v1/bots/heartbeat.js >', () => {
   let testBot;
   let token;
+  let userId;
 
   before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      token = obj.token;
       done();
     })
     .catch(done);
   });
 
   beforeEach((done) => {
-    u.createStandard()
+    u.createStandard(userId)
     .then((newBot) => {
       testBot = newBot;
       done();
