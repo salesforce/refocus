@@ -138,8 +138,10 @@ module.exports = {
     return tu.db.Bot.create(nonActive);
   },
 
-  createStandard() {
-    return tu.db.Bot.create(standard);
+  createStandard(userId) {
+    const standardBot = standard;
+    if (userId) standardBot.installedBy = userId;
+    return tu.db.Bot.create(standardBot);
   },
 
   forceDelete(done) {
