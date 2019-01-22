@@ -45,7 +45,7 @@ describe('tests/api/v1/bots/get.js >', () => {
       testBot = newBot;
       done();
     })
-    .catch((err) => console.log('aaaaaaaaaaaabbbbbbbb' + err));
+    .catch(done);
   });
 
   afterEach(u.forceDelete);
