@@ -141,18 +141,14 @@ module.exports = {
   createStandard(userId) {
     const standardBot = standard;
     if (userId) {
-      console.log("QQQWWWEEE")
-      console.log(userId)
       standardBot.installedBy = userId;
     }
-
-    console.log(standard)
-    return tu.db.Bot.create(standard);
+    return tu.db.Bot.create(standardBot);
   },
 
   forceDelete(done) {
     tu.forceDelete(tu.db.Bot, testStartTime)
     .then(() => done())
-    .catch((err) => console.log("ddddeeeee" + err));
+    .catch(done);
   },
 };
