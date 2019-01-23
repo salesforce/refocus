@@ -44,6 +44,7 @@ describe('tests/db/model/botData/create.js >', () => {
     })
     .then((o) => {
       expect(o).to.have.property('name');
+      expect(o).to.have.property('createdBy');
       done();
     })
     .catch(done);

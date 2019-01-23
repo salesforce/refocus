@@ -71,6 +71,7 @@ const client = {
   limiter: redis.createClient(rconf.instanceUrl.limiter, opts),
   pubPerspective: redis.createClient(rconf.instanceUrl.pubsubPerspective, opts),
   pubBot: redis.createClient(rconf.instanceUrl.pubsubBots, opts),
+  pubsubStats: redis.createClient(rconf.instanceUrl.pubsubStats, opts),
   realtimeLogging: redis.createClient(rconf.instanceUrl.realtimeLogging,
    opts),
   sampleStore: redis.createClient(rconf.instanceUrl.sampleStore, opts),

@@ -18,8 +18,8 @@ const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
-const rcache = require('../cache/redisCache').client.cache;
-const pubsubStatsKeys = require('./constants').pubsubStatsKeys;
+const rcache = require('../cache/redisCache').client.pubsubStats;
+const pubKeys = require('./constants').pubsubStatsKeys.pub;
 const ONE = 1;
 
 /**
@@ -33,8 +33,16 @@ const ONE = 1;
  */
 function trackStats(key, obj) {
   const elapsed = Date.now() - new Date(obj.updatedAt);
-  rcache.hincrbyAsync(pubsubStatsKeys.pub.count, key, ONE);
-  rcache.hincrbyAsync(pubsubStatsKeys.pub.time, key, elapsed);
+  rcache.hincrbyAsync(pubKeys.count, key, ONE)
+    .catch((err) => {
+      console.error('redisPublisher.trackStats HINCRBY', pubKeys.count, key,
+        ONE);
+    });
+  rcache.hincrbyAsync(pubKeys.time, key, elapsed)
+    .catch((err) => {
+      console.error('redisPublisher.trackStats HINCRBY', pubKeys.time, key,
+        elapsed, err);
+    });
 } // trackStats
 
 /**
@@ -93,7 +101,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   if (!inst || !event) return false;
 
   const obj = {};
-  obj[event] = inst;
+  obj[event] = inst.get ? inst.get() : inst;
 
   // set pub client and channel to perspective unless there are overrides opts
   let pubClient = pubPerspective;

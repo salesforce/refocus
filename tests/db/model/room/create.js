@@ -35,6 +35,7 @@ describe('tests/db/model/room/create.js >', () => {
       expect(o).to.have.property('name');
       expect(o).to.have.property('externalId');
       expect(o).to.have.property('active').to.equal(true);
+      expect(o).to.have.property('createdBy');
       done();
     })
     .catch(done);

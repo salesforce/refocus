@@ -22,11 +22,13 @@ const jwtUtil = require('../../../../utils/jwtUtil');
 
 describe('tests/api/v1/bots/post.js >', () => {
   let token;
+  let userId;
 
   before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      token = obj.token;
       done();
     })
     .catch(done);
@@ -63,12 +65,13 @@ describe('tests/api/v1/bots/post.js >', () => {
       expect(res.body.displayName).to.equal(u.displayName);
       expect(res.body.helpUrl).to.equal(u.standard.helpUrl);
       expect(res.body.ownerUrl).to.equal(u.standard.ownerUrl);
+      expect(res.body).to.have.property('installedBy');
       done();
     });
   });
 
   it('Fail, duplicate bot', (done) => {
-    u.createStandard()
+    u.createStandard(userId)
     .then(() => {
       api.post(`${path}`)
       .set('Authorization', token)

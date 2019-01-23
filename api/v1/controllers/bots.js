@@ -142,6 +142,8 @@ module.exports = {
         }
       }
 
+      const user = req.user;
+      seqObj.installedBy = user.id;
       helper.model.create(seqObj)
         .then((o) => {
           o.dataValues.ui = uiObj;

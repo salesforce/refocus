@@ -16,7 +16,7 @@ const aType = 'pubsub';
 const prototype = require('../../config/activityLog')[aType];
 const activityLog = require('../../utils/activityLog');
 const pubsubStatsKeys = require('../../realtime/constants').pubsubStatsKeys;
-const redis = require('../../cache/redisCache').client.cache;
+const redis = require('../../cache/redisCache').client.pubsubStats;
 
 /**
  * Generate the logging objects, one per process and event type. Look up the
