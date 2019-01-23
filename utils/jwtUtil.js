@@ -288,7 +288,6 @@ function verifyToken(req, cb) {
       return extraVerification(payload, req, cb);
     })
     .catch((err) => {
-      console.log("err included",err)
       const e = new apiErrors.ForbiddenError({
         explanation: 'Authentication Failed',
       });
