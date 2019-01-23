@@ -167,9 +167,41 @@ function verifyGeneratorToken(payload, req, cb) {
  *
  * @param {Object} payload - the decoded payload
  */
-function verifyBotToken(token) {
+function verifyBotSocketToken(token) {
   return jwtVerifyAsync(token, secret, {})
-  .then((payload) => Bot.findOne({ where: { name: payload.username } }));
+  .then((payload) => Bot.findOne({ where: { name: payload.tokenname } }));
+} // verifyBotSocketToken
+
+/**
+ * Function to verify if a generator token is valid or not, i.e. does the token
+ * name match an actual generator name.
+ *
+ * @param {Object} payload - the decoded payload
+ * @param  {object} req - request object
+ * @param  {Function} cb - callback function - Optional
+ * @returns {Function|undefined} - Callback function or undefined
+ * @throws {ForbiddenError} If a generator record matching the token name is
+ *   not found
+ */
+function verifyBotToken(payload, req, cb) {
+  return setUser(payload, req)
+  .then((p) => payload = p)
+  .then(() => Bot.findOne({ where: { name: payload.tokenname } }))
+  .then((gen) => {
+    if (!gen) {
+      throw new apiErrors.ForbiddenError({
+        explanation: 'Authentication Failed',
+      });
+    }
+
+    assignHeaderValues(req, payload);
+    return cb ? cb() : undefined;
+  })
+  .catch(() => {
+    throw new apiErrors.ForbiddenError({
+      explanation: 'Authentication Failed',
+    });
+  });
 } // verifyBotToken
 
 function setUser(payload, req) {
@@ -247,6 +279,8 @@ function verifyToken(req, cb) {
         extraVerification = verifyCollectorToken;
       } else if (payload.IsGenerator) {
         extraVerification = verifyGeneratorToken;
+      } else if (payload.IsBot) {
+        extraVerification = verifyBotToken;
       } else {
         extraVerification = verifyUserToken;
       }
@@ -254,6 +288,7 @@ function verifyToken(req, cb) {
       return extraVerification(payload, req, cb);
     })
     .catch((err) => {
+      console.log("err included",err)
       const e = new apiErrors.ForbiddenError({
         explanation: 'Authentication Failed',
       });
@@ -306,6 +341,7 @@ module.exports = {
   verifyCollectorToken, // for testing purposes only
   verifyGeneratorToken, // for testing purposes only
   verifyBotToken,
+  verifyBotSocketToken,
   assignHeaderValues, // for testing purposes only
   headersWithDefaults, // for testing purposes only
 };

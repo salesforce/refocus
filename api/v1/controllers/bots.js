@@ -146,7 +146,8 @@ module.exports = {
         .then((o) => {
           o.dataValues.ui = uiObj;
           if (featureToggles.isFeatureEnabled('addIsBotToToken')) {
-            o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name, { IsBot: true });
+            o.dataValues.token = jwtUtil.createToken(seqObj.name, req.headers.UserName,
+             { IsBot: true });
           } else {
             o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name);
           }
@@ -198,7 +199,7 @@ module.exports = {
       if (featureToggles.isFeatureEnabled('addIsBotToToken')) {
         o.dataValues.token = jwtUtil.createToken(
           o.dataValues.name,
-          o.dataValues.name,
+          req.headers.UserName,
           { IsBot: true }
         );
       }
