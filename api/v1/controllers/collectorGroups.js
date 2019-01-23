@@ -12,8 +12,8 @@
 'use strict'; // eslint-disable-line strict
 const helper = require('../helpers/nouns/collectorGroups');
 const apiUtils = require('./utils');
-const verbUtils = require('../helpers/verbs/utils');
-const CREATED = require('../constants').httpStatus.CREATED;
+const u = require('../helpers/verbs/utils');
+const httpStatus = require('../constants').httpStatus;
 
 /**
  * POST /collectorGroups
@@ -30,7 +30,7 @@ function createCollectorGroup(req, res, next) {
   const resultObj = { reqStartTime: req.timestamp };
   const params = req.swagger.params;
 
-  verbUtils.mergeDuplicateArrayElements(params.queryBody.value, helper);
+  u.mergeDuplicateArrayElements(params.queryBody.value, helper);
 
   const body = params.queryBody.value;
   body.createdBy = req.user.id;
@@ -39,14 +39,50 @@ function createCollectorGroup(req, res, next) {
   .then((collectorGroup) => {
     const recordCountOverride = null;
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    verbUtils.logAPI(req, resultObj, collectorGroup, recordCountOverride);
+    u.logAPI(req, resultObj, collectorGroup, recordCountOverride);
 
-    const response = verbUtils.responsify(collectorGroup, helper, req.method);
-    res.status(CREATED).json(response);
+    const response = u.responsify(collectorGroup, helper, req.method);
+    res.status(httpStatus.CREATED).json(response);
   })
-  .catch((err) => verbUtils.handleError(next, err, helper.modelName));
-}
+  .catch((err) => u.handleError(next, err, helper.modelName));
+} // createCollectorGroup
+
+/**
+ * POST /collectorGroups/{name}/collectors
+ *
+ * Add collectors to the group. Reject if any collector named in the array
+ * is already assigned to either this or a different group.
+ *
+ * @param {IncomingMessage} req - The request object
+ * @param {ServerResponse} res - The response object
+ * @param {Function} next - The next middleware function in the stack
+ */
+function addCollectorsToGroup(req, res, next) {
+  apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
+  const resultObj = { reqStartTime: req.timestamp };
+  const params = req.swagger.params;
+  let cg;
+
+  u.mergeDuplicateArrayElements(params.queryBody.value, helper);
+
+  u.findByKey(helper, params)
+    .then((o) => u.isWritable(req, o))
+    .then((collectorGroup) =>
+      collectorGroup.addCollectorsToGroup(params.queryBody.value))
+    .then((added) => (cg = added))
+    .then(() => {
+      const recordCountOverride = null;
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      u.logAPI(req, resultObj, cg, recordCountOverride);
+    })
+    .then(() => {
+      const response = u.responsify(cg, helper, req.method);
+      res.status(httpStatus.OK).json(response);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+} // addCollectorsToGroup
 
 module.exports = {
+  addCollectorsToGroup,
   createCollectorGroup,
 };
