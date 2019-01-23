@@ -14,6 +14,7 @@ const common = require('../helpers/common');
 const collectorUtils = require('../helpers/collectorUtils');
 const constants = require('../constants');
 const dbUtils = require('../utils');
+const ValidationError = require('../dbErrors').ValidationError;
 const assoc = {};
 
 module.exports = function collectorgroup(seq, dataTypes) {
@@ -155,6 +156,45 @@ module.exports = function collectorgroup(seq, dataTypes) {
       .then((collectors) => this.setCollectors(collectors))
       .then(() => this.reload());
   }; // addCollectorsToGroup
+
+  /**
+   * Delete the named collectors from this collector group. Reject if any of
+   * the named collectors are not already assigned to this group, or if the
+   * array is empty.
+   *
+   * @param {Array<String>} arr - array of collector names
+   * @returns {Promise<any | never>}
+   */
+  CollectorGroup.prototype.deleteCollectorsFromGroup = function (arr) {
+    let currentCollectors = [];
+    return this.getCollectors()
+      .then((curr) => {
+        currentCollectors = curr;
+        if (currentCollectors.length === 0) {
+          throw new ValidationError('There are no collectors currently ' +
+            'assigned to this collector group');
+        }
+      })
+      .then(() => collectorUtils.validate(seq, arr))
+      .then((toRemove) => {
+        // Reject if any of the collectors to remove are not already in this
+        // collector group.
+        const notCurrentlyInGroup = toRemove.filter((c) =>
+          !c.collectorGroupId || c.collectorGroupId !== this.id);
+        if (notCurrentlyInGroup.length) {
+          const namesToReject = notCurrentlyInGroup.map((c) => c.name);
+          const msg = 'This collector group does not contain ' +
+            `[${namesToReject.join(', ')}]`;
+          throw new ValidationError(msg);
+        }
+
+        const namesToRemove = toRemove.map((c) => c.name);
+        const toRemain = currentCollectors.filter((c) =>
+          !namesToRemove.includes(c.name));
+        return this.setCollectors(toRemain);
+      })
+      .then(() => this.reload());
+  }; // deleteCollectorsFromGroup
 
   return CollectorGroup;
 };

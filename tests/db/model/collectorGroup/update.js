@@ -136,4 +136,31 @@ describe('tests/db/model/collectorGroup/update.js >', () => {
       })
       .catch(done);
   });
+
+  it('delete collector from group', (done) => {
+    collectorGroupDb.addCollectorsToGroup([collector1.name, collector2.name])
+      .then(() =>
+        collectorGroupDb.deleteCollectorsFromGroup([collector1.name]))
+      .then((cg) => {
+        const colls = cg.get('collectors');
+        expect(colls).to.have.lengthOf(1);
+        expect(colls[0]).to.have.property('name', 'coll-2');
+        done();
+      })
+      .catch(done);
+  });
+
+  it('fail deleting collector not in group', (done) => {
+    collectorGroupDb.addCollectorsToGroup([collector1.name, collector2.name])
+      .then(() =>
+        collectorGroupDb.deleteCollectorsFromGroup([collector3.name]))
+      .then((cg) => done(new Error('Expecting error')))
+      .catch((err) => {
+        expect(err).to.have.property('name', 'ValidationError');
+        expect(err).to.have.property('message',
+          'This collector group does not contain [coll-3]');
+        done();
+      })
+      .catch(done);
+  });
 });

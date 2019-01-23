@@ -11451,11 +11451,11 @@ paths:
     delete:
       security:
         - jwt: []
-      summary: Delete collector from the group.
+      summary: Delete named collector(s) from group.
       tags: [ collectorGroups ]
       description: >-
-        Delete collector from group if any collector named in the array is not already associated with this group.
-      operationId: deleteCollectorFromGroup
+        Delete named collector(s) from group. Reject if any named collector is not already associated with this group.
+      operationId: deleteCollectorsFromGroup
       parameters:
         - name: key
           in: path
@@ -11471,9 +11471,15 @@ paths:
             type: array
             items:
               type: string
+            minItems: 1
+            uniqueItems: true
             description: >-
               List of collectors
       responses:
+        200:
+          description: Success, returns the updated collector group.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
         400:
           $ref: "#/responses/400"
         401:

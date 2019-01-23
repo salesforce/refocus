@@ -69,7 +69,7 @@ function addCollectorsToGroup(req, res, next) {
     .then((o) => u.isWritable(req, o))
     .then((collectorGroup) =>
       collectorGroup.addCollectorsToGroup(params.queryBody.value))
-    .then((added) => (cg = added))
+    .then((updatedGroup) => (cg = updatedGroup))
     .then(() => {
       const recordCountOverride = null;
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -82,7 +82,33 @@ function addCollectorsToGroup(req, res, next) {
     .catch((err) => u.handleError(next, err, helper.modelName));
 } // addCollectorsToGroup
 
+function deleteCollectorsFromGroup(req, res, next) {
+  apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
+  const resultObj = { reqStartTime: req.timestamp };
+  const params = req.swagger.params;
+  let cg;
+
+  u.mergeDuplicateArrayElements(params.queryBody.value, helper);
+
+  u.findByKey(helper, params)
+    .then((o) => u.isWritable(req, o))
+    .then((collectorGroup) =>
+      collectorGroup.deleteCollectorsFromGroup(params.queryBody.value))
+    .then((updatedGroup) => (cg = updatedGroup))
+    .then(() => {
+      const recordCountOverride = null;
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      u.logAPI(req, resultObj, cg, recordCountOverride);
+    })
+    .then(() => {
+      const response = u.responsify(cg, helper, req.method);
+      res.status(httpStatus.OK).json(response);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+} // deleteCollectorsFromGroup
+
 module.exports = {
   addCollectorsToGroup,
   createCollectorGroup,
+  deleteCollectorsFromGroup,
 };
