@@ -321,6 +321,7 @@ module.exports = {
           }
         }
 
+        console.trace(err);
         u.handleError(next, newErr, helper.modelName);
       });
     } else {
@@ -330,6 +331,7 @@ module.exports = {
         res.status(httpStatus.OK).json(resultObj.retval);
       })
       .catch((err) => {
+        console.trace(err);
         u.handleError(next, err, helper.modelName);
       });
     }
