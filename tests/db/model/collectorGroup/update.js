@@ -92,7 +92,6 @@ describe('tests/db/model/collectorGroup/update.js >', () => {
       .then((cg) => {
         expect(cg.collectors.length).to.equal(1);
         expect(cg.collectors[0]).to.have.property('name', collector1.name);
-        return done();
       })
       .then(() =>
         collectorGroupDb.addCollectorsToGroup([collector2.name]))
