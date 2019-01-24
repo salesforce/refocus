@@ -83,6 +83,10 @@ function applyTagFilters(keys, filterBy, filters) {
   }
 
   // When tags are not present and an excludes filter is set, return true
+
+  // TODO leave this in while we figure out why "keys" is
+  //      undefined
+  if (!keys) keys = [];
   if (!keys.length && filters[filterBy].excludes.size) {
     return true;
   }

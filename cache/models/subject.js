@@ -63,6 +63,12 @@ function filterSamples(subj) {
   const filteredSamples = [];
   for (let i = 0; i < subj.samples.length; i++) {
     if (subj.samples[i].aspect) {
+      if (subj.samples[i].aspect.tags === undefined ||
+        !Array.isArray(subj.samples[i].aspect.tags)) {
+        console.error('Invalid "tags" on this sample\'s aspect?',
+          subj.samples[i].aspect);
+      }
+
       if (u.applyFilters(subj.samples[i].aspect.name, 'aspect', filters) &&
         u.applyTagFilters(subj.samples[i].aspect.tags, 'aspectTags', filters) &&
         u.applyFilters(subj.samples[i].status, 'status', filters)) {
@@ -89,6 +95,10 @@ function filterSamples(subj) {
  */
 function attachSamples(res) {
   res.samples = [];
+  if (res.tags === undefined || !Array.isArray(res.tags)) {
+    console.error('Invalid "tags" on this subject?', res);
+  }
+
   const filterOnSubject = u.applyTagFilters(res.tags, 'subjectTags', filters);
   if (!filterOnSubject) {
     return Promise.resolve(filterOnSubject);
