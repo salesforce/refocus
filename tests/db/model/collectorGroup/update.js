@@ -75,29 +75,34 @@ describe('tests/db/model/collectorGroup/update.js >', () => {
       .catch(done);
   });
 
-  it('assign empty collector array to group', (done) => {
+  it('add empty collector array to group does nothing', (done) => {
     collectorGroupDb.addCollectorsToGroup([collector1.name])
       .then((cg) => {
         expect(cg.collectors.length).to.equal(1);
         expect(cg.collectors[0]).to.have.property('name', collector1.name);
         return collectorGroupDb.addCollectorsToGroup([]);
       })
-      .then((cg) => expect(cg.collectors).to.be.empty)
+      .then((cg) => expect(cg.collectors.length).to.equal(1))
       .then(() => done())
       .catch(done);
   });
 
-  it('assign array of one collector to group', (done) => {
+  it('add array of one collector to group', (done) => {
     collectorGroupDb.addCollectorsToGroup([collector1.name])
       .then((cg) => {
         expect(cg.collectors.length).to.equal(1);
         expect(cg.collectors[0]).to.have.property('name', collector1.name);
+      })
+      .then(() =>
+        collectorGroupDb.addCollectorsToGroup([collector2.name]))
+      .then((cg) => {
+        expect(cg.collectors.length).to.equal(2);
         return done();
       })
       .catch(done);
   });
 
-  it('assign array of more than one collector to group', (done) => {
+  it('add array of more than one collector to group', (done) => {
     collectorGroupDb.addCollectorsToGroup([collector1.name, collector2.name])
       .then((cg) => {
         expect(cg.collectors.length).to.equal(2);

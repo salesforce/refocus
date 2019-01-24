@@ -69,7 +69,7 @@ function addCollectorsToGroup(req, res, next) {
     .then((o) => u.isWritable(req, o))
     .then((collectorGroup) =>
       collectorGroup.addCollectorsToGroup(params.queryBody.value))
-    .then((updatedGroup) => (cg = updatedGroup))
+    .then((added) => (cg = added))
     .then(() => {
       const recordCountOverride = null;
       resultObj.dbTime = new Date() - resultObj.reqStartTime;

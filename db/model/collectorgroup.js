@@ -145,7 +145,7 @@ module.exports = function collectorgroup(seq, dataTypes) {
   /**
    * Add the named collectors to this collector group. Reject if any of the
    * named collectors is already assigned to this group, or to a different
-   * group. If array is empty, remove all collectors from this collector group.
+   * group.
    *
    * @param {Array<String>} arr - array of collector names
    * @returns {Promise<any | never>}
@@ -153,7 +153,7 @@ module.exports = function collectorgroup(seq, dataTypes) {
   CollectorGroup.prototype.addCollectorsToGroup = function (arr) {
     return collectorUtils.validate(seq, arr)
       .then(collectorUtils.alreadyAssigned)
-      .then((collectors) => this.setCollectors(collectors))
+      .then((collectors) => this.addCollectors(collectors))
       .then(() => this.reload());
   }; // addCollectorsToGroup
 

@@ -70,19 +70,20 @@ describe('tests/api/v1/collectorGroups/update.js >', () => {
 
   after(tu.forceDeleteUser);
 
-  it('set empty collector list', (done) => {
+  it('invalid empty collector list', (done) => {
     api.post(`/v1/collectorGroups/${cg.name}/collectors`)
       .set('Authorization', token)
       .send([])
-      .expect(httpStatus.OK)
+      .expect(httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
 
-        expect(res.body).to.have.property('name', cg.name);
-        expect(res.body).to.have.property('description', cg.description);
-        expect(res.body.collectors).to.be.empty;
+        expect(res.body.errors).to.have.lengthOf(1);
+        expect(res.body.errors[0]).to.have.property('message',
+          'Request validation failed: Parameter (queryBody) is too short ' +
+          '(0), minimum 1');
         return done();
       });
   });
@@ -134,7 +135,7 @@ describe('tests/api/v1/collectorGroups/update.js >', () => {
   it('reject if no write perm', (done) => {
     api.post(`/v1/collectorGroups/${cg.name}/collectors`)
       .set('Authorization', token2)
-      .send([])
+      .send([collector1.name])
       .expect(httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
