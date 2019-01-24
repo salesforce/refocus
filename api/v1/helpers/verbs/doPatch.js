@@ -33,9 +33,7 @@ const validateAtLeastOneFieldPresent =
 function doPatch(req, res, next, props) {
   const resultObj = { reqStartTime: req.timestamp };
   const requestBody = req.swagger.params.queryBody.value;
-  const patchPromise = u.findByKey(
-    props, req.swagger.params
-  )
+  const patchPromise = u.findByKey(props, req.swagger.params)
   .then((o) => u.isWritable(req, o))
   .then((o) => {
     /*

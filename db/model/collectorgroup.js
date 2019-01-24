@@ -72,6 +72,8 @@ module.exports = function collectorgroup(seq, dataTypes) {
     paranoid: true,
   });
 
+  // Class Methods
+
   CollectorGroup.postImport = function (models) {
     assoc.collectors = CollectorGroup.hasMany(models.Collector, {
       as: 'collectors',
@@ -111,9 +113,20 @@ module.exports = function collectorgroup(seq, dataTypes) {
     );
   };
 
-  /**
-   * Instance Methods:
-   */
+  CollectorGroup.createCollectorGroup = function (requestBody) {
+    let collectors;
+    return collectorUtils.validate(seq, requestBody.collectors)
+      .then(collectorUtils.alreadyAssigned)
+      .then((validCollectors) => (collectors = validCollectors))
+      .then(() => CollectorGroup.create(requestBody))
+      .then((collectorGroup) =>
+        (collectors.length ? collectorGroup.setCollectors(collectors) :
+          collectorGroup))
+      .then((collectorGroup) => collectorGroup.reload());
+  }; // createCollectorGroup
+
+  // Instance Methods
+
   CollectorGroup.prototype.isWritableBy = function (who) {
     return new seq.Promise((resolve /* , reject */) =>
       this.getWriters()
@@ -128,35 +141,20 @@ module.exports = function collectorgroup(seq, dataTypes) {
       }));
   }; // isWritableBy
 
-  CollectorGroup.createCollectorGroup = function (requestBody) {
-    let collectors;
-
-    return Promise.resolve()
-      .then(() => {
-        if (!(requestBody.collectors && requestBody.collectors.length > 0)) {
-          return [];
-        }
-
-        return collectorUtils
-          .validate(seq, requestBody.collectors)
-          .then((validCollectors) => {
-            const alreadyAssigned = validCollectors
-              .filter((collector) => collector.collectorGroupId);
-
-            if (alreadyAssigned && alreadyAssigned.length > 0) {
-              const names = alreadyAssigned.map((c) => c.name);
-              const msg = 'Collector ' + names +
-                ' already assigned to a different group';
-              throw new Error(msg);
-            }
-
-            collectors = validCollectors;
-          });
-      })
-      .then(() => CollectorGroup.create(requestBody))
-      .then((collectorGroup) => collectorGroup.setCollectors(collectors))
-      .then((collectorGroup) => collectorGroup.reload());
-  };
+  /**
+   * Add the named collectors to this collector group. Reject if any of the
+   * named collectors is already assigned to this group, or to a different
+   * group.
+   *
+   * @param {Array<String>} arr - array of collector names
+   * @returns {Promise<any | never>}
+   */
+  CollectorGroup.prototype.addCollectorsToGroup = function (arr) {
+    return collectorUtils.validate(seq, arr)
+      .then(collectorUtils.alreadyAssigned)
+      .then((collectors) => this.addCollectors(collectors))
+      .then(() => this.reload());
+  }; // addCollectorsToGroup
 
   return CollectorGroup;
 };
