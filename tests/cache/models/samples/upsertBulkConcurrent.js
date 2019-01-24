@@ -47,21 +47,21 @@ describe('tests/cache/models/samples/upsertBulkConcurrent.js, ' +
       isPublished: true,
       name: `${tu.namePrefix}Aspect2`,
       timeout: '10m',
-      valueType: 'BOOLEAN',
+      valueType: 'NUMERIC',
       okRange: [10, 100],
     }))
     .then(() => Aspect.create({
       isPublished: true,
       name: `${tu.namePrefix}Aspect3`,
       timeout: '10m',
-      valueType: 'BOOLEAN',
+      valueType: 'NUMERIC',
       okRange: [10, 100],
     }))
     .then(() => Aspect.create({
       isPublished: true,
       name: `${tu.namePrefix}Aspect4`,
       timeout: '10m',
-      valueType: 'BOOLEAN',
+      valueType: 'NUMERIC',
       okRange: [10, 100],
     }))
     .then(() => Subject.create({
