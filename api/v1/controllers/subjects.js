@@ -321,7 +321,7 @@ module.exports = {
           }
         }
 
-        console.trace(err);
+        console.trace(newErr);
         u.handleError(next, newErr, helper.modelName);
       });
     } else {
