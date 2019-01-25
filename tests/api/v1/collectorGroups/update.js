@@ -147,4 +147,41 @@ describe('tests/api/v1/collectorGroups/update.js >', () => {
         done();
       });
   });
+
+  it('delete collectors from group', (done) => {
+    api.post(`/v1/collectorGroups/${cg.name}/collectors`)
+      .set('Authorization', token)
+      .send([collector1.name, collector2.name])
+      .expect(httpStatus.OK)
+      .end((err) => {
+        if (err) {
+          return done(err);
+        }
+
+        api.delete(`/v1/collectorGroups/${cg.name}/collectors`)
+          .set('Authorization', token)
+          .send([collector1.name, collector2.name])
+          .expect(httpStatus.OK)
+          .end((_err, _res) => {
+            if (_err) return done(_err);
+            expect(_res.body.collectors).to.be.empty;
+            return done();
+          });
+      });
+  });
+
+  it('error delete empty array of collectors from group', (done) => {
+    api.delete(`/v1/collectorGroups/${cg.name}/collectors`)
+      .set('Authorization', token)
+      .send([])
+      .expect(httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) return done(err);
+        expect(res.body.errors).to.have.lengthOf(1);
+        const expectedMsg = 'Request validation failed: Parameter ' +
+          '(queryBody) is too short (0), minimum 1';
+        expect(res.body.errors[0]).to.have.property('message', expectedMsg);
+        return done();
+      });
+  });
 });

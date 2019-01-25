@@ -82,7 +82,39 @@ function addCollectorsToGroup(req, res, next) {
     .catch((err) => u.handleError(next, err, helper.modelName));
 } // addCollectorsToGroup
 
+/**
+ * DELETE /collectorGroups/{name}/collectors
+ *
+ * Remove the named collectors from the group. Reject if any collector named
+ * in the array is not already assigned to this group.
+ *
+ * @param {IncomingMessage} req - The request object
+ * @param {ServerResponse} res - The response object
+ * @param {Function} next - The next middleware function in the stack
+ */
+function deleteCollectorsFromGroup(req, res, next) {
+  apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
+  const resultObj = { reqStartTime: req.timestamp };
+  const params = req.swagger.params;
+
+  u.mergeDuplicateArrayElements(params.queryBody.value, helper);
+
+  u.findByKey(helper, params)
+    .then((o) => u.isWritable(req, o))
+    .then((collectorGroup) =>
+      collectorGroup.deleteCollectorsFromGroup(params.queryBody.value))
+    .then((cgAfterDelete) => {
+      const recordCountOverride = null;
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      u.logAPI(req, resultObj, cgAfterDelete, recordCountOverride);
+      const response = u.responsify(cgAfterDelete, helper, req.method);
+      res.status(httpStatus.OK).json(response);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+} // deleteCollectorsFromGroup
+
 module.exports = {
   addCollectorsToGroup,
   createCollectorGroup,
+  deleteCollectorsFromGroup,
 };
