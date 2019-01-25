@@ -164,6 +164,9 @@ describe('tests/api/v1/collectorGroups/update.js >', () => {
           .expect(httpStatus.OK)
           .end((_err, _res) => {
             if (_err) return done(_err);
+            expect(res.body.collectors).to.have.lengthOf(1);
+            expect(res.body.collectors[0])
+              .to.have.property('name', collector1.name);
             return done();
           });
       });

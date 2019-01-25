@@ -159,13 +159,28 @@ describe('tests/db/model/collectorGroup/update.js >', () => {
     collectorGroupDb.addCollectorsToGroup([collector1.name, collector2.name])
       .then(() =>
         collectorGroupDb.deleteCollectorsFromGroup([collector3.name]))
-      .then((cg) => done(new Error('Expecting error')))
+      .then(() => done(new Error('Expecting error')))
       .catch((err) => {
         expect(err).to.have.property('name', 'ValidationError');
         expect(err).to.have.property('message',
           'This collector group does not contain [coll-3]');
-        done();
+        collectorGroupDb.reload()
+          .then((cg) => {
+            expect(cg.get().collectors).to.have.lengthOf(2);
+            done();
+          });
       })
       .catch(done);
+  });
+
+  it('fail deleting from group when nothing in group', (done) => {
+    collectorGroupDb.deleteCollectorsFromGroup([collector1.name])
+      .then(() => done(new Error('Expecting error')))
+      .catch((err) => {
+        expect(err).to.have.property('name', 'ValidationError');
+        expect(err).to.have.property('message',
+          'There are no collectors currently assigned to this collector group');
+        done();
+      });
   });
 });

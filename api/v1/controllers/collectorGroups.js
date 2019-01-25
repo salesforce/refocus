@@ -82,6 +82,16 @@ function addCollectorsToGroup(req, res, next) {
     .catch((err) => u.handleError(next, err, helper.modelName));
 } // addCollectorsToGroup
 
+/**
+ * DELETE /collectorGroups/{name}/collectors
+ *
+ * Remove the named collectors from the group. Reject if any collector named
+ * in the array is not already assigned to this group.
+ *
+ * @param {IncomingMessage} req - The request object
+ * @param {ServerResponse} res - The response object
+ * @param {Function} next - The next middleware function in the stack
+ */
 function deleteCollectorsFromGroup(req, res, next) {
   apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
   const resultObj = { reqStartTime: req.timestamp };
