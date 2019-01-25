@@ -153,7 +153,7 @@ describe('tests/api/v1/collectorGroups/update.js >', () => {
       .set('Authorization', token)
       .send([collector1.name, collector2.name])
       .expect(httpStatus.OK)
-      .end((err, res) => {
+      .end((err) => {
         if (err) {
           return done(err);
         }
@@ -164,9 +164,7 @@ describe('tests/api/v1/collectorGroups/update.js >', () => {
           .expect(httpStatus.OK)
           .end((_err, _res) => {
             if (_err) return done(_err);
-            expect(res.body.collectors).to.have.lengthOf(1);
-            expect(res.body.collectors[0])
-              .to.have.property('name', collector1.name);
+            expect(_res.body.collectors).to.be.empty;
             return done();
           });
       });

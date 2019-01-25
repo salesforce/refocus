@@ -96,7 +96,6 @@ function deleteCollectorsFromGroup(req, res, next) {
   apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
   const resultObj = { reqStartTime: req.timestamp };
   const params = req.swagger.params;
-  let cg;
 
   u.mergeDuplicateArrayElements(params.queryBody.value, helper);
 
@@ -104,14 +103,11 @@ function deleteCollectorsFromGroup(req, res, next) {
     .then((o) => u.isWritable(req, o))
     .then((collectorGroup) =>
       collectorGroup.deleteCollectorsFromGroup(params.queryBody.value))
-    .then((updatedGroup) => (cg = updatedGroup))
-    .then(() => {
+    .then((cgAfterDelete) => {
       const recordCountOverride = null;
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      u.logAPI(req, resultObj, cg, recordCountOverride);
-    })
-    .then(() => {
-      const response = u.responsify(cg, helper, req.method);
+      u.logAPI(req, resultObj, cgAfterDelete, recordCountOverride);
+      const response = u.responsify(cgAfterDelete, helper, req.method);
       res.status(httpStatus.OK).json(response);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
