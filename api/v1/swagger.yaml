@@ -13579,6 +13579,9 @@ definitions:
         readOnly: true
         description: >
           Id of the User who created this room.
+      origin:
+        type: string
+        description: Where the room was created from
 
   RoomTypeResponse:
     type: object
