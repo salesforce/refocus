@@ -54,7 +54,7 @@ describe(`tests/api/v1/samples/upsertBulk.js, POST ${path} >`, () => {
         isPublished: true,
         name: `${tu.namePrefix}Aspect2`,
         timeout: '10m',
-        valueType: 'BOOLEAN',
+        valueType: 'NUMERIC',
         okRange: [10, 100],
       });
     })

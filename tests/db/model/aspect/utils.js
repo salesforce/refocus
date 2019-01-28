@@ -34,7 +34,7 @@ const medium = {
   okRange: [3, 4],
   timeout: '10m',
   valueLabel: 'ms',
-  valueType: 'BOOLEAN',
+  valueType: 'NUMERIC',
 };
 
 module.exports = {
