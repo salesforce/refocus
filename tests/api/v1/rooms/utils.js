@@ -15,6 +15,8 @@ const tu = require('../../../testUtils');
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestRoom`;
 const n2 = n + 'NonActive';
+const o = `${tu.namePrefix}TestOrigin`;
+const o2 = o + 'NonActive';
 
 const roomTypeSchema = {
   name: 'roomTypeTest',
@@ -91,17 +93,21 @@ const roomTypeSchema = {
 const standard = {
   name: n,
   active: true,
+  origin: o,
 };
 
 const nonActive = {
   name: n2,
   active: true,
+  origin: o2,
 };
 
 module.exports = {
   name: n,
 
   nameNonActive: n2,
+
+  origin: o,
 
   rtSchema: roomTypeSchema,
 

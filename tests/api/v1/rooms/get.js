@@ -167,6 +167,27 @@ describe('tests/api/v1/rooms/get.js >', () => {
     .catch(done);
   });
 
+  it('Pass, get by origin', (done) => {
+    const room2 = u.getNonActive();
+    room2.type = testRoom.type;
+    Room.create(room2)
+    .then(() => {
+      api.get(`${path}?origin=${u.origin}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(ONE);
+        expect(res.body[ZERO].origin).to.equal(u.origin);
+        done();
+      });
+    })
+    .catch(done);
+  });
+
   it('Pass, Sort by Id', (done) => {
     const room2 = u.getNonActive();
     room2.type = testRoom.type;
