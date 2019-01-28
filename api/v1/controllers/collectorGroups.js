@@ -14,6 +14,7 @@ const helper = require('../helpers/nouns/collectorGroups');
 const apiUtils = require('./utils');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
+const doDelete = require('../helpers/verbs/doDelete');
 
 /**
  * POST /collectorGroups
@@ -113,8 +114,23 @@ function deleteCollectorsFromGroup(req, res, next) {
     .catch((err) => u.handleError(next, err, helper.modelName));
 } // deleteCollectorsFromGroup
 
+/**
+ * DELETE /collectorGroups/{key}
+ *
+ * Deletes the collector group and sends it back in the response. Reject if
+ * collector group is assigned to any sample generators.
+ *
+ * @param {IncomingMessage} req - The request object
+ * @param {ServerResponse} res - The response object
+ * @param {Function} next - The next middleware function in the stack
+ */
+function deleteCollectorGroup(req, res, next) {
+  doDelete(req, res, next, helper);
+} // deleteCollectorGroup
+
 module.exports = {
   addCollectorsToGroup,
   createCollectorGroup,
+  deleteCollectorGroup,
   deleteCollectorsFromGroup,
 };

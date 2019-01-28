@@ -18,7 +18,6 @@ const gtUtil = u.gtUtil;
 const Collector = tu.db.Collector;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
-const sinon = require('sinon');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -79,7 +78,8 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     .then(() => Generator.createWithCollectors(localGenerator))
     .then((o) => {
       expect(o.possibleCollectors.length).to.equal(THREE);
-      const collectorNames = o.possibleCollectors.map((collector) => collector.name);
+      const collectorNames =
+        o.possibleCollectors.map((collector) => collector.name);
       expect(collectorNames).to.contain(collector1.name);
       expect(collectorNames).to.contain(collector2.name);
       expect(collectorNames).to.contain(collector3.name);
@@ -110,7 +110,8 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.possibleCollectors = [collector1.name, collector1.name];
     Generator.createWithCollectors(localGenerator)
-    .then((o) => done(new Error('Expected DuplicateCollectorError, received', o)))
+    .then((o) => done(new Error('Expected DuplicateCollectorError, ' +
+      'received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
       expect(err.name).to.equal('DuplicateCollectorError');
@@ -124,7 +125,8 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.possibleCollectors = ['iDontExist'];
     Generator.createWithCollectors(localGenerator)
-    .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
+    .then((o) => done(new Error('Expected ResourceNotFoundError, ' +
+      'received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.NOT_FOUND_STATUS_CODE);
       expect(err.name).to.equal('ResourceNotFoundError');
@@ -139,7 +141,8 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
     localGenerator.possibleCollectors = [collector1.name, 'iDontExist'];
     Generator.createWithCollectors(localGenerator)
-    .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
+    .then((o) => done(new Error('Expected ResourceNotFoundError, ' +
+      'received', o)))
     .catch((err) => {
       expect(err.status).to.equal(u.NOT_FOUND_STATUS_CODE);
       expect(err.name).to.equal('ResourceNotFoundError');
