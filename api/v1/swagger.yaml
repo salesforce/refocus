@@ -7453,7 +7453,11 @@ paths:
               type:
                 type: string
                 maxLength: 254
-                description: Name of the room
+                description: RoomType of the room
+              origin:
+                type: string
+                maxLength: 60
+                description: Origin of the room
             required:
               - name
               - type
