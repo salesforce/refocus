@@ -68,7 +68,7 @@ module.exports = function room(seq, dataTypes) {
         is: constants.nameRegex,
       },
       comment: 'Tracks where IMC room was created from',
-    }
+    },
   }, {
     hooks: {
 

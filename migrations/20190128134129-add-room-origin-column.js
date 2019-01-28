@@ -3,7 +3,7 @@ const TBL = 'Rooms';
 const constants = require('../db/constants');
 
 module.exports = {
-  up: (qi, Sequelize) => {
+  up(qi, Sequelize) {
     return qi.addColumn(TBL, 'origin', {
       type: Sequelize.STRING(constants.fieldlen.normalName),
       allowNull: true,
@@ -13,7 +13,7 @@ module.exports = {
     });
   },
 
-  down: (qi, Sequelize) => {
+  down(qi) {
     return qi.removeColumn(TBL, 'origin');
-  }
+  },
 };
