@@ -61,6 +61,14 @@ module.exports = function room(seq, dataTypes) {
       allowNull: true,
       comment: 'Bot names to be used in rooms',
     },
+    origin: {
+      type: dataTypes.STRING,
+      allowNull: true,
+      validate: {
+        is: constants.nameRegex,
+      },
+      comment: 'Tracks where IMC room was created from',
+    }
   }, {
     hooks: {
 

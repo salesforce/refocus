@@ -7391,6 +7391,12 @@ paths:
           required: false
           type: string
         -
+          name: origin
+          description: Filter rooms by origin
+          in: query
+          required: false
+          type: string
+        -
           name: sort
           description: >
             Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
