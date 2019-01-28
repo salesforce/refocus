@@ -36,6 +36,7 @@ describe('tests/db/model/room/create.js >', () => {
       expect(o).to.have.property('externalId');
       expect(o).to.have.property('active').to.equal(true);
       expect(o).to.have.property('createdBy');
+      expect(o).to.have.property('origin');
       done();
     })
     .catch(done);
@@ -117,6 +118,23 @@ describe('tests/db/model/room/create.js >', () => {
     .then((roomType) => {
       const room = u.getStandard();
       room.externalId = invalidValue;
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal(tu.valErrorName);
+      expect(err.message.toLowerCase()).to.contain('validation error');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('fail, origin invalid', (done) => {
+    RoomType.create(v.getStandard())
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.origin = invalidValue;
       room.type = roomType.id;
       return Room.create(room);
     })
