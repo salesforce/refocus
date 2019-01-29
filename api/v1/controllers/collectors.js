@@ -414,13 +414,23 @@ function startCollector(req, res, next) {
 
     collToReturn.dataValues.collectorConfig = config.collector;
     collToReturn.dataValues.collectorConfig.status = collToReturn.status;
+    collToReturn.dataValues.timestamp = Date.now();
   })
+
+  // re-encrypt context values for added and updated generators
+  .then(() => Promise.map(
+    collToReturn.dataValues.generatorsAdded,
+    (gen) => reEncryptSGContextValues(gen, collToReturn.dataValues.token,
+      collToReturn.dataValues.timestamp)
+  ))
+  .then((added) => collToReturn.dataValues.generatorsAdded = added)
 
   // reset the tracked changes so we don't send them again in the heartbeat
   .then(() => heartbeatUtils.resetChanges(collToReturn.name))
 
   // send response
   .then(() => {
+    collToReturn.dataValues.encryptionAlgorithm = encryptionAlgoForCollector;
     u.logAPI(req, resultObj, collToReturn);
     return res.status(httpStatus.OK)
       .json(u.responsify(collToReturn, helper, req.method));
