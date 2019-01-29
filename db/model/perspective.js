@@ -95,7 +95,8 @@ module.exports = function perspective(seq, dataTypes) {
       afterCreate(inst /* , opts */) {
         const changedKeys = Object.keys(inst._changed);
         const ignoreAttributes = ['isDeleted'];
-        return publishObject(inst, eventName, changedKeys, ignoreAttributes);
+        return publishObject(inst.toJSON(), eventName, changedKeys,
+          ignoreAttributes);
       },
 
       /**
@@ -107,7 +108,8 @@ module.exports = function perspective(seq, dataTypes) {
       afterUpdate(inst /* , opts */) {
         const changedKeys = Object.keys(inst._changed);
         const ignoreAttributes = ['isDeleted'];
-        return publishObject(inst, eventName, changedKeys, ignoreAttributes);
+        return publishObject(inst.toJSON(), eventName, changedKeys,
+          ignoreAttributes);
       },
 
       /*

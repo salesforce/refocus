@@ -148,7 +148,7 @@ module.exports = function subject(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         const promiseArr = [];
-        publishObject(inst, eventName.add);
+        publishObject(inst.toJSON(), eventName.add);
 
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
@@ -251,7 +251,7 @@ module.exports = function subject(seq, dataTypes) {
               }
             }
 
-            return;
+
           })
           .catch((err) => {
             throw err;
@@ -279,10 +279,10 @@ module.exports = function subject(seq, dataTypes) {
         .then(() => {
           if (isSubjectUnpublished) {
             // Treat unpublishing a subject as a "delete" event.
-            publishObject(inst, eventName.del);
+            publishObject(inst.toJSON(), eventName.del);
           } else if (isSubjectPublished) {
             // Treat publishing a subject as an "add" event.
-            publishObject(inst, eventName.add);
+            publishObject(inst.toJSON(), eventName.add);
           } else if (inst.isPublished && inst.changed('absolutePath')) {
             /*
              * When an absolutePath is changed, send a subject delete event with
@@ -291,7 +291,7 @@ module.exports = function subject(seq, dataTypes) {
              */
             publishObject(inst._previousDataValues, eventName.del,
               changedKeys, ignoreAttributes);
-            publishObject(inst, eventName.add, changedKeys,
+            publishObject(inst.toJSON(), eventName.add, changedKeys,
                 ignoreAttributes);
           } else if (inst.isPublished && (common.tagsChanged(inst) ||
             inst.changed('parentId'))) {
@@ -303,12 +303,12 @@ module.exports = function subject(seq, dataTypes) {
              * If subject tags or parent were not updated, just send the usual
              * "update" event.
              */
-            publishObject(inst, eventName.del, changedKeys,
+            publishObject(inst.toJSON(), eventName.del, changedKeys,
                 ignoreAttributes);
-            publishObject(inst, eventName.add, changedKeys,
+            publishObject(inst.toJSON(), eventName.add, changedKeys,
                 ignoreAttributes);
           } else if (inst.published) {
-            publishObject(inst, eventName.upd, changedKeys,
+            publishObject(inst.toJSON(), eventName.upd, changedKeys,
                 ignoreAttributes);
           }
         });
@@ -336,7 +336,7 @@ module.exports = function subject(seq, dataTypes) {
           .then(() => {
             // send the subject delete event if the subject was published
             if (inst.getDataValue('isPublished')) {
-              return publishObject(inst, eventName.del);
+              return publishObject(inst.toJSON(), eventName.del);
             }
 
             return null;
@@ -404,10 +404,10 @@ module.exports = function subject(seq, dataTypes) {
                 }
               }
 
-              return;
+
             });
           } else {
-            return;
+
           }
         }
 
