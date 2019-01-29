@@ -1219,6 +1219,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two ascending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.criticalRange = [100, 1000];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.criticalRange, 2) &&
@@ -1235,6 +1236,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two equal numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.criticalRange = [3.1415927, 3.1415927];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.criticalRange, 2) &&
@@ -1251,6 +1253,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two descending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.criticalRange = [99, 98];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then(() => done(tu.valError))
         .catch((err) => {
@@ -1455,6 +1458,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two ascending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.warningRange = [100, 1000];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.warningRange, 2) &&
@@ -1471,6 +1475,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two equal numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.warningRange = [3.1415927, 3.1415927];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.warningRange, 2) &&
@@ -1487,6 +1492,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two descending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.warningRange = [99, 98];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then(() => done(tu.valError))
         .catch((err) => {
@@ -1687,6 +1693,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two ascending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.infoRange = [100, 1000];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.infoRange, 2) &&
@@ -1703,6 +1710,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two equal numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.infoRange = [3.1415927, 3.1415927];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.infoRange, 2) &&
@@ -1719,6 +1727,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two descending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.infoRange = [99, 98];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then(() => done(tu.valError))
         .catch((err) => {
@@ -1911,6 +1920,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two ascending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.okRange = [100, 1000];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.okRange, 2) &&
@@ -1927,6 +1937,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two equal numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.okRange = [3.1415927, 3.1415927];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.okRange, 2) &&

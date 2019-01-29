@@ -42,8 +42,29 @@ module.exports = function collectorgroup(seq, dataTypes) {
     },
   }, {
     hooks: {
+      /**
+       * Delete not permitted if in use by a Sample Generator.
+       *
+       * @param {SequelizeInstance} inst - the instance to be deleted
+       * @returns {Promise}
+       */
       beforeDestroy(inst /* , opts */) {
-        return common.setIsDeleted(seq.Promise, inst);
+        return seq.models.Generator.findAll({
+          where: { collectorGroupId: inst.id },
+          attributes: ['name'],
+        })
+          .then((usedByGenerators) => {
+            if (usedByGenerators && usedByGenerators.length) {
+              const genNames = usedByGenerators.map((g) => g.name).join(', ');
+              throw new ValidationError({
+                message:
+                  `Cannot delete ${inst.name} because it is still in use by ` +
+                  `sample generator(s) [${genNames}]`,
+              });
+            }
+
+            return common.setIsDeleted(seq.Promise, inst);
+          });
       }, // beforeDestroy
 
       afterCreate(inst /* , opts*/) {

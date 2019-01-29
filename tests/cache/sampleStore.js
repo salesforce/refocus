@@ -75,7 +75,7 @@ describe('tests/cache/sampleStore.js >', () => {
         isPublished: true,
         name: `${tu.namePrefix}Aspect2`,
         timeout: '10m',
-        valueType: 'BOOLEAN',
+        valueType: 'NUMERIC',
         okRange: [10, 100],
       }))
       .then((created) => (a2 = created))
@@ -83,7 +83,7 @@ describe('tests/cache/sampleStore.js >', () => {
         isPublished: true,
         name: `${tu.namePrefix}Aspect3`,
         timeout: '10m',
-        valueType: 'BOOLEAN',
+        valueType: 'NUMERIC',
         okRange: [10, 100],
       }))
       .then((created) => (a3 = created))
@@ -91,7 +91,7 @@ describe('tests/cache/sampleStore.js >', () => {
         isPublished: false, // unpublished aspect should still be found
         name: `${tu.namePrefix}Aspect4`,
         timeout: '10m',
-        valueType: 'BOOLEAN',
+        valueType: 'NUMERIC',
         okRange: [10, 100],
       }))
       .then((created) => (a4 = created))

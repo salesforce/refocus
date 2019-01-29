@@ -11277,7 +11277,7 @@ paths:
         default:
           $ref: "#/responses/genericError"
 
-  /collectorGroups/{name}:
+  /collectorGroups/{key}:
     x-swagger-router-controller: collectorGroups
     delete:
       security:
@@ -11286,15 +11286,20 @@ paths:
       tags: [ collectorGroups ]
       description: >-
         Delete collector group if it isn't in use by a Sample Generator.
-      operationId: deleteCollectorGroups
+      operationId: deleteCollectorGroup
       parameters:
-        - name: name
+        - name: key
           in: path
           description: >-
             The name of the collector group.
           required: true
           type: string
       responses:
+        200:
+          description: >-
+            Deleted.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
         400:
           $ref: "#/responses/400"
         401:
