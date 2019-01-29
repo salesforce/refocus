@@ -10,7 +10,6 @@
  * ./realTime/redisPublisher.js
  */
 'use strict'; // eslint-disable-line strict
-const debug = require('debug')('refocus:publisher');
 const rtUtils = require('./utils');
 const config = require('../config');
 const client = require('../cache/redisCache').client;
@@ -33,10 +32,6 @@ const ONE = 1;
  * @param {Object} obj - The object being published
  */
 function trackStats(key, obj) {
-  if (key.indexOf('refocus.internal.realtime.subject.') >= 0) {
-    debug('redisPublisher.trackStats %s %o', key, obj);
-  }
-
   const elapsed = Date.now() - new Date(obj.updatedAt);
   rcache.hincrbyAsync(pubKeys.count, key, ONE)
     .catch((err) => {
