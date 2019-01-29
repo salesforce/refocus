@@ -111,7 +111,7 @@ describe('tests/utils/jwtUtil.js >', () => {
   it('ok, bot verified', (done) => {
     Bot.create(newBot)
     .then((o) => {
-      const token = jwtUtil.createToken(o.name, o.name);
+      const token = jwtUtil.createToken(o.name, userInst.name,{ IsBot: true });
       jwtUtil.verifyBotToken(token).then((check) => {
         expect(check).to.not.equal(undefined);
       });
