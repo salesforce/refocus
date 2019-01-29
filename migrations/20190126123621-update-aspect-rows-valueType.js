@@ -28,16 +28,27 @@ module.exports = {
               statusRangeMap.set('okRange', asp.okRange);
               const updateObj = {};
               for (const [key, value] of statusRangeMap.entries()) {
-                if (value && value[0] < Number.MIN_SAFE_INTEGER) {
-                  updateObj[key] = [Number.MIN_SAFE_INTEGER, value[1]];
-                }
+                let minVal = value[0];
+                let maxVal = value[1];
 
-                if (value && value[1] > Number.MAX_SAFE_INTEGER) {
-                  updateObj[key] = [value[0], Number.MAX_SAFE_INTEGER];
+                if (value) {
+                  if (value[0] < Number.MIN_SAFE_INTEGER ||
+                    value[0] > Number.MAX_SAFE_INTEGER) {
+                    minVal = Number.MIN_SAFE_INTEGER;
+                  }
+
+                  if (value[1] < Number.MIN_SAFE_INTEGER ||
+                    value[1] > Number.MAX_SAFE_INTEGER) {
+                    maxVal = Number.MAX_SAFE_INTEGER;
+                  }
+
+                  if (minVal !== value[0] || maxVal !== value[1]) {
+                    updateObj[key] = [minVal, maxVal];
+                  }
                 }
               }
 
-              if (updateObj) {
+              if (Object.keys(updateObj).length !== 0) {
                 promisesArr.push(
                   Aspect.update(updateObj, { where: { id: asp.id } })
                 );
@@ -52,7 +63,7 @@ module.exports = {
 
         // waits for all promises to resolve or reject
         return Promise.all(
-          promisesArr.map((p) => p.catch(() => undefined))
+          promisesArr.map((p) => p.catch(() => Promise.resolve()))
         );
       });
     });
