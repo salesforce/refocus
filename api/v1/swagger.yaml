@@ -3920,7 +3920,7 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
-          
+
   # ---------------------------------------------------------------------------
   /events/bulk/{key}/status:
     x-swagger-router-controller: events
@@ -11267,7 +11267,7 @@ paths:
         default:
           $ref: "#/responses/genericError"
 
-  /collectorGroups/{name}:
+  /collectorGroups/{key}:
     x-swagger-router-controller: collectorGroups
     delete:
       security:
@@ -11276,15 +11276,20 @@ paths:
       tags: [ collectorGroups ]
       description: >-
         Delete collector group if it isn't in use by a Sample Generator.
-      operationId: deleteCollectorGroups
+      operationId: deleteCollectorGroup
       parameters:
-        - name: name
+        - name: key
           in: path
           description: >-
             The name of the collector group.
           required: true
           type: string
       responses:
+        200:
+          description: >-
+            Deleted.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -11296,7 +11301,7 @@ paths:
         default:
           $ref: "#/responses/genericError"
 
-  /collectorGroups/{name}/collectors:
+  /collectorGroups/{key}/collectors:
     x-swagger-router-controller: collectorGroups
     post:
       security:
@@ -11308,7 +11313,7 @@ paths:
         assigned to a different group.
       operationId: addCollectorsToGroup
       parameters:
-        - name: name
+        - name: key
           in: path
           description: >-
             The name of the collector group.
@@ -11322,10 +11327,12 @@ paths:
             type: array
             items:
               type: string
+            minItems: 1
+            uniqueItems: true
             description: >-
-              List of collectors
+              List of collector names
       responses:
-        201:
+        200:
           description: >-
             One or more collectors were added to the group.
           schema:
@@ -11350,7 +11357,7 @@ paths:
         It will update if all collectors named in the array aren't already assigned to a different group.
       operationId: patchCollectorGroups
       parameters:
-        - name: name
+        - name: key
           in: path
           description: The name of the collector group.
           required: true
@@ -11404,7 +11411,7 @@ paths:
         (e.g. empty array of collectors, empty description).
       operationId: putCollectorGroups
       parameters:
-        - name: name
+        - name: key
           in: path
           description: The name of the collector group.
           required: true
@@ -11451,13 +11458,13 @@ paths:
     delete:
       security:
         - jwt: []
-      summary: Delete collector from the group.
+      summary: Delete named collector(s) from group.
       tags: [ collectorGroups ]
       description: >-
-        Delete collector from group if any collector named in the array is not already associated with this group.
-      operationId: deleteCollectorFromGroup
+        Delete named collector(s) from group. Reject if any named collector is not already associated with this group.
+      operationId: deleteCollectorsFromGroup
       parameters:
-        - name: name
+        - name: key
           in: path
           description: >-
             The name of the collector group.
@@ -11471,9 +11478,15 @@ paths:
             type: array
             items:
               type: string
+            minItems: 1
+            uniqueItems: true
             description: >-
               List of collectors
       responses:
+        200:
+          description: Success, returns the updated collector group.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
         400:
           $ref: "#/responses/400"
         401:

@@ -13,8 +13,12 @@
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const gu = require('../generator/utils');
+const gtu = require('../generatortemplate/utils');
 const CollectorGroup = tu.db.CollectorGroup;
 const Collector = tu.db.Collector;
+const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
 
 describe('tests/db/model/collectorGroup/delete.js >', () => {
   let collectorGroupDb;
@@ -55,6 +59,37 @@ describe('tests/db/model/collectorGroup/delete.js >', () => {
       }
     })
     .catch(done);
+  });
+
+  it('cannot delete if group is assigned to generator', (done) => {
+    const generatorTemplate = gtu.getGeneratorTemplate();
+    let collector1 = { name: `${tu.namePrefix}hello`, version: '1.0.0' };
+    let generator = JSON.parse(JSON.stringify(gu.getGenerator()));
+    let cg;
+
+    tu.createUser('GeneratorOwner')
+      .then((user) => {
+        generator.createdBy = user.id;
+        return GeneratorTemplate.create(generatorTemplate);
+      })
+      .then(() => Collector.create(collector1))
+      .then((created) => (collector1 = created))
+      .then(() => Generator.create(generator))
+      .then((g) => (generator = g))
+      .then(() => CollectorGroup.findById(collectorGroupDb.id))
+      .then((found) => (cg = found))
+      .then(() => generator.update({ collectorGroupId: cg.id }))
+      .then(() => CollectorGroup.findById(collectorGroupDb.id))
+      .then(() => cg.destroy())
+      .then(() => done(new Error('expecting error')))
+      .catch((err) => {
+        expect(err).to.have.property('name', 'ValidationError');
+        expect(err).to.have.property('message',
+          'Cannot delete ___collGroupName because it is still in use by ' +
+          'sample generator(s) [refocus-ok-generator]');
+        done();
+      })
+      .catch(done);
   });
 
   it('ok, should not be able to find a collectorGroup once deleted', (done) => {

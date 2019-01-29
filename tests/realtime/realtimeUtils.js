@@ -48,6 +48,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
     name: tu.namePrefix + 'temperature',
     timeout: '30s',
     okRange: [1, 5],
+    valueType: 'NUMERIC',
     isPublished: true,
     tags: ['temp'],
   };
