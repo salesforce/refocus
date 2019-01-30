@@ -125,7 +125,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   }
 
   if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
-    console.trace('about to call trackstats %o', obj[event]);
+    console.trace('about to call trackstats for %s - %o', event, obj[event]);
     trackStats(event, obj[event]);
   }
 
