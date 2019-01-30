@@ -250,8 +250,6 @@ module.exports = function subject(seq, dataTypes) {
                 children[i].save();
               }
             }
-
-
           })
           .catch((err) => {
             throw err;
