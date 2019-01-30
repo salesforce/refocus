@@ -41,7 +41,7 @@ function trackStats(key, obj) {
   rcache.hincrbyAsync(pubKeys.time, key, elapsed)
     .catch((err) => {
       console.error('redisPublisher.trackStats HINCRBY', pubKeys.time, key,
-        elapsed, err, obj);
+        elapsed, err, JSON.stringify(obj));
     });
 } // trackStats
 
