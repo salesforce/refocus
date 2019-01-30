@@ -173,14 +173,14 @@ function verifyBotSocketToken(token) {
 } // verifyBotSocketToken
 
 /**
- * Function to verify if a generator token is valid or not, i.e. does the token
- * name match an actual generator name.
+ * Function to verify if a bot token is valid or not, i.e. does the token
+ * name match an actual bot name.
  *
  * @param {Object} payload - the decoded payload
  * @param  {object} req - request object
  * @param  {Function} cb - callback function - Optional
  * @returns {Function|undefined} - Callback function or undefined
- * @throws {ForbiddenError} If a generator record matching the token name is
+ * @throws {ForbiddenError} If a bot record matching the token name is
  *   not found
  */
 function verifyBotToken(payload, req, cb) {
