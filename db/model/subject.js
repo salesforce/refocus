@@ -250,6 +250,8 @@ module.exports = function subject(seq, dataTypes) {
                 children[i].save();
               }
             }
+
+
           })
           .catch((err) => {
             throw err;
@@ -287,10 +289,10 @@ module.exports = function subject(seq, dataTypes) {
              * the old subject instance, followed by a subject add event with
              * the new subject instance
              */
-            publishObject(inst._previousDataValues, eventName.del,
-              changedKeys, ignoreAttributes);
+            publishObject(inst._previousDataValues, eventName.del, changedKeys,
+              ignoreAttributes);
             publishObject(inst.toJSON(), eventName.add, changedKeys,
-                ignoreAttributes);
+              ignoreAttributes);
           } else if (inst.isPublished && (common.tagsChanged(inst) ||
             inst.changed('parentId'))) {
             /*
@@ -401,8 +403,12 @@ module.exports = function subject(seq, dataTypes) {
                   }
                 }
               }
+
+              return Promise.resolve();
             });
           }
+
+          return Promise.resolve();
         }
 
         const papChanged = inst.changed('parentAbsolutePath');
@@ -411,7 +417,7 @@ module.exports = function subject(seq, dataTypes) {
           inst.parentAbsolutePath == false;
         const pidEmpty = inst.parentId == null || inst.parentId == false;
 
-        return new seq.Promise((resolve, reject) => resolve(checkPublished()))
+        return new seq.Promise((resolve) => resolve(checkPublished()))
         .then(() => {
           if ((papChanged && pidChanged) && (papEmpty != pidEmpty)) {
             return inst.setupParentFields();
@@ -436,10 +442,10 @@ module.exports = function subject(seq, dataTypes) {
             // do parentAbsolutePath and parentId point to the same subject?
             return validateParentField(Subject,
               inst.parentAbsolutePath, inst.absolutePath, 'absolutePath')
-            .then(() => validateParentField(Subject, inst.parentId, inst.id, 'id'))
+            .then(() => validateParentField(Subject, inst.parentId,
+              inst.id, 'id'))
             .then((parent) => {
               if (parent.absolutePath != inst.parentAbsolutePath) {
-
                 // don't match. throw error.
                 throwNotMatchError(inst.parentId, inst.absolutePath);
               }
@@ -462,16 +468,15 @@ module.exports = function subject(seq, dataTypes) {
             return validateParentField(Subject,
               inst.parentAbsolutePath, inst.absolutePath, 'absolutePath')
             .then((parent) => {
-
               // notice parent.id can != inst.parentId.
               // since parentId field did not change, use parent.id
               parent.increment('childCount');
               return updateParentFields(
                 Subject, parent.id, parent.absolutePath, inst);
             });
-          } else {
-            return inst;
           }
+
+          return inst;
         })
         .then((updatedInst) => {
           if (updatedInst.changed('name')) {
@@ -514,7 +519,6 @@ module.exports = function subject(seq, dataTypes) {
           inst.helpEmail = null;
         }
       }, // hooks.beforeValidate
-
     }, // hooks
     indexes: [
       {
@@ -550,6 +554,7 @@ module.exports = function subject(seq, dataTypes) {
   };
 
   Subject.postImport = function (models) {
+    // Associations
     assoc.user = Subject.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -566,10 +571,10 @@ module.exports = function subject(seq, dataTypes) {
       foreignKey: 'subjectId',
     });
 
+    // Scopes
     Subject.addScope('baseScope', {
       order: ['absolutePath'],
     });
-
     Subject.addScope('defaultScope', {
       include: [
         {
@@ -581,7 +586,6 @@ module.exports = function subject(seq, dataTypes) {
     }, {
       override: true,
     });
-
     Subject.addScope('user', {
       include: [
         {
@@ -591,35 +595,25 @@ module.exports = function subject(seq, dataTypes) {
       ],
     });
     Subject.addScope('id', (value) => ({
-      where: {
-        id: value,
-      },
+      where: { id: value },
     }));
     Subject.addScope('absolutePath', (value) => ({
-      where: {
-        absolutePath: { [Op.iLike]: value },
-      },
+      where: { absolutePath: { [Op.iLike]: value } },
     }));
     Subject.addScope('hierarchy', {
-      where: {
-        isPublished: true,
-      },
+      where: { isPublished: true },
       include: [
         {
           model: models.Subject,
           as: 'descendents',
           hierarchy: true,
           required: false,
-          where: {
-            isPublished: true,
-          },
+          where: { isPublished: true },
         },
       ],
     });
     Subject.addScope('forRealTime', (value) => ({
-      where: {
-        absolutePath: { [Op.iLike]: value },
-      },
+      where: { absolutePath: { [Op.iLike]: value } },
       attributes: ['id', 'name', 'tags', 'absolutePath'],
     }));
   };
@@ -688,14 +682,14 @@ module.exports = function subject(seq, dataTypes) {
           this.setDataValue('parentAbsolutePath', parent.absolutePath);
         } else {
           throw new dbErrors.ParentSubjectNotFound({
-            message: 'parent' + key + ' not found.',
+            message: `parent ${key} not found.`,
           });
         }
       });
-    } else {
-      this.setDataValue('absolutePath', this.name);
-      return Promise.resolve();
     }
+
+    this.setDataValue('absolutePath', this.name);
+    return Promise.resolve();
   };
 
   // Use the seq-hierarchy module to generate subject hierarchy.
