@@ -30,8 +30,8 @@ const collectorToCreate =  {
 };
 
 const expectedProps = [
-  'aspects', 'collectorId', 'possibleCollectors', 'context', 'createdAt', 'createdBy',
-  'currentCollector', 'description', 'generatorTemplate',
+  'aspects', 'collectorId', 'possibleCollectors', 'context', 'createdAt',
+  'createdBy', 'currentCollector', 'description', 'generatorTemplate',
   'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'isDeleted', 'name',
   'subjectQuery', 'tags', 'token', 'updatedAt', 'user',
 ];

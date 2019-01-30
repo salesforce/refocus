@@ -54,13 +54,13 @@ module.exports = {
   },
 
   forceDelete(done) {
-    tu.forceDelete(tu.db.Collector, testStartTime)
-    .then(() => tu.forceDelete(tu.db.CollectorGroup, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Generator, testStartTime))
-    .then(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime))
-    .then(() => tu.forceDelete(tu.db.User, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
-    .then(() => done())
-    .catch(done);
+    tu.forceDelete(tu.db.GeneratorTemplate, testStartTime)
+      .then(() => tu.forceDelete(tu.db.Generator, testStartTime))
+      .then(() => tu.forceDelete(tu.db.CollectorGroup, testStartTime))
+      .then(() => tu.forceDelete(tu.db.Collector, testStartTime))
+      .then(() => tu.forceDelete(tu.db.User, testStartTime))
+      .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
+      .then(() => done())
+      .catch(done);
   },
 };
