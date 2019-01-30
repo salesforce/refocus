@@ -32,7 +32,16 @@ const ONE = 1;
  * @param {Object} obj - The object being published
  */
 function trackStats(key, obj) {
-  const elapsed = Date.now() - new Date(obj.updatedAt);
+  let elapsed = 0;
+  if (obj.hasOwnProperty('updatedAt')) {
+    elapsed = Date.now() - new Date(obj.updatedAt);
+  } else if (obj.hasOwnProperty('new') &&
+    obj.new.hasOwnProperty('updatedAt')) {
+    elapsed = Date.now() - new Date(obj.new.updatedAt);
+  } else {
+    console.trace('Where is updatedAt? ' + JSON.stringify(obj));
+  }
+
   rcache.hincrbyAsync(pubKeys.count, key, ONE)
     .catch((err) => {
       console.error('redisPublisher.trackStats HINCRBY', pubKeys.count, key,
