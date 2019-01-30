@@ -148,7 +148,7 @@ module.exports = function subject(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         const promiseArr = [];
-        publishObject(inst.toJSON(), eventName.add);
+        publishObject(inst, eventName.add);
 
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
@@ -163,15 +163,15 @@ module.exports = function subject(seq, dataTypes) {
 
         return new seq.Promise((resolve, reject) =>
           inst.getParent()
-          .then((par) => {
-            if (par) {
-              par.increment('childCount');
-            }
+            .then((par) => {
+              if (par) {
+                par.increment('childCount');
+              }
 
-            return Promise.all(promiseArr);
-          })
-          .then(() => resolve(inst))
-          .catch((err) => reject(err))
+              return Promise.all(promiseArr);
+            })
+            .then(() => resolve(inst))
+            .catch((err) => reject(err))
         );
       }, // hooks.afterCreate
 
@@ -216,7 +216,7 @@ module.exports = function subject(seq, dataTypes) {
 
           // rename entry in subject store
           promiseArr.push(redisOps.renameKey(subjectType, oldAbsPath,
-           newAbsPath));
+            newAbsPath));
 
           if (inst.isPublished) {
             // duplicate subject-to-aspect resource map with new absolute path
@@ -227,8 +227,8 @@ module.exports = function subject(seq, dataTypes) {
               resource maps */
             promiseArr.push(
               redisOps.executeCommand(redisOps.getSubjAspMapMembers(oldAbsPath))
-              .map((aspectName) => cmds.push(
-                redisOps.addSubjectAbsPathInAspectSet(aspectName, newAbsPath)))
+                .map((aspectName) => cmds.push(
+                  redisOps.addSubjectAbsPathInAspectSet(aspectName, newAbsPath)))
             );
           }
 
@@ -240,20 +240,22 @@ module.exports = function subject(seq, dataTypes) {
         if (inst.changed('parentAbsolutePath') ||
           inst.changed('absolutePath')) {
           inst.getChildren()
-          .then((children) => {
-            if (children) {
-              for (let i = 0, len = children.length; i < len; ++i) {
-                children[i].setDataValue('absolutePath',
-                  inst.absolutePath + '.' + children[i].name);
-                children[i].setDataValue('parentAbsolutePath',
-                  inst.absolutePath);
-                children[i].save();
+            .then((children) => {
+              if (children) {
+                for (let i = 0, len = children.length; i < len; ++i) {
+                  children[i].setDataValue('absolutePath',
+                    inst.absolutePath + '.' + children[i].name);
+                  children[i].setDataValue('parentAbsolutePath',
+                    inst.absolutePath);
+                  children[i].save();
+                }
               }
-            }
-          })
-          .catch((err) => {
-            throw err;
-          });
+
+
+            })
+            .catch((err) => {
+              throw err;
+            });
         }
 
         const changedKeys = Object.keys(inst._changed);
@@ -273,43 +275,43 @@ module.exports = function subject(seq, dataTypes) {
          * events have been sent, send the corresponding subject realtime event.
          */
         return Promise.all(promiseArr)
-        .then(() => redisOps.executeBatchCmds(cmds))
-        .then(() => {
-          if (isSubjectUnpublished) {
-            // Treat unpublishing a subject as a "delete" event.
-            publishObject(inst.toJSON(), eventName.del);
-          } else if (isSubjectPublished) {
-            // Treat publishing a subject as an "add" event.
-            publishObject(inst.toJSON(), eventName.add);
-          } else if (inst.isPublished && inst.changed('absolutePath')) {
-            /*
-             * When an absolutePath is changed, send a subject delete event with
-             * the old subject instance, followed by a subject add event with
-             * the new subject instance
-             */
-            publishObject(inst._previousDataValues, eventName.del, changedKeys,
-              ignoreAttributes);
-            publishObject(inst.toJSON(), eventName.add, changedKeys,
-              ignoreAttributes);
-          } else if (inst.isPublished && (common.tagsChanged(inst) ||
-            inst.changed('parentId'))) {
-            /*
-             * If tags OR parent were updated, send a "delete" event followed
-             * by an "add" event so that perspectives get notified and lenses
-             * can re-render correctly. Tag changes have to be handled this
-             * way for filtering.
-             * If subject tags or parent were not updated, just send the usual
-             * "update" event.
-             */
-            publishObject(inst.toJSON(), eventName.del, changedKeys,
+          .then(() => redisOps.executeBatchCmds(cmds))
+          .then(() => {
+            if (isSubjectUnpublished) {
+              // Treat unpublishing a subject as a "delete" event.
+              publishObject(inst, eventName.del);
+            } else if (isSubjectPublished) {
+              // Treat publishing a subject as an "add" event.
+              publishObject(inst, eventName.add);
+            } else if (inst.isPublished && inst.changed('absolutePath')) {
+              /*
+               * When an absolutePath is changed, send a subject delete event with
+               * the old subject instance, followed by a subject add event with
+               * the new subject instance
+               */
+              publishObject(inst._previousDataValues, eventName.del,
+                changedKeys, ignoreAttributes);
+              publishObject(inst, eventName.add, changedKeys,
                 ignoreAttributes);
-            publishObject(inst.toJSON(), eventName.add, changedKeys,
+            } else if (inst.isPublished && (common.tagsChanged(inst) ||
+              inst.changed('parentId'))) {
+              /*
+               * If tags OR parent were updated, send a "delete" event followed
+               * by an "add" event so that perspectives get notified and lenses
+               * can re-render correctly. Tag changes have to be handled this
+               * way for filtering.
+               * If subject tags or parent were not updated, just send the usual
+               * "update" event.
+               */
+              publishObject(inst, eventName.del, changedKeys,
                 ignoreAttributes);
-          } else if (inst.published) {
-            publishObject(inst.toJSON(), eventName.upd, changedKeys,
+              publishObject(inst, eventName.add, changedKeys,
                 ignoreAttributes);
-          }
-        });
+            } else if (inst.published) {
+              publishObject(inst, eventName.upd, changedKeys,
+                ignoreAttributes);
+            }
+          });
       }, // hooks.afterUpdate
 
       /**
@@ -323,24 +325,24 @@ module.exports = function subject(seq, dataTypes) {
       afterDelete(inst /* , opts */) {
         return new seq.Promise((resolve, reject) =>
           inst.getParent()
-          .then((par) => {
-            if (par) {
-              par.decrement('childCount');
-            }
+            .then((par) => {
+              if (par) {
+                par.decrement('childCount');
+              }
 
-            // remove the subject and its related samples
-            return subjectUtils.removeFromRedis(inst.dataValues, seq);
-          })
-          .then(() => {
-            // send the subject delete event if the subject was published
-            if (inst.getDataValue('isPublished')) {
-              return publishObject(inst.toJSON(), eventName.del);
-            }
+              // remove the subject and its related samples
+              return subjectUtils.removeFromRedis(inst.dataValues, seq);
+            })
+            .then(() => {
+              // send the subject delete event if the subject was published
+              if (inst.getDataValue('isPublished')) {
+                return publishObject(inst, eventName.del);
+              }
 
-            return null;
-          })
-          .then(() => resolve(inst))
-          .catch((err) => reject(err))
+              return null;
+            })
+            .then(() => resolve(inst))
+            .catch((err) => reject(err))
         );
       }, // hooks.afterDelete
 
@@ -354,17 +356,17 @@ module.exports = function subject(seq, dataTypes) {
       beforeDestroy(inst /* , opts */) {
         return new seq.Promise((resolve, reject) =>
           inst.getChildren()
-          .then((kids) => {
-            if (kids && kids.length > 0) {
-              const err = new dbErrors.SubjectDeleteConstraintError();
-              err.subject = inst.get();
-              throw err;
-            } else {
-              return common.setIsDeleted(seq.Promise, inst);
-            }
-          })
-          .then(() => resolve())
-          .catch((err) => reject(err))
+            .then((kids) => {
+              if (kids && kids.length > 0) {
+                const err = new dbErrors.SubjectDeleteConstraintError();
+                err.subject = inst.get();
+                throw err;
+              } else {
+                return common.setIsDeleted(seq.Promise, inst);
+              }
+            })
+            .then(() => resolve())
+            .catch((err) => reject(err))
         );
       }, // hooks.beforeDestroy
 
@@ -389,24 +391,24 @@ module.exports = function subject(seq, dataTypes) {
         function checkPublished() {
           if (inst.getDataValue('isPublished') === false) {
             return inst.getChildren()
-            .then((children) => {
-              if (children && children.length) {
-                const len = children.length;
-                for (let i = 0; i < len; ++i) {
-                  if (children[i].getDataValue('isPublished') === true) {
-                    throw new dbErrors.ValidationError({
-                      message: 'You cannot unpublish this subject until ' +
-                        'all its descendants are unpublished.',
-                    });
+              .then((children) => {
+                if (children && children.length) {
+                  const len = children.length;
+                  for (let i = 0; i < len; ++i) {
+                    if (children[i].getDataValue('isPublished') === true) {
+                      throw new dbErrors.ValidationError({
+                        message: 'You cannot unpublish this subject until ' +
+                          'all its descendants are unpublished.',
+                      });
+                    }
                   }
                 }
-              }
 
-              return Promise.resolve();
-            });
+
+              });
+          } else {
+
           }
-
-          return Promise.resolve();
         }
 
         const papChanged = inst.changed('parentAbsolutePath');
@@ -415,81 +417,82 @@ module.exports = function subject(seq, dataTypes) {
           inst.parentAbsolutePath == false;
         const pidEmpty = inst.parentId == null || inst.parentId == false;
 
-        return new seq.Promise((resolve) => resolve(checkPublished()))
-        .then(() => {
-          if ((papChanged && pidChanged) && (papEmpty != pidEmpty)) {
-            return inst.setupParentFields();
-          } else {
-            return Promise.resolve();
-          }
-        })
-        .then(() => {
-          const papChanged = inst.changed('parentAbsolutePath');
-          const pidChanged = inst.changed('parentId');
-          const papEmpty = inst.parentAbsolutePath == null ||
-            inst.parentAbsolutePath == false;
-          const pidEmpty = inst.parentId == null || inst.parentId == false;
-
-          // If either is empty, decrement the parent's childCount
-          if ((papChanged && papEmpty) || (pidChanged && pidEmpty)) {
-            // set parentAbsolutePath, parentId to null
-            return updateParentFields(Subject, null, null, inst);
-          }
-
-          if ((papChanged && pidChanged) && (!papEmpty && !pidEmpty)) {
-            // do parentAbsolutePath and parentId point to the same subject?
-            return validateParentField(Subject,
-              inst.parentAbsolutePath, inst.absolutePath, 'absolutePath')
-            .then(() => validateParentField(Subject, inst.parentId,
-              inst.id, 'id'))
-            .then((parent) => {
-              if (parent.absolutePath != inst.parentAbsolutePath) {
-                // don't match. throw error.
-                throwNotMatchError(inst.parentId, inst.absolutePath);
-              }
-
-              // if match, update
-              parent.increment('childCount');
-              return updateParentFields(
-                Subject, inst.parentId, parent.absolutePath, inst);
-            });
-          } else if (pidChanged && !pidEmpty) {
-            let parentAbsolutePath;
-            return validateParentField(Subject, inst.parentId, inst.id, 'id')
-            .then((parent) => {
-              parent.increment('childCount');
-              parentAbsolutePath = parent.absolutePath;
-              return updateParentFields(
-                Subject, inst.parentId, parentAbsolutePath, inst);
-            });
-          } else if (papChanged && !papEmpty) {
-            return validateParentField(Subject,
-              inst.parentAbsolutePath, inst.absolutePath, 'absolutePath')
-            .then((parent) => {
-              // notice parent.id can != inst.parentId.
-              // since parentId field did not change, use parent.id
-              parent.increment('childCount');
-              return updateParentFields(
-                Subject, parent.id, parent.absolutePath, inst);
-            });
-          }
-
-          return inst;
-        })
-        .then((updatedInst) => {
-          if (updatedInst.changed('name')) {
-            if (updatedInst.parentAbsolutePath) {
-              updatedInst.setDataValue('absolutePath',
-              updatedInst.parentAbsolutePath + '.' + updatedInst.name);
+        return new seq.Promise((resolve, reject) => resolve(checkPublished()))
+          .then(() => {
+            if ((papChanged && pidChanged) && (papEmpty != pidEmpty)) {
+              return inst.setupParentFields();
             } else {
-              updatedInst.setDataValue('absolutePath', updatedInst.name);
+              return Promise.resolve();
+            }
+          })
+          .then(() => {
+            const papChanged = inst.changed('parentAbsolutePath');
+            const pidChanged = inst.changed('parentId');
+            const papEmpty = inst.parentAbsolutePath == null ||
+              inst.parentAbsolutePath == false;
+            const pidEmpty = inst.parentId == null || inst.parentId == false;
+
+            // If either is empty, decrement the parent's childCount
+            if ((papChanged && papEmpty) || (pidChanged && pidEmpty)) {
+              // set parentAbsolutePath, parentId to null
+              return updateParentFields(Subject, null, null, inst);
             }
 
-            return updatedInst;
-          } else {
-            return updatedInst;
-          }
-        });
+            if ((papChanged && pidChanged) && (!papEmpty && !pidEmpty)) {
+              // do parentAbsolutePath and parentId point to the same subject?
+              return validateParentField(Subject,
+                inst.parentAbsolutePath, inst.absolutePath, 'absolutePath')
+                .then(() => validateParentField(Subject, inst.parentId, inst.id, 'id'))
+                .then((parent) => {
+                  if (parent.absolutePath != inst.parentAbsolutePath) {
+
+                    // don't match. throw error.
+                    throwNotMatchError(inst.parentId, inst.absolutePath);
+                  }
+
+                  // if match, update
+                  parent.increment('childCount');
+                  return updateParentFields(
+                    Subject, inst.parentId, parent.absolutePath, inst);
+                });
+            } else if (pidChanged && !pidEmpty) {
+              let parentAbsolutePath;
+              return validateParentField(Subject, inst.parentId, inst.id, 'id')
+                .then((parent) => {
+                  parent.increment('childCount');
+                  parentAbsolutePath = parent.absolutePath;
+                  return updateParentFields(
+                    Subject, inst.parentId, parentAbsolutePath, inst);
+                });
+            } else if (papChanged && !papEmpty) {
+              return validateParentField(Subject,
+                inst.parentAbsolutePath, inst.absolutePath, 'absolutePath')
+                .then((parent) => {
+
+                  // notice parent.id can != inst.parentId.
+                  // since parentId field did not change, use parent.id
+                  parent.increment('childCount');
+                  return updateParentFields(
+                    Subject, parent.id, parent.absolutePath, inst);
+                });
+            } else {
+              return inst;
+            }
+          })
+          .then((updatedInst) => {
+            if (updatedInst.changed('name')) {
+              if (updatedInst.parentAbsolutePath) {
+                updatedInst.setDataValue('absolutePath',
+                  updatedInst.parentAbsolutePath + '.' + updatedInst.name);
+              } else {
+                updatedInst.setDataValue('absolutePath', updatedInst.name);
+              }
+
+              return updatedInst;
+            } else {
+              return updatedInst;
+            }
+          });
       }, // hooks.beforeUpdate
 
       /**
@@ -517,6 +520,7 @@ module.exports = function subject(seq, dataTypes) {
           inst.helpEmail = null;
         }
       }, // hooks.beforeValidate
+
     }, // hooks
     indexes: [
       {
@@ -552,7 +556,6 @@ module.exports = function subject(seq, dataTypes) {
   };
 
   Subject.postImport = function (models) {
-    // Associations
     assoc.user = Subject.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -569,10 +572,10 @@ module.exports = function subject(seq, dataTypes) {
       foreignKey: 'subjectId',
     });
 
-    // Scopes
     Subject.addScope('baseScope', {
       order: ['absolutePath'],
     });
+
     Subject.addScope('defaultScope', {
       include: [
         {
@@ -584,6 +587,7 @@ module.exports = function subject(seq, dataTypes) {
     }, {
       override: true,
     });
+
     Subject.addScope('user', {
       include: [
         {
@@ -593,25 +597,35 @@ module.exports = function subject(seq, dataTypes) {
       ],
     });
     Subject.addScope('id', (value) => ({
-      where: { id: value },
+      where: {
+        id: value,
+      },
     }));
     Subject.addScope('absolutePath', (value) => ({
-      where: { absolutePath: { [Op.iLike]: value } },
+      where: {
+        absolutePath: { [Op.iLike]: value },
+      },
     }));
     Subject.addScope('hierarchy', {
-      where: { isPublished: true },
+      where: {
+        isPublished: true,
+      },
       include: [
         {
           model: models.Subject,
           as: 'descendents',
           hierarchy: true,
           required: false,
-          where: { isPublished: true },
+          where: {
+            isPublished: true,
+          },
         },
       ],
     });
     Subject.addScope('forRealTime', (value) => ({
-      where: { absolutePath: { [Op.iLike]: value } },
+      where: {
+        absolutePath: { [Op.iLike]: value },
+      },
       attributes: ['id', 'name', 'tags', 'absolutePath'],
     }));
   };
@@ -629,25 +643,25 @@ module.exports = function subject(seq, dataTypes) {
     const _this = this;
     return new seq.Promise((resolve, reject) =>
       _this.getChildren()
-      .each((kid) => kid.deleteHierarchy())
-      .then(() => _this.destroy())
-      .then(() => resolve())
-      .catch((err) => reject(err))
+        .each((kid) => kid.deleteHierarchy())
+        .then(() => _this.destroy())
+        .then(() => resolve())
+        .catch((err) => reject(err))
     );
   }; // deleteHierarchy
 
   Subject.prototype.isWritableBy = function (who) {
     return new seq.Promise((resolve /* , reject */) =>
       this.getWriters()
-      .then((writers) => {
-        if (!writers.length) {
-          resolve(true);
-        }
+        .then((writers) => {
+          if (!writers.length) {
+            resolve(true);
+          }
 
-        const found = writers.filter((w) =>
-          w.name === who || w.id === who);
-        resolve(found.length === 1);
-      }));
+          const found = writers.filter((w) =>
+            w.name === who || w.id === who);
+          resolve(found.length === 1);
+        }));
   }; // isWritableBy
 
   Subject.prototype.setupParentFields = function () {
@@ -663,31 +677,31 @@ module.exports = function subject(seq, dataTypes) {
       }
 
       return Subject.scope({ method: [key, value] }).find()
-      .then((parent) => {
-        if (parent) {
-          if (parent.getDataValue('isPublished') === false &&
-            this.getDataValue('isPublished') === true) {
-            throw new dbErrors.ValidationError({
-              message: 'You cannot insert a subject with ' +
-              'isPublished = true unless all its ancestors are also ' +
-              'published.',
+        .then((parent) => {
+          if (parent) {
+            if (parent.getDataValue('isPublished') === false &&
+              this.getDataValue('isPublished') === true) {
+              throw new dbErrors.ValidationError({
+                message: 'You cannot insert a subject with ' +
+                  'isPublished = true unless all its ancestors are also ' +
+                  'published.',
+              });
+            }
+
+            this.setDataValue('absolutePath',
+              parent.absolutePath + '.' + this.name);
+            this.setDataValue('parentId', parent.id);
+            this.setDataValue('parentAbsolutePath', parent.absolutePath);
+          } else {
+            throw new dbErrors.ParentSubjectNotFound({
+              message: 'parent' + key + ' not found.',
             });
           }
-
-          this.setDataValue('absolutePath',
-            parent.absolutePath + '.' + this.name);
-          this.setDataValue('parentId', parent.id);
-          this.setDataValue('parentAbsolutePath', parent.absolutePath);
-        } else {
-          throw new dbErrors.ParentSubjectNotFound({
-            message: `parent ${key} not found.`,
-          });
-        }
-      });
+        });
+    } else {
+      this.setDataValue('absolutePath', this.name);
+      return Promise.resolve();
     }
-
-    this.setDataValue('absolutePath', this.name);
-    return Promise.resolve();
   };
 
   // Use the seq-hierarchy module to generate subject hierarchy.

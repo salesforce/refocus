@@ -128,7 +128,8 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
    * to get the object just for update events.
    */
   if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
-    const prepared = prepareToPublish(inst, changedKeys, ignoreAttributes);
+    const prepared = prepareToPublish(obj[event], changedKeys,
+      ignoreAttributes);
     if (!prepared) return false;
     obj[event] = prepared;
   }
