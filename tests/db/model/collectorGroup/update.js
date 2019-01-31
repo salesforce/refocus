@@ -183,4 +183,23 @@ describe('tests/db/model/collectorGroup/update.js >', () => {
         done();
       });
   });
+
+  it('patchCollectors replace with empty array', (done) => {
+    collectorGroupDb.patchCollectors([])
+      .then((cg) => {
+        expect(cg.collectors).to.be.empty;
+        return done();
+      })
+      .catch(done);
+  });
+
+  it('patchCollectors replace with non-empty array', (done) => {
+    collectorGroupDb.patchCollectors([collector3.name])
+      .then((cg) => {
+        expect(cg.collectors.length).to.equal(1);
+        expect(cg.collectors[0]).to.have.property('name', collector3.name);
+        return done();
+      })
+      .catch(done);
+  });
 });
