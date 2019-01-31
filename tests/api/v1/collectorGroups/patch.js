@@ -61,8 +61,14 @@ describe('tests/api/v1/collectorGroups/patch.js >', () => {
     })
       .then((created) => {
         cg = created;
-        done();
+        return CollectorGroup.createCollectorGroup({
+          name: `${tu.namePrefix}cg2`,
+          description: 'desc2',
+          createdBy: user.id,
+          collectors: [collector3.name],
+        });
       })
+      .then(() => done())
       .catch(done);
   });
 
@@ -106,7 +112,7 @@ describe('tests/api/v1/collectorGroups/patch.js >', () => {
       });
   });
 
-  it('patch fail if double-assign', (done) => {
+  it('patch replaces collectors', (done) => {
     api.patch(`/v1/collectorGroups/${cg.name}`)
       .set('Authorization', token)
       .send({ collectors: [collector1.name] })
@@ -118,18 +124,37 @@ describe('tests/api/v1/collectorGroups/patch.js >', () => {
 
         return api.patch(`/v1/collectorGroups/${cg.name}`)
           .set('Authorization', token)
-          .send({ collectors: [collector1.name, collector2.name] })
-          .expect(httpStatus.BAD_REQUEST)
+          .send({ collectors: [collector2.name] })
+          .expect(httpStatus.OK)
           .end((_err, _res) => {
             if (_err) {
               return done(_err);
             }
 
-            expect(_res.body.errors).to.have.lengthOf(1);
-            expect(_res.body.errors[0]).to.have.property('message', 'Cannot ' +
-              'double-assign collector(s) [___Coll1] to collector groups');
+            expect(_res.body).to.have.property('name', cg.name);
+            expect(_res.body.collectors).to.have.lengthOf(1);
+            expect(_res.body.collectors[0])
+              .to.have.property('name', collector2.name);
             return done();
           });
+      });
+  });
+
+  it('reject if collector already in a different collector group', (done) => {
+    api.patch(`/v1/collectorGroups/${cg.name}`)
+      .set('Authorization', token)
+      .send({ collectors: [collector3.name] })
+      .expect(httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors).to.have.lengthOf(1);
+        expect(res.body.errors[0]).to.have.property('message',
+          'Cannot double-assign collector(s) [___Coll3] to collector groups');
+        expect(res.body.errors[0]).to.have.property('type', 'ValidationError');
+        done();
       });
   });
 
