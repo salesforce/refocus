@@ -15,6 +15,7 @@ const apiUtils = require('./utils');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const doDelete = require('../helpers/verbs/doDelete');
+const doPatch = require('../helpers/verbs/doPatch');
 
 /**
  * POST /collectorGroups
@@ -128,9 +129,56 @@ function deleteCollectorGroup(req, res, next) {
   doDelete(req, res, next, helper);
 } // deleteCollectorGroup
 
+/**
+ * PATCH /collectorGroups/{key}
+ *
+ * Updates the collector group and sends it back in the response. PATCH will
+ * only update the attributes of the collector group provided in the body of
+ * the request. Other attributes will not be updated. If updating the array of
+ * collectors, reject if any of the collectors is already assigned to a
+ * different collector group.
+ *
+ * @param {IncomingMessage} req - The request object
+ * @param {ServerResponse} res - The response object
+ * @param {Function} next - The next middleware function in the stack
+ */
+function patchCollectorGroup(req, res, next) {
+  apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
+  const resultObj = { reqStartTime: req.timestamp };
+  const params = req.swagger.params;
+  let cg;
+
+  u.mergeDuplicateArrayElements(params.queryBody.value, helper);
+
+  u.findByKey(helper, params)
+    .then((o) => u.isWritable(req, o))
+    .then((collectorGroup) => {
+      if (params.queryBody.value.hasOwnProperty('collectors')) {
+        const colls = params.queryBody.value.collectors;
+        delete params.queryBody.value.collectors;
+        return collectorGroup.patchCollectors(colls);
+      }
+
+      return collectorGroup;
+    })
+    .then((patched) => (cg = patched))
+    .then(() => cg.update(params.queryBody.value))
+    .then(() => {
+      const recordCountOverride = null;
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      u.logAPI(req, resultObj, cg, recordCountOverride);
+    })
+    .then(() => {
+      const response = u.responsify(cg, helper, req.method);
+      res.status(httpStatus.OK).json(response);
+    })
+    .catch((err) => u.handleError(next, err, helper.modelName));
+} // patchCollectorGroup
+
 module.exports = {
   addCollectorsToGroup,
   createCollectorGroup,
   deleteCollectorGroup,
   deleteCollectorsFromGroup,
+  patchCollectorGroup,
 };
