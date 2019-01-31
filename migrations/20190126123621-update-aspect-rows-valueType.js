@@ -28,10 +28,10 @@ module.exports = {
               statusRangeMap.set('okRange', asp.okRange);
               const updateObj = {};
               for (const [key, value] of statusRangeMap.entries()) {
-                let minVal = value[0];
-                let maxVal = value[1];
-
                 if (value) {
+                  let minVal = value[0];
+                  let maxVal = value[1];
+
                   if (value[0] < Number.MIN_SAFE_INTEGER ||
                     value[0] > Number.MAX_SAFE_INTEGER) {
                     minVal = Number.MIN_SAFE_INTEGER;
