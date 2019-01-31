@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/collectorGroups/patch.js
+ * tests/api/v1/collectorGroups/put.js
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
@@ -19,7 +19,7 @@ const Collector = tu.db.Collector;
 const CollectorGroup = tu.db.CollectorGroup;
 const expect = require('chai').expect;
 
-describe('tests/api/v1/collectorGroups/patch.js >', () => {
+describe('tests/api/v1/collectorGroups/put.js >', () => {
   let user;
   let token;
   let token2;
@@ -70,10 +70,10 @@ describe('tests/api/v1/collectorGroups/patch.js >', () => {
 
   after(tu.forceDeleteUser);
 
-  it('patch with empty collector list', (done) => {
-    api.patch(`/v1/collectorGroups/${cg.name}`)
+  it('put with empty collector list', (done) => {
+    api.put(`/v1/collectorGroups/${cg.name}`)
       .set('Authorization', token)
-      .send({ description: 'new desc', collectors: [] })
+      .send({ name: cg.name, description: 'new desc', collectors: [] })
       .expect(httpStatus.OK)
       .end((err, res) => {
         if (err) {
@@ -86,10 +86,11 @@ describe('tests/api/v1/collectorGroups/patch.js >', () => {
       });
   });
 
-  it('patch with valid collectors', (done) => {
-    api.patch(`/v1/collectorGroups/${cg.name}`)
+  it('put with valid collectors', (done) => {
+    api.put(`/v1/collectorGroups/${cg.name}`)
       .set('Authorization', token)
       .send({
+        name: cg.name,
         description: 'hi',
         collectors: [collector1.name, collector2.name],
       })
@@ -106,19 +107,44 @@ describe('tests/api/v1/collectorGroups/patch.js >', () => {
       });
   });
 
-  it('patch fail if double-assign', (done) => {
-    api.patch(`/v1/collectorGroups/${cg.name}`)
+  it('put fail if missing required field name', (done) => {
+    api.put(`/v1/collectorGroups/${cg.name}`)
       .set('Authorization', token)
-      .send({ collectors: [collector1.name] })
+      .send({
+        description: 'hi',
+        collectors: [collector1.name, collector2.name],
+      })
+      .expect(httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors).to.have.lengthOf(1);
+        expect(res.body.errors[0])
+          .to.have.property('type', 'SCHEMA_VALIDATION_FAILED');
+        expect(res.body.errors[0])
+          .to.have.property('message', 'Missing required property: name');
+        return done();
+      });
+  });
+
+  it('put fail if double-assign', (done) => {
+    api.put(`/v1/collectorGroups/${cg.name}`)
+      .set('Authorization', token)
+      .send({ name: cg.name, collectors: [collector1.name] })
       .expect(httpStatus.OK)
       .end((err) => {
         if (err) {
           return done(err);
         }
 
-        return api.patch(`/v1/collectorGroups/${cg.name}`)
+        return api.put(`/v1/collectorGroups/${cg.name}`)
           .set('Authorization', token)
-          .send({ collectors: [collector1.name, collector2.name] })
+          .send({
+            name: cg.name,
+            collectors: [collector1.name, collector2.name],
+          })
           .expect(httpStatus.BAD_REQUEST)
           .end((_err, _res) => {
             if (_err) {
@@ -134,9 +160,13 @@ describe('tests/api/v1/collectorGroups/patch.js >', () => {
   });
 
   it('reject if no write perm', (done) => {
-    api.patch(`/v1/collectorGroups/${cg.name}`)
+    api.put(`/v1/collectorGroups/${cg.name}`)
       .set('Authorization', token2)
-      .send({ description: 'foo', collectors: [collector1.name] })
+      .send({
+        name: cg.name,
+        description: 'foo',
+        collectors: [collector1.name],
+      })
       .expect(httpStatus.FORBIDDEN)
       .end((err, res) => {
         if (err) {
