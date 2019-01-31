@@ -169,7 +169,7 @@ describe('tests/api/v1/collectorGroups/put.js >', () => {
   it('reject if collector already in a different collector group', (done) => {
     api.put(`/v1/collectorGroups/${cg.name}`)
       .set('Authorization', token)
-      .send({ collectors: [collector3.name] })
+      .send({ name: cg.name, collectors: [collector3.name] })
       .expect(httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
