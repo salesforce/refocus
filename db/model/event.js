@@ -28,6 +28,10 @@ module.exports = function event(seq, dataTypes) {
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
     },
+    type: {
+      type: dataTypes.TEXT,
+      allowNull: true,
+    },
     log: {
       type: dataTypes.TEXT,
       allowNull: false,
