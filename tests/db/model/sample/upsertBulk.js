@@ -37,7 +37,7 @@ describe('tests/db/model/sample/upsertBulk.js >', () => {
         isPublished: true,
         name: `${tu.namePrefix}Aspect2`,
         timeout: '10m',
-        valueType: 'BOOLEAN',
+        valueType: 'NUMERIC',
         okRange: [10, 100],
       }))
       .then(() => Subject.create({

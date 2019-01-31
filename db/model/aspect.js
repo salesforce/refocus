@@ -111,8 +111,12 @@ module.exports = function aspect(seq, dataTypes) {
       type: dataTypes.STRING(valueLabelLength),
     },
     valueType: {
-      type: dataTypes.ENUM('BOOLEAN', 'NUMERIC', 'PERCENT'),
-      defaultValue: 'BOOLEAN',
+      type: dataTypes.ENUM(
+        u.aspValueTypes.boolean,
+        u.aspValueTypes.numeric,
+        u.aspValueTypes.percent
+      ),
+      defaultValue: u.aspValueTypes.boolean,
     },
     relatedLinks: {
       type: dataTypes.ARRAY(dataTypes.JSON),
@@ -131,7 +135,9 @@ module.exports = function aspect(seq, dataTypes) {
     },
   }, {
     hooks: {
-
+      beforeCreate(inst /* , opts */) {
+        u.validateAspectStatusRanges(inst);
+      }, // hooks.afterCreate
       /**
        * TODO:
        * 1. Have a look at the sampleStore logic and confirm that it is
@@ -189,6 +195,7 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       beforeUpdate(inst /* , opts */) {
+        u.validateAspectStatusRanges(inst);
         const promiseArr = [];
         const unpublished = inst.previous('isPublished') && !inst.isPublished;
         const renamed = inst.previous('name') !== inst.name;

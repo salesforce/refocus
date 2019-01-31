@@ -12,10 +12,20 @@
 'use strict';
 const tu = require('../../../testUtils');
 const testStartTime = new Date();
+const colltoCreate = {
+  name: tu.namePrefix + 'Coll',
+  version: '1.0.0',
+};
 
 module.exports = {
+  getCollectorToCreate() {
+    return JSON.parse(JSON.stringify(colltoCreate));
+  },
+
   forceDelete(done) {
-    tu.forceDelete(tu.db.Collector, testStartTime)
+    tu.forceDelete(tu.db.Generator, testStartTime)
+      .then(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime))
+      .then(() => tu.forceDelete(tu.db.Collector, testStartTime))
       .then(() => tu.forceDelete(tu.db.CollectorGroup, testStartTime))
       .then(() => done())
       .catch(done);
