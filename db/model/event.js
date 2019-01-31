@@ -28,14 +28,14 @@ module.exports = function event(seq, dataTypes) {
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
     },
-    type: {
-      type: dataTypes.TEXT,
-      allowNull: true,
-    },
     log: {
       type: dataTypes.TEXT,
       allowNull: false,
       comment: 'This is a readable event logline',
+    },
+    type: {
+      type: dataTypes.TEXT,
+      allowNull: true,
     },
     context: {
       type: dataTypes.JSON,
