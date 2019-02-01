@@ -20,6 +20,7 @@ const aspectToCreate = {
   isPublished: true,
   name: aspectName,
   timeout: '30s',
+  valueType: 'NUMERIC',
   criticalRange: [0, 1],
   warningRange: [2, 3],
   infoRange: [4, 5],

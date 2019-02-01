@@ -53,6 +53,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
   };
   const aspectTemp = {
     criticalRange: [3, 5],
+    valueType: 'NUMERIC',
     name: 'temperature',
     timeout: '60s',
     isPublished: true,
