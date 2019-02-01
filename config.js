@@ -32,6 +32,7 @@ const pghost = pe.PGHOST || 'localhost';
 const pgport = pe.PGPORT || defaultPostgresPort;
 const defaultDbUrl = 'postgres://' + pguser + ':' + pgpass + '@' + pghost +
   ':' + pgport + '/' + pgdatabase;
+const defaultDevPassword = pe.DEFAULT_ADMIN_PASSWORD || 'devPassword';
 const DEFAULT_DB_CONNECTION_POOL = { // sequelize defaults
   max: 5,
   min: 0,
@@ -164,6 +165,100 @@ Object.keys(clockJobConfig.intervals).forEach((jobName) => {
   clockJobConfig.intervals[jobName] = ms(value);
 });
 
+// When adding new environment, consider adding it to /config/migrationConfig
+// as well to enable database migraton in the environment.
+const environment = {
+  build: {
+    dbLogging: false, // console.log | false | ...
+    dbUrl: defaultDbUrl,
+    defaultNodePort: defaultPort,
+    host: '127.0.0.1',
+    ipWhitelist: iplist.push('::ffff:127.0.0.1'),
+    dialect: 'postgres',
+    tokenSecret:
+      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    defaultAdminPassword: defaultDevPassword,
+  },
+  development: {
+    dbLogging: false, // console.log | false | ...
+    dbUrl: defaultDbUrl,
+    defaultNodePort: defaultPort,
+    host: '127.0.0.1',
+    ipWhitelist: iplist,
+    dialect: 'postgres',
+    protocol: 'postgres',
+    dialectOptions: {
+      ssl: true,
+    },
+    tokenSecret:
+      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    defaultAdminPassword: defaultDevPassword,
+  },
+  production: {
+    dbLogging: false, // console.log | false | ...
+    dbUrl: pe.DATABASE_URL,
+    ipWhitelist: iplist,
+    dialect: 'postgres',
+    protocol: 'postgres',
+    dialectOptions: {
+      ssl: true,
+    },
+    tokenSecret: pe.SECRET_TOKEN ||
+      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    defaultAdminPassword: pe.DEFAULT_ADMIN_PASSWORD,
+  },
+  testWhitelistLocalhost: {
+    dbLogging: false, // console.log | false | ...
+    dbUrl: defaultDbUrl,
+    defaultNodePort: defaultPort,
+    host: '127.0.0.1',
+    ipWhitelist: iplist,
+    tokenSecret:
+      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    defaultAdminPassword: defaultDevPassword,
+  },
+  testBlockAllhosts: {
+    dbLogging: false, // console.log | false | ...
+    dbUrl: defaultDbUrl,
+    defaultNodePort: defaultPort,
+    host: '127.0.0.1',
+    ipWhitelist: [''],
+    tokenSecret:
+      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    defaultAdminPassword: defaultDevPassword,
+  },
+};
+
+const db = {
+  adminProfile: {
+    name: 'Admin',
+    aspectAccess: 'rw',
+    botAccess: 'rw',
+    eventAccess: 'rw',
+    lensAccess: 'rw',
+    perspectiveAccess: 'rw',
+    profileAccess: 'rw',
+    roomAccess: 'rw',
+    roomTypeAccess: 'rw',
+    sampleAccess: 'rw',
+    subjectAccess: 'rw',
+    userAccess: 'rw',
+  },
+  adminUser: {
+    email: 'admin@refocus.admin',
+    name: 'admin@refocus.admin',
+    password: environment[nodeEnv].defaultAdminPassword,
+  },
+  connectionPool: {
+    max: pe.DB_CONNECTION_POOL_MAX || DEFAULT_DB_CONNECTION_POOL.max,
+    min: pe.DB_CONNECTION_POOL_MIN || DEFAULT_DB_CONNECTION_POOL.min,
+    idle: pe.DB_CONNECTION_POOL_IDLE || DEFAULT_DB_CONNECTION_POOL.idle,
+    acquire: null, // disable acquire timeout
+  },
+  modelDirName: 'model',
+  passwordHashSaltNumRounds: 8,
+};
+
 module.exports = {
   api: {
     defaults: {
@@ -181,97 +276,10 @@ module.exports = {
     },
     sessionSecret: pe.SESSION_SECRET || 'refocusrockswithgreenowls',
   },
-  db: {
-    adminProfile: {
-      name: 'Admin',
-      aspectAccess: 'rw',
-      botAccess: 'rw',
-      eventAccess: 'rw',
-      lensAccess: 'rw',
-      perspectiveAccess: 'rw',
-      profileAccess: 'rw',
-      roomAccess: 'rw',
-      roomTypeAccess: 'rw',
-      sampleAccess: 'rw',
-      subjectAccess: 'rw',
-      userAccess: 'rw',
-    },
-    adminUser: {
-      email: 'admin@refocus.admin',
-      name: 'admin@refocus.admin',
-      password: 'password',
-    },
-    connectionPool: {
-      max: pe.DB_CONNECTION_POOL_MAX || DEFAULT_DB_CONNECTION_POOL.max,
-      min: pe.DB_CONNECTION_POOL_MIN || DEFAULT_DB_CONNECTION_POOL.min,
-      idle: pe.DB_CONNECTION_POOL_IDLE || DEFAULT_DB_CONNECTION_POOL.idle,
-      acquire: null, // disable acquire timeout
-    },
-    modelDirName: 'model',
-    passwordHashSaltNumRounds: 8,
-  },
+  db,
   redis: redisConfig,
   collector: collectorConfig,
-
-  // When adding new environment, consider adding it to /config/migrationConfig
-  // as well to enable database migraton in the environment.
-  environment: {
-    build: {
-      dbLogging: false, // console.log | false | ...
-      dbUrl: defaultDbUrl,
-      defaultNodePort: defaultPort,
-      host: '127.0.0.1',
-      ipWhitelist: iplist.push('::ffff:127.0.0.1'),
-      dialect: 'postgres',
-      tokenSecret:
-       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-    },
-    development: {
-      dbLogging: false, // console.log | false | ...
-      dbUrl: defaultDbUrl,
-      defaultNodePort: defaultPort,
-      host: '127.0.0.1',
-      ipWhitelist: iplist,
-      dialect: 'postgres',
-      protocol: 'postgres',
-      dialectOptions: {
-        ssl: true,
-      },
-      tokenSecret:
-       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-    },
-    production: {
-      dbLogging: false, // console.log | false | ...
-      dbUrl: pe.DATABASE_URL,
-      ipWhitelist: iplist,
-      dialect: 'postgres',
-      protocol: 'postgres',
-      dialectOptions: {
-        ssl: true,
-      },
-      tokenSecret: pe.SECRET_TOKEN ||
-       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-    },
-    testWhitelistLocalhost: {
-      dbLogging: false, // console.log | false | ...
-      dbUrl: defaultDbUrl,
-      defaultNodePort: defaultPort,
-      host: '127.0.0.1',
-      ipWhitelist: iplist,
-      tokenSecret:
-       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-    },
-    testBlockAllhosts: {
-      dbLogging: false, // console.log | false | ...
-      dbUrl: defaultDbUrl,
-      defaultNodePort: defaultPort,
-      host: '127.0.0.1',
-      ipWhitelist: [''],
-      tokenSecret:
-       '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
-    },
-  },
-
+  environment,
   getSamplesWildcardCacheInvalidation:
     pe.GET_SAMPLES_WILDCARD_CACHE_INVALIDATION ||
     DEFAULT_GET_SAMPLES_WILDCARD_CACHE_INVALIDATION,
