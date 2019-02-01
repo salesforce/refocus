@@ -417,7 +417,7 @@ function startCollector(req, res, next) {
     collToReturn.dataValues.timestamp = Date.now();
   })
 
-  // re-encrypt context values for added and updated generators
+  // re-encrypt context values for added generators
   .then(() => Promise.map(
     collToReturn.dataValues.generatorsAdded,
     (gen) => reEncryptSGContextValues(gen, collToReturn.dataValues.token,

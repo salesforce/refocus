@@ -332,12 +332,11 @@ describe('tests/api/v1/collectors/start.js >', () => {
   const defaultCollector = u.getCollectorToCreate();
   defaultCollector.version = '0.0.1';
 
-  let generator1;
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   generatorTemplate.contextDefinition = contextDefinition;
   let collector1;
 
-  generator1 = sgUtils.getGenerator();
+  const generator1 = sgUtils.getGenerator();
   generator1.context = context;
   gu.createSGtoSGTMapping(generatorTemplate, generator1);
 
@@ -368,7 +367,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
         generator1.createdBy = user.id;
         generator1.collectorId = c.id;
       })
-      .then(() => cryptUtils.encryptSGContextValues(GlobalConfig, generator1, generatorTemplate))
+      .then(() => cryptUtils.encryptSGContextValues(GlobalConfig,
+        generator1, generatorTemplate))
       .then((gen) => Generator.bulkCreate([gen]))
       .then((gen) => collector1.addPossibleGenerators(gen))
       .then(() => done())
