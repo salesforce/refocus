@@ -84,7 +84,7 @@ describe('tests/api/v1/helpers/utils.js >', () => {
       });
     });
 
-    describe.only('object has writer >', () => {
+    describe('object has writer >', () => {
       it('authorized user is authorized', (done) => {
         const fakeReq = { user: { name: regularUser.name } };
         apiUtils.isWritable(fakeReq, subjects.eu)

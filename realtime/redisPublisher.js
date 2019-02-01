@@ -32,7 +32,16 @@ const ONE = 1;
  * @param {Object} obj - The object being published
  */
 function trackStats(key, obj) {
-  const elapsed = Date.now() - new Date(obj.updatedAt);
+  let elapsed = 0;
+  if (obj.hasOwnProperty('updatedAt')) {
+    elapsed = Date.now() - new Date(obj.updatedAt);
+  } else if (obj.hasOwnProperty('new') &&
+    obj.new.hasOwnProperty('updatedAt')) {
+    elapsed = Date.now() - new Date(obj.new.updatedAt);
+  } else {
+    console.trace('Where is updatedAt? ' + JSON.stringify(obj));
+  }
+
   rcache.hincrbyAsync(pubKeys.count, key, ONE)
     .catch((err) => {
       console.error('redisPublisher.trackStats HINCRBY', pubKeys.count, key,
@@ -101,7 +110,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   if (!inst || !event) return false;
 
   const obj = {};
-  obj[event] = inst;
+  obj[event] = inst.get ? inst.get() : inst;
 
   // set pub client and channel to perspective unless there are overrides opts
   let pubClient = pubPerspective;
@@ -119,7 +128,8 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
    * to get the object just for update events.
    */
   if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
-    const prepared = prepareToPublish(inst, changedKeys, ignoreAttributes);
+    const prepared = prepareToPublish(obj[event], changedKeys,
+      ignoreAttributes);
     if (!prepared) return false;
     obj[event] = prepared;
   }

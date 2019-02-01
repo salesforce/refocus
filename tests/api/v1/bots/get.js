@@ -27,18 +27,20 @@ const uiBlob = fs.readFileSync(paths.join(__dirname, './uiBlob'));
 describe('tests/api/v1/bots/get.js >', () => {
   let testBot;
   let token;
+  let userId;
 
   before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      token = obj.token;
       done();
     })
     .catch(done);
   });
 
   beforeEach((done) => {
-    u.createStandard()
+    u.createStandard(userId)
     .then((newBot) => {
       testBot = newBot;
       done();
@@ -143,7 +145,8 @@ describe('tests/api/v1/bots/get.js >', () => {
       expect(res.body.helpUrl).to.equal(u.standard.helpUrl);
       expect(res.body.ownerUrl).to.equal(u.standard.ownerUrl);
       expect(res.body.ui.data.length).to.equal(uiBlob.length);
-      done();
+      expect(res.body.installedBy).to.equal(userId);
+      return done();
     });
   });
 

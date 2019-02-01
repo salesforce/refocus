@@ -45,7 +45,7 @@ describe('tests/api/v1/bots/patchWithoutPerms.js >', () => {
     User.findOne({ where: { name: pfx + 'myUniqueValidUser' } })
     .then((usr) => {
       user = usr;
-      return u.createStandard();
+      return u.createStandard(user.id);
     })
     .then((newBot) => {
       testBot = newBot;

@@ -471,7 +471,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     }) // temperature aspect deleted
     .then((a) => {
       aspectName = a.name;
-      return a.update({ okRange: [0, 10] });
+      return a.update({ okRange: [0, 0] });
     })
     .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {

@@ -30,8 +30,8 @@ const collectorToCreate =  {
 };
 
 const expectedProps = [
-  'aspects', 'collectorId', 'possibleCollectors', 'context', 'createdAt', 'createdBy',
-  'currentCollector', 'description', 'generatorTemplate',
+  'aspects', 'collectorId', 'possibleCollectors', 'context', 'createdAt',
+  'createdBy', 'currentCollector', 'description', 'generatorTemplate',
   'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'isDeleted', 'name',
   'subjectQuery', 'tags', 'token', 'updatedAt', 'user',
 ];
@@ -131,8 +131,12 @@ function updateGenerator(gen, userToken, collector) {
 function sendHeartbeat({ collector, collName, tokens, token, body }) {
   if (collector && !collName) collName = collector.name;
   if (tokens && !token) token = tokens[collName];
-  if (!body) body = { timestamp: Date.now() };
-
+  if (!body) body = {
+    timestamp: Date.now(),
+    collectorConfig: {
+      version: '1.0.0',
+    },
+  };
   const req = api.post(`/v1/collectors/${collName}/heartbeat`);
   if (token) req.set('Authorization', token);
   return req.send(body);
