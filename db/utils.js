@@ -205,8 +205,15 @@ function initializeAdminUserAndProfile() {
       return u;
     }
 
-    conf.db.adminUser.profileId = pid;
-    return seq.models.User.create(conf.db.adminUser);
+    const adminUser = conf.db.adminUser;
+    adminUser.profileId = pid;
+    if (!adminUser.password) {
+      throw new Error(
+        'No password provided! Set the environment variable: "DEFAULT_ADMIN_PASSWORD".'
+      );
+    }
+
+    return seq.models.User.create(adminUser);
   })
   .then(() => 'Initialize Admin User and Profile... OK');
 } // initializeAdminUserAndProfile
