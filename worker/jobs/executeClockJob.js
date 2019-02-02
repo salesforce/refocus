@@ -22,6 +22,19 @@ module.exports = (job, done) => {
   }
 
   const jobStartTime = Date.now();
+
+  /*
+   * Don't bother trying to execute anything if for some reason we don't have a
+   * clockJobName here. But do add some extra logging to get to the bottom of
+   * why we're getting here with clockJobName "undefined" (which causes worker
+   * dyno to crash with
+   * "Error: Cannot find module '../../clock/scheduledJobs/undefined'".
+   */
+  if (!clockJobName) {
+    console.trace('Missing Clock Job Name', job);
+    return Promise.resolve();
+  }
+
   const clockJob = require(`../../clock/scheduledJobs/${clockJobName}`);
   const dbStartTime = Date.now();
 
