@@ -148,4 +148,27 @@ describe('tests/api/v1/events/post.js >', () => {
       done();
     });
   });
+
+  it('Fail, event type > 60 characters', (done) => {
+    let testEvent = u.getStandard();
+    let testString = '';
+    for (let i=0; i<61; i++)
+      testString += 'X';
+    testEvent.type = testString;
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(testEvent)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+        .to.contain(tu.dbErrorName);
+      expect(res.body.errors[ZERO].message)
+        .to.equal('value too long for type character varying(60)')
+      done();
+    });
+  });
 });
