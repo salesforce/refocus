@@ -61,6 +61,7 @@ describe('tests/api/v1/events/post.js >', () => {
       if (err) {
         return done(err);
       }
+
       expect(res.body.type).to.equal(undefined);
       done();
     });
@@ -152,7 +153,7 @@ describe('tests/api/v1/events/post.js >', () => {
   it('Fail, event type > 60 characters', (done) => {
     let testEvent = u.getStandard();
     let testString = '';
-    for (let i=0; i<61; i++)
+    for (let i = 0; i < 61; i++)
       testString += 'X';
     testEvent.type = testString;
     api.post(`${path}`)
@@ -167,7 +168,7 @@ describe('tests/api/v1/events/post.js >', () => {
       expect(res.body.errors[ZERO].type)
         .to.contain(tu.dbErrorName);
       expect(res.body.errors[ZERO].message)
-        .to.equal('value too long for type character varying(60)')
+        .to.equal('value too long for type character varying(60)');
       done();
     });
   });

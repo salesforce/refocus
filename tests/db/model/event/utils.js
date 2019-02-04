@@ -20,7 +20,7 @@ const standard = {
   context: {
     Sample: 'DATA',
   },
-  type: 'EventType'
+  type: 'EventType',
 };
 
 module.exports = {
