@@ -45,6 +45,23 @@ describe('tests/api/v1/events/post.js >', () => {
       }
 
       expect(res.body.name).to.equal(u.logLine);
+      expect(res.body.type).to.equal('EventType');
+      done();
+    });
+  });
+
+  it('Pass, event type can be null', (done) => {
+    const standard = u.getStandard();
+    delete standard.type;
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(standard)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+      expect(res.body.type).to.equal(undefined);
       done();
     });
   });
@@ -107,6 +124,27 @@ describe('tests/api/v1/events/post.js >', () => {
 
       expect(res.body.errors[ZERO].type)
       .to.contain(tu.schemaValidationErrorName);
+      done();
+    });
+  });
+
+  it('Fail, invalid event type', (done) => {
+    let testEvent = u.getStandard();
+    testEvent.type = {};
+
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(testEvent)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].source)
+        .to.equal('type');
+      expect(res.body.errors[ZERO].type)
+        .to.contain(tu.schemaValidationErrorName);
       done();
     });
   });

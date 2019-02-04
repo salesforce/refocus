@@ -6,7 +6,7 @@ module.exports = {
       'Events',
       'type',
       {
-        type: Sequelize.STRING(),
+        type: Sequelize.STRING(60),
         allowNull: true,
       }
     ),

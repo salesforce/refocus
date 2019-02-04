@@ -3829,6 +3829,9 @@ paths:
               context:
                 type: object
                 description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
+              type:
+                type: 'string'
+                description: 'This is the type of the event'
               roomId:
                 type: integer
                 description: Room that this event relates to.
@@ -3889,6 +3892,9 @@ paths:
                 context:
                   type: object
                   description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
+                type:
+                  type: 'string'
+                  description: 'This is the type of the event'
                 roomId:
                   type: integer
                   description: Room that this event relates to.
@@ -13069,6 +13075,9 @@ definitions:
       context:
         type: object
         description: A object, typically JSON, that contains the information to describe an event
+      type:
+        type: 'string'
+        description: 'This is the type of the event'
       roomId:
         type: integer
         description: The room ID in which the event deals with
