@@ -11399,6 +11399,9 @@ paths:
                 type: array
                 items:
                   type: string
+            required:
+              - name
+
       responses:
         200:
           description: Success, returns the updated collector group.
