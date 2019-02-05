@@ -3758,6 +3758,12 @@ paths:
           required: false
           type: string
         -
+          name: actionType
+          description: Get events that are a specific actionType
+          in: query
+          required: false
+          type: string
+        -
           name: sort
           description: >
             Specify the sort order using a field name, e.g. '...?sort=createdAt'. Prepend the
@@ -3828,7 +3834,10 @@ paths:
                 description: Human readable log line to describe the context.
               context:
                 type: object
-                description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
+                description: Any object, typically JSON, used to describe to some information that needed to be logged.
+              actionType:
+                type: 'string'
+                description: 'This is the type of the event'
               roomId:
                 type: integer
                 description: Room that this event relates to.
@@ -3889,6 +3898,9 @@ paths:
                 context:
                   type: object
                   description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
+                actionType:
+                  type: 'string'
+                  description: 'This is the type of the event'
                 roomId:
                   type: integer
                   description: Room that this event relates to.
@@ -13156,6 +13168,9 @@ definitions:
       context:
         type: object
         description: A object, typically JSON, that contains the information to describe an event
+      actionType:
+        type: 'string'
+        description: 'This is the type of the event'
       roomId:
         type: integer
         description: The room ID in which the event deals with

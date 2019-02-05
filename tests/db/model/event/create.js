@@ -48,9 +48,21 @@ describe('tests/db/model/event/create.js >', () => {
       expect(o).to.have.property('id');
       expect(o).to.have.property('botId');
       expect(o).to.have.property('roomId');
+      expect(o.actionType).to.equal('EventType');
       done();
     })
     .catch(done);
+  });
+
+  it('ok, event type can be null', (done) => {
+    const testEvent = u.getStandard();
+    delete testEvent.actionType;
+    Event.create(testEvent)
+      .then((event) => {
+        expect(event).to.have.property('id');
+        expect(event.actionType).to.equal(null);
+        done();
+      });
   });
 
   it('ok, event created for bot action', (done) => {
