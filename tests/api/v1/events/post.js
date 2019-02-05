@@ -45,6 +45,24 @@ describe('tests/api/v1/events/post.js >', () => {
       }
 
       expect(res.body.name).to.equal(u.logLine);
+      expect(res.body.actionType).to.equal('EventType');
+      done();
+    });
+  });
+
+  it('Pass, event actionType can be null', (done) => {
+    const standard = u.getStandard();
+    delete standard.actionType;
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(standard)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.actionType).to.equal(undefined);
       done();
     });
   });
@@ -107,6 +125,50 @@ describe('tests/api/v1/events/post.js >', () => {
 
       expect(res.body.errors[ZERO].type)
       .to.contain(tu.schemaValidationErrorName);
+      done();
+    });
+  });
+
+  it('Fail, invalid event actionType', (done) => {
+    let testEvent = u.getStandard();
+    testEvent.actionType = {};
+
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(testEvent)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].source)
+        .to.equal('actionType');
+      expect(res.body.errors[ZERO].type)
+        .to.contain(tu.schemaValidationErrorName);
+      done();
+    });
+  });
+
+  it('Fail, event actionType > 60 characters', (done) => {
+    let testEvent = u.getStandard();
+    let testString = '';
+    for (let i = 0; i < 61; i++)
+      testString += 'X';
+    testEvent.actionType = testString;
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(testEvent)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+        .to.contain(tu.dbErrorName);
+      expect(res.body.errors[ZERO].message)
+        .to.equal('value too long for type character varying(60)');
       done();
     });
   });
