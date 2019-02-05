@@ -231,7 +231,7 @@ describe('tests/api/v1/events/get.js >', () => {
       }
 
       expect(res.body.log).to.equal(u.log);
-      expect(res.body.type).to.equal('EventType');
+      expect(res.body.actionType).to.equal('EventType');
       done();
     });
   });

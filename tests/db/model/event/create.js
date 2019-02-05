@@ -48,7 +48,7 @@ describe('tests/db/model/event/create.js >', () => {
       expect(o).to.have.property('id');
       expect(o).to.have.property('botId');
       expect(o).to.have.property('roomId');
-      expect(o.type).to.equal('EventType');
+      expect(o.actionType).to.equal('EventType');
       done();
     })
     .catch(done);
@@ -56,11 +56,11 @@ describe('tests/db/model/event/create.js >', () => {
 
   it('ok, event type can be null', (done) => {
     const testEvent = u.getStandard();
-    delete testEvent.type;
+    delete testEvent.actionType;
     Event.create(testEvent)
       .then((event) => {
         expect(event).to.have.property('id');
-        expect(event.type).to.equal(null);
+        expect(event.actionType).to.equal(null);
         done();
       });
   });

@@ -4,7 +4,7 @@ module.exports = {
   up: (queryInterface, Sequelize) =>
     queryInterface.addColumn(
       'Events',
-      'type',
+      'actionType',
       {
         type: Sequelize.STRING(60),
         allowNull: true,
@@ -14,6 +14,6 @@ module.exports = {
   down: (queryInterface, Sequelize) =>
     queryInterface.removeColumn(
       'Events',
-      'type'
+      'actionType'
     ),
 };

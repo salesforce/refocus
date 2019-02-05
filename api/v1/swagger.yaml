@@ -3829,7 +3829,7 @@ paths:
               context:
                 type: object
                 description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
-              type:
+              actionType:
                 type: 'string'
                 description: 'This is the type of the event'
               roomId:
@@ -3892,7 +3892,7 @@ paths:
                 context:
                   type: object
                   description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
-                type:
+                actionType:
                   type: 'string'
                   description: 'This is the type of the event'
                 roomId:
@@ -13078,7 +13078,7 @@ definitions:
       context:
         type: object
         description: A object, typically JSON, that contains the information to describe an event
-      type:
+      actionType:
         type: 'string'
         description: 'This is the type of the event'
       roomId:

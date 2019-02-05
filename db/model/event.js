@@ -34,7 +34,7 @@ module.exports = function event(seq, dataTypes) {
       allowNull: false,
       comment: 'This is a readable event logline',
     },
-    type: {
+    actionType: {
       type: dataTypes.STRING(constants.fieldlen.normalName),
       allowNull: true,
       comment: 'This is the type of the event',

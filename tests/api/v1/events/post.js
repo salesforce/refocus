@@ -45,14 +45,14 @@ describe('tests/api/v1/events/post.js >', () => {
       }
 
       expect(res.body.name).to.equal(u.logLine);
-      expect(res.body.type).to.equal('EventType');
+      expect(res.body.actionType).to.equal('EventType');
       done();
     });
   });
 
-  it('Pass, event type can be null', (done) => {
+  it('Pass, event actionType can be null', (done) => {
     const standard = u.getStandard();
-    delete standard.type;
+    delete standard.actionType;
     api.post(`${path}`)
     .set('Authorization', token)
     .send(standard)
@@ -62,7 +62,7 @@ describe('tests/api/v1/events/post.js >', () => {
         return done(err);
       }
 
-      expect(res.body.type).to.equal(undefined);
+      expect(res.body.actionType).to.equal(undefined);
       done();
     });
   });
@@ -129,7 +129,7 @@ describe('tests/api/v1/events/post.js >', () => {
     });
   });
 
-  it('Fail, invalid event type', (done) => {
+  it('Fail, invalid event actionType', (done) => {
     let testEvent = u.getStandard();
     testEvent.type = {};
 
@@ -143,19 +143,19 @@ describe('tests/api/v1/events/post.js >', () => {
       }
 
       expect(res.body.errors[ZERO].source)
-        .to.equal('type');
+        .to.equal('actionType');
       expect(res.body.errors[ZERO].type)
         .to.contain(tu.schemaValidationErrorName);
       done();
     });
   });
 
-  it('Fail, event type > 60 characters', (done) => {
+  it('Fail, event actionType > 60 characters', (done) => {
     let testEvent = u.getStandard();
     let testString = '';
     for (let i = 0; i < 61; i++)
       testString += 'X';
-    testEvent.type = testString;
+    testEvent.actionType = testString;
     api.post(`${path}`)
     .set('Authorization', token)
     .send(testEvent)
@@ -168,7 +168,7 @@ describe('tests/api/v1/events/post.js >', () => {
       expect(res.body.errors[ZERO].type)
         .to.contain(tu.dbErrorName);
       expect(res.body.errors[ZERO].message)
-        .to.equal('value too long for type character varying(60)');
+        .to.equal('value too long for actionType character varying(60)');
       done();
     });
   });

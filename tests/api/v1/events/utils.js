@@ -18,7 +18,7 @@ const logLine = 'Sample Event';
 
 const standard = {
   log: logLine,
-  type: 'EventType',
+  actionType: 'EventType',
   context: {
     Sample: 'DATA',
   },
