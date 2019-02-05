@@ -33,7 +33,6 @@ describe('tests/api/v1/events/get.js >', () => {
   let testEvent = u.getStandard();
   let testEventOutput;
   let testEvent2 = u.getStandard();
-  let testEvent2Output;
   testEvent2.context.type = 'Comment';
   testEvent2.actionType = 'sendEmail';
   testEvent2.log = 'Sample Event 2';
