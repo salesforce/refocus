@@ -168,7 +168,7 @@ describe('tests/api/v1/events/post.js >', () => {
       expect(res.body.errors[ZERO].type)
         .to.contain(tu.dbErrorName);
       expect(res.body.errors[ZERO].message)
-        .to.equal('value too long for actionType character varying(60)');
+        .to.equal('value too long for type character varying(60)');
       done();
     });
   });
