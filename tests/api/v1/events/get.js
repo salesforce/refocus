@@ -35,7 +35,7 @@ describe('tests/api/v1/events/get.js >', () => {
   let testEvent2 = u.getStandard();
   let testEvent2Output;
   testEvent2.context.type = 'Comment';
-  event2.actionType = 'sendEmail';
+  testEvent2.actionType = 'sendEmail';
   testEvent2.log = 'Sample Event 2';
   let testEvent3 = u.getStandard();
   testEvent3.context.type = 'Comment';
