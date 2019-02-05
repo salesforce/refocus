@@ -131,7 +131,7 @@ describe('tests/api/v1/events/post.js >', () => {
 
   it('Fail, invalid event actionType', (done) => {
     let testEvent = u.getStandard();
-    testEvent.type = {};
+    testEvent.actionType = {};
 
     api.post(`${path}`)
     .set('Authorization', token)
