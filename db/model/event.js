@@ -17,6 +17,7 @@
 
 const assoc = {};
 const realTime = require('../../realtime/redisPublisher');
+const constants = require('../constants');
 const rtConstants = require('../../realtime/constants');
 const botEventNames = rtConstants.events.botEvent;
 const pubOpts = rtConstants.pubOpts.event;
@@ -32,6 +33,11 @@ module.exports = function event(seq, dataTypes) {
       type: dataTypes.TEXT,
       allowNull: false,
       comment: 'This is a readable event logline',
+    },
+    actionType: {
+      type: dataTypes.STRING(constants.fieldlen.normalName),
+      allowNull: true,
+      comment: 'This is the type of the event',
     },
     context: {
       type: dataTypes.JSON,
