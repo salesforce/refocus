@@ -32,8 +32,8 @@ describe('tests/api/v1/samples/postWithProvider.js >', () => {
 
   beforeEach((done) => {
     u.doSetup()
-    .then((samp) => {
-      sampleToPost = samp;
+    .then(({ aspectId, subjectId }) => {
+      sampleToPost = u.getBasic({ aspectId, subjectId });
       done();
     })
     .catch(done);
