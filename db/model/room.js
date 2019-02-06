@@ -180,6 +180,11 @@ module.exports = function room(seq, dataTypes) {
       onDelete: 'CASCADE',
     });
 
+    assoc.owner = Room.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+
     assoc.user = Room.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -202,6 +207,10 @@ module.exports = function room(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
           attributes: ['name', 'email', 'fullName'],
         },
       ],
