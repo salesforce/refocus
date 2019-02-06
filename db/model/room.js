@@ -62,11 +62,9 @@ module.exports = function room(seq, dataTypes) {
       comment: 'Bot names to be used in rooms',
     },
     origin: {
-      type: dataTypes.STRING,
-      allowNull: true,
-      validate: {
-        is: constants.nameRegex,
-      },
+      type: dataTypes.ENUM('auto_create', 'GUS', 'other', 'web'),
+      allowNull: false,
+      defaultValue: 'other',
       comment: 'Tracks where IMC room was created from',
     },
   }, {

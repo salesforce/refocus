@@ -96,6 +96,34 @@ describe('tests/db/model/room/create.js >', () => {
     .catch(done);
   });
 
+  it('ok, room created with specified origin', (done) => {
+    RoomType.create(v.getStandard())
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.origin = 'web';
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      expect(room).to.have.property('origin').to.equal('web');
+      done();
+    });
+  });
+
+  it('ok, room created without specified origin has default origin', (done) => {
+    RoomType.create(v.getStandard())
+    .then((roomType) => {
+      const room = u.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      expect(room).to.have.property('origin').to.equal('other');
+      done();
+    })
+    .catch(done);
+  });
+
   it('fail, room name invalid', (done) => {
     RoomType.create(v.getStandard())
     .then((roomType) => {
@@ -134,14 +162,14 @@ describe('tests/db/model/room/create.js >', () => {
     RoomType.create(v.getStandard())
     .then((roomType) => {
       const room = u.getStandard();
-      room.origin = invalidValue;
+      room.origin = 'gs';
       room.type = roomType.id;
       return Room.create(room);
     })
     .then(() => done(tu.valError))
     .catch((err) => {
-      expect(err.name).to.equal(tu.valErrorName);
-      expect(err.message.toLowerCase()).to.contain('validation error');
+      expect(err.name).to.equal(tu.dbErrorName);
+      expect(err.message.toLowerCase()).to.contain('invalid input');
       done();
     })
     .catch(done);

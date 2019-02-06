@@ -7396,6 +7396,11 @@ paths:
           in: query
           required: false
           type: string
+          enum: 
+            - auto_create
+            - GUS
+            - other
+            - web
         -
           name: sort
           description: >
@@ -7456,7 +7461,11 @@ paths:
                 description: RoomType of the room
               origin:
                 type: string
-                maxLength: 60
+                enum: 
+                  - auto_create
+                  - GUS
+                  - other
+                  - web
                 description: Origin of the room
             required:
               - name

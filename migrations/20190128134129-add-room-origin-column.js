@@ -1,15 +1,11 @@
 'use strict';
 const TBL = 'Rooms';
-const constants = require('../db/constants');
-
 module.exports = {
   up(qi, Sequelize) {
     return qi.addColumn(TBL, 'origin', {
-      type: Sequelize.STRING(constants.fieldlen.normalName),
-      allowNull: true,
-      validate: {
-        is: constants.nameRegex,
-      },
+      type: Sequelize.ENUM('auto_create', 'GUS', 'other', 'web'),
+      default: 'OTHER',
+      allowNull: false
     });
   },
 
