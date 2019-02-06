@@ -15,8 +15,8 @@ const tu = require('../../../testUtils');
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestRoom`;
 const n2 = n + 'NonActive';
-const o = `${tu.namePrefix}TestOrigin`;
-const o2 = o + 'NonActive';
+const o = 'web';
+const o2 = 'other';
 
 const roomTypeSchema = {
   name: 'roomTypeTest',
