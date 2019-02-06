@@ -16,7 +16,22 @@ const testStartTime = new Date();
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const rcli = require('../../../../cache/redisCache').client.sampleStore;
 
+const basic = {
+  name: `${tu.namePrefix}TEST_SUBJECT`,
+  isPublished: true,
+};
+
 module.exports = {
+  getBasic(overrideProps={}) {
+    const defaultProps = JSON.parse(JSON.stringify(basic));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.Subject.create(toCreate);
+  },
+
   forceDelete(done) {
     Promise.join(
       samstoinit.eradicate(),
