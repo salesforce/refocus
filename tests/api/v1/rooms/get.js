@@ -172,6 +172,7 @@ describe('tests/api/v1/rooms/get.js >', () => {
     room2.type = testRoom.type;
     Room.create(room2)
     .then(() => {
+      console.log(`${path}?origin=${u.origin}`);
       api.get(`${path}?origin=${u.origin}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
