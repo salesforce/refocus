@@ -23,7 +23,7 @@ describe('tests/db/model/generatortemplate/classMethods.js >', () => {
   describe('getAssociation >', () => {
     it('should return all the associations', (done) => {
       const associations = GeneratorTemplate.getGeneratortemplateAssociations();
-      expect(associations).to.all.keys('writers', 'user');
+      expect(associations).to.all.keys('writers', 'user', 'owner');
       done();
     });
   });
