@@ -23,7 +23,9 @@ module.exports = {
   },
 
   forceDelete(done) {
-    tu.forceDelete(tu.db.Collector, testStartTime)
+    tu.forceDelete(tu.db.Generator, testStartTime)
+      .then(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime))
+      .then(() => tu.forceDelete(tu.db.Collector, testStartTime))
       .then(() => tu.forceDelete(tu.db.CollectorGroup, testStartTime))
       .then(() => done())
       .catch(done);

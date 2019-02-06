@@ -30,4 +30,11 @@ const requireDir = require('require-dir');
 const setupIntervals = require('./setupIntervals');
 
 const jobs = requireDir('./scheduledJobs');
+
+/*
+ * Adding some extra logging to get to the bottom of why we're crashing worker
+ * dynos with "Error: Cannot find module '../../clock/scheduledJobs/undefined'".
+ */
+console.log(`clock/index, require-dir: ['${Object.keys(jobs).join(', ')}]`);
+
 module.exports = setupIntervals(jobs, conf.clockJobConfig);

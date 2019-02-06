@@ -3758,6 +3758,12 @@ paths:
           required: false
           type: string
         -
+          name: actionType
+          description: Get events that are a specific actionType
+          in: query
+          required: false
+          type: string
+        -
           name: sort
           description: >
             Specify the sort order using a field name, e.g. '...?sort=createdAt'. Prepend the
@@ -3828,7 +3834,10 @@ paths:
                 description: Human readable log line to describe the context.
               context:
                 type: object
-                description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
+                description: Any object, typically JSON, used to describe to some information that needed to be logged.
+              actionType:
+                type: 'string'
+                description: 'This is the type of the event'
               roomId:
                 type: integer
                 description: Room that this event relates to.
@@ -3889,6 +3898,9 @@ paths:
                 context:
                   type: object
                   description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
+                actionType:
+                  type: 'string'
+                  description: 'This is the type of the event'
                 roomId:
                   type: integer
                   description: Room that this event relates to.
@@ -11286,7 +11298,7 @@ paths:
         default:
           $ref: "#/responses/genericError"
 
-  /collectorGroups/{name}:
+  /collectorGroups/{key}:
     x-swagger-router-controller: collectorGroups
     delete:
       security:
@@ -11295,37 +11307,7 @@ paths:
       tags: [ collectorGroups ]
       description: >-
         Delete collector group if it isn't in use by a Sample Generator.
-      operationId: deleteCollectorGroups
-      parameters:
-        - name: name
-          in: path
-          description: >-
-            The name of the collector group.
-          required: true
-          type: string
-      responses:
-        400:
-          $ref: "#/responses/400"
-        401:
-          $ref: "#/responses/401"
-        403:
-          $ref: "#/responses/403"
-        404:
-          $ref: "#/responses/404"
-        default:
-          $ref: "#/responses/genericError"
-
-  /collectorGroups/{key}/collectors:
-    x-swagger-router-controller: collectorGroups
-    post:
-      security:
-        - jwt: []
-      summary: Add a collector to the group
-      tags: [ collectorGroups ]
-      description: >-
-        Add a collector to the group if any collector named in the array isn't already in the list or isn't already
-        assigned to a different group.
-      operationId: addCollectorsToGroup
+      operationId: deleteCollectorGroup
       parameters:
         - name: key
           in: path
@@ -11333,22 +11315,10 @@ paths:
             The name of the collector group.
           required: true
           type: string
-        - name: queryBody
-          description: Request body.
-          in: body
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-            minItems: 1
-            uniqueItems: true
-            description: >-
-              List of collector names
       responses:
         200:
           description: >-
-            One or more collectors were added to the group.
+            Deleted.
           schema:
             $ref: "#/definitions/CollectorGroupsResponse"
         400:
@@ -11369,7 +11339,7 @@ paths:
       description: >-
         Update the specified fields. If patching the list of collectors, it will replace the current list.
         It will update if all collectors named in the array aren't already assigned to a different group.
-      operationId: patchCollectorGroups
+      operationId: patchCollectorGroup
       parameters:
         - name: key
           in: path
@@ -11423,7 +11393,7 @@ paths:
       description: >-
         Update all fields, replacing any existing values, and if a field is not provided, it resets to default
         (e.g. empty array of collectors, empty description).
-      operationId: putCollectorGroups
+      operationId: putCollectorGroup
       parameters:
         - name: key
           in: path
@@ -11454,6 +11424,9 @@ paths:
                 type: array
                 items:
                   type: string
+            required:
+              - name
+
       responses:
         200:
           description: Success, returns the updated collector group.
@@ -11465,6 +11438,53 @@ paths:
           $ref: "#/responses/401"
         403:
           $ref: "#/responses/404"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  /collectorGroups/{key}/collectors:
+    x-swagger-router-controller: collectorGroups
+    post:
+      security:
+        - jwt: []
+      summary: Add a collector to the group
+      tags: [ collectorGroups ]
+      description: >-
+        Add a collector to the group if any collector named in the array isn't already in the list or isn't already
+        assigned to a different group.
+      operationId: addCollectorsToGroup
+      parameters:
+        - name: key
+          in: path
+          description: >-
+            The name of the collector group.
+          required: true
+          type: string
+        - name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 1
+            uniqueItems: true
+            description: >-
+              List of collector names
+      responses:
+        200:
+          description: >-
+            One or more collectors were added to the group.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
         404:
           $ref: "#/responses/404"
         default:
@@ -13083,6 +13103,9 @@ definitions:
       context:
         type: object
         description: A object, typically JSON, that contains the information to describe an event
+      actionType:
+        type: 'string'
+        description: 'This is the type of the event'
       roomId:
         type: integer
         description: The room ID in which the event deals with

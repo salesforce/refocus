@@ -427,7 +427,6 @@ describe('tests/db/model/generator/create.js >', () => {
       const subjectQuery = '?absolutePath=Foo*&name=b*&tags=-T1,-T2';
       const returnSubjectQuery = gUtil.validateSubjectQuery(subjectQuery);
       expect(subjectQuery).to.equal(returnSubjectQuery);
-
       done();
     });
 
@@ -435,11 +434,11 @@ describe('tests/db/model/generator/create.js >', () => {
       const subjectQuery = '?absolutePath=Foo*&name=b*?tags=-T1,-T2';
 
       try {
-        const x = gUtil.validateSubjectQuery(subjectQuery);
+        gUtil.validateSubjectQuery(subjectQuery);
+        done(new Error('expecting ValidationError'));
       } catch (err) {
         expect(err.message).to.equal('subjectQuery ValidationError');
         expect(err.name).to.equal('ValidationError');
-
         done();
       }
     });
@@ -448,11 +447,11 @@ describe('tests/db/model/generator/create.js >', () => {
       const subjectQuery = '?abso';
 
       try {
-        const x = gUtil.validateSubjectQuery(subjectQuery);
+        gUtil.validateSubjectQuery(subjectQuery);
+        done(new Error('expecting ValidationError'));
       } catch (err) {
         expect(err.message).to.equal('subjectQuery ValidationError');
         expect(err.name).to.equal('ValidationError');
-
         done();
       }
     });
@@ -461,11 +460,11 @@ describe('tests/db/model/generator/create.js >', () => {
       const subjectQuery = '?absolutePath:abc';
 
       try {
-        const x = gUtil.validateSubjectQuery(subjectQuery);
+        gUtil.validateSubjectQuery(subjectQuery);
+        done(new Error('expecting ValidationError'));
       } catch (err) {
         expect(err.message).to.equal('subjectQuery ValidationError');
         expect(err.name).to.equal('ValidationError');
-
         done();
       }
     });
@@ -473,13 +472,27 @@ describe('tests/db/model/generator/create.js >', () => {
     it('Wildcard "*" is prohibited in the subjectQuery for "tag" filters',
       (done) => {
       const subjectQuery = '?tags=abc*';
-
       try {
-        const x = gUtil.validateSubjectQuery(subjectQuery);
+        gUtil.validateSubjectQuery(subjectQuery);
+        done(new Error('expecting ValidationError'));
       } catch (err) {
         expect(err.message).to.equal('subjectQuery ValidationError');
         expect(err.name).to.equal('ValidationError');
+        done();
+      }
+    });
 
+    it('isPublished=false', (done) => {
+      const subjectQuery = '?name=a&isPublished=false';
+
+      try {
+        gUtil.validateSubjectQuery(subjectQuery);
+        done(new Error('expecting ValidationError'));
+      } catch (err) {
+        expect(err).to.have.property('message', 'subjectQuery ValidationError');
+        expect(err).to.have.property('name', 'ValidationError');
+        expect(err).to.have.property('explanation',
+          'Cannot generate samples for subjects with isPublished=false');
         done();
       }
     });

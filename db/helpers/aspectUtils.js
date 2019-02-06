@@ -19,6 +19,12 @@ const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
 const redisOps = require('../../cache/redisOps');
 const publishSample = require('../../realtime/redisPublisher').publishSample;
 const aspSubMapType = redisOps.aspSubMapType;
+const dbErrors = require('../dbErrors');
+const aspValueTypes = {
+  boolean: 'BOOLEAN',
+  numeric: 'NUMERIC',
+  percent: 'PERCENT',
+};
 
 /**
  * Confirms that the array is non-null and has two elements.
@@ -157,7 +163,89 @@ function removeAspectRelatedSamples(aspect, seq) {
   });
 } // removeAspectRelatedSamples
 
+/**
+ * Validate status range based on aspect value type
+ * @param  {Array} statusRange  - Status Range
+ * @param  {boolean|numeric|percent} aspValueType - aspect value type
+ * @throws {object} Error InvalidAspectStatusRange if invalid range
+ */
+function validateRange(statusRange, aspValueType) {
+  if (!statusRange) {
+    return; // undefined status range is allowed
+  }
+
+  const statusRangeFirst = statusRange[0];
+  const statusRangeSecond = statusRange[1];
+
+  /*
+  BOOLEAN value type ranges: [0, 0] or [1, 1]
+  NUMERIC value type ranges: Number.MIN_SAFE_INTEGER to Number.MAX_SAFE_INTEGER
+  PERCENT value type ranges: 0 to 100
+   */
+  if (aspValueType === aspValueTypes.boolean) {
+    if (!((statusRangeFirst === 0 && statusRangeSecond === 0) ||
+     (statusRangeFirst === 1 && statusRangeSecond === 1))) {
+      throw new dbErrors.InvalidAspectStatusRange({
+        message: `Value type: ${aspValueTypes.boolean} can only have ` +
+        'ranges: [0,0] or [1,1]',
+      });
+    }
+  } else if (aspValueType === aspValueTypes.numeric) {
+    if (statusRangeFirst < Number.MIN_SAFE_INTEGER ||
+      statusRangeSecond > Number.MAX_SAFE_INTEGER) {
+      throw new dbErrors.InvalidAspectStatusRange({
+        message: `Value type: ${aspValueTypes.numeric} can only have ranges ` +
+        'with min value: -9007199254740991, max value: 9007199254740991',
+      });
+    }
+  } else if (aspValueType === aspValueTypes.percent) {
+    if (statusRangeFirst < 0 || statusRangeSecond > 100) {
+      throw new dbErrors.InvalidAspectStatusRange({
+        message: `Value type: ${aspValueTypes.percent} can only have ranges ` +
+        'with min value: 0, max value: 100',
+      });
+    }
+  }
+}
+
+/**
+ * Validate all the status ranges of an aspect.
+ * @param  {Object} inst - Aspect seq object
+ * @throws {object} Error InvalidAspectStatusRange if any invalid range
+ */
+function validateAspectStatusRanges(inst) {
+  const aspStatusRanges = [
+    inst.criticalRange, inst.warningRange, inst.infoRange, inst.okRange,
+  ];
+
+  // Boolean value type allows only 2 different status ranges: [0,0] or [1,1]
+  if (inst.valueType === aspValueTypes.boolean) {
+    const definedBoolRanges = aspStatusRanges.filter((ar) => ar);
+    if (definedBoolRanges.length > 2) {
+      throw new dbErrors.InvalidAspectStatusRange({
+        message: 'More than 2 status ranges cannot be assigned for value ' +
+        'type: BOOLEAN',
+      });
+    }
+
+    if (definedBoolRanges.length === 2 &&
+      definedBoolRanges[0][0] === definedBoolRanges[1][0] &&
+      definedBoolRanges[0][1] === definedBoolRanges[1][1]) {
+      throw new dbErrors.InvalidAspectStatusRange({
+        message: 'Same value range to multiple statuses is not allowed for ' +
+        'value type: BOOLEAN',
+      });
+    }
+  }
+
+  aspStatusRanges.forEach((aspRange) => {
+    validateRange(aspRange, inst.valueType);
+  });
+}
+
 module.exports = {
   validateStatusRange,
   removeAspectRelatedSamples,
+  aspValueTypes,
+  validateAspectStatusRanges,
 }; // exports
