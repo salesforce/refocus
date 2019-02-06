@@ -25,6 +25,7 @@ module.exports = {
   fieldScopeMap: {
     lensLibrary: 'lensLibrary',
     user: 'user',
+    owner: 'owner',
   },
   baseUrl: '/v1/lenses',
   model: Lens,

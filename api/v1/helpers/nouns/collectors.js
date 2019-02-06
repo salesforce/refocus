@@ -32,6 +32,8 @@ module.exports = {
   readOnlyFields: ['id', 'isDeleted'],
   fieldsWritableByCollectorOnly: ['osInfo', 'processInfo', 'version'],
   fieldScopeMap: {
+    user: 'user',
+    owner: 'owner',
     status: 'status',
     possibleGenerators: 'possibleGenerators',
     currentGenerators: 'currentGenerators',

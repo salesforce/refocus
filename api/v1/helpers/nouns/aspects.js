@@ -38,6 +38,7 @@ module.exports = {
   fieldsWithEnum,
   fieldScopeMap: {
     user: 'user',
+    owner: 'owner',
   },
   tagFilterName: 'tags',
   readOnlyFields: ['id', 'isDeleted'],

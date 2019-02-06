@@ -35,6 +35,7 @@ module.exports = {
   tagFilterName: 'tags',
   fieldScopeMap: {
     user: 'user',
+    owner: 'owner',
   },
 
   hasMultipartKey: true,
