@@ -38,6 +38,7 @@ describe(`tests/api/v1/aspects/associations.js, GET ${path} >`, () => {
     tu.createUser('testUser')
     .then((user) => {
       toCreate.forEach((a) => a.createdBy = user.id);
+      toCreate.forEach((a) => a.ownerId = user.id);
       conf.token = tu.createTokenFromUserName(user.name);
       done();
     })
@@ -55,9 +56,17 @@ describe(`tests/api/v1/aspects/associations.js, GET ${path} >`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['user'];
+  const associations = ['user', 'owner'];
   const schema = {
     user: Joi.object().keys({
+      name: Joi.string().required(),
+      fullName: Joi.string().optional().allow(null),
+      email: Joi.string().required(),
+      profile: Joi.object().keys({
+        name: Joi.string().required(),
+      }).required(),
+    }),
+    owner: Joi.object().keys({
       name: Joi.string().required(),
       fullName: Joi.string().optional().allow(null),
       email: Joi.string().required(),
