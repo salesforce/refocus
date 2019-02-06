@@ -21,10 +21,10 @@ describe('tests/api/v1/perspectives/getWithLimit.js >', () => {
 
   before((done) => {
     u.doSetup()
-    .then((createdLens) => {
+    .then(({ lensId }) => {
       const obj = {
         name: `${tu.namePrefix}testPersp`,
-        lensId: createdLens.id,
+        lensId,
         rootSubject: 'myMainSubject',
         aspectFilter: ['temperature', 'humidity'],
         aspectTagFilter: ['temp', 'hum'],

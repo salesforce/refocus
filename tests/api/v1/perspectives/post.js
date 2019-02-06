@@ -39,8 +39,8 @@ describe('tests/api/v1/perspectives/post.js >', () => {
 
   beforeEach((done) => {
     u.doSetup()
-    .then((lens) => {
-      createdLensId = lens.id;
+    .then(({ lensId }) => {
+      createdLensId = lensId;
       basicParams.lensId = createdLensId;
       done();
     })
