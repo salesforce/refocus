@@ -42,12 +42,11 @@ module.exports = {
     );
   },
 
-  down: (qi, Sequelize) => {
-    return Promise.all(
+  down: (qi, Sequelize) =>
+    Promise.all(
       tablesToModify.map((modelName) =>
         qi.removeColumn(modelName, columnName)
       )
-    );
-  },
+    ),
 };
 

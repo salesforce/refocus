@@ -26,8 +26,8 @@ const modelsToUpdate = [
 ];
 
 module.exports = {
-  up: (qi, Sequelize) => {
-    return db.User.findOne({ where: { name: 'admin@refocus.admin' } })
+  up: (qi, Sequelize) =>
+    db.User.findOne({ where: { name: 'admin@refocus.admin' } })
     .then((adminUser) => {
       if (!adminUser || !adminUser.id) return Promise.reject("couldn't find admin user");
       const defaultOwnerId = adminUser.id;
@@ -45,8 +45,7 @@ module.exports = {
           ));
         })
       );
-    });
-  },
+    }),
 
   down: (qi, Sequelize) =>
     Promise.all(
