@@ -7408,10 +7408,11 @@ paths:
           in: query
           required: false
           type: string
-          enum: 
+          enum:
             - auto_create
             - GUS
             - other
+            - slack
             - web
         -
           name: sort
@@ -7473,11 +7474,7 @@ paths:
                 description: RoomType of the room
               origin:
                 type: string
-                enum: 
-                  - auto_create
-                  - GUS
-                  - other
-                  - web
+                default: other
                 description: Origin of the room
             required:
               - name
@@ -13617,7 +13614,14 @@ definitions:
           Id of the User who created this room.
       origin:
         type: string
-        description: Where the room was created from
+        enum:
+          - auto_create
+          - GUS
+          - other
+          - slack
+          - web
+        readOnly: true
+        description: Where the room was created
 
   RoomTypeResponse:
     type: object

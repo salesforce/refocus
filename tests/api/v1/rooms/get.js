@@ -172,21 +172,31 @@ describe('tests/api/v1/rooms/get.js >', () => {
     room2.type = testRoom.type;
     Room.create(room2)
     .then(() => {
-      console.log(`${path}?origin=${u.origin}`);
-      api.get(`${path}?origin=${u.origin}`)
+      api.get(`${path}?origin=${u.originNonActive}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
-
         expect(res.body.length).to.equal(ONE);
-        expect(res.body[ZERO].origin).to.equal(u.origin);
+        expect(res.body[ZERO].origin).to.equal(room2.origin);
         done();
       });
     })
     .catch(done);
+  });
+
+  it('Fail, trying to get rooms using invalid origin', (done) => {
+    api.get(`${path}?origin=${u.origin}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err) => {
+      if (err) {
+        return done(err);
+      }
+      done();
+    });
   });
 
   it('Pass, Sort by Id', (done) => {

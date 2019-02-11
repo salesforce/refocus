@@ -51,6 +51,12 @@ module.exports = function room(seq, dataTypes) {
       allowNull: true,
       comment: 'Key/Value pairs for user specific settings',
     },
+    origin: {
+      type: dataTypes.ENUM('auto_create', 'GUS', 'other', 'web'),
+      allowNull: false,
+      defaultValue: 'other',
+      comment: 'Tracks where IMC room was created from',
+    },
     active: {
       type: dataTypes.BOOLEAN,
       defaultValue: false,
@@ -60,12 +66,6 @@ module.exports = function room(seq, dataTypes) {
       type: dataTypes.ARRAY(dataTypes.STRING),
       allowNull: true,
       comment: 'Bot names to be used in rooms',
-    },
-    origin: {
-      type: dataTypes.ENUM('auto_create', 'GUS', 'other', 'web'),
-      allowNull: false,
-      defaultValue: 'other',
-      comment: 'Tracks where IMC room was created from',
     },
   }, {
     hooks: {

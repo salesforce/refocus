@@ -17,6 +17,7 @@ const n = `${tu.namePrefix}TestRoom`;
 const n2 = n + 'NonActive';
 const o = 'web';
 const o2 = 'other';
+const invalidOrigin = `${tu.namePrefix}origin`;
 
 const roomTypeSchema = {
   name: 'roomTypeTest',
@@ -109,7 +110,11 @@ module.exports = {
 
   origin: o,
 
+  originNonActive: o2,
+
   rtSchema: roomTypeSchema,
+
+  invalidOrigin,
 
   getStandard() {
     return JSON.parse(JSON.stringify(standard));
