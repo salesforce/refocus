@@ -179,6 +179,7 @@ describe('tests/api/v1/rooms/get.js >', () => {
         if (err) {
           return done(err);
         }
+
         expect(res.body.length).to.equal(ONE);
         expect(res.body[ZERO].origin).to.equal(room2.origin);
         done();
@@ -195,6 +196,7 @@ describe('tests/api/v1/rooms/get.js >', () => {
       if (err) {
         return done(err);
       }
+
       done();
     });
   });
