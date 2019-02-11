@@ -189,7 +189,7 @@ describe('tests/api/v1/rooms/get.js >', () => {
   });
 
   it('Fail, trying to get rooms using invalid origin', (done) => {
-    api.get(`${path}?origin=${u.origin}`)
+    api.get(`${path}?origin=${u.invalidOrigin}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err) => {
