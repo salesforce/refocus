@@ -214,8 +214,7 @@ describe('tests/db/model/collector/methods.js >', () => {
         collectorConfig.heartbeatIntervalMillis = interval;
         collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
-        Collector.build({ lastHeartbeat })
-        .isAlive().should.be.true;
+        Collector.build({ lastHeartbeat }).isAlive().should.be.true;
       });
 
       it('dead', () => {
@@ -227,8 +226,7 @@ describe('tests/db/model/collector/methods.js >', () => {
         collectorConfig.heartbeatIntervalMillis = interval;
         collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
-        Collector.build({ lastHeartbeat })
-        .isAlive().should.be.false;
+        Collector.build({ lastHeartbeat }).isAlive().should.be.false;
       });
 
       it('undefined', () => {
@@ -240,8 +238,7 @@ describe('tests/db/model/collector/methods.js >', () => {
         collectorConfig.heartbeatIntervalMillis = interval;
         collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
-        Collector.build({ lastHeartbeat })
-        .isAlive().should.be.false;
+        Collector.build({ lastHeartbeat }).isAlive().should.be.false;
       });
     });
 
@@ -288,12 +285,12 @@ describe('tests/db/model/collector/methods.js >', () => {
         .then((c1) => c1.reassignGenerators())
 
         .then(() => Promise.join(
-          Generator.find({ where: { name: generator1.name } }),
-          Generator.find({ where: { name: generator2.name } }),
-          Generator.find({ where: { name: generator3.name } }),
+          Generator.findOne({ where: { name: generator1.name } }),
+          Generator.findOne({ where: { name: generator2.name } }),
+          Generator.findOne({ where: { name: generator3.name } }),
         ))
         .spread((gen1, gen2, gen3) => {
-          expect(gen1.currentCollector.name).to.equal(collector2.name);
+          expect(gen1.currentCollector.name).to.not.equal(collector1.name);
           expect(gen2.currentCollector.name).to.equal(collector2.name);
           expect(gen3.currentCollector.name).to.equal(collector3.name);
         });
