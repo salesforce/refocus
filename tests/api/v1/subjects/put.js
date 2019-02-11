@@ -656,12 +656,12 @@ describe('tests/api/v1/subjects/put.js >', () => {
               done(err);
             }
 
-            Subject.findOne({ where: { id: subjectId } })
-              .then((subj) => {
-                expect(subj.tags).to.eql([]);
-                expect(subj.relatedLinks).to.eql([]);
-                done();
-              });
+            Subject.findById(subjectId)
+            .then((subj) => {
+              expect(subj.tags).to.eql([]);
+              expect(subj.relatedLinks).to.eql([]);
+              done();
+            });
           });
       });
   });
