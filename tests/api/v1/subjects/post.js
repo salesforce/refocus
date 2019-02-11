@@ -637,7 +637,7 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
             expect(subj.tags).to.eql([]);
             expect(subj.relatedLinks).to.eql([]);
             done();
-           });
+          });
         });
       });
   });
