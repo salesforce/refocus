@@ -297,7 +297,8 @@ describe('tests/collector/integration.js >', function () {
 
           u.awaitSubjectQuery()
           .then(({ req, res }) => {
-            expect(req.url).to.equal('/v1/subjects?absolutePath=sub1');
+            expect(req.url)
+              .to.equal('/v1/subjects?absolutePath=sub1&isPublished=true');
             expect(res.body).to.be.an('array').with.lengthOf(1);
             expect(res.body[0].name).to.equal('sub1');
           })
@@ -323,7 +324,8 @@ describe('tests/collector/integration.js >', function () {
     it('subjectQuery updated', () =>
       u.doStart(coll1)
       .then(() => Promise.join(
-        u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
+        u.expectSubjectQuery(coll1,
+          '/v1/subjects?absolutePath=sub1&isPublished=true'),
         u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
       ))
 
@@ -335,7 +337,8 @@ describe('tests/collector/integration.js >', function () {
       .then(({ res }) => expect(res.body.generatorsUpdated).to.have.lengthOf(1))
 
       .then(() => Promise.join(
-        u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub*'),
+        u.expectSubjectQuery(coll1,
+          '/v1/subjects?absolutePath=sub*&isPublished=true'),
         u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1', 'sub2|asp1']),
       ))
     );
@@ -343,7 +346,8 @@ describe('tests/collector/integration.js >', function () {
     it('aspects updated', () =>
       u.doStart(coll1)
       .then(() => Promise.join(
-        u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
+        u.expectSubjectQuery(coll1,
+          '/v1/subjects?absolutePath=sub1&isPublished=true'),
         u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
       ))
 
@@ -355,7 +359,8 @@ describe('tests/collector/integration.js >', function () {
       .then(({ res }) => expect(res.body.generatorsUpdated).to.have.lengthOf(1))
 
       .then(() => Promise.join(
-        u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
+        u.expectSubjectQuery(coll1,
+          '/v1/subjects?absolutePath=sub1&isPublished=true'),
         u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1', 'sub1|asp2']),
       ))
     );
@@ -363,7 +368,8 @@ describe('tests/collector/integration.js >', function () {
     it('interval updated', () =>
       u.doStart(coll1)
       .then(() => Promise.join(
-        u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
+        u.expectSubjectQuery(coll1,
+          '/v1/subjects?absolutePath=sub1&isPublished=true'),
         u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
       ))
 
@@ -566,7 +572,7 @@ describe('tests/collector/integration.js >', function () {
     });
   });
 
-  describe('with OAuth', () => {
+  describe('with OAuth >', () => {
     let nockConfig;
     beforeEach(() => {
       nockConfig = [
@@ -734,10 +740,16 @@ describe('tests/collector/integration.js >', function () {
       .then(() => u.awaitHeartbeat())
       .then(() => u.postGenerator(gen4))
 
-      .then(() =>
-        u.awaitBulkUpsert()
-        .should.eventually.be.rejectedWith(Promise.TimeoutError)
-      );
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        console.log(req.body);
+        expect(req.body).to.deep.equal([{
+          name: 'sub1|asp1',
+          messageCode: 'ERROR',
+          messageBody: 'Unauthorized (http://www.example.com)',
+          value: 'ERROR',
+        }]);
+      });
     });
 
     it('token expires, requests new one and retries', () => {
@@ -800,7 +812,7 @@ describe('tests/collector/integration.js >', function () {
             name: 'sub1|asp1',
             value: 'ERROR',
             messageCode: 'ERROR',
-            messageBody: 'http://www.example.com returned HTTP status 400: undefined',
+            messageBody: 'Bad Request (0 retries) (http://www.example.com)',
           },
         ]);
       });
