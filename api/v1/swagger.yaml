@@ -11295,8 +11295,92 @@ paths:
         default:
           $ref: "#/responses/genericError"
 
+    get:
+      security:
+        - jwt: []
+      tags: [ collectorGroups ]
+      summary: Find collectorGroups
+      description: >-
+        Find a collectorGroup or collectorGroups. You may query using field filters with
+        asterisk (*) wildcards. You may also optionally specify sort, limit,
+        offset, and a list of fields to include in the response. The global
+        default limit will apply if no limit param is specified.
+      operationId: findCollectorGroups
+      parameters:
+        -
+          $ref: "#/parameters/CollectorGroupsFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - name
+              - description
+              - -name
+              - -description
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: name
+          in: query
+          description: >-
+            Filter by name; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: description
+          in: query
+          description: >-
+            Filter by description; asterisk (*) wildcards ok.
+          required: false
+          type: string
+      responses:
+        200:
+          description: Success, returns an array of zero or more Refocus collectorGroups.
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/CollectorGroupsResponse"
+
   /collectorGroups/{key}:
     x-swagger-router-controller: collectorGroups
+    get:
+      security:
+        - jwt: []
+      tags: [ collectorGroups ]
+      summary: Get collectorGroups
+      description: >-
+        Retrieve the specified collectorGroup metadata by the collectorGroups's id or name.
+        You may also optionally specify a list of fields to include in the response.
+      operationId: getCollectorGroup
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collectorGroup to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/CollectorGroupsFieldsParam"
+      responses:
+        200:
+          description: Success, returns the specified collectorGroup's metadata.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "CollectorGroup not found"
+
     delete:
       security:
         - jwt: []
@@ -14080,6 +14164,22 @@ parameters:
         - sso
         - updatedAt
         - profile
+
+  CollectorGroupsFieldsParam:
+    name: fields
+    in: query
+    description: >-
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - name
+        - description
+        - createdAt
+        - updatedAt
 
 # =============================================================================
 responses:

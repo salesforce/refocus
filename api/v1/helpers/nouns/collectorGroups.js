@@ -22,4 +22,7 @@ module.exports = {
   baseUrl: '/v1/collectorGroups',
   model: CollectorGroup,
   modelName: 'CollectorGroup',
+  fieldScopeMap: {
+    collectors: 'collectors',
+  },
 }; // exports
