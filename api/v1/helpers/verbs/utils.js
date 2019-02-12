@@ -38,10 +38,10 @@ function updateInstance(o, puttableFields, toPut) {
     if (key === 'owner') key = 'ownerId';
     if (toPut[key] === undefined && key !== 'ownerId') {
       let nullish = null;
-      if (fieldDef.type === 'boolean') {
-        nullish = false;
-      } else if (fieldDef.enum) {
+      if (fieldDef.default) { // could be enum | array etc
         nullish = fieldDef.default;
+      } else if (fieldDef.type === 'boolean') {
+        nullish = false;
       }
 
       o.set(key, nullish);
