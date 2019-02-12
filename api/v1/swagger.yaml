@@ -13703,6 +13703,7 @@ definitions:
           - auto_create
           - GUS
           - other
+          - refocus
           - slack
           - web
         readOnly: true
