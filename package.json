@@ -23,7 +23,7 @@
     }
   },
   "scripts": {
-    "build": "NODE_ENV=development && webpack --config ./webpack.config.js --progress --profile",
+    "dev-build": "NODE_ENV=development && webpack --config ./webpack.config.js --progress --profile",
     "checkdb": "node db/createOrUpdateDb.js",
     "cleanup": "npm run dropdb && npm run initdb && npm run checkdb",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && npm run reset-coverage",
