@@ -96,7 +96,7 @@ module.exports = function subject(seq, dataTypes) {
     },
     relatedLinks: {
       type: dataTypes.ARRAY(dataTypes.JSON),
-      allowNull: true,
+      allowNull: false,
       defaultValue: constants.defaultJsonArrayValue,
       validate: {
         validateJsonSchema(value) {
@@ -106,7 +106,7 @@ module.exports = function subject(seq, dataTypes) {
     },
     tags: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
-      allowNull: true,
+      allowNull: false,
       defaultValue: constants.defaultArrayValue,
     },
     sortBy: {
