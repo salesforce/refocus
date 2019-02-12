@@ -138,4 +138,19 @@ describe('tests/api/v1/generators/patch.js >', () => {
       return done();
     });
   });
+
+  it('tags set to empty array if not provided', (done) => {
+    Generator.findById(i)
+    .then((gen) => gen.update({ tags: [] }))
+    .then(() => {
+      api.patch(`${path}/${i}`)
+        .set('Authorization', token)
+        .send({ name: 'New_Name' })
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body.tags).to.eql([]);
+        })
+        .end(done);
+    });
+  });
 });

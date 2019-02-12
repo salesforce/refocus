@@ -800,6 +800,7 @@ paths:
                   their type.
               tags:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -809,6 +810,7 @@ paths:
                   underscore (_) and dash (-). Tag names cannot start with a dash (-).
               relatedLinks:
                 type: array
+                default: []
                 items:
                   $ref: "#/definitions/RelatedLinkRequest"
                 description: >
@@ -4409,6 +4411,7 @@ paths:
                   type: string
               tags:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -6433,6 +6436,7 @@ paths:
                   The absolute path of the root subject.
               aspectFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -6442,6 +6446,7 @@ paths:
                   underscore (_) and dash (-).
               aspectTagFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -6451,6 +6456,7 @@ paths:
                   underscore (_) and dash (-).
               subjectTagFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -6584,6 +6590,7 @@ paths:
                   underscore (_) and dash (-).
               statusFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   enum:
@@ -8727,6 +8734,7 @@ paths:
                   occurs, value is set to null.
               relatedLinks:
                 type: array
+                default: []
                 items:
                   $ref: "#/definitions/RelatedLinkRequest"
                 description: >
