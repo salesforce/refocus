@@ -742,11 +742,11 @@ describe('tests/collector/integration.js >', function () {
 
       .then(() => u.awaitBulkUpsert())
       .then(({ req }) => {
-        console.log(req.body);
         expect(req.body).to.deep.equal([{
           name: 'sub1|asp1',
           messageCode: 'ERROR',
-          messageBody: 'Unauthorized (http://www.example.com)',
+          messageBody: 'simple-oauth2 (method=ownerPassword): Unauthorized ' +
+            '(http://www.example.com)',
           value: 'ERROR',
         }]);
       });
@@ -812,7 +812,8 @@ describe('tests/collector/integration.js >', function () {
             name: 'sub1|asp1',
             value: 'ERROR',
             messageCode: 'ERROR',
-            messageBody: 'Bad Request (0 retries) (http://www.example.com)',
+            messageBody: 'simple-oauth2 (method=ownerPassword): Bad Request ' +
+              '(http://www.example.com)',
           },
         ]);
       });
