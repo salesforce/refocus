@@ -9662,6 +9662,7 @@ paths:
                   The absolutePath of the subject's parent.
               tags:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -9671,6 +9672,7 @@ paths:
                   underscore (_) and dash (-). Tag names cannot start with a dash (-).
               relatedLinks:
                 type: array
+                default: []
                 items:
                   $ref: "#/definitions/RelatedLinkRequest"
                 description: >

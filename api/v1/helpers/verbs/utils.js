@@ -35,10 +35,10 @@ function updateInstance(o, puttableFields, toPut) {
     const key = keys[i];
     if (toPut[key] === undefined) {
       let nullish = null;
-      if (puttableFields[key].type === 'boolean') {
-        nullish = false;
-      } else if (puttableFields[key].enum) {
+      if (puttableFields[key].default) { // could be enum | array etc
         nullish = puttableFields[key].default;
+      } else if (puttableFields[key].type === 'boolean') {
+        nullish = false;
       }
 
       o.set(key, nullish);
