@@ -252,22 +252,19 @@ describe('tests/db/model/collector/methods.js >', () => {
          To bypass this logic, we set validate: false, hooks: false as second
          parameter in Generator.create
          */
-        .then(() => Promise.join(
-            Generator.create(generator1, { validate: false, hooks: false }),
-            Generator.create(generator2, { validate: false, hooks: false }),
-            Generator.create(generator3, { validate: false, hooks: false }),
-          ).spread((gen1, gen2, gen3) => Promise.join(
-              gen1.setPossibleCollectors(
-                [dbCollector1, dbCollector2, dbCollector3]
-              ),
-              gen2.setPossibleCollectors(
-                [dbCollector1, dbCollector2, dbCollector3]
-              ),
-              gen3.setPossibleCollectors(
-                [dbCollector1, dbCollector2, dbCollector3]
-              ),
-            )
-          )));
+        .then(() =>
+          Generator.create(generator1, { validate: false, hooks: false }))
+        .then((g1) =>
+          g1.setPossibleCollectors([dbCollector1, dbCollector2, dbCollector3]))
+        .then(() =>
+          Generator.create(generator2, { validate: false, hooks: false }))
+        .then((g2) =>
+          g2.setPossibleCollectors([dbCollector1, dbCollector2, dbCollector3]))
+        .then(() =>
+          Generator.create(generator3, { validate: false, hooks: false }))
+        .then((g3) =>
+          g3.setPossibleCollectors([dbCollector1, dbCollector2, dbCollector3]))
+      );
 
       afterEach(u.forceDelete);
 
@@ -290,7 +287,7 @@ describe('tests/db/model/collector/methods.js >', () => {
           Generator.findOne({ where: { name: generator3.name } }),
         ))
         .spread((gen1, gen2, gen3) => {
-          expect(gen1.currentCollector.name).to.not.equal(collector1.name);
+          expect(gen1.currentCollector.name).to.equal(collector2.name);
           expect(gen2.currentCollector.name).to.equal(collector2.name);
           expect(gen3.currentCollector.name).to.equal(collector3.name);
         });
