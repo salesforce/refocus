@@ -614,6 +614,32 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
       })
       .end(done);
     });
+
+    it('tags and related links not provided, should set to empty array',
+      (done) => {
+        const subjectToPost = { name: `${tu.namePrefix}SouthAmerica` };
+        api.post(path)
+        .set('Authorization', token)
+        .send(subjectToPost)
+        .expect(constants.httpStatus.CREATED)
+        .expect((res) => {
+          expect(res.body.tags).to.have.length(0);
+          expect(res.body.relatedLinks).to.have.length(0);
+        })
+        .end((err /* , res */) => {
+          if (err) {
+            console.log(err);
+            return done(err);
+          }
+
+          Subject.findOne({ where: { name: `${tu.namePrefix}SouthAmerica` } })
+          .then((subj) => {
+            expect(subj.tags).to.eql([]);
+            expect(subj.relatedLinks).to.eql([]);
+            done();
+          });
+        });
+      });
   });
 
   describe('validate helpEmail/helpUrl required >', () => {
