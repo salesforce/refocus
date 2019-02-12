@@ -5,7 +5,7 @@ module.exports = {
     queryInterface.addColumn(
       TBL,
       'origin', {
-        type: Sequelize.ENUM('auto_create', 'GUS', 'other', 'slack', 'web'),
+        type: Sequelize.ENUM('auto_create', 'GUS', 'other', 'refocus', 'slack', 'web'),
         default: 'other',
         allowNull: false,
       }

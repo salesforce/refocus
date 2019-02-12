@@ -52,7 +52,8 @@ module.exports = function room(seq, dataTypes) {
       comment: 'Key/Value pairs for user specific settings',
     },
     origin: {
-      type: dataTypes.ENUM('auto_create', 'GUS', 'other', 'slack', 'web'),
+      type: dataTypes.ENUM('auto_create', 'GUS', 'other',
+      'refocus', 'slack', 'web'),
       allowNull: false,
       defaultValue: 'other',
       comment: 'Tracks where IMC room was created from',
