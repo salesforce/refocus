@@ -298,6 +298,11 @@ module.exports = function generator(seq, dataTypes) {
       foreignKey: 'collectorGroupId',
     });
 
+    assoc.owner = Generator.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+
     assoc.user = Generator.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -328,6 +333,15 @@ module.exports = function generator(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    });
+
+    Generator.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
           attributes: ['name', 'email', 'fullName'],
         },
       ],
@@ -365,6 +379,7 @@ module.exports = function generator(seq, dataTypes) {
       dbUtils.combineScopes([
         'baseScope',
         'user',
+        'owner',
         'currentCollector',
         'possibleCollectors',
         'collectorGroup',

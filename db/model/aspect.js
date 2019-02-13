@@ -414,6 +414,10 @@ module.exports = function aspect(seq, dataTypes) {
   };
 
   Aspect.postImport = function (models) {
+    assoc.owner = Aspect.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
     assoc.user = Aspect.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -439,10 +443,23 @@ module.exports = function aspect(seq, dataTypes) {
           association: assoc.user,
           attributes: ['name', 'email', 'fullName'],
         },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
       ],
       order: ['name'],
     }, {
       override: true,
+    });
+
+    Aspect.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
     });
 
     Aspect.addScope('user', {

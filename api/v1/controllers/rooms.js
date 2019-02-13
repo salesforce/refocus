@@ -38,6 +38,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteRooms(req, res, next) {
+    convertKeyToNumber(req);
     doDelete(req, res, next, helper);
   },
 
@@ -80,6 +81,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getRoom(req, res, next) {
+    convertKeyToNumber(req);
     doGet(req, res, next, helper);
   },
 
@@ -93,6 +95,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchRoom(req, res, next) {
+    convertKeyToNumber(req);
     doPatch(req, res, next, helper);
   },
 
@@ -178,3 +181,10 @@ module.exports = {
   }, // deleteRoomWriter
 
 }; // exports
+
+function convertKeyToNumber(req) {
+  let key = req.swagger.params.key.value;
+  if (Number(key)) {
+    req.swagger.params.key.value = Number(key);
+  }
+}

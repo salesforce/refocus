@@ -48,6 +48,8 @@ const sampFields = {
   UPD_AT: 'updatedAt',
   ASP_ID: 'aspectId',
   SUBJ_ID: 'subjectId',
+  OWNER: 'owner',
+  OWNER_ID: 'ownerId',
 };
 const sampleFieldsArr = Object.keys(sampFields).map((key) => sampFields[key]);
 

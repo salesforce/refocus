@@ -35,7 +35,7 @@ describe('tests/api/v1/lenses/postWriters.js >', () => {
   });
 
   before((done) => {
-    u.doSetup()
+    u.createBasic()
     .then((lensInst) => {
       lens = lensInst;
     })

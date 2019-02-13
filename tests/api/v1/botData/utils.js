@@ -11,6 +11,8 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
+const roomUtil = require('../rooms/utils');
+const botUtil = require('../bots/utils');
 
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestBotData`;
@@ -29,6 +31,40 @@ module.exports = {
 
   createStandard() {
     return tu.db.BotData.create(standard);
+  },
+
+  getBasic(overrideProps={}) {
+    const defaultProps = JSON.parse(JSON.stringify(standard));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  doSetup(props={}) {
+    const { createdBy } = props;
+    return Promise.all([
+      botUtil.createBasic({ installedBy: createdBy }),
+      roomUtil.createBasic({ createdBy: createdBy }),
+    ])
+    .then(([bot, room]) => {
+      const createdIds = {
+        botId: bot.id,
+        roomId: room.id,
+      };
+      return createdIds;
+    });
+  },
+
+  createBasic(overrideProps={}) {
+    const { createdBy } = overrideProps;
+    return this.doSetup({ createdBy })
+    .then(({ botId, roomId }) => {
+      Object.assign(overrideProps, { botId, roomId });
+      const toCreate = this.getBasic(overrideProps);
+      return tu.db.BotData.create(toCreate);
+    });
+  },
+
+  getDependencyProps() {
+    return ['botId', 'roomId'];
   },
 
   forceDelete(done) {

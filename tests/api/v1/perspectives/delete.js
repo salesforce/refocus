@@ -35,9 +35,9 @@ describe('tests/api/v1/perspectives/delete.js >', () => {
 
   beforeEach((done) => {
     u.doSetup()
-    .then((createdLens) => tu.db.Perspective.create({
+    .then(({ lensId }) => tu.db.Perspective.create({
       name,
-      lensId: createdLens.id,
+      lensId,
       rootSubject: 'myMainSubject',
     }))
     .then((createdPersp) => {

@@ -115,6 +115,10 @@ module.exports = function event(seq, dataTypes) {
     assoc.botAction = Event.belongsTo(models.BotAction, {
       foreignKey: 'botActionId',
     });
+    assoc.owner = Event.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
     assoc.user = Event.belongsTo(models.User, {
       foreignKey: 'userId',
     });
@@ -123,6 +127,40 @@ module.exports = function event(seq, dataTypes) {
       through: 'EventWriters',
       foreignKey: 'botId',
     });
+
+    Event.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    });
+
+    Event.addScope('user', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    });
+
+    Event.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    }, {
+      override: true,
+    });
+
   };
 
   return Event;

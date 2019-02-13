@@ -54,7 +54,7 @@ describe('tests/api/v1/bots/put.js >', () => {
     .set('Authorization', token)
     .field('name', u.name)
     .attach('ui', 'tests/api/v1/bots/uiBlob2')
-    .expect(constants.httpStatus.CREATED)
+    .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);
@@ -77,7 +77,7 @@ describe('tests/api/v1/bots/put.js >', () => {
     .field('version', '9.9.9')
     .field('url', newUrl)
     .field('helpUrl', newUrl)
-    .expect(constants.httpStatus.CREATED)
+    .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);
@@ -111,7 +111,7 @@ describe('tests/api/v1/bots/put.js >', () => {
     api.put(`${path}/${testBot.id}`)
     .set('Authorization', token)
     .send({ invalid: true })
-    .expect(constants.httpStatus.CREATED)
+    .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);

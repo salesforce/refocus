@@ -47,6 +47,8 @@ describe(`tests/api/v1/perspectives/associations.js, GET ${path} >`, () => {
     .then((user) => {
       persp1.createdBy = user.id;
       persp2.createdBy = user.id;
+      persp1.ownerId = user.id;
+      persp2.ownerId = user.id;
       conf.token = tu.createTokenFromUserName(user.name);
       done();
     })
@@ -55,9 +57,9 @@ describe(`tests/api/v1/perspectives/associations.js, GET ${path} >`, () => {
 
   before((done) => {
     u.doSetup()
-    .then((createdLens) => {
-      persp1.lensId = createdLens.id;
-      persp2.lensId = createdLens.id;
+    .then(({ lensId }) => {
+      persp1.lensId = lensId;
+      persp2.lensId = lensId;
       return Perspective.create(persp1);
     })
     .then(() => Perspective.create(persp2))
@@ -68,10 +70,18 @@ describe(`tests/api/v1/perspectives/associations.js, GET ${path} >`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['user', 'lens'];
+  const associations = ['user', 'owner', 'lens'];
   const schema = {
     user: Joi.object().keys({
       name: Joi.string().required(),
+      email: Joi.string().required(),
+      profile: Joi.object().keys({
+        name: Joi.string().required(),
+      }).required(),
+    }),
+    owner: Joi.object().keys({
+      name: Joi.string().required(),
+      fullName: Joi.string().optional().allow(null),
       email: Joi.string().required(),
       profile: Joi.object().keys({
         name: Joi.string().required(),

@@ -27,17 +27,29 @@ const subjectToCreate = {
   name: `${tu.namePrefix}TEST_SUBJECT`,
 };
 
+const basic = {
+  name: `${tu.namePrefix}ASPECTNAME`,
+  isPublished: true,
+  timeout: '110s',
+  status0range: [0, 0],
+  status1range: [1, 2],
+  valueType: 'NUMERIC',
+};
+
 module.exports = {
-  toCreate: {
-    name: `${tu.namePrefix}ASPECTNAME`,
-    isPublished: true,
-    timeout: '110s',
-    status0range: [0, 0],
-    status1range: [1, 2],
-    valueType: 'NUMERIC',
-  },
+  toCreate: basic,
 
   subjectToCreate,
+
+  getBasic(overrideProps={}) {
+    const defaultProps = JSON.parse(JSON.stringify(basic));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.Aspect.create(toCreate);
+  },
 
   forceDelete(done) {
     Promise.join(

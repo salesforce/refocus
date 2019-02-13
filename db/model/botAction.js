@@ -180,6 +180,10 @@ module.exports = function botAction(seq, dataTypes) {
         allowNull: false,
       },
     });
+    assoc.owner = BotAction.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
     assoc.user = BotAction.belongsTo(models.User, {
       foreignKey: 'userId',
       allowNull: true,
@@ -188,6 +192,21 @@ module.exports = function botAction(seq, dataTypes) {
       as: 'writers',
       through: 'BotActionWriters',
       foreignKey: 'botId',
+    });
+
+    BotAction.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    }, {
+      override: true,
     });
   };
 
