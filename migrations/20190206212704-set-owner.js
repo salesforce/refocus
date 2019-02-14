@@ -7,6 +7,7 @@
  */
 'use strict';
 const db = require('../db/index');
+const Promise = require('bluebird');
 
 const modelsToUpdate = [
   'Aspect',
@@ -31,32 +32,24 @@ module.exports = {
     .then((adminUser) => {
       if (!adminUser || !adminUser.id) return Promise.reject("couldn't find admin user");
       const defaultOwnerId = adminUser.id;
-      return Promise.all(
-        modelsToUpdate.map((modelName) => {
-          const model = db[modelName];
-          return model.findAll()
-          .then((records) => Promise.all(
-            records.map((record) => {
-              if (record.ownerId) return Promise.resolve();
-              const ownerId = record.createdBy || record.installedBy
-                || record.userId || defaultOwnerId;
-              return record.update({ ownerId });
-            })
-          ));
-        })
-      );
+      return Promise.mapSeries(modelsToUpdate, (modelName) => {
+        const model = db[modelName];
+        return model.findAll()
+        .then((records) => Promise.mapSeries(records, (record) => {
+          if (record.ownerId) return Promise.resolve();
+          const ownerId = record.createdBy || record.installedBy
+            || record.userId || defaultOwnerId;
+          return record.update({ ownerId });
+        }));
+      });
     }),
 
   down: (qi, Sequelize) =>
-    Promise.all(
-      modelsToUpdate.map((modelName) =>
-        db[modelName].findAll()
-        .then((records) => Promise.all(
-          records.map((record) =>
-            record.update({ ownerId: null })
-          )
-        ))
-      )
+    Promise.mapSeries(modelsToUpdate, (modelName) =>
+      db[modelName].findAll()
+      .then((records) => Promise.mapSeries(records, (record) =>
+        record.update({ ownerId: null })
+      ))
     ),
 };
 
