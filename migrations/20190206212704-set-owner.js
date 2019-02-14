@@ -35,7 +35,7 @@ module.exports = {
       return Promise.mapSeries(Object.keys(modelsToUpdate), (modelName) => {
         const model = db[modelName];
         const createdByField = modelsToUpdate[modelName];
-        return model.findAll({ attributes: [createdByField, 'ownerId'] })
+        return model.findAll({ attributes: ['id', createdByField, 'ownerId'] })
         .then((records) => Promise.mapSeries(records, (record) => {
           if (record.ownerId) return Promise.resolve();
           const ownerId = record[createdByField] || defaultOwnerId;
