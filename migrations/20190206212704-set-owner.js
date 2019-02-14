@@ -39,16 +39,16 @@ module.exports = {
         .then((records) => Promise.mapSeries(records, (record) => {
           if (record.ownerId) return Promise.resolve();
           const ownerId = record[createdByField] || defaultOwnerId;
-          return record.update({ ownerId });
+          return record.update({ ownerId }, { hooks: false, validate: false });
         }));
       });
     }),
 
   down: (qi, Sequelize) =>
     Promise.mapSeries(Object.keys(modelsToUpdate), (modelName) =>
-      db[modelName].findAll()
+      db[modelName].findAll(({ attributes: ['id'] }))
       .then((records) => Promise.mapSeries(records, (record) =>
-        record.update({ ownerId: null })
+        record.update({ ownerId: null }, { hooks: false, validate: false })
       ))
     ),
 };
