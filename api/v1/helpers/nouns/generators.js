@@ -62,6 +62,7 @@ module.exports = {
   tagFilterName: 'tags',
   fieldScopeMap: {
     user: 'user',
+    owner: 'owner',
     possibleCollectors: 'possibleCollectors',
     currentCollector: 'currentCollector',
     collectorGroup: 'collectorGroup',

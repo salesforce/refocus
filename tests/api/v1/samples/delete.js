@@ -38,8 +38,7 @@ describe('tests/api/v1/samples/delete.js >', () => {
     });
 
     beforeEach((done) => {
-      u.doSetup()
-      .then((samp) => Sample.create(samp))
+      u.createBasic()
       .then((samp) => {
         sampleName = samp.name;
         done();
@@ -119,9 +118,8 @@ describe('tests/api/v1/samples/delete.js >', () => {
     });
 
     beforeEach((done) => {
-      u.doSetup()
-      .then((samp) => {
-        samp.relatedLinks = [
+      u.createBasic({
+        relatedLinks: [
           {
             name: 'rlink0',
             url: 'https://samples.com',
@@ -130,10 +128,7 @@ describe('tests/api/v1/samples/delete.js >', () => {
             name: 'rlink1',
             url: 'https://samples.com',
           },
-        ];
-        return Sample.create(
-          samp
-        );
+        ],
       })
       .then((samp) => {
         sampleName = samp.name;

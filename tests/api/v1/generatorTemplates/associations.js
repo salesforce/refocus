@@ -30,6 +30,8 @@ describe(`tests/api/v1/generatorTemplates/associations.js, GET ${path} >`, () =>
     .then((user) => {
       template1.createdBy = user.id;
       template2.createdBy = user.id;
+      template1.ownerId = user.id;
+      template2.ownerId = user.id;
       conf.token = tu.createTokenFromUserName(user.name);
       done();
     })
@@ -46,9 +48,17 @@ describe(`tests/api/v1/generatorTemplates/associations.js, GET ${path} >`, () =>
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['user'];
+  const associations = ['user', 'owner'];
   const schema = {
     user: Joi.object().keys({
+      name: Joi.string().required(),
+      fullName: Joi.string().optional().allow(null),
+      email: Joi.string().required(),
+      profile: Joi.object().keys({
+        name: Joi.string().required(),
+      }).required(),
+    }),
+    owner: Joi.object().keys({
       name: Joi.string().required(),
       fullName: Joi.string().optional().allow(null),
       email: Joi.string().required(),

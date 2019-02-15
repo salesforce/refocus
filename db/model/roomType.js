@@ -228,6 +228,11 @@ module.exports = function roomType(seq, dataTypes) {
       through: 'RoomTypeBots',
     });
 
+    assoc.owner = RoomType.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+
     assoc.user = RoomType.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -243,6 +248,10 @@ module.exports = function roomType(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
           attributes: ['name', 'email', 'fullName'],
         },
       ],

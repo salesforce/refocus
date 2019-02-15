@@ -33,7 +33,9 @@ const validateAtLeastOneFieldPresent =
 function doPatch(req, res, next, props) {
   const resultObj = { reqStartTime: req.timestamp };
   const requestBody = req.swagger.params.queryBody.value;
-  const patchPromise = u.findByKey(props, req.swagger.params)
+
+  u.findByKey(props, req.swagger.params)
+  .then((o) => u.setOwner(requestBody, req, o))
   .then((o) => u.isWritable(req, o))
   .then((o) => {
     /*
@@ -71,10 +73,9 @@ function doPatch(req, res, next, props) {
     u.patchJsonArrayFields(o, requestBody, props);
     u.patchArrayFields(o, requestBody, props);
 
-    return o.update(requestBody);
-  });
+    return o.update(requestBody).then((o) => o.reload());
+  })
 
-  patchPromise
   .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, props, res))
   .catch((err) => u.handleError(next, err, props.modelName));
 }

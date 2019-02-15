@@ -144,6 +144,16 @@ module.exports = {
     return tu.db.Bot.create(standardBot);
   },
 
+  getBasic(overrideProps={}) {
+    const defaultProps = JSON.parse(JSON.stringify(standard));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.Bot.create(toCreate);
+  },
+
   forceDelete(done) {
     tu.forceDelete(tu.db.Bot, testStartTime)
     .then(() => done())

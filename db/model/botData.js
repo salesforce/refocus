@@ -168,6 +168,11 @@ module.exports = function botData(seq, dataTypes) {
       allowNull: false,
     });
 
+    assoc.owner = BotData.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+
     assoc.user = BotData.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -191,6 +196,10 @@ module.exports = function botData(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
           attributes: ['name', 'email', 'fullName'],
         },
       ],

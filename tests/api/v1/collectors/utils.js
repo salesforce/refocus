@@ -183,6 +183,16 @@ function getCollectorToCreate() {
 }
 
 module.exports = {
+  getBasic(overrideProps={}) {
+    const defaultProps = JSON.parse(JSON.stringify(collectorToCreate));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.Collector.create(toCreate);
+  },
+
   forceDelete(done) {
     tu.forceDelete(tu.db.Collector, testStartTime)
     .then(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime))

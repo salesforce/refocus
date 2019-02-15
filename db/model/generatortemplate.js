@@ -11,6 +11,7 @@
  */
 'use strict';
 const common = require('../helpers/common');
+const dbUtils = require('../utils');
 const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
 const semver = require('semver');
@@ -315,6 +316,11 @@ module.exports = function user(seq, dataTypes) {
   };
 
   GeneratorTemplate.postImport = function (models) {
+    assoc.owner = GeneratorTemplate.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+
     assoc.user = GeneratorTemplate.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -336,10 +342,23 @@ module.exports = function user(seq, dataTypes) {
           association: assoc.user,
           attributes: ['name', 'email', 'fullName'],
         },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
       ],
       order: ['name'],
     }, {
       override: true,
+    });
+
+    GeneratorTemplate.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
     });
 
     GeneratorTemplate.addScope('user', {

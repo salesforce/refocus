@@ -11,15 +11,52 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
+const collectorUtil = require('../collectors/utils');
 const testStartTime = new Date();
 const colltoCreate = {
   name: tu.namePrefix + 'Coll',
   version: '1.0.0',
 };
 
+const basic = {
+  name: 'coll-group1',
+  description: 'description...',
+  collectors: [],
+};
+
 module.exports = {
   getCollectorToCreate() {
     return JSON.parse(JSON.stringify(colltoCreate));
+  },
+
+  getBasic(overrideProps={}) {
+    const defaultProps = JSON.parse(JSON.stringify(basic));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  doSetup(props={}) {
+    const { createdBy } = props;
+    return collectorUtil.createBasic({ createdBy })
+    .then((collector) => {
+      const createdIds = {
+        collectorName: collector.name,
+      };
+      return createdIds;
+    });
+  },
+
+  createBasic(overrideProps={}) {
+    const { createdBy } = overrideProps;
+    return this.doSetup({ createdBy })
+    .then(({ collectorName }) => {
+      Object.assign(overrideProps, { collectors: [collectorName] });
+      const toCreate = this.getBasic(overrideProps);
+      return tu.db.CollectorGroup.create(toCreate);
+    });
+  },
+
+  getDependencyProps() {
+    return ['collectorName'];
   },
 
   forceDelete(done) {

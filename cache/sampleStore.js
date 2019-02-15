@@ -33,6 +33,7 @@ const constants = {
       'okRange',
       'writers',
       'user', // an object
+      'owner',
     ],
     sample: ['relatedLinks', 'user'],
     subject: [
@@ -42,6 +43,7 @@ const constants = {
       'relatedLinks',
       'tags',
       'user',
+      'owner',
     ],
   },
   indexKey: {

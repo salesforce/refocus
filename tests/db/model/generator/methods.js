@@ -20,11 +20,10 @@ const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const collectorStatuses = require('../../../../db/constants').collectorStatuses;
-const featureToggles = require('feature-toggles');
 
 describe('tests/db/model/generator/methods.js >', () => {
+  const now = Date.now();
   let clock;
-  let now = Date.now();
   let generator1;
   let collector1;
   let collector2;
@@ -54,7 +53,7 @@ describe('tests/db/model/generator/methods.js >', () => {
 
   beforeEach(() =>
     GeneratorTemplate.create(gt1)
-    .then((_gt1) => gt1.id = _gt1.id)
+    .then((_gt1) => (gt1.id = _gt1.id))
     .then(() => Promise.join(
       Generator.create(gen1),
       Collector.create(coll1),
@@ -85,9 +84,9 @@ describe('tests/db/model/generator/methods.js >', () => {
         isActive: true,
         possibleCollectors: [coll2.name, coll3.name],
       })
-      .then(() => {
-        expect(generator1.currentCollector.name).to.equal(collector2.name);
-        expect(generator1.currentCollector.id).to.equal(collector2.id);
+      .then((updated) => {
+        expect(updated.currentCollector.name).to.equal(collector2.name);
+        expect(updated.currentCollector.id).to.equal(collector2.id);
         done();
       })
       .catch(done);
@@ -100,9 +99,9 @@ describe('tests/db/model/generator/methods.js >', () => {
       .then(() => generator1.updateWithCollectors({
         isActive: true, possibleCollectors: [coll2.name, coll3.name],
       }))
-      .then(() => {
-        expect(generator1.currentCollector.name).to.equal(collector3.name);
-        expect(generator1.currentCollector.id).to.equal(collector3.id);
+      .then((updated) => {
+        expect(updated.currentCollector.name).to.equal(collector3.name);
+        expect(updated.currentCollector.id).to.equal(collector3.id);
         done();
       })
       .catch(done);
@@ -115,8 +114,8 @@ describe('tests/db/model/generator/methods.js >', () => {
       .then(() => generator1.updateWithCollectors({
         isActive: true, possibleCollectors: [coll2.name],
       }))
-      .then(() => {
-        expect(generator1.currentCollector).to.equal(null);
+      .then((updated) => {
+        expect(updated.currentCollector).to.equal(null);
         done();
       })
       .catch(done);
@@ -127,12 +126,12 @@ describe('tests/db/model/generator/methods.js >', () => {
         isActive: false,
         possibleCollectors: [coll2.name, coll3.name],
       })
-      .then(() => generator1.update({ collectorId: collector3.id }))
+      .then((updated) => updated.update({ collectorId: collector3.id }))
       .then(() => generator1.reload())
-      .then(() => {
-        expect(generator1.currentCollector.name).to.equal(collector3.name);
-        expect(generator1.currentCollector.id).to.equal(collector3.id);
-        return generator1.assignToCollector();
+      .then((reloaded) => {
+        expect(reloaded.currentCollector.name).to.equal(collector3.name);
+        expect(reloaded.currentCollector.id).to.equal(collector3.id);
+        return reloaded.assignToCollector();
       })
       .then(() => expect(generator1.currentCollector).to.equal(null))
     );
@@ -160,9 +159,9 @@ describe('tests/db/model/generator/methods.js >', () => {
         isActive: false,
         possibleCollectors: [coll2.name, coll3.name],
       })
-      .then(() => {
-        expect(generator1.currentCollector).to.equal(null);
-        return generator1.assignToCollector();
+      .then((updated) => {
+        expect(updated.currentCollector).to.equal(null);
+        return updated.assignToCollector();
       })
       .then(() => expect(generator1.currentCollector).to.equal(null))
     );
@@ -227,9 +226,9 @@ describe('tests/db/model/generator/methods.js >', () => {
           isActive: false,
           possibleCollectors: [coll2.name, coll3.name],
         })
-        .then(() => {
-          expect(generator1.currentCollector).to.equal(null);
-          return generator1.assignToCollector();
+        .then((updated) => {
+          expect(updated.currentCollector).to.equal(null);
+          return updated.assignToCollector();
         })
         .then(() => {
           expect(generator1.currentCollector).to.equal(null);
@@ -286,7 +285,7 @@ describe('tests/db/model/generator/methods.js >', () => {
         Generator.create(gen4),
         Collector.create(coll4)
       )
-      .spread((_g2, _g3, _g4, _c4) => {
+      .spread((_g2, _g3, _g4) => {
         generator2 = _g2;
         generator3 = _g3;
         generator4 = _g4;

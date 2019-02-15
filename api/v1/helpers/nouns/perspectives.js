@@ -61,6 +61,7 @@ module.exports = {
   baseUrl: '/v1/perspectives',
   fieldScopeMap: {
     user: 'user',
+    owner: 'owner',
     lens: 'lens',
   },
   model: Perspective,
