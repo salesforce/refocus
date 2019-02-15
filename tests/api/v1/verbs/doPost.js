@@ -30,13 +30,11 @@ describe('api/v1/helpers/verbs/postUtils.js, Tests >', () => {
       },
     };
 
-    const params = {
-      queryBody: {
-        value: ASPECT,
-      },
+    const toPost = {
+      value: ASPECT,
     };
 
-    pu.makePostPromise(params, props, req)
+    pu.makePostPromise(toPost, props, req)
     .then((str) => {
       expect(str).to.equal(expectedStr);
       done();

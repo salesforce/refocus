@@ -53,6 +53,7 @@ module.exports = {
   fieldScopeMap: {
     hierarchy: 'hierarchy',
     user: 'user',
+    owner: 'owner',
   },
   model: Subject,
   modelName: 'Subject',

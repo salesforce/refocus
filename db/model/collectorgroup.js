@@ -108,12 +108,36 @@ module.exports = function collectorgroup(seq, dataTypes) {
       foreignKey: 'collectorGroupId',
     });
 
-    assoc.createdBy = CollectorGroup.belongsTo(models.User, {
+    assoc.owner = CollectorGroup.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+
+    assoc.user = CollectorGroup.belongsTo(models.User, {
       foreignKey: 'createdBy',
+      as: 'user',
     });
 
     CollectorGroup.addScope('baseScope', {
       order: ['name'],
+    });
+
+    CollectorGroup.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    });
+
+    CollectorGroup.addScope('user', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
     });
 
     CollectorGroup.addScope('collectors', {
@@ -128,6 +152,8 @@ module.exports = function collectorgroup(seq, dataTypes) {
 
     CollectorGroup.addScope('defaultScope',
       dbUtils.combineScopes([
+        'user',
+        'owner',
         'baseScope',
         'collectors',
       ], CollectorGroup),

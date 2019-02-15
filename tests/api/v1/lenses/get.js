@@ -40,8 +40,7 @@ describe('tests/api/v1/lenses/get.js >', () => {
   describe('with returnUser toggle on, user object should be returned: ', () => {
     before((done) => {
       tu.toggleOverride('returnUser', true);
-      const lens = u.getLens({ installedBy: userId });
-      u.doSetup(lens)
+      u.createBasic({ installedBy: userId })
       .then((lens) => {
         expect(lens.installedBy).to.equal(userId);
         lensId = lens.id;
@@ -95,7 +94,7 @@ describe('tests/api/v1/lenses/get.js >', () => {
 
   describe('returnUser toggle off, user object should NOT be returned: ', () => {
     before((done) => {
-      u.doSetup()
+      u.createBasic()
       .then((lens) => {
         lensId = lens.id;
         lensName = lens.name;

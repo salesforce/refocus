@@ -11,6 +11,8 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
+const roomUtil = require('../rooms/utils');
+const botUtil = require('../bots/utils');
 const Op = require('sequelize').Op;
 
 const testStartTime = new Date();
@@ -33,6 +35,40 @@ module.exports = {
 
   createStandard() {
     return tu.db.Event.create(standard);
+  },
+
+  getBasic(overrideProps={}) {
+    const defaultProps = JSON.parse(JSON.stringify(standard));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  doSetup(props={}) {
+    const { userId } = props;
+    return Promise.all([
+      botUtil.createBasic({ installedBy: userId }),
+      roomUtil.createBasic({ createdBy: userId }),
+    ])
+    .then(([bot, room]) => {
+      const createdIds = {
+        botId: bot.id,
+        roomId: room.id,
+      };
+      return createdIds;
+    });
+  },
+
+  createBasic(overrideProps={}) {
+    const { userId } = overrideProps;
+    return this.doSetup({ userId })
+    .then(({ botId, roomId }) => {
+      Object.assign(overrideProps, { botId, roomId });
+      const toCreate = this.getBasic(overrideProps);
+      return tu.db.Event.create(toCreate);
+    });
+  },
+
+  getDependencyProps() {
+    return ['botId', 'roomId'];
   },
 
   forceDelete(done) {

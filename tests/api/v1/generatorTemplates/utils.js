@@ -79,11 +79,18 @@ module.exports = {
   forceDelete(done) {
     tu.forceDelete(tu.db.GeneratorTemplate, testStartTime)
     .then(() => tu.forceDelete(tu.db.Collector, testStartTime))
-    .then(() => tu.forceDelete(tu.db.User, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
     .then(() => done())
     .catch(done);
   },
 
   getGeneratorTemplate,
+  getBasic(overrideProps={}) {
+    const defaultProps = JSON.parse(JSON.stringify(GENERATOR_TEMPLATE_SIMPLE));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.GeneratorTemplate.create(toCreate);
+  },
 };

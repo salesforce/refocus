@@ -227,6 +227,10 @@ module.exports = function lens(seq, dataTypes) {
   };
 
   Lens.postImport = function (models) {
+    assoc.owner = Lens.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
     assoc.user = Lens.belongsTo(models.User, {
       foreignKey: 'installedBy',
       as: 'user',
@@ -260,11 +264,24 @@ module.exports = function lens(seq, dataTypes) {
           association: assoc.user,
           attributes: ['name', 'email'],
         },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
       ],
       attributes: { exclude: ['library'] },
       order: ['name'],
     }, {
       override: true,
+    });
+
+    Lens.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email'],
+        },
+      ],
     });
 
     Lens.addScope('user', {
