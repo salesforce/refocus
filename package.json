@@ -95,7 +95,7 @@
     "command-line-args": "^2.1.6",
     "compression": "^1.7.3",
     "connect-redis": "^3.4.0",
-    "cookie-parser": "^1.4.1",
+    "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",
     "debug": "^2.2.0",
     "errors": "^0.3.0",
@@ -128,7 +128,7 @@
     "lodash": "^4.17.11",
     "md5": "^2.2.1",
     "mock-require": "^3.0.3",
-    "moment": "^2.23.0",
+    "moment": "^2.24.0",
     "ms": "^2.1.1",
     "multer": "^1.4.1",
     "newrelic": "^1.39.1",
@@ -195,7 +195,7 @@
     "mocha-lcov-reporter": "1.2.0",
     "redbox-react": "^1.6.0",
     "sinon": "^5.1.1",
-    "supertest": "^3.4.1",
+    "supertest": "^3.4.2",
     "webpack-dev-middleware": "^1.4.0",
     "webpack-dev-server": "^1.12.1"
   }
