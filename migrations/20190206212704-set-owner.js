@@ -7,23 +7,24 @@
  */
 'use strict';
 const db = require('../db/index');
+const Promise = require('bluebird');
 
-const modelsToUpdate = [
-  'Aspect',
-  'BotAction',
-  'BotData',
-  'Bot',
-  'CollectorGroup',
-  'Collector',
-  'Event',
-  'Generator',
-  'GeneratorTemplate',
-  'Lens',
-  'Perspective',
-  'Room',
-  'RoomType',
-  'Subject',
-];
+const modelsToUpdate = {
+  Aspect: 'createdBy',
+  BotAction: 'userId',
+  BotData: 'createdBy',
+  Bot: 'installedBy',
+  CollectorGroup: 'createdBy',
+  Collector: 'createdBy',
+  Event: 'userId',
+  Generator: 'createdBy',
+  GeneratorTemplate: 'createdBy',
+  Lens: 'installedBy',
+  Perspective: 'createdBy',
+  Room: 'createdBy',
+  RoomType: 'createdBy',
+  Subject: 'createdBy',
+};
 
 module.exports = {
   up: (qi, Sequelize) =>
@@ -31,32 +32,24 @@ module.exports = {
     .then((adminUser) => {
       if (!adminUser || !adminUser.id) return Promise.reject("couldn't find admin user");
       const defaultOwnerId = adminUser.id;
-      return Promise.all(
-        modelsToUpdate.map((modelName) => {
-          const model = db[modelName];
-          return model.findAll()
-          .then((records) => Promise.all(
-            records.map((record) => {
-              if (record.ownerId) return Promise.resolve();
-              const ownerId = record.createdBy || record.installedBy
-                || record.userId || defaultOwnerId;
-              return record.update({ ownerId });
-            })
-          ));
-        })
-      );
+      return Promise.mapSeries(Object.keys(modelsToUpdate), (modelName) => {
+        const model = db[modelName];
+        const createdByField = modelsToUpdate[modelName];
+        return model.findAll({ attributes: ['id', createdByField, 'ownerId'] })
+        .then((records) => Promise.mapSeries(records, (record) => {
+          if (record.ownerId) return Promise.resolve();
+          const ownerId = record[createdByField] || defaultOwnerId;
+          return record.update({ ownerId }, { hooks: false, validate: false });
+        }));
+      });
     }),
 
   down: (qi, Sequelize) =>
-    Promise.all(
-      modelsToUpdate.map((modelName) =>
-        db[modelName].findAll()
-        .then((records) => Promise.all(
-          records.map((record) =>
-            record.update({ ownerId: null })
-          )
-        ))
-      )
+    Promise.mapSeries(Object.keys(modelsToUpdate), (modelName) =>
+      db[modelName].findAll(({ attributes: ['id'] }))
+      .then((records) => Promise.mapSeries(records, (record) =>
+        record.update({ ownerId: null }, { hooks: false, validate: false })
+      ))
     ),
 };
 

@@ -6,6 +6,7 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 'use strict';
+const Promise = require('bluebird');
 
 const columnName = 'ownerId';
 const tablesToModify = [
@@ -35,18 +36,14 @@ module.exports = {
       },
     };
 
-    return Promise.all(
-      tablesToModify.map((modelName) =>
-        qi.addColumn(modelName, columnName, columnDef)
-      )
+    return Promise.mapSeries(tablesToModify, (modelName) =>
+      qi.addColumn(modelName, columnName, columnDef)
     );
   },
 
   down: (qi, Sequelize) =>
-    Promise.all(
-      tablesToModify.map((modelName) =>
-        qi.removeColumn(modelName, columnName)
-      )
+    Promise.mapSeries(tablesToModify, (modelName) =>
+      qi.removeColumn(modelName, columnName)
     ),
 };
 
