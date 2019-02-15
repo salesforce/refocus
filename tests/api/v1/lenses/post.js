@@ -37,7 +37,7 @@ describe('tests/api/v1/lenses/post.js >', () => {
 
   describe('post duplicate fails >', () => {
     beforeEach((done) => {
-      u.doSetup()
+      u.createBasic()
       .then(() => done())
       .catch(done);
     });

@@ -11,30 +11,53 @@
  */
 'use strict'; // eslint-disable-line strict
 const tu = require('../../../testUtils');
-const path = require('path');
-const fs = require('fs');
+const lensUtil = require('../lenses/utils');
 
 const testStartTime = new Date();
 
+const basic = {
+  name: `${tu.namePrefix}testPersp`,
+  lensId: '...',
+  rootSubject: 'myMainSubject',
+  aspectFilter: ['temperature', 'humidity'],
+  aspectFilterType: 'INCLUDE',
+  aspectTagFilter: ['temp', 'hum'],
+  aspectTagFilterType: 'INCLUDE',
+  subjectTagFilter: ['ea', 'na'],
+  subjectTagFilterType: 'INCLUDE',
+  statusFilter: ['Critical', '-OK'],
+  statusFilterType: 'INCLUDE',
+};
+
 module.exports = {
-  doSetup() {
-    return new tu.db.Sequelize.Promise((resolve, reject) => {
-      const willSendthis = fs.readFileSync(
-        path.join(__dirname,
-        '../apiTestsUtils/lens.zip')
-      );
-      const lens = {
-        name: `${tu.namePrefix}testLensName`,
-        sourceName: 'testSourceLensName',
-        description: 'test Description',
-        sourceDescription: 'test Source Description',
-        isPublished: true,
-        library: willSendthis,
+  getBasic(overrideProps={}) {
+    const defaultProps = JSON.parse(JSON.stringify(basic));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  doSetup(props={}) {
+    const { createdBy } = props;
+    return lensUtil.createBasic({ installedBy: createdBy })
+    .then((lens) => {
+      const createdIds = {
+        lensId: lens.id,
       };
-      tu.db.Lens.create(lens)
-      .then(resolve)
-      .catch(reject);
+      return createdIds;
     });
+  },
+
+  createBasic(overrideProps={}) {
+    const { createdBy } = overrideProps;
+    return this.doSetup({ createdBy })
+    .then(({ lensId }) => {
+      Object.assign(overrideProps, { lensId });
+      const toCreate = this.getBasic(overrideProps);
+      return tu.db.Perspective.create(toCreate);
+    });
+  },
+
+  getDependencyProps() {
+    return ['lensId'];
   },
 
   forceDelete(done) {

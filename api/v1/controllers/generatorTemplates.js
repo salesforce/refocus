@@ -74,7 +74,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchGeneratorTemplate(req, res, next) {
-    const allowedToPatch = ['isPublished'];
+    const allowedToPatch = ['isPublished', 'owner'];
     const illegal = Object.keys(req.body)
     .filter((f) => !allowedToPatch.includes(f));
     if (illegal.length) {

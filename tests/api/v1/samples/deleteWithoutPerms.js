@@ -43,9 +43,8 @@ describe('tests/api/v1/samples/deleteWithoutPerms.js >', () => {
     User.findOne({ where: { name: tu.userName } })
     .then((usr) => {
       user = usr;
-      return u.doSetup();
+      return u.createBasic();
     })
-    .then((samp) => Sample.create(samp))
     .then((samp) => {
       sampleName = samp.name;
       const aspectName = sampleName.split('|')[1].toLowerCase();

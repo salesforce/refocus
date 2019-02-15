@@ -345,8 +345,10 @@ module.exports = {
         }
       }
 
-      return o.update(requestBody);
+      return u.setOwner(requestBody, req, o);
     })
+    .then((o) => o.update(requestBody))
+    .then((o) => o.reload())
     .then((o) => u.handleAssociations(requestBody, o, helper, req.method))
     .then((retVal) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -386,7 +388,8 @@ module.exports = {
       const assocToCreate = u.includeAssocToCreate(seqObj, helper);
       const user = req.user;
       seqObj.installedBy = user.id;
-      helper.model.create(seqObj, assocToCreate)
+      u.setOwner(seqObj, req)
+      .then(() => helper.model.create(seqObj, assocToCreate))
       .then((o) => o.reload()) // to get associations
       .then((o) => {
         delete o.dataValues.library;
@@ -414,6 +417,7 @@ module.exports = {
   putLens(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const reqObj = req.swagger.params;
+    const seqObj = {};
     u.findByKey(helper, req.swagger.params)
     .then((o) => u.isWritable(req, o))
     .then((o) => {
@@ -426,28 +430,30 @@ module.exports = {
             nullish = reqObj[param].schema.default;
           }
 
-          o.set(param, nullish);
+          seqObj[param] = nullish;
         } else if (param === 'library') {
-          o.set(param, reqObj[param].value.buffer);
+          seqObj[param] = reqObj[param].value.buffer;
         } else {
-          o.set(param, reqObj[param].value);
+          seqObj[param] = reqObj[param].value;
         }
       }
 
-      if (o.name === null || o.name === '') {
-        o.set('name', o.get('sourceName'));
+      if (seqObj.name === null || seqObj.name === '') {
+        seqObj.name = o.get('sourceName');
       }
 
-      if (o.description === null || o.description === '') {
-        o.set('description', o.get('sourceDescription'));
+      if (seqObj.description === null || seqObj.description === '') {
+        seqObj.description = o.get('sourceDescription');
       }
 
-      if (o.version === null || o.version === '') {
-        o.set('version', o.get('sourceVersion'));
+      if (seqObj.version === null || seqObj.version === '') {
+        seqObj.version = o.get('sourceVersion');
       }
 
-      return o.save();
+      return u.setOwner(seqObj, req, o);
     })
+    .then((o) => o.update(seqObj))
+    .then((o) => o.reload())
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       delete o.dataValues.library;

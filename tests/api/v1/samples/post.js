@@ -33,8 +33,8 @@ describe('tests/api/v1/samples/post.js >', () => {
   let sampleToPost;
   beforeEach((done) => {
     u.doSetup()
-    .then((samp) => {
-      sampleToPost = samp;
+    .then(({ aspectId, subjectId }) => {
+      sampleToPost = u.getBasic({ aspectId, subjectId });
       done();
     })
     .catch(done);
@@ -264,9 +264,9 @@ describe('tests/api/v1/samples/post.js > subject isPublished false >', () => {
 
   beforeEach((done) => {
     u.doSetup()
-    .then((samp) => {
-      sampleToPost = samp;
-      return tu.db.Subject.findById(samp.subjectId);
+    .then(({ aspectId, subjectId }) => {
+      sampleToPost = u.getBasic({ aspectId, subjectId });
+      return tu.db.Subject.findById(sampleToPost.subjectId);
     })
     .then((sub) => {
       sub.update({ isPublished: false });

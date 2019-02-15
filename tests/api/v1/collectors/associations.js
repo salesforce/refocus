@@ -40,19 +40,25 @@ describe(`tests/api/v1/collectors/associations.js, GET ${path} >`, () => {
   coll2.lastHeartbeat = Date.now();
 
   before((done) => {
-    Collector.create(coll1)
+    tu.createUser('assocUser')
+    .then((user) => {
+      generatorOk.createdBy = user.id;
+      generatorOk.ownerId = user.id;
+      generatorInfo.createdBy = user.id;
+      generatorInfo.ownerId = user.id;
+      coll1.createdBy = user.id;
+      coll1.ownerId = user.id;
+      coll2.createdBy = user.id;
+      coll2.ownerId = user.id;
+      conf.token = tu.createTokenFromUserName(user.name);
+      return Collector.create(coll1);
+    })
     .then((created) => {
       coll1 = created;
       return Collector.create(coll2);
     })
     .then((created) => {
       coll2 = created;
-      return tu.createUser('assocUser');
-    })
-    .then((user) => {
-      generatorOk.createdBy = user.id;
-      generatorInfo.createdBy = user.id;
-      conf.token = tu.createTokenFromUserName(user.name);
       return GeneratorTemplate.create(generatorTemplate);
     })
     .then(() => Generator.create(generatorOk))
@@ -79,8 +85,24 @@ describe(`tests/api/v1/collectors/associations.js, GET ${path} >`, () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['currentGenerators', 'possibleGenerators'];
+  const associations = ['user', 'owner', 'currentGenerators', 'possibleGenerators'];
   const schema = {
+    user: Joi.object().keys({
+      name: Joi.string().required(),
+      fullName: Joi.string().optional().allow(null),
+      email: Joi.string().required(),
+      profile: Joi.object().keys({
+        name: Joi.string().required(),
+      }).required(),
+    }),
+    owner: Joi.object().keys({
+      name: Joi.string().required(),
+      fullName: Joi.string().optional().allow(null),
+      email: Joi.string().required(),
+      profile: Joi.object().keys({
+        name: Joi.string().required(),
+      }).required(),
+    }),
     currentGenerators: Joi.array().length(1).items(
       Joi.object({
         id: Joi.string().required(),

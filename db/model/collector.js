@@ -236,8 +236,14 @@ module.exports = function collector(seq, dataTypes) {
       foreignKey: 'collectorId',
     });
 
-    assoc.createdBy = Collector.belongsTo(models.User, {
+    assoc.owner = Collector.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+
+    assoc.user = Collector.belongsTo(models.User, {
       foreignKey: 'createdBy',
+      as: 'user',
     });
 
     assoc.writers = Collector.belongsToMany(models.User, {
@@ -248,6 +254,24 @@ module.exports = function collector(seq, dataTypes) {
 
     Collector.addScope('baseScope', {
       order: ['name'],
+    });
+
+    Collector.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    });
+
+    Collector.addScope('user', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
     });
 
     Collector.addScope('status', {
@@ -281,6 +305,8 @@ module.exports = function collector(seq, dataTypes) {
 
     Collector.addScope('defaultScope',
       dbUtils.combineScopes([
+        'user',
+        'owner',
         'baseScope',
         'currentGenerators',
         'possibleGenerators',

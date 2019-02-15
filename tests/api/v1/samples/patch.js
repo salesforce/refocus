@@ -42,8 +42,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
     let sampleValue;
 
     beforeEach((done) => {
-      u.doSetup()
-      .then((samp) => Sample.create(samp))
+      u.createBasic()
       .then((samp) => {
         sampleName = samp.name;
         sampUpdatedAt = samp.updatedAt;
@@ -340,8 +339,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
 
     before((done) => {
-      u.doSetup()
-      .then((samp) => Sample.create(samp))
+      u.createBasic()
       .then((samp) => {
         const subjectName = samp.name.split('|')[0].toLowerCase();
         return Subject.findOne({ where: { name: { [Op.iLike]: subjectName } } });
@@ -380,8 +378,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
 
     before((done) => {
-      u.doSetup()
-      .then((samp) => Sample.create(samp))
+      u.createBasic()
       .then((samp) => {
         sampleName = samp.name;
         const aspectName = sampleName.split('|')[1].toLowerCase();

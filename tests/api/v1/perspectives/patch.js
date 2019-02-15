@@ -38,9 +38,9 @@ describe('tests/api/v1/perspectives/patch.js >', () => {
 
   before((done) => {
     u.doSetup()
-    .then((createdLens) => tu.db.Perspective.create({
+    .then(({ lensId }) => tu.db.Perspective.create({
       name: `${tu.namePrefix}testPersp`,
-      lensId: createdLens.id,
+      lensId,
       rootSubject: 'myMainSubject',
       aspectFilter: aspectFilterArr,
       aspectTagFilter: aspectTagFilterArr,
