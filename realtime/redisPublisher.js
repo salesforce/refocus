@@ -131,8 +131,9 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
    * There may be multiple publishers for perspectives to spread the load, so
    * pick one at random.
    */
-  const rand = getRandomInt(0, (pubPerspectives.length - 1));
-  let pubClient = pubPerspectives[rand];
+  const len = pubPerspectives.length;
+  const whichPubsub = len === 1 ? 0 : getRandomInt(0, (len - 1));
+  let pubClient = pubPerspectives[whichPubsub];
   let channelName = perspectiveChannelName;
   if (opts) {
     obj[event].pubOpts = opts;
