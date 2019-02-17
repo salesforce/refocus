@@ -21,14 +21,12 @@ const botChannelName = 'imc';
 
 let pubsubPerspectives = [PRIMARY_REDIS];
 if (pe.REDIS_PUBSUB_PERSPECTIVES) {
-  if (Array.isArray(pe.REDIS_PUBSUB_PERSPECTIVES)) {
-    const arr = pe.REDIS_PUBSUB_PERSPECTIVES.filter((r) => pe[r])
-      .map((r) => pe[r]);
-    if (arr.length > 0) {
-      pubsubPerspectives = arr;
-    }
-  } else if (pe[pe.REDIS_PUBSUB_PERSPECTIVES]) {
-    pubsubPerspectives = [pe[pe.REDIS_PUBSUB_PERSPECTIVES]];
+  const arr = pe.REDIS_PUBSUB_PERSPECTIVES.split(',')
+    .map((r) => r.trim())
+    .filter((r) => pe[r])
+    .map((r) => pe[r]);
+  if (arr.length > 0) {
+    pubsubPerspectives = arr;
   }
 }
 

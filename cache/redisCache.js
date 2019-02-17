@@ -18,7 +18,7 @@ const rconf = require('../config').redis;
 const featureToggles = require('feature-toggles');
 
 /*
- * This will add "...Async" to all node_redis functions (e.g. return
+ * This will add "...Async" to all noden_redis functions (e.g. return
  * client.getAsync().then(...)).
  */
 const bluebird = require('bluebird');
@@ -84,24 +84,39 @@ const client = {
   subBot,
 };
 
-Object.keys(client).forEach((key) => {
-  client[key].on('error', (err) => {
-    logger.error(`redisClientConnection=${key} event=error`, err);
+/**
+ * Register redis client handlers.
+ *
+ * @param {String} name - The name of this redis client
+ * @param {Object} cli - The redis client
+ */
+function registerHandlers(name, cli) {
+  cli.on('error', (err) => {
+    logger.error(`redisClientConnection=${name} event=error`, err);
     return new Error(err);
   });
 
   if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
-    client[key].on('connect', () => {
-      logger.info(`redisClientConnection=${key} event=connect`);
+    cli.on('connect', () => {
+      logger.info(`redisClientConnection=${name} event=connect`);
     });
 
-    client[key].on('ready', () => {
-      logger.info(`redisClientConnection=${key} event=ready`);
+    cli.on('ready', () => {
+      logger.info(`redisClientConnection=${name} event=ready`);
     });
 
-    client[key].on('reconnecting', () => {
-      logger.info(`redisClientConnection=${key} event=reconnecting`);
+    cli.on('reconnecting', () => {
+      logger.info(`redisClientConnection=${name} event=reconnecting`);
     });
+  }
+} // registerHandlers
+
+Object.keys(client).forEach((key) => {
+  const cli = client[key];
+  if (Array.isArray(cli)) {
+    cli.forEach((c) => registerHandlers(key, c));
+  } else {
+    registerHandlers(key, cli);
   }
 });
 
