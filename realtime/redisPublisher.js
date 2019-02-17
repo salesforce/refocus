@@ -15,13 +15,59 @@ const featureToggles = require('feature-toggles');
 const rtUtils = require('./utils');
 const config = require('../config');
 const client = require('../cache/redisCache').client;
-const pubPerspective = client.pubPerspective;
+const pubPerspectives = client.pubPerspectives;
 const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const pubSubStats = require('./pubSubStats');
 const ONE = 1;
 
 /**
+ * Returns a random integer between min (inclusive) and max (inclusive).
+ * The value is no lower than min (or the next integer greater than min
+ * if min isn't an integer) and no greater than max (or the next integer
+ * lower than max if max isn't an integer).
+ * Using Math.round() will give you a non-uniform distribution!
+ */
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * Store pub stats in redis cache, tracking count and publish time by key. Note
+ * that we're using the async redis command here; we don't require the hincrby
+ * command to complete before moving on to other work, so we're not wrapping it
+ * in a promise.
+ *
+ * @param {String} key - The event type
+ * @param {Object} obj - The object being published
+ */
+function trackStats(key, obj) {
+  let elapsed = 0;
+  if (obj.hasOwnProperty('updatedAt')) {
+    elapsed = Date.now() - new Date(obj.updatedAt);
+  } else if (obj.hasOwnProperty('new') &&
+    obj.new.hasOwnProperty('updatedAt')) {
+    elapsed = Date.now() - new Date(obj.new.updatedAt);
+  } else {
+    console.trace('Where is updatedAt? ' + JSON.stringify(obj));
+  }
+
+  rcache.hincrbyAsync(pubKeys.count, key, ONE)
+    .catch((err) => {
+      console.error('redisPublisher.trackStats HINCRBY', pubKeys.count, key,
+        ONE);
+    });
+  rcache.hincrbyAsync(pubKeys.time, key, elapsed)
+    .catch((err) => {
+      console.error('redisPublisher.trackStats HINCRBY', pubKeys.time, key,
+        elapsed, err);
+    });
+} // trackStats
+
+/**
+>>>>>>> multiple publishers for perspectives, pick one at random
  * When passed an sample object, either a sequelize sample object or
  * a plain sample object, it returns either an sample add event or an sample
  * update event.
@@ -79,8 +125,14 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   const obj = {};
   obj[event] = inst.get ? inst.get() : inst;
 
-  // set pub client and channel to perspective unless there are overrides opts
-  let pubClient = pubPerspective;
+
+  /*
+   * Set pub client and channel to perspective unless there are overrides opts.
+   * There may be multiple publishers for perspectives to spread the load, so
+   * pick one at random.
+   */
+  const rand = getRandomInt(0, (pubPerspectives.length - 1));
+  let pubClient = pubPerspectives[rand];
   let channelName = perspectiveChannelName;
   if (opts) {
     obj[event].pubOpts = opts;
