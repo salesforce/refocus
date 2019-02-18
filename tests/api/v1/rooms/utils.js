@@ -11,6 +11,7 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
+const roomTypeUtil = require('../roomTypes/utils');
 
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestRoom`;
@@ -130,6 +131,36 @@ module.exports = {
 
   createStandard() {
     return tu.db.Room.create(standard);
+  },
+
+  getBasic(overrideProps={}) {
+    const defaultProps = JSON.parse(JSON.stringify(standard));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  doSetup(props={}) {
+    const { createdBy } = props;
+    return roomTypeUtil.createBasic({ createdBy })
+    .then((roomType) => {
+      const createdIds = {
+        type: roomType.id,
+      };
+      return createdIds;
+    });
+  },
+
+  createBasic(overrideProps={}) {
+    const { createdBy } = overrideProps;
+    return this.doSetup({ createdBy })
+    .then(({ type }) => {
+      Object.assign(overrideProps, { type });
+      const toCreate = this.getBasic(overrideProps);
+      return tu.db.Room.create(toCreate);
+    });
+  },
+
+  getDependencyProps() {
+    return ['type'];
   },
 
   forceDelete(done) {

@@ -28,7 +28,9 @@ function doPost(req, res, next, props) {
   const resultObj = { reqStartTime: req.timestamp };
   const params = req.swagger.params;
   u.mergeDuplicateArrayElements(params.queryBody.value, props);
-  pu.makePostPromise(params, props, req)
+  const toPost = params.queryBody.value;
+  u.setOwner(toPost, req)
+  .then(() => pu.makePostPromise(toPost, props, req))
   .then((o) => pu.handlePostResult(o, resultObj, props, res, req))
   .catch((err) => u.handleError(next, err, props.modelName));
 }

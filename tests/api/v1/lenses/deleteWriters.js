@@ -37,7 +37,7 @@ describe('tests/api/v1/lenses/deleteWriters.js >', () => {
   });
 
   beforeEach((done) => {
-    u.doSetup()
+    u.createBasic()
     .then((lensInst) => {
       lens = lensInst;
     })

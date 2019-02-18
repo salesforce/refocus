@@ -96,7 +96,7 @@ module.exports = function subject(seq, dataTypes) {
     },
     relatedLinks: {
       type: dataTypes.ARRAY(dataTypes.JSON),
-      allowNull: true,
+      allowNull: false,
       defaultValue: constants.defaultJsonArrayValue,
       validate: {
         validateJsonSchema(value) {
@@ -106,7 +106,7 @@ module.exports = function subject(seq, dataTypes) {
     },
     tags: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
-      allowNull: true,
+      allowNull: false,
       defaultValue: constants.defaultArrayValue,
     },
     sortBy: {
@@ -556,6 +556,10 @@ module.exports = function subject(seq, dataTypes) {
   };
 
   Subject.postImport = function (models) {
+    assoc.owner = Subject.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
     assoc.user = Subject.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -582,10 +586,23 @@ module.exports = function subject(seq, dataTypes) {
           association: assoc.user,
           attributes: ['name', 'email', 'fullName'],
         },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
       ],
       order: ['absolutePath'],
     }, {
       override: true,
+    });
+
+    Subject.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
     });
 
     Subject.addScope('user', {

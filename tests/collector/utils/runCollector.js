@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/collector/integration.js
+ * tests/collector/integration/runCollector.js
  */
 'use strict'; // eslint-disable-line strict
 const nock = require('nock');

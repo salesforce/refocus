@@ -38,7 +38,8 @@ function createCollectorGroup(req, res, next) {
   const body = params.queryBody.value;
   body.createdBy = req.user.id;
 
-  helper.model.createCollectorGroup(body)
+  u.setOwner(body, req)
+  .then(() => helper.model.createCollectorGroup(body))
   .then((collectorGroup) => {
     const recordCountOverride = null;
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -147,23 +148,26 @@ function patchCollectorGroup(req, res, next) {
   apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
   const resultObj = { reqStartTime: req.timestamp };
   const params = req.swagger.params;
+  const requestBody = params.queryBody.value;
   let cg;
 
   u.mergeDuplicateArrayElements(params.queryBody.value, helper);
 
   u.findByKey(helper, params)
+    .then((o) => u.setOwner(requestBody, req, o))
     .then((o) => u.isWritable(req, o))
     .then((collectorGroup) => {
-      if (params.queryBody.value.hasOwnProperty('collectors')) {
-        const colls = params.queryBody.value.collectors;
-        delete params.queryBody.value.collectors;
+      if (requestBody.hasOwnProperty('collectors')) {
+        const colls = requestBody.collectors;
+        delete requestBody.collectors;
         return collectorGroup.patchCollectors(colls);
       }
 
       return collectorGroup;
     })
     .then((patched) => (cg = patched))
-    .then(() => cg.update(params.queryBody.value))
+    .then(() => cg.update(requestBody))
+    .then((o) => o.reload())
     .then(() => {
       const recordCountOverride = null;
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -193,28 +197,31 @@ function putCollectorGroup(req, res, next) {
   apiUtils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
   const resultObj = { reqStartTime: req.timestamp };
   const params = req.swagger.params;
+  const requestBody = params.queryBody.value;
   let cg;
 
-  u.mergeDuplicateArrayElements(params.queryBody.value, helper);
+  u.mergeDuplicateArrayElements(requestBody, helper);
 
   u.findByKey(helper, params)
+    .then((o) => u.setOwner(requestBody, req, o))
     .then((o) => u.isWritable(req, o))
     .then((collectorGroup) => {
       let colls = [];
-      if (params.queryBody.value.hasOwnProperty('collectors')) {
-        colls = params.queryBody.value.collectors;
-        delete params.queryBody.value.collectors;
+      if (requestBody.hasOwnProperty('collectors')) {
+        colls = requestBody.collectors;
+        delete requestBody.collectors;
       }
 
       // Clear the description attribute if not provided in request body
-      if (!params.queryBody.value.hasOwnProperty('description')) {
-        params.queryBody.value.description = '';
+      if (!requestBody.hasOwnProperty('description')) {
+        requestBody.description = '';
       }
 
       return collectorGroup.patchCollectors(colls);
     })
     .then((patched) => (cg = patched))
-    .then(() => cg.update(params.queryBody.value))
+    .then(() => cg.update(requestBody))
+    .then((o) => o.reload())
     .then(() => {
       const recordCountOverride = null;
       resultObj.dbTime = new Date() - resultObj.reqStartTime;

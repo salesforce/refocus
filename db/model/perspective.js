@@ -151,6 +151,10 @@ module.exports = function perspective(seq, dataTypes) {
   };
 
   Perspective.postImport = function (models) {
+    assoc.owner = Perspective.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
     assoc.user = Perspective.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -179,6 +183,10 @@ module.exports = function perspective(seq, dataTypes) {
           attributes: ['name', 'email'],
         },
         {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
           association: assoc.lens,
           attributes: [
             'helpEmail',
@@ -193,6 +201,15 @@ module.exports = function perspective(seq, dataTypes) {
       order: ['name'],
     }, {
       override: true,
+    });
+
+    Perspective.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email'],
+        },
+      ],
     });
 
     Perspective.addScope('user', {

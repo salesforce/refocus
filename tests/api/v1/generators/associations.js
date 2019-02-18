@@ -56,6 +56,8 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
     .then((user) => {
       generatorOk.createdBy = user.id;
       generatorInfo.createdBy = user.id;
+      generatorOk.ownerId = user.id;
+      generatorInfo.ownerId = user.id;
       conf.token = tu.createTokenFromUserName(user.name);
       return GeneratorTemplate.create(generatorTemplate);
     })
@@ -83,9 +85,17 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['user', 'currentCollector', 'possibleCollectors'];
+  const associations = ['user', 'owner', 'currentCollector', 'possibleCollectors'];
   const schema = {
     user: Joi.object({
+      name: Joi.string().required(),
+      fullName: Joi.string().optional().allow(null),
+      email: Joi.string().required(),
+      profile: Joi.object().keys({
+        name: Joi.string().required(),
+      }).required(),
+    }),
+    owner: Joi.object().keys({
       name: Joi.string().required(),
       fullName: Joi.string().optional().allow(null),
       email: Joi.string().required(),
