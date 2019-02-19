@@ -21,6 +21,8 @@ const expect = require('chai').expect;
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
+const THREE = 3;
+const FOUR = 4;
 
 describe(`tests/api/v1/subjects/get.js, GET ${path} >`, () => {
   let token;
@@ -142,6 +144,35 @@ describe(`tests/api/v1/subjects/get.js, GET ${path} >`, () => {
       expect(res.body[ONE].sortBy).to.equal(us.sortBy);
       expect(res.body[TWO].sortBy).to.equal(vt.sortBy);
       done();
+    });
+  });
+
+  it('expected result order of ?sort=sortBy when ' +
+  'sortBy=null|empty string|valued', (done) => {
+    const subjEmptySortBy = { name: `${tu.namePrefix}-withEmptySortBy` };
+    const subjNullSortBy = {
+      name: `${tu.namePrefix}-withNullSortBy`, sortBy: null,
+    };
+    Subject.create(subjEmptySortBy)
+    .then(() => Subject.create(subjNullSortBy))
+    .then(() => {
+      api.get(`${path}?sort=sortBy`)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          /* empty sortyBy, followed by valued sortBy in alphabetical order
+           and then null sortBy at last */
+          expect(res.body[ZERO].sortBy).to.equal('');
+          expect(res.body[ONE].sortBy).to.equal(na.sortBy);
+          expect(res.body[TWO].sortBy).to.equal(us.sortBy);
+          expect(res.body[THREE].sortBy).to.equal(vt.sortBy);
+          expect(res.body[FOUR].sortBy).to.equal(undefined);
+          done();
+        });
     });
   });
 
