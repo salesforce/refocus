@@ -1,6 +1,7 @@
 'use strict';
 const db = require('../db/index');
 const constants = require('../db/constants');
+const Promise = require('bluebird');
 
 const modelsAndCols = {
   Aspect: ['tags', 'relatedLinks'],
@@ -23,18 +24,16 @@ function updateRowsAndColumns(qi, seq, modelName, colNamesArr) {
   return model.findAll({ // find records with any of given columns = null
     where: { $or: whereArr },
   })
-    .then((records) => Promise.all(
-      records.map((record) => {
-        const toUpdate = {};
-        colNamesArr.forEach((colName) => {
-          if (record[colName] === null) {
-            toUpdate[colName] = []; // set the record column to empty array
-          }
-        });
+    .then((records) => Promise.mapSeries(records, (record) => {
+      const toUpdate = {};
+      colNamesArr.forEach((colName) => {
+        if (record[colName] === null) {
+          toUpdate[colName] = []; // set the record column to empty array
+        }
+      });
 
-        return record.update(toUpdate);
-      })
-    ))
+      return record.update(toUpdate);
+    }))
     .then(() => Promise.all(colNamesArr.map((colName) => {
       if (colName === 'relatedLinks') {
         return qi.changeColumn(`${modelName}s`, colName, {
