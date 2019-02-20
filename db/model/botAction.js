@@ -48,7 +48,7 @@ module.exports = function botAction(seq, dataTypes) {
     actionLog: {
       type: dataTypes.STRING(constants.fieldlen.normalName),
       allowNull: true,
-      comment: 'This is a field for a developer to specify '+
+      comment: 'This is a field for a developer to specify a' +
         'more specific action name',
     },
     parameters: {

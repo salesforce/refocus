@@ -8,7 +8,6 @@
 
 const constants = require('../db/constants');
 
-
 module.exports = {
   up: (queryInterface, Sequelize) =>
     queryInterface.addColumn(
