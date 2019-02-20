@@ -17,6 +17,7 @@ const prototype = require('../../config/activityLog')[aType];
 const activityLog = require('../../utils/activityLog');
 const pubsubStatsKeys = require('../../realtime/constants').pubsubStatsKeys;
 const redis = require('../../cache/redisCache').client.pubsubStats;
+const pubSubStatsEventEmitter = require('../../config/PubSubStatsEventEmitter');
 
 /**
  * Generate the logging objects, one per process and event type. Look up the
@@ -82,9 +83,10 @@ function generateLogObjects() {
  * Generate and write out the pub stats logs (one log entry per publish "key").
  */
 function execute() {
-  return generateLogObjects()
-  .then((arr) =>
-    arr.forEach((a) => activityLog.printActivityLogString(a, aType)));
+  pubSubStatsEventEmitter.emit('timesup', { foo: 'bar' });
+  // return generateLogObjects()
+  // .then((arr) =>
+  //   arr.forEach((a) => activityLog.printActivityLogString(a, aType)));
 } // execute
 
 module.exports = {

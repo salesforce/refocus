@@ -32,21 +32,25 @@ const ONE = 1;
  */
 function trackStats(processName, key, obj) {
   const elapsed = Date.now() - new Date(obj.updatedAt);
-  rcache.saddAsync(`${subKeys.processes}`, processName)
-    .catch((err) => {
-      console.error('redisSubscriber.trackStats SADD', subKeys.processes,
-        processName, err);
-    });
-  rcache.hincrbyAsync(`${subKeys.count}:${processName}`, key, ONE)
-    .catch((err) => {
-      console.error('redisSubscriber.trackStats HINCRBY', subKeys.count,
-        processName, key, ONE, err);
-    });
-  rcache.hincrbyAsync(`${subKeys.time}:${processName}`, key, elapsed)
-    .catch((err) => {
-      console.error('redisSubscriber.trackStats HINCRBY', subKeys.time,
-        processName, key, elapsed, err);
-    });
+  if (!global.hasOwnProperty(`${subKeys.count}:${processName}`)) {
+    global[`${subKeys.count}:${processName}`] = {};
+  }
+
+  if (!global[`${subKeys.count}:${processName}`].hasOwnProperty(key)) {
+    global[`${subKeys.count}:${processName}`][key] = 0;
+  }
+
+  global[`${subKeys.count}:${processName}`][key]++;
+
+  if (!global.hasOwnProperty(`${subKeys.time}:${processName}`)) {
+    global[`${subKeys.time}:${processName}`] = {};
+  }
+
+  if (!global[`${subKeys.time}:${processName}`].hasOwnProperty(key)) {
+    global[`${subKeys.time}:${processName}`][key] = 0;
+  }
+
+  global[`${subKeys.time}:${processName}`][key] += elapsed;
 } // trackStats
 
 /**

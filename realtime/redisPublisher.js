@@ -42,16 +42,25 @@ function trackStats(key, obj) {
     console.trace('Where is updatedAt? ' + JSON.stringify(obj));
   }
 
-  rcache.hincrbyAsync(pubKeys.count, key, ONE)
-    .catch((err) => {
-      console.error('redisPublisher.trackStats HINCRBY', pubKeys.count, key,
-        ONE);
-    });
-  rcache.hincrbyAsync(pubKeys.time, key, elapsed)
-    .catch((err) => {
-      console.error('redisPublisher.trackStats HINCRBY', pubKeys.time, key,
-        elapsed, err);
-    });
+  if (!global.hasOwnProperty(pubKeys.count)) {
+    global[pubKeys.count] = {};
+  }
+
+  if (!global[pubKeys.count].hasOwnProperty(key)) {
+    global[pubKeys.count][key] = 0;
+  }
+
+  global[pubKeys.count][key]++;
+
+  if (!global.hasOwnProperty(pubKeys.time)) {
+    global[pubKeys.time] = {};
+  }
+
+  if (!global[pubKeys.time].hasOwnProperty(key)) {
+    global[pubKeys.time][key] = 0;
+  }
+
+  global[pubKeys.time][key] += elapsed;
 } // trackStats
 
 /**
