@@ -125,11 +125,11 @@ describe('tests/realtime/redisPublisher.js >', () => {
   describe('redis Publisher >', () => {
     const subjectNA = {
       name: `${tu.namePrefix}NorthAmerica`,
-      isPublished: true
+      isPublished: true,
     };
     const subjectSA = {
       name: `${tu.namePrefix}SouthAmerica`,
-      isPublished: true
+      isPublished: true,
     };
 
     const samp = { value: 10 };
