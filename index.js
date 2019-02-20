@@ -361,7 +361,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   }
 
   const pubSubStatsEventEmitter =
-    require('./config/PubSubStatsEventEmitter');
+    require('./config/pubSubStatsEventEmitter');
   pubSubStatsEventEmitter.on('timesup', (data) => {
     console.log(processName, 'EMITTING on timesup', data);
     console.log(processName, 'pubSubStats:pubCount==>', global['pubSubStats:pubCount']);

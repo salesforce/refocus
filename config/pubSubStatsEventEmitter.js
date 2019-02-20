@@ -7,7 +7,7 @@
  */
 
 /**
- * /config/pubsubStatsEventEmitter.js
+ * /config/pubSubStatsEventEmitter.js
  *
  * Clock job will emit the "timesup" message
  * Web dynos will listen and dump
