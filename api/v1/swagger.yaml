@@ -4541,6 +4541,7 @@ paths:
                   type: string
               tags:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -6481,6 +6482,7 @@ paths:
                   - EXCLUDE
               statusFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   enum:
@@ -6563,6 +6565,7 @@ paths:
                   The absolute path of the root subject.
               aspectFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -6572,6 +6575,7 @@ paths:
                   underscore (_) and dash (-).
               aspectTagFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -6581,6 +6585,7 @@ paths:
                   underscore (_) and dash (-).
               subjectTagFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60

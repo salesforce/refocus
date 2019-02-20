@@ -9,7 +9,6 @@ const modelsAndCols = {
   GeneratorTemplate: ['tags'],
   Perspective:
     ['aspectFilter', 'aspectTagFilter', 'subjectTagFilter', 'statusFilter'],
-  Sample: ['relatedLinks'],
 };
 
 function updateRowsAndColumns(qi, seq, modelName, colNamesArr) {
