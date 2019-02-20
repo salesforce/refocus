@@ -83,8 +83,8 @@ function generateLogObjects() {
  * Generate and write out the pub stats logs (one log entry per publish "key").
  */
 function execute() {
-  console.log('CLOCK ABOUT TO EMIT timesup EVENT');
-  pubSubStatsEventEmitter.emit('timesup', { foo: 'bar' });
+  // console.log('CLOCK ABOUT TO EMIT timesup EVENT');
+  // pubSubStatsEventEmitter.emit('timesup', { foo: 'bar' });
   // return generateLogObjects()
   // .then((arr) =>
   //   arr.forEach((a) => activityLog.printActivityLogString(a, aType)));

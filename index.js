@@ -360,19 +360,26 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
     });
   }
 
-  const pubSubStatsEventEmitter =
-    require('./config/pubSubStatsEventEmitter');
-  pubSubStatsEventEmitter.on('timesup', (data) => {
-    console.log(processName, 'EMITTING on timesup', data);
-    console.log(processName, 'pubSubStats:pubCount==>', global['pubSubStats:pubCount']);
-    console.log(processName, 'pubSubStats:pubTime==>', global['pubSubStats:pubTime']);
-    console.log(processName, 'pubSubStats:subCount==>', global['pubSubStats:subCount']);
-    console.log(processName, 'pubSubStats:subTime==>', global['pubSubStats:subTime']);
-    delete global['pubSubStats:pubCount'];
-    delete global['pubSubStats:pubTime'];
-    delete global['pubSubStats:subCount'];
-    delete global['pubSubStats:subTime'];
-  });
+  if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
+    const pubsubStatsKeys = require('./realtime/constants').pubsubStatsKeys;
+    // const activityLog = require('./utils/activityLog');
+    // const pubSubStatsLogPrototype = require('.config/activityLog')[aType];
+    setInterval(() => {
+      console.log('pubSubStats Interval', Date.now());
+      const pubCount = global[pubsubStatsKeys.pub.count];
+      const pubTime = global[pubsubStatsKeys.pub.time];
+      const subCount = global[pubsubStatsKeys.sub.count];
+      const subTime = global[pubsubStatsKeys.sub.time];
+      console.log(processName, 'pubSubStats:pubCount==>', pubCount);
+      console.log(processName, 'pubSubStats:pubTime==>', pubTime);
+      console.log(processName, 'pubSubStats:subCount==>', subCount);
+      console.log(processName, 'pubSubStats:subTime==>', subTime);
+      delete global[pubsubStatsKeys.pub.count];
+      delete global[pubsubStatsKeys.pub.time];
+      delete global[pubsubStatsKeys.sub.count];
+      delete global[pubsubStatsKeys.sub.time];
+    }, 60000);
+  }
 
   module.exports = { app, passportModule };
 } // start
