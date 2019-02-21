@@ -192,6 +192,11 @@ const shortTermToggles = {
   requireHelpEmailOrHelpUrl: environmentVariableTrue(
     pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
 
+  // reduce the size of the sample real-time event by removing most of its
+  // embedding subject attributes
+  reduceSampleEventSize: environmentVariableTrue(pe,
+    'REDUCE_SAMPLE_EVENT_SIZE'),
+
   // adds isBot to token and returns token on patches not just posts
   addIsBotToToken: environmentVariableTrue(
     pe, 'ADD_ISBOT_TO_TOKEN'),
