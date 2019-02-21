@@ -34,6 +34,6 @@ jobProcessor.processJobs(jobs, jobConcurrency);
 jobProcessor.processClockJobs(clockJobs, clockJobConfig);
 
 if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
-  const fn = require('./realtime/pubSubStats');
+  const fn = require('../realtime/pubSubStats');
   setInterval(fn, 60000);
 }
