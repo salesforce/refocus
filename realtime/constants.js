@@ -121,7 +121,6 @@ module.exports = {
     sub: {
       count: 'pubSubStats:subCount',
       time: 'pubSubStats:subTime',
-      processes: 'pubSubStats:subProcesses',
     },
   },
 };

@@ -32,24 +32,24 @@ const ONE = 1;
 function trackStats(processName, key, obj) {
   const elapsed = Date.now() - new Date(obj.updatedAt);
   if (!global.hasOwnProperty(`${subKeys.count}:${processName}`)) {
-    global[`${subKeys.count}:${processName}`] = {};
+    global[subKeys.count] = {};
   }
 
-  if (!global[`${subKeys.count}:${processName}`].hasOwnProperty(key)) {
-    global[`${subKeys.count}:${processName}`][key] = 0;
+  if (!global[subKeys.count].hasOwnProperty(key)) {
+    global[subKeys.count][key] = 0;
   }
 
-  global[`${subKeys.count}:${processName}`][key]++;
+  global[subKeys.count][key]++;
 
-  if (!global.hasOwnProperty(`${subKeys.time}:${processName}`)) {
-    global[`${subKeys.time}:${processName}`] = {};
+  if (!global.hasOwnProperty(subKeys.time)) {
+    global[subKeys.time] = {};
   }
 
-  if (!global[`${subKeys.time}:${processName}`].hasOwnProperty(key)) {
-    global[`${subKeys.time}:${processName}`][key] = 0;
+  if (!global[subKeys.time].hasOwnProperty(key)) {
+    global[subKeys.time][key] = 0;
   }
 
-  global[`${subKeys.time}:${processName}`][key] += elapsed;
+  global[subKeys.time][key] += elapsed;
 } // trackStats
 
 /**
