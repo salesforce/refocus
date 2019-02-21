@@ -208,6 +208,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
           sample.subject = miniSubject;
         }
 
+        // console.log('publishing...', sample, eventType);
         publishObject(sample, eventType);
         return sample;
       }
