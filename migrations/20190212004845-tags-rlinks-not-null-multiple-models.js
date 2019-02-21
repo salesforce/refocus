@@ -21,7 +21,7 @@ function updateRowsAndColumns(qi, seq, modelName, colNamesArr) {
 
   const model = db[modelName];
   return model.findAll({ // find records with any of given columns = null
-    where: { $or: whereArr },
+    where: { $or: whereArr }, paranoid: false,
   })
     .then((records) => Promise.mapSeries(records, (record) => {
       const toUpdate = {};
