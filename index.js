@@ -361,44 +361,8 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   }
 
   if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
-    const pubsubStatsKeys = require('./realtime/constants').pubsubStatsKeys;
-    const activityLog = require('./utils/activityLog');
-    const pubSubStatsLogPrototype = require('./config/activityLog')['pubsub'];
-    setInterval(() => {
-      console.log('pubSubStats Interval', Date.now());
-      const logObjects = [];
-      const pubCount = global[pubsubStatsKeys.pub.count] || {};
-      const pubTime = global[pubsubStatsKeys.pub.time] || {};
-      const subCount = global[pubsubStatsKeys.sub.count] || {};
-      const subTime = global[pubsubStatsKeys.sub.time] || {};
-      const keyArray = []
-        .concat(Object.keys(pubCount))
-        .concat(Object.keys(pubTime))
-        .concat(Object.keys(subCount))
-        .concat(Object.keys(subTime));
-      const keys = [...new Set(keyArray)];
-      keys.forEach((key) => {
-        const logObj = JSON.parse(JSON.stringify(pubSubStatsLogPrototype));
-        logObj.process = processName;
-        logObj.key = key;
-        logObj.pubCount = global.hasOwnProperty(pubsubStatsKeys.pub.count) ?
-          (global[pubsubStatsKeys.pub.count][key] || 0) : 0;
-        logObj.pubTime = global.hasOwnProperty(pubsubStatsKeys.pub.time) ?
-          (global[pubsubStatsKeys.pub.time][key] || 0) : 0;
-        logObj.subCount = global.hasOwnProperty(pubsubStatsKeys.sub.count) ?
-          (global[pubsubStatsKeys.sub.count][key] || 0) : 0;
-        logObj.subTime = global.hasOwnProperty(pubsubStatsKeys.sub.time) ?
-          (global[pubsubStatsKeys.sub.time][key] || 0) : 0;
-        logObjects.push(logObj);
-      });
-      delete global[pubsubStatsKeys.pub.count];
-      delete global[pubsubStatsKeys.pub.time];
-      delete global[pubsubStatsKeys.sub.count];
-      delete global[pubsubStatsKeys.sub.time];
-      logObjects.forEach((logObj) => {
-        activityLog.printActivityLogString(logObj, 'pubsub');
-      });
-    }, 60000);
+    const fn = require('./realtime/pubSubStats');
+    setInterval(fn, 60000);
   }
 
   module.exports = { app, passportModule };

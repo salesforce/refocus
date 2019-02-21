@@ -16,9 +16,10 @@
  * config.js.
  */
 'use strict'; // eslint-disable-line strict
+const featureToggles = require('feature-toggles');
+const logger = require('winston');
 const conf = require('../config');
 if (conf.newRelicKey) require('newrelic');
-const logger = require('winston');
 const logEnvVars = require('../utils/logEnvVars');
 const workerStarted = 'Worker Process Started';
 logger.info(workerStarted);
@@ -32,3 +33,7 @@ const clockJobs = requireDir('../clock/scheduledJobs');
 jobProcessor.processJobs(jobs, jobConcurrency);
 jobProcessor.processClockJobs(clockJobs, clockJobConfig);
 
+if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
+  const fn = require('./realtime/pubSubStats');
+  setInterval(fn, 60000);
+}
