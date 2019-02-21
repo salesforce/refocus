@@ -31,7 +31,7 @@ const ONE = 1;
  */
 function trackStats(processName, key, obj) {
   const elapsed = Date.now() - new Date(obj.updatedAt);
-  if (!global.hasOwnProperty(`${subKeys.count}:${processName}`)) {
+  if (!global.hasOwnProperty(subKeys.count)) {
     global[subKeys.count] = {};
   }
 
