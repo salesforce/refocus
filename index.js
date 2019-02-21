@@ -362,22 +362,22 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
 
   if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
     const pubsubStatsKeys = require('./realtime/constants').pubsubStatsKeys;
-    // const activityLog = require('./utils/activityLog');
-    // const pubSubStatsLogPrototype = require('.config/activityLog')[aType];
+    const activityLog = require('./utils/activityLog');
+    const pubSubStatsLogPrototype = require('./config/activityLog')['pubsub'];
     setInterval(() => {
       console.log('pubSubStats Interval', Date.now());
-      const pubCount = global[pubsubStatsKeys.pub.count];
-      const pubTime = global[pubsubStatsKeys.pub.time];
-      const subCount = global[pubsubStatsKeys.sub.count];
-      const subTime = global[pubsubStatsKeys.sub.time];
-      console.log(processName, 'pubSubStats:pubCount==>', pubCount);
-      console.log(processName, 'pubSubStats:pubTime==>', pubTime);
-      console.log(processName, 'pubSubStats:subCount==>', subCount);
-      console.log(processName, 'pubSubStats:subTime==>', subTime);
-      delete global[pubsubStatsKeys.pub.count];
-      delete global[pubsubStatsKeys.pub.time];
-      delete global[pubsubStatsKeys.sub.count];
-      delete global[pubsubStatsKeys.sub.time];
+      [
+        pubsubStatsKeys.pub.count,
+        pubsubStatsKeys.pub.time,
+        pubsubStatsKeys.sub.count,
+        pubsubStatsKeys.sub.time,
+      ].forEach((key) => {
+        const data = global[key] || {};
+        Object.keys(data).forEach((event) => {
+          console.log(key, processName, event, data[event]);
+        });
+        delete global[key];
+      })
     }, 60000);
   }
 
