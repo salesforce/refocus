@@ -35,5 +35,5 @@ jobProcessor.processClockJobs(clockJobs, clockJobConfig);
 
 if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
   const fn = require('../realtime/pubSubStats');
-  setInterval(fn, 60000);
+  setInterval(() => fn('worker.x'), 600);
 }

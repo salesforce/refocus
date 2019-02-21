@@ -14,7 +14,8 @@ const pubsubStatsKeys = require('./constants').pubsubStatsKeys;
 const activityLog = require('../utils/activityLog');
 const prototype = require('../config/activityLog')[activityLogType];
 
-module.exports = () => {
+function logPubSubStats(processName) {
+  console.log('entered logPubSubStats', processName)
   const logObjects = [];
   const pubCount = global[pubsubStatsKeys.pub.count] || {};
   const pubTime = global[pubsubStatsKeys.pub.time] || {};
@@ -47,4 +48,6 @@ module.exports = () => {
   logObjects.forEach((logObj) => {
     activityLog.printActivityLogString(logObj, activityLogType);
   });
-};
+} // logPubSubStats
+
+module.exports = logPubSubStats;
