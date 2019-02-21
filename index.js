@@ -361,8 +361,9 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   }
 
   if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
-    const fn = require('./realtime/pubSubStats');
-    setInterval(() => fn(processName), 60000);
+    const logPubSubStats = require('./realtime/pubSubStats').log;
+    setInterval(() => logPubSubStats(processName),
+      conf.pubSubStatsLoggingInterval);
   }
 
   module.exports = { app, passportModule };

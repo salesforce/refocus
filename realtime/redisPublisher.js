@@ -18,49 +18,8 @@ const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
-const pubKeys = require('./constants').pubsubStatsKeys.pub;
+const pubSubStats = require('./pubSubStats');
 const ONE = 1;
-
-/**
- * Store pub stats in redis cache, tracking count and publish time by key. Note
- * that we're using the async redis command here; we don't require the hincrby
- * command to complete before moving on to other work, so we're not wrapping it
- * in a promise.
- *
- * @param {String} key - The event type
- * @param {Object} obj - The object being published
- */
-function trackStats(key, obj) {
-  let elapsed = 0;
-  if (obj.hasOwnProperty('updatedAt')) {
-    elapsed = Date.now() - new Date(obj.updatedAt);
-  } else if (obj.hasOwnProperty('new') &&
-    obj.new.hasOwnProperty('updatedAt')) {
-    elapsed = Date.now() - new Date(obj.new.updatedAt);
-  } else {
-    console.trace('Where is updatedAt? ' + JSON.stringify(obj));
-  }
-
-  if (!global.hasOwnProperty(pubKeys.count)) {
-    global[pubKeys.count] = {};
-  }
-
-  if (!global[pubKeys.count].hasOwnProperty(key)) {
-    global[pubKeys.count][key] = 0;
-  }
-
-  global[pubKeys.count][key]++;
-
-  if (!global.hasOwnProperty(pubKeys.time)) {
-    global[pubKeys.time] = {};
-  }
-
-  if (!global[pubKeys.time].hasOwnProperty(key)) {
-    global[pubKeys.time][key] = 0;
-  }
-
-  global[pubKeys.time][key] += elapsed;
-} // trackStats
 
 /**
  * When passed an sample object, either a sequelize sample object or
@@ -143,7 +102,11 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   }
 
   if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
-    trackStats(event, obj[event]);
+    try {
+      pubSubStats.track('pub', event, obj[event]);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   pubClient.publish(channelName, JSON.stringify(obj));

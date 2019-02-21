@@ -15,42 +15,9 @@ const subPerspective = require('../cache/redisCache').client.subPerspective;
 const subBot = require('../cache/redisCache').client.subBot;
 const featureToggles = require('feature-toggles');
 const rtUtils = require('./utils');
-const subKeys = require('./constants').pubsubStatsKeys.sub;
+const pubSubStats = require('./pubSubStats');
 const ZERO = 0;
 const ONE = 1;
-
-/**
- * Store pub stats in redis cache by process name, tracking count and subscribe
- * time by key. Note that we're using the async redis command here; we don't
- * require the hincrby command to complete before moving on to other work, so
- * we're not wrapping it in a promise.
- *
- * @param {String} processName - The process name
- * @param {String} key - The event type
- * @param {Object} obj - The object being published
- */
-function trackStats(processName, key, obj) {
-  const elapsed = Date.now() - new Date(obj.updatedAt);
-  if (!global.hasOwnProperty(subKeys.count)) {
-    global[subKeys.count] = {};
-  }
-
-  if (!global[subKeys.count].hasOwnProperty(key)) {
-    global[subKeys.count][key] = 0;
-  }
-
-  global[subKeys.count][key]++;
-
-  if (!global.hasOwnProperty(subKeys.time)) {
-    global[subKeys.time] = {};
-  }
-
-  if (!global[subKeys.time].hasOwnProperty(key)) {
-    global[subKeys.time][key] = 0;
-  }
-
-  global[subKeys.time][key] += elapsed;
-} // trackStats
 
 /**
  * Redis subscriber uses socket.io to broadcast messages to Perspectives and
@@ -71,7 +38,11 @@ module.exports = (io, processName) => {
       delete parsedObj.pubOpts;
 
       if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
-        trackStats(processName, key, parsedObj);
+        try {
+          pubSubStats.track('sub', key, parsedObj);
+        } catch (err) {
+          console.error(err);
+        }
       }
 
       /*
