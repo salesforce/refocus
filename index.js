@@ -398,7 +398,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
       logObjects.forEach((logObj) => {
         activityLog.printActivityLogString(logObj, 'pubsub');
       });
-    }, 600);
+    }, 60000);
   }
 
   module.exports = { app, passportModule };
