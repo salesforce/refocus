@@ -195,4 +195,32 @@ describe('tests/api/v1/perspectives/put.js >', () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end(done);
   });
+
+  it('filters set to empty array if not provided', (done) => {
+    delete toPut.subjectTagFilter;
+    delete toPut.aspectFilter;
+    delete toPut.aspectTagFilter;
+    delete toPut.statusFilter;
+    toPut.aspectFilterType = 'EXCLUDE';
+    toPut.statusFilterType = 'EXCLUDE';
+    toPut.subjectTagFilterType = 'EXCLUDE';
+    toPut.aspectTagFilterType = 'EXCLUDE';
+
+    api.put(`${path}/${perspectiveId}`)
+      .set('Authorization', token)
+      .send(toPut)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.subjectTagFilter).to.eql([]);
+        expect(res.body.aspectFilter).to.eql([]);
+        expect(res.body.aspectTagFilter).to.eql([]);
+        expect(res.body.statusFilter).to.eql([]);
+
+        done();
+      });
+  });
 });

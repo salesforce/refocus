@@ -104,7 +104,7 @@ module.exports = function user(seq, dataTypes) {
     },
     tags: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
-      allowNull: true,
+      allowNull: false,
       defaultValue: constants.defaultArrayValue,
     },
     author: {
