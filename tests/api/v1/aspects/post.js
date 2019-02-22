@@ -207,6 +207,22 @@ describe('tests/api/v1/aspects/post.js >', () => {
       })
       .end(done);
     });
+
+    it('tags and related links set to empty array if not provided', (done) => {
+      const aspectToPost = {
+        name: `${tu.namePrefix}Weight`,
+        timeout: '110s',
+      };
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.CREATED)
+      .expect((res) => {
+        expect(res.body.tags).to.eql([]);
+        expect(res.body.relatedLinks).to.eql([]);
+      })
+      .end(done);
+    });
   });
 
   describe('validate helpEmail/helpUrl required >', () => {
