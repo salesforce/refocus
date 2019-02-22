@@ -127,7 +127,6 @@ function prepareLogLines(processName) {
  * @param {String} processName - the process name, e.g. web.1:3, worker.2, ...
  */
 function log(processName) {
-  // Write a log line for each event type
   prepareLogLines(processName).forEach((obj) => {
     activityLog.printActivityLogString(obj, activityLogType);
   });
