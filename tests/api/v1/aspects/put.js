@@ -338,6 +338,22 @@ describe('tests/api/v1/aspects/put.js >', () => {
         done();
       });
     });
+
+    it('tags and related links set to empty array if not provided', (done) => {
+      const toPut = {
+        name: `${tu.namePrefix}newName`,
+        timeout: '220s',
+      };
+      api.put(`${path}/${aspectId}`)
+      .set('Authorization', token)
+      .send(toPut)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.tags).to.eql([]);
+        expect(res.body.relatedLinks).to.eql([]);
+      })
+      .end(done);
+    });
   });
 
   describe('validate helpEmail/helpUrl required >', () => {

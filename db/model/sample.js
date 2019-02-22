@@ -62,7 +62,7 @@ module.exports = function sample(seq, dataTypes) {
     },
     relatedLinks: {
       type: dataTypes.ARRAY(dataTypes.JSON),
-      allowNull: true,
+      allowNull: false,
       defaultValue: constants.defaultJsonArrayValue,
       validate: {
         validateJsonSchema(value) {

@@ -185,4 +185,36 @@ describe('tests/api/v1/perspectives/patch.js >', () => {
     .expect(constants.httpStatus.BAD_REQUEST)
     .end(done);
   });
+
+  it('filters set to empty array if not provided', (done) => {
+    Perspective.findById(perspectiveId)
+      .then((p) => p.update({
+        subjectTagFilter: [],
+        aspectFilter: [],
+        aspectTagFilter: [],
+        statusFilter: [],
+        aspectFilterType: 'EXCLUDE',
+        statusFilterType: 'EXCLUDE',
+        subjectTagFilterType: 'EXCLUDE',
+        aspectTagFilterType: 'EXCLUDE',
+      }))
+      .then(() => {
+        api.patch(`${path}/${perspectiveId}`)
+          .set('Authorization', token)
+          .send({ rootSubject: 'changedMainSubject' })
+          .expect(constants.httpStatus.OK)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            expect(res.body.subjectTagFilter).to.eql([]);
+            expect(res.body.aspectFilter).to.eql([]);
+            expect(res.body.aspectTagFilter).to.eql([]);
+            expect(res.body.statusFilter).to.eql([]);
+
+            done();
+          });
+      });
+  });
 });
