@@ -201,8 +201,9 @@ describe('tests/realtime/pubSubStats.js >', () => {
     });
 
     it('ok', () => {
-      const re1 = /info: activity=pubsub key=bye.world process=MyProcessName pubCount=3 pubTime=\d+ subCount=1 subTime=\d+ \n/;
-      const re2 = /info: activity=pubsub key=hello.world process=MyProcessName pubCount=1 pubTime=\d+ subCount=1 subTime=\d+ \n/;      expect(inspect.output).to.be.array;
+      const re1 = /info: activity=pubsub key=bye.world process=MyProcessName pubCount=3 pubTime=\d+ subCount=1 subTime=\d+ \n/; // jscs:ignore maximumLineLength
+      const re2 = /info: activity=pubsub key=hello.world process=MyProcessName pubCount=1 pubTime=\d+ subCount=1 subTime=\d+ \n/; // jscs:ignore maximumLineLength
+      expect(inspect.output).to.be.array;
       expect(inspect.output).to.have.lengthOf(2);
       expect(inspect.output[0]).to.match(re1);
       expect(inspect.output[1]).to.match(re2);
