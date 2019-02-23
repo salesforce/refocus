@@ -46,6 +46,7 @@ describe('tests/realtime/pubsub.js >', () => {
             timeout: '30s',
           })));
         })
+
         // create multiple samples, num of samples = num of aspects
         .then((createdAspects) => Promise.all(createdAspects.map((asp) =>
           Sample.create({
@@ -86,7 +87,6 @@ describe('tests/realtime/pubsub.js >', () => {
           } else if (subClients.length > 1) {
             let countSum = 0;
             subMsgCount.forEach((count) => {
-
               // messages should be distributed among subscribers
               expect(count).to.be.below(publishCount);
               countSum += count;
@@ -108,11 +108,9 @@ describe('tests/realtime/pubsub.js >', () => {
       }
 
       Sample.findAll()
-        .then((samples) => {
-          return Promise.all(samples.map((samp) =>
+        .then((samples) => Promise.all(samples.map((samp) =>
             redisPublisher.publishSample(samp, Subject, event.upd, Aspect)
-          ));
-        })
+        )))
         .then(() => {
           // Check every 50ms until we get all the messages
           waitForMessages(50);
