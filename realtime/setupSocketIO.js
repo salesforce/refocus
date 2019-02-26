@@ -185,7 +185,7 @@ function init(io, redisStore) {
 
     // check if connection using an authorization header
     } else if (socket.handshake.headers.authorization) {
-      jwtUtils.verifyBotToken(socket.handshake.headers.authorization)
+      jwtUtils.verifyBotSocketToken(socket.handshake.headers.authorization)
       .then((isValid) => {
         if (!isValid) {
           socket.disconnect();
