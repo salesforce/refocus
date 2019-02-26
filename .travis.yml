@@ -37,12 +37,8 @@ addons:
     packages:
       - g++-4.8
 
-#services:
-#  - redis-server
-
-before_script:
-  sudo redis-server /etc/redis/redis.conf --port 6379 --requirepass 'secret'
-  sudo redis-server /etc/redis/redis.conf --port 6380 --requirepass 'secret'
+services:
+  - redis-server
 
 script:
   - npm run jscs-enforce
