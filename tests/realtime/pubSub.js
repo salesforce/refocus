@@ -21,7 +21,7 @@ const rtu = require('../cache/models/redisTestUtil');
 const subClients = require('../../cache/redisCache').client.subPerspectives;
 
 describe('tests/realtime/pubsub.js >', () => {
-  describe('publish and subscribe>', () => {
+  describe('publish and subscribe >', () => {
     const subjectName = `${tu.namePrefix}Subject`;
     const publishCount = 50;
 
@@ -89,6 +89,7 @@ describe('tests/realtime/pubsub.js >', () => {
             subMsgCount.forEach((count) => {
               // messages should be distributed among subscribers
               expect(count).to.be.below(publishCount);
+              expect(count).to.be.above(1);
               countSum += count;
             });
 

@@ -18,7 +18,7 @@ const rconf = require('../config').redis;
 const featureToggles = require('feature-toggles');
 
 /*
- * This will add "...Async" to all noden_redis functions (e.g. return
+ * This will add "...Async" to all node_redis functions (e.g. return
  * client.getAsync().then(...)).
  */
 const bluebird = require('bluebird');
