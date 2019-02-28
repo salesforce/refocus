@@ -45,6 +45,12 @@ module.exports = function botAction(seq, dataTypes) {
       },
       comment: 'Name of the bot action',
     },
+    actionLog: {
+      type: dataTypes.STRING(constants.fieldlen.normalName),
+      allowNull: true,
+      comment: 'This is a field for a developer to specify a' +
+        'more specific action name',
+    },
     parameters: {
       type: dataTypes.ARRAY(dataTypes.JSON),
       allowNull: true,

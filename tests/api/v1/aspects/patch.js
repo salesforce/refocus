@@ -67,6 +67,10 @@ describe('tests/api/v1/aspects/patch.js >', () => {
           throw new Error('expecting aspect');
         }
 
+        // tags and relatedLinks should be empty
+        expect(res.body.tags).to.eql([]);
+        expect(res.body.relatedLinks).to.eql([]);
+
         if (res.body.timeout !== newTimeout) {
           throw new Error('Incorrect timeout Value');
         }

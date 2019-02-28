@@ -18,6 +18,7 @@ const Action1 = 'Action1';
 const standard = {
   isPending: true,
   name: Action1,
+  actionLog: 'test',
   parameters: [
     {
       name: 'Param1',

@@ -373,4 +373,32 @@ describe('tests/api/v1/generators/put.js >', () => {
       return done();
     });
   });
+
+  it('tags set to empty array if not provided', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      generatorTemplate: {
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjectQuery: '?absolutePath=Foo.*',
+      aspects: ['Temperature', 'Weather'],
+    };
+    api.put(`${path}/${generatorId}`)
+      .set('Authorization', token)
+      .send(toPut)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.tags).to.eql([]);
+      })
+      .end(done);
+  });
 });
