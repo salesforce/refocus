@@ -55,6 +55,7 @@ module.exports = {
     user: 'user',
     owner: 'owner',
   },
+  fieldsToExclude: ['createdBy', 'ownerId'],
   model: Subject,
   modelName: 'Subject',
   nameFinder: 'absolutePath',

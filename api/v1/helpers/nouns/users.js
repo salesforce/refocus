@@ -37,4 +37,5 @@ module.exports = {
   fieldScopeMap: {
     profile: 'profile',
   },
+  fieldsToExclude: ['profileId'],
 }; // exports
