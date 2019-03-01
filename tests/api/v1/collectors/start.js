@@ -19,6 +19,7 @@ const path = '/v1/collectors/start';
 const collectorConfig = require('../../../../config/collectorConfig');
 const getWritersPath = '/v1/collectors/{key}/writers';
 const Collector = tu.db.Collector;
+const CollectorGroup = tu.db.CollectorGroup;
 const expect = require('chai').expect;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
@@ -67,8 +68,11 @@ describe('tests/api/v1/collectors/start.js >', () => {
 
   let generator1;
   let generator2;
+  let collectorGroup1;
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   let collector1;
+  let cg1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+  cg1.collectors = [u.getCollectorToCreate().name];
 
   before((done) => {
     tu.createUserAndToken()
@@ -105,7 +109,11 @@ describe('tests/api/v1/collectors/start.js >', () => {
     .then((generators) => {
       generator1 = generators[0];
       generator2 = generators[1];
-      return collector1.addPossibleGenerators([generator1, generator2]);
+    })
+    .then(() => CollectorGroup.createCollectorGroup(cg1))
+    .then((cg) => {
+      collectorGroup1 = cg;
+      return collectorGroup1.addGenerators([generator1, generator2]);
     })
     .then(() => done())
     .catch(done);
@@ -137,9 +145,11 @@ describe('tests/api/v1/collectors/start.js >', () => {
           gen.name === generator2.name)[0];
         expect(sg1.id).to.include(generator1.id);
         expect(sg1.GeneratorCollectors).to.equal(undefined);
-        expect(sg1.possibleCollectors).to.equal(undefined);
+        expect(sg1.collectorGroup.collectors).to.have.lengthOf(1);
+        expect(sg1.collectorGroup.collectors[0].name).to.equal(collector1.name);
         expect(sg2.GeneratorCollectors).to.equal(undefined);
-        expect(sg2.possibleCollectors).to.equal(undefined);
+        expect(sg2.collectorGroup.collectors).to.have.lengthOf(1);
+        expect(sg2.collectorGroup.collectors[0].name).to.equal(collector1.name);
         expect(res.body.generatorsAdded[0].aspects[0])
           .to.contain.property('name', 'temperature');
         expect(res.body.encryptionAlgorithm).to.equal(algorithm);
@@ -177,7 +187,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
       gen3.name += 'generator-3';
       gen3.createdBy = user.id;
       gen3.isActive = true;
-      gen3.possibleCollectors = [defaultCollector.name];
+      gen3.collectorGroup = collectorGroup1.name;
       sgUtils.createSGtoSGTMapping(generatorTemplate, gen3);
 
       // create generator3 with collector1 as possible collector
@@ -335,6 +345,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   generatorTemplate.contextDefinition = contextDefinition;
   let collector1;
+  let collectorGroup1;
+  let cg1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
 
   const generator1 = sgUtils.getGenerator();
   generator1.context = context;
@@ -360,6 +372,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
         value: algorithm,
       }))
       .then(() => sgUtils.createGeneratorAspects())
+      .then(() => CollectorGroup.create(cg1))
+      .then((cg) => collectorGroup1 = cg)
       .then(() => GeneratorTemplate.create(generatorTemplate))
       .then(() => Collector.create(defaultCollector))
       .then((c) => {
@@ -370,7 +384,8 @@ describe('tests/api/v1/collectors/start.js >', () => {
       .then(() => cryptUtils.encryptSGContextValues(GlobalConfig,
         generator1, generatorTemplate))
       .then((gen) => Generator.bulkCreate([gen]))
-      .then((gen) => collector1.addPossibleGenerators(gen))
+      .then(([gen]) => collectorGroup1.addGenerators([gen]))
+      .then(() => collectorGroup1.addCollectors([collector1]))
       .then(() => done())
       .catch(done);
   });
