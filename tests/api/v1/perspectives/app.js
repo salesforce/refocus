@@ -73,7 +73,7 @@ describe('tests/api/v1/perspectives/app.js, dropdown and modal data >', () => {
       expect(res.body).to.have.deep.property(
         '[0].rootSubject', 'myMainSubject'
       );
-      expect(res.body).to.have.deep.property('[0].lensId', lensId);
+      expect(res.body).to.have.deep.property('[0].lens.id', lensId);
       expect(res.body[ZERO].aspectFilter).to.eql(['temperature', 'humidity']);
       expect(res.body[ZERO].aspectTagFilter).to.eql(['temp', 'hum']);
       expect(res.body[ZERO].subjectTagFilter).to.eql(['ea', 'na']);

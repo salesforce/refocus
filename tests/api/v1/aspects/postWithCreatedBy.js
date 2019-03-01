@@ -35,7 +35,7 @@ describe('tests/api/v1/aspects/postWithCreatedBy.js, ' + path + ' >', () => {
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));
 
-  it('createdBy and user fields are returned', (done) => {
+  it('user field is returned', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(u.toCreate)
@@ -45,7 +45,7 @@ describe('tests/api/v1/aspects/postWithCreatedBy.js, ' + path + ' >', () => {
         return done(err);
       }
 
-      expect(res.body.createdBy).to.equal(user.id);
+      expect(res.body.user.id).to.equal(user.id);
       expect(res.body.user.name).to.equal(user.name);
       expect(res.body.user.email).to.equal(user.email);
       done();

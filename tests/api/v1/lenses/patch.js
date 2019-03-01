@@ -60,7 +60,7 @@ describe('tests/api/v1/lenses/patch.js >', () => {
 
         expect(res.body.description).to.equal('changed description');
         expect(res.body.user).to.be.an('object');
-        expect(res.body.installedBy).to.equal(userId);
+        expect(res.body.user.id).to.equal(userId);
         done();
       });
     });
