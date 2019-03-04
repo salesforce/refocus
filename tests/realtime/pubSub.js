@@ -89,7 +89,6 @@ describe('tests/realtime/pubsub.js >', () => {
             subMsgCount.forEach((count) => {
               // messages should be distributed among subscribers
               expect(count).to.be.below(publishCount);
-              expect(count).to.be.above(1);
               countSum += count;
             });
 
