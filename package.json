@@ -196,6 +196,7 @@
     "redbox-react": "^1.6.0",
     "sinon": "^5.1.1",
     "supertest": "^3.4.2",
+    "test-console": "^1.1.0",
     "webpack-dev-middleware": "^1.4.0",
     "webpack-dev-server": "^1.12.1"
   }
