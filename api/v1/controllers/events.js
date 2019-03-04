@@ -19,8 +19,11 @@ const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPost = require('../helpers/verbs/doPost');
 const u = require('../helpers/verbs/utils');
+const activityLogUtil = require('../../../utils/activityLog');
 const httpStatus = require('../constants').httpStatus;
 const DEFAULT_LIMIT = config.botEventLimit;
+const roomModel = require('../helpers/nouns/rooms').model;
+const roomTypeModel = require('../helpers/nouns/roomTypes').model;
 
 const kueSetup = require('../../../jobQueue/setup');
 const kue = kueSetup.kue;
@@ -78,7 +81,40 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postEvents(req, res, next) {
-    doPost(req, res, next, helper);
+    // doPost(req, res, next, helper);
+    const resultObj = { reqStartTime: req.timestamp };
+    const reqObj = req.swagger.params.queryBody.value;
+    const user = req.user;
+    reqObj.installedBy = user.id;
+    u.setOwner(reqObj, req)
+      .then(() => helper.model.create(reqObj))
+      .then((o) => o.reload())
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        u.logAPI(req, resultObj, o.dataValues);
+        if (featureToggles.isFeatureEnabled('enableEventActivityLogs')) {
+          resultObj.user = req.headers.UserName;
+          resultObj.token = req.headers.TokenName;
+          resultObj.action_id = o.botActionId || 'None';
+          resultObj.ipAddress = activityLogUtil.getIPAddrFromReq(req);
+          resultObj.method = req.method;
+          resultObj.process = req.process;
+          resultObj.uri = req.url;
+          resultObj.request_id = req.request_id || 'None';
+          resultObj.type = event.actionType;
+          resultObj.botName = o.botId;
+          u.findByIdThenName(roomModel, o.roomId)
+            .then((r) => u.findByIdThenName(roomTypeModel, r.type))
+            .then((rt) => {
+              resultObj.RoomType = rt.name;
+              activityLogUtil.printActivityLogString(resultObj, 'event');
+            });
+        }
+
+        return res.status(httpStatus.CREATED)
+            .json(u.responsify(o, helper, req.method));
+      })
+        .catch((err) => u.handleError(next, err, helper.modelName));
   },
 
   /**

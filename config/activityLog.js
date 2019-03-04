@@ -54,6 +54,23 @@ module.exports = {
     name: 'None',
     value: 'None',
   },
+  event: {
+    activity: 'event',
+    action_id: 'None',
+    actionSuccess: 'None',
+    botName: 'None',
+    ipAddress: 'None',
+    dbTime: '0ms',
+    method: 'None', // one of HTTP verbs
+    process: 'None',
+    request_id: 'None',
+    roomType: 'None',
+    token: 'None',
+    totalTime: '0ms',
+    type: 'None',
+    uri: 'None',
+    user: 'None',
+  },
   job: {
     activity: 'job',
     description: 'None',
