@@ -46,15 +46,10 @@ describe('tests/realtime/pubSubStats.js >', () => {
 
       it('obj', () => {
         expect(() => pss.track('pub', 'hello.world')).to.throw();
-        ;
         expect(() => pss.track('pub', 'hello.world', null)).to.throw();
-        ;
         expect(() => pss.track('pub', 'hello.world', undefined)).to.throw();
-        ;
         expect(() => pss.track('pub', 'hello.world', [])).to.throw();
-        ;
         expect(() => pss.track('pub', 'hello.world', '')).to.throw();
-        ;
         expect(global[globalKey]).to.be.undefined;
       });
     });
