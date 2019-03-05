@@ -12,7 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
 const emitter = require('./socketIOEmitter');
-const subPerspective = require('../cache/redisCache').client.subPerspective;
+const subPerspectives = require('../cache/redisCache').client.subPerspectives;
 const subBot = require('../cache/redisCache').client.subBot;
 const rtUtils = require('./utils');
 const pubSubStats = require('./pubSubStats');
@@ -26,8 +26,9 @@ const ONE = 1;
  * @param {Socket.io} io - Socket.io's Server API
  * @param {String} processName - Process name
  */
+const allSubscribers = subPerspectives.concat(subBot);
 module.exports = (io, processName) => {
-  [subBot, subPerspective].forEach((s) => {
+  allSubscribers.forEach((s) => {
     s.on('message', (channel, messageAsString) => {
       const obj = JSON.parse(messageAsString);
       const key = Object.keys(obj)[ZERO];
