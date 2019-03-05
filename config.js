@@ -128,7 +128,6 @@ const clockJobConfig = {
     deleteUnusedTokens: '1d',
     jobCleanup: '30m',
     kueStatsActivityLogs: '1m',
-    pubsubStatsLogs: '1m',
     queueStatsActivityLogs: '1m',
     resetJobCounter: '2h',
     sampleTimeout: '30s',
@@ -141,7 +140,6 @@ const clockJobConfig = {
   },
   toggles: {
     kueStatsActivityLogs: 'enableKueStatsActivityLogs',
-    pubsubStatsLogs: 'enablePubsubStatsLogs',
     queueStatsActivityLogs: 'enableQueueStatsActivityLogs',
   },
 };
@@ -259,6 +257,9 @@ const db = {
   passwordHashSaltNumRounds: 8,
 };
 
+const pubSubStatsLoggingInterval =
+  ms(pe.PUB_SUB_STATS_LOGGING_INTERVAL || '1m');
+
 module.exports = {
   api: {
     defaults: {
@@ -317,6 +318,7 @@ module.exports = {
   payloadLimit,
   port,
   prioritizeJobsFrom,
+  pubSubStatsLoggingInterval,
   queueTime95thMillis: pe.QUEUESTATS_95TH_WARNING_MILLIS,
   readReplicas,
   waitingSigKillTimeout,
