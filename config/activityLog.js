@@ -56,7 +56,7 @@ module.exports = {
   },
   event: {
     activity: 'event',
-    action_id: 'None',
+    actionId: 'None',
     actionSuccess: 'None',
     botName: 'None',
     ipAddress: 'None',
