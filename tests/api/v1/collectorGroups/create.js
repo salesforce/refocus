@@ -213,8 +213,8 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
         api.post('/v1/collectorGroups')
         .set('Authorization', token)
         .send({ // Creating a new Collector Group with one Coll assigned
-          name: 'coll-group-must-fail',
-          description: 'coll-description-must-fail',
+          name: 'coll-group-2',
+          description: 'coll-description',
           collectors: [collector3.name],
         })
         .expect(httpStatus.CREATED)

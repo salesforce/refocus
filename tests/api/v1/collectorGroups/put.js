@@ -445,6 +445,42 @@ describe('tests/api/v1/collectorGroups/put.js >', () => {
     });
 
     it('already assigned generator, put collectorGroup should set ' +
+      'currentCollector to null if no collectors specified', (done) => {
+      generatorInst.update({ collectorId: collectorAlive1.id })
+      .then((gen) => gen.reload())
+      .then((updatedGenInst) => {
+        expect(updatedGenInst.currentCollector.name).to.be.equal(collectorAlive1.name);
+        api.put(`/v1/collectorGroups/${cg.name}`)
+        .set('Authorization', token)
+        .send({
+          name: cg.name,
+        })
+        .expect(httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const collectors = res.body.collectors;
+          expect(Array.isArray(collectors)).to.be.true;
+          expect(collectors.length).to.equal(0);
+
+          api.get(`/v1/generators/${generatorInst.name}`)
+          .set('Authorization', token)
+          .expect(httpStatus.OK)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            expect(res.body.currentCollector).to.not.exist;
+            return done();
+          });
+        });
+      }).catch(done);
+    });
+
+    it('already assigned generator, put collectorGroup should set ' +
       'currentCollector to another alive collector if currentCollector ' +
       'does not exist in updated collector list', (done) => {
       generatorInst.update({ collectorId: collectorAlive1.id })
