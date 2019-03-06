@@ -207,7 +207,6 @@ function getNameFromAbsolutePath(absolutePath) {
  */
 function completeSubjectHierarchy(res, params) {
   const startTime = new Date();
-  // set the filters
   u.setFilters(params, filters);
   return traverseHierarchy(res)
   .then(() => {
