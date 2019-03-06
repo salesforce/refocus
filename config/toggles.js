@@ -162,6 +162,9 @@ const longTermToggles = {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const shortTermToggles = {
+  attachSmallerSubjectToSample: environmentVariableTrue(pe,
+    'ATTACH_SMALLER_SUBJECT_TO_SAMPLE'),
+
   // turn on logging to log invalid hmset values
   logInvalidHmsetValues: environmentVariableTrue(pe,
     'LOG_INVALID_HMSET_VALUES'),

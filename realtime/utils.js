@@ -29,6 +29,7 @@ const filters = [
   'statusFilter',
 ];
 const botAbsolutePath = '/Bots';
+const subjectAttributesToAttach = ['absolutePath', 'name', 'tags'];
 
 const ASPECT_INDEX = 0;
 const SUBJECT_INDEX = 1;
@@ -385,14 +386,29 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   // Lookup by id is faster than case-insensitive ILIKE on absolutePath
   let subFinder;
   if (!sample.subject && subjectModel) {
-    if (sample.subjectId) {
-      subFinder = subjectModel.findById(sample.subjectId);
+    if (featureToggles.isFeatureEnabled('attachSmallerSubjectToSample')) {
+      if (sample.subjectId) {
+        subFinder = subjectModel.unscoped().findById(sample.subjectId, {
+          attributes: subjectAttributesToAttach,
+        });
+      } else {
+        subFinder = subjectModel.unscoped().findOne({
+          where: {
+            absolutePath: { [Op.iLike]: subAbsPath },
+          },
+          attributes: subjectAttributesToAttach,
+        });
+      }
     } else {
-      subFinder = subjectModel.findOne({
-        where: {
-          absolutePath: { [Op.iLike]: subAbsPath },
-        },
-      });
+      if (sample.subjectId) {
+        subFinder = subjectModel.findById(sample.subjectId);
+      } else {
+        subFinder = subjectModel.findOne({
+          where: {
+            absolutePath: { [Op.iLike]: subAbsPath },
+          }
+        });
+      }
     }
   }
 

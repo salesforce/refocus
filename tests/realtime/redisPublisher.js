@@ -66,8 +66,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
       rtu.forceDelete(done);
     });
 
-    it('certain fields in aspect should be array, and others ' +
-      'should be undefined', (done) => {
+    it('certain aspect fields should be array, others undefined', (done) => {
       Sample.findOne(sampleName)
         .then((sam) => redisPublisher.publishSample(sam, Subject, event.upd, Aspect))
         .then((pubObj) => {
@@ -81,8 +80,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
         .catch(done);
     });
 
-    it('certain fields in subject should be array, and others ' +
-      'should be undefined', (done) => {
+    it('certain subject fields should be array, others undefined', (done) => {
       Sample.findOne(sampleName)
         .then((sam) => redisPublisher.publishSample(sam, Subject, event.upd, Aspect))
         .then((pubObj) => {
