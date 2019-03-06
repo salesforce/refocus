@@ -38,4 +38,5 @@ module.exports = {
     possibleGenerators: 'possibleGenerators',
     currentGenerators: 'currentGenerators',
   },
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

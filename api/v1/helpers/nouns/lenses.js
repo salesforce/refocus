@@ -35,4 +35,5 @@ module.exports = {
   belongsToManyAssoc: {
     users: 'writers',
   },
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

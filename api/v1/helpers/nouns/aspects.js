@@ -43,4 +43,5 @@ module.exports = {
   tagFilterName: 'tags',
   readOnlyFields: ['id', 'isDeleted'],
   requireAtLeastOneFields: ['helpEmail', 'helpUrl'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

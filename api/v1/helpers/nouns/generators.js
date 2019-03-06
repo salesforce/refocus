@@ -76,5 +76,6 @@ module.exports = {
     possibleCollectors: 'name',
   },
   readOnlyFields: ['id', 'isDeleted', 'currentCollector'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 
 }; // exports

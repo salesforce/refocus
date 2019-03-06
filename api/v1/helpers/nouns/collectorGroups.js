@@ -25,4 +25,5 @@ module.exports = {
   fieldScopeMap: {
     collectors: 'collectors',
   },
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

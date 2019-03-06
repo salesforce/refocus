@@ -39,6 +39,7 @@ module.exports = {
   },
 
   hasMultipartKey: true,
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 
 }; // exports
 
