@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 
+const featureToggles = require('feature-toggles');
 const helper = require('../../api/v1/helpers/nouns/subjects');
 const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const utils = require('../../api/v1/helpers/verbs/utils');
@@ -205,12 +206,19 @@ function getNameFromAbsolutePath(absolutePath) {
  * complete subject hierarchy with samples
  */
 function completeSubjectHierarchy(res, params) {
+  const startTime = new Date();
   // set the filters
   u.setFilters(params, filters);
   return traverseHierarchy(res)
   .then(() => {
     // once the filtering is done, reset it back.
     u.resetFilters(filters);
+
+    if (featureToggles.isFeatureEnabled('instrumentCompleteSubjectHierarchy')) {
+      console.log('cache/model/subject.completeSubjectHierarchy:' +
+        `${res.absolutePath}:${new Date() - startTime}`);
+    }
+
     return Promise.resolve(res);
   });
 } // completeSubjectHierarchy
