@@ -81,7 +81,6 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postEvents(req, res, next) {
-    // doPost(req, res, next, helper);
     const resultObj = { reqStartTime: req.timestamp };
     const reqObj = req.swagger.params.queryBody.value;
 
