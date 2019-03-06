@@ -187,7 +187,7 @@ const shortTermToggles = {
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
 
   instrumentCompleteSubjectHierarchy: environmentVariableTrue(pe,
-    'INSTRUMENT_COMPLETE_SUBJECT_HIERARCHY');
+    'INSTRUMENT_COMPLETE_SUBJECT_HIERARCHY'),
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 
