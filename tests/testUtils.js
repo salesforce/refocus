@@ -304,6 +304,13 @@ module.exports = {
     .catch(done);
   }, // forceDeleteSubject
 
+  forceDeleteAllRecords(dbModel) {
+    return dbModel.destroy({
+      where: {},
+      force: true,
+    });
+  },
+
   Sample,
 
   toggleOverride(key, value) {

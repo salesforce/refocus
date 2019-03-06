@@ -19,7 +19,7 @@ const status = require('../../../../api/v1/constants').httpStatus;
 const collectorConfig = require('../../../../config/collectorConfig');
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
-const collectorToCreate =  {
+const collectorToCreate = {
   name: tu.namePrefix + 'Coll',
   description: 'This is my collector description.',
   helpEmail: 'a@bcd.com',
@@ -184,6 +184,10 @@ function getCollectorToCreate() {
 
 module.exports = {
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(collectorToCreate));
     return Object.assign(defaultProps, overrideProps);
   },
@@ -200,6 +204,15 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => done())
     .catch(done);
+  },
+
+  forceDeleteAllRecords(done) {
+    tu.forceDeleteAllRecords(tu.db.Collector)
+      .then(() => tu.forceDeleteAllRecords(tu.db.GeneratorTemplate))
+      .then(() => tu.forceDeleteAllRecords(tu.db.Generator))
+      .then(() => tu.forceDeleteAllRecords(tu.db.Aspect))
+      .then(() => done())
+      .catch(done);
   },
 
   expectLengths,

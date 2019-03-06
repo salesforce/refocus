@@ -23,6 +23,10 @@ const basic = {
 
 module.exports = {
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(basic));
     return Object.assign(defaultProps, overrideProps);
   },
@@ -46,6 +50,12 @@ module.exports = {
     samstoinit.populate()
     .then(() => done())
     .catch(done);
+  },
+
+  forceDeleteAllRecords(done) {
+    tu.forceDeleteAllRecords(tu.db.Subject)
+      .then(() => done())
+      .catch(done);
   },
 
 };

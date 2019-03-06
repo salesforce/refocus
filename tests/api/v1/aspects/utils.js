@@ -42,6 +42,10 @@ module.exports = {
   subjectToCreate,
 
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(basic));
     return Object.assign(defaultProps, overrideProps);
   },
@@ -61,6 +65,12 @@ module.exports = {
     )
     .then(() => done())
     .catch(done);
+  },
+
+  forceDeleteAllRecords(done) {
+    tu.forceDeleteAllRecords(tu.db.Aspect)
+      .then(() => done())
+      .catch(done);
   },
 
   populateRedis(done) {

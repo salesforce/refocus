@@ -32,6 +32,9 @@ module.exports = {
   name,
 
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
     const defaultProps = JSON.parse(JSON.stringify(basic));
     defaultProps.library = willSendthis;
     return Object.assign(defaultProps, overrideProps);
@@ -47,5 +50,12 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
     .then(() => done())
     .catch(done);
+  },
+
+  forceDeleteAllRecords(done) {
+    tu.forceDeleteAllRecords(tu.db.Perspective)
+      .then(() => tu.forceDeleteAllRecords(tu.db.Lens))
+      .then(() => done())
+      .catch(done);
   },
 };

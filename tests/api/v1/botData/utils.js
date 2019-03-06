@@ -34,15 +34,19 @@ module.exports = {
   },
 
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(standard));
     return Object.assign(defaultProps, overrideProps);
   },
 
   doSetup(props={}) {
-    const { createdBy } = props;
+    const { createdBy, name } = props;
     return Promise.all([
-      botUtil.createBasic({ installedBy: createdBy }),
-      roomUtil.createBasic({ createdBy: createdBy }),
+      botUtil.createBasic({ installedBy: createdBy, name }),
+      roomUtil.createBasic({ createdBy: createdBy, name }),
     ])
     .then(([bot, room]) => {
       const createdIds = {
@@ -54,13 +58,18 @@ module.exports = {
   },
 
   createBasic(overrideProps={}) {
-    const { createdBy } = overrideProps;
-    return this.doSetup({ createdBy })
-    .then(({ botId, roomId }) => {
-      Object.assign(overrideProps, { botId, roomId });
+    const { createdBy, name } = overrideProps;
+    if (overrideProps.botId && overrideProps.roomId) {
       const toCreate = this.getBasic(overrideProps);
       return tu.db.BotData.create(toCreate);
-    });
+    }
+
+    return this.doSetup({ createdBy, name })
+      .then(({ botId, roomId }) => {
+        Object.assign(overrideProps, { botId, roomId });
+        const toCreate = this.getBasic(overrideProps);
+        return tu.db.BotData.create(toCreate);
+      });
   },
 
   getDependencyProps() {
@@ -74,6 +83,15 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
     .then(() => done())
     .catch(done);
+  },
+
+  forceDeleteAllRecords(done) {
+    tu.forceDeleteAllRecords(tu.db.BotData)
+      .then(() => tu.forceDeleteAllRecords(tu.db.Bot))
+      .then(() => tu.forceDeleteAllRecords(tu.db.Room))
+      .then(() => tu.forceDeleteAllRecords(tu.db.RoomType))
+      .then(() => done())
+      .catch(done);
   },
 };
 

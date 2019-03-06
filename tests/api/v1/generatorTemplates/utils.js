@@ -85,6 +85,10 @@ module.exports = {
 
   getGeneratorTemplate,
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(GENERATOR_TEMPLATE_SIMPLE));
     return Object.assign(defaultProps, overrideProps);
   },
@@ -92,5 +96,12 @@ module.exports = {
   createBasic(overrideProps={}) {
     const toCreate = this.getBasic(overrideProps);
     return tu.db.GeneratorTemplate.create(toCreate);
+  },
+
+  forceDeleteAllRecords(done) {
+    tu.forceDeleteAllRecords(tu.db.GeneratorTemplate)
+      .then(() => tu.forceDeleteAllRecords(tu.db.Collector))
+      .then(() => done())
+      .catch(done);
   },
 };

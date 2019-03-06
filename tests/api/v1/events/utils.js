@@ -38,15 +38,19 @@ module.exports = {
   },
 
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(standard));
     return Object.assign(defaultProps, overrideProps);
   },
 
   doSetup(props={}) {
-    const { userId } = props;
+    const { userId, name } = props;
     return Promise.all([
-      botUtil.createBasic({ installedBy: userId }),
-      roomUtil.createBasic({ createdBy: userId }),
+      botUtil.createBasic({ installedBy: userId, name }),
+      roomUtil.createBasic({ createdBy: userId, name }),
     ])
     .then(([bot, room]) => {
       const createdIds = {
@@ -58,8 +62,14 @@ module.exports = {
   },
 
   createBasic(overrideProps={}) {
-    const { userId } = overrideProps;
-    return this.doSetup({ userId })
+    const { userId, name } = overrideProps;
+
+    if (overrideProps.botId && overrideProps.roomId) {
+      const toCreate = this.getBasic(overrideProps);
+      return tu.db.Event.create(toCreate);
+    }
+
+    return this.doSetup({ userId, name })
     .then(({ botId, roomId }) => {
       Object.assign(overrideProps, { botId, roomId });
       const toCreate = this.getBasic(overrideProps);
@@ -88,5 +98,16 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
     .then(() => done())
     .catch(done);
+  },
+
+  forceDeleteAllRecords(done) {
+    tu.forceDeleteAllRecords(tu.db.Event)
+      .then(() => tu.forceDeleteAllRecords(tu.db.BotData))
+      .then(() => tu.forceDeleteAllRecords(tu.db.BotAction))
+      .then(() => tu.forceDeleteAllRecords(tu.db.Bot))
+      .then(() => tu.forceDeleteAllRecords(tu.db.Room))
+      .then(() => tu.forceDeleteAllRecords(tu.db.RoomType))
+      .then(() => done())
+      .catch(done);
   },
 };
