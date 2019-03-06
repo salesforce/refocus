@@ -248,6 +248,14 @@ paths:
              include result set.
           type: array
           required: false
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when aspects were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -1298,6 +1306,14 @@ paths:
             Filter by auditEvent isError.
           required: false
           type: boolean
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when AuditEvents were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -1489,6 +1505,14 @@ paths:
           in: query
           required: false
           type: boolean
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when BotActions were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
         -
           $ref: "#/parameters/limitParam"
         -
@@ -1937,6 +1961,14 @@ paths:
           in: query
           required: false
           type: string
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when BotData was created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
         -
           $ref: "#/parameters/limitParam"
         -
@@ -2430,6 +2462,14 @@ paths:
           in: query
           required: false
           type: boolean
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when Bot was created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
         -
           $ref: "#/parameters/limitParam"
         -
@@ -3141,6 +3181,14 @@ paths:
             Filter by version; asterisk (*) wildcards ok.
           required: false
           type: string
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when collector was created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: Success, returns an array of zero or more Refocus collectors.
@@ -3848,6 +3896,14 @@ paths:
           required: false
           type: string
         -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when event was created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
           $ref: "#/parameters/limitParam"
         -
           $ref: "#/parameters/offsetParam"
@@ -4188,6 +4244,14 @@ paths:
              include result set.
           type: array
           required: false
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when generator was created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -4859,6 +4923,14 @@ paths:
           type: boolean
           description: >-
             Filter by generatorTemplate isPublished (true|false)
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when GeneratorTemplate was created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -5286,6 +5358,13 @@ paths:
           $ref: "#/parameters/limitParam"
         -
           $ref: "#/parameters/offsetParam"
+        - name: createdAt
+          in: query
+          description: >-
+            Filter by time period when globalConfigs was created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -5576,6 +5655,14 @@ paths:
           in: query
           required: false
           description: The version of the lens.
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when lenses were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -6196,6 +6283,14 @@ paths:
             Filter by root subject; asterisk (*) wildcards ok.
           required: false
           type: string
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when perspectives were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -6928,6 +7023,13 @@ paths:
           $ref: "#/parameters/limitParam"
         -
           $ref: "#/parameters/offsetParam"
+        - name: createdAt
+          in: query
+          description: >-
+            Filter by time period when profiles were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -7526,6 +7628,14 @@ paths:
           required: false
           type: string
         -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when rooms were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
           name: sort
           description: >
             Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
@@ -8038,6 +8148,14 @@ paths:
           in: query
           required: false
           type: string
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when roomTypes were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
         -
           $ref: "#/parameters/limitParam"
         -
@@ -9423,6 +9541,14 @@ paths:
              tags are not included in the result set.
           type: array
           required: false
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when subjects were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -10788,6 +10914,14 @@ paths:
             Filter by name; asterisk (*) wildcards ok.
           required: false
           type: string
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when users were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -11505,6 +11639,13 @@ paths:
             Filter by description; asterisk (*) wildcards ok.
           required: false
           type: string
+        - name: createdAt
+          in: query
+          description: >-
+            Filter by time period when CollectorGroups were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: Success, returns an array of zero or more Refocus collectorGroups.
