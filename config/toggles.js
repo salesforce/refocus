@@ -108,6 +108,8 @@ const longTermToggles = {
     'unauthorized'),
   enableWorkerActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'worker'),
+  enableEventActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'event'),
 
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
