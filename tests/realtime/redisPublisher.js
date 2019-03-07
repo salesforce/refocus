@@ -74,7 +74,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
           expect(pubObj.aspect.name).to.equal(aspectName);
           expect(pubObj.aspect.writers).to.be.undefined;
           expect(Array.isArray(pubObj.aspect.relatedLinks)).to.be.true;
-          expect(pubObj.subject.helpEmail).to.be.null;
+          expect(pubObj.subject).to.not.have.property('helpEmail');
           done();
         })
         .catch(done);
@@ -86,8 +86,8 @@ describe('tests/realtime/redisPublisher.js >', () => {
         .then((pubObj) => {
           expect(pubObj.subject).to.not.equal(null);
           expect(pubObj.subject.name).to.equal(subjectName);
-          expect(Array.isArray(pubObj.subject.relatedLinks)).to.be.true;
-          expect(pubObj.subject.helpEmail).to.be.null;
+          expect(pubObj.subject).to.not.have.property('relatedLinks');
+          expect(pubObj.subject).to.not.have.property('helpEmail');
           done();
         })
         .catch(done);
@@ -106,14 +106,14 @@ describe('tests/realtime/redisPublisher.js >', () => {
           expect(pubObj.aspect.name).to.equal(aspectName);
           expect(pubObj.aspect.writers).to.be.undefined;
           expect(Array.isArray(pubObj.aspect.relatedLinks)).to.be.true;
-          expect(pubObj.subject.helpEmail).to.be.null;
+          expect(pubObj.subject).to.not.have.property('helpEmail');
 
           // check subject is still there
           expect(pubObj.subject).to.not.equal(null);
           expect(pubObj.subject.name).to.equal(subjectName);
-          expect(pubObj.subject.writers).to.be.undefined;
-          expect(Array.isArray(pubObj.subject.relatedLinks)).to.be.true;
-          expect(pubObj.subject.helpEmail).to.be.null;
+          expect(pubObj.subject).to.not.have.property('writers');
+          expect(pubObj.subject).to.not.have.property('relatedLinks');
+          expect(pubObj.subject).to.not.have.property('helpEmail');
           done();
         })
         .catch(done);
@@ -167,7 +167,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
           .then((pubObj) => {
             expect(pubObj.subject).to.not.equal(null);
             expect(pubObj.subject.name).to.equal(subjectNA.name);
-            expect(pubObj.subject.helpEmail).to.be.null;
+            expect(pubObj.subject).to.not.have.property('helpEmail');
             expect(pubObj.subject.tags.length).to.equal(0);
             expect(pubObj.absolutePath).to.equal(subjectNA.name);
             expect(pubObj.aspect.tags.length).to.equal(0);
@@ -184,7 +184,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
           .then((pubObj) => {
             expect(pubObj.subject).to.not.equal(null);
             expect(pubObj.subject.name).to.equal(subjectNA.name);
-            expect(pubObj.subject.helpEmail).to.be.null;
+            expect(pubObj.subject).to.not.have.property('helpEmail');
             expect(pubObj.subject.tags.length).to.equal(0);
             expect(pubObj.absolutePath).to.equal(subjectNA.name);
             expect(pubObj.aspect.tags.length).to.equal(0);
@@ -205,7 +205,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
           .then((pubObj) => {
             expect(pubObj.aspect).to.not.equal(null);
             expect(pubObj.aspect.name).to.equal(humidity.name);
-            expect(pubObj.subject.helpEmail).to.be.null;
+            expect(pubObj.subject).to.not.have.property('helpEmail');
             expect(pubObj.aspect.tags.length).to.equal(0);
             expect(pubObj.subject).to.not.equal(null);
             expect(pubObj.subject.name).to.equal(subjectNA.name);
@@ -272,12 +272,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
     });
   });
 
-  describe('reduceSampleEventSize >', () => {
-    const initialFeatureState =
-      featureToggles.isFeatureEnabled('reduceSampleEventSize');
-    before(() => tu.toggleOverride('reduceSampleEventSize', true));
-    after(() => tu.toggleOverride('reduceSampleEventSize', initialFeatureState));
-
+  describe('sample event payload >', () => {
     const subjectName = `${tu.namePrefix}Subject`;
     const aspectName = `${tu.namePrefix}Aspect`;
     const sampleName = `${subjectName}|${aspectName}`;

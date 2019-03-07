@@ -67,7 +67,6 @@ function trackStats(key, obj) {
 } // trackStats
 
 /**
->>>>>>> multiple publishers for perspectives, pick one at random
  * When passed an sample object, either a sequelize sample object or
  * a plain sample object, it returns either an sample add event or an sample
  * update event.
