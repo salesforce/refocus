@@ -108,6 +108,8 @@ const longTermToggles = {
     'unauthorized'),
   enableWorkerActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'worker'),
+  enableEventActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'event'),
 
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
@@ -194,11 +196,6 @@ const shortTermToggles = {
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
   requireHelpEmailOrHelpUrl: environmentVariableTrue(
     pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
-
-  // reduce the size of the sample real-time event by removing most of its
-  // embedding subject attributes
-  reduceSampleEventSize: environmentVariableTrue(pe,
-    'REDUCE_SAMPLE_EVENT_SIZE'),
 
   // adds isBot to token and returns token on patches not just posts
   addIsBotToToken: environmentVariableTrue(
