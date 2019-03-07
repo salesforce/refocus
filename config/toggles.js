@@ -188,6 +188,9 @@ const shortTermToggles = {
   // Add some job queue instrumentation logging
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
 
+  instrumentCompleteSubjectHierarchy: environmentVariableTrue(pe,
+    'INSTRUMENT_COMPLETE_SUBJECT_HIERARCHY'),
+
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
