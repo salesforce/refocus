@@ -38,6 +38,7 @@ describe(`tests/api/v1/users/associations.js, GET ${path} >`, () => {
   const associations = ['profile'];
   const schema = {
     profile: Joi.object().keys({
+      id: Joi.string().required(),
       name: Joi.string().required(),
     }).required(),
   };

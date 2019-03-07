@@ -27,6 +27,7 @@ module.exports = {
     user: 'user',
     owner: 'owner',
   },
+  fieldsToExclude: ['installedBy', 'ownerId'],
   baseUrl: '/v1/lenses',
   model: Lens,
   modelName: 'Lens',

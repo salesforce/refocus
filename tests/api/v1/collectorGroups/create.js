@@ -191,4 +191,42 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
           });
       });
   });
+
+  it('ok when collector was previously assigned but group was deleted', (done) => {
+    api.post('/v1/collectorGroups')
+    .set('Authorization', token)
+    .send({ // Creating a Collector Group with Collector 3
+      name: 'coll-group',
+      description: 'coll-description',
+      collectors: [collector3.name],
+    })
+    .expect(httpStatus.CREATED)
+    .end(() => {
+      api.delete('/v1/collectorGroups/coll-group')
+      .set('Authorization', token)
+      .expect(httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        api.post('/v1/collectorGroups')
+        .set('Authorization', token)
+        .send({ // Creating a new Collector Group with one Coll assigned
+          name: 'coll-group-2',
+          description: 'coll-description',
+          collectors: [collector3.name],
+        })
+        .expect(httpStatus.CREATED)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.collectors[0].name).to.equal(collector3.name);
+          return done();
+        });
+      });
+    });
+  });
 });

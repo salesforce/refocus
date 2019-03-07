@@ -82,7 +82,7 @@ module.exports = function token(seq, dataTypes) {
       include: [
         {
           association: assoc.createdBy,
-          attributes: ['name', 'email'],
+          attributes: ['id', 'name', 'email'],
         },
       ],
       order: ['name'],
@@ -94,7 +94,7 @@ module.exports = function token(seq, dataTypes) {
       include: [
         {
           association: assoc.createdBy,
-          attributes: ['name', 'email'],
+          attributes: ['id', 'name', 'email'],
         },
       ],
     });

@@ -244,6 +244,8 @@ function prepareFields(subject, opts, req) {
     modelUtils.applyFieldListFilter(subject, opts.attributes);
   }
 
+  utils.removeFieldsFromResponse(helper.fieldsToExclude, subject);
+
   // add api links
   subject.apiLinks = utils.getApiLinks(subject.name, helper, req.method);
 }

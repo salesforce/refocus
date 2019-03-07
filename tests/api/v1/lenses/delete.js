@@ -60,7 +60,7 @@ describe('tests/api/v1/lenses/delete.js >', () => {
 
         expect(res.body.name).to.equal(u.name);
         expect(res.body.user).to.be.an('object');
-        expect(res.body.installedBy).to.equal(userId);
+        expect(res.body.user.id).to.equal(userId);
         done();
       });
     });
