@@ -406,7 +406,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
         subFinder = subjectModel.findOne({
           where: {
             absolutePath: { [Op.iLike]: subAbsPath },
-          }
+          },
         });
       }
     }
