@@ -64,6 +64,7 @@ module.exports = {
     owner: 'owner',
     lens: 'lens',
   },
+  fieldsToExclude: ['createdBy', 'ownerId', 'lensId'],
   model: Perspective,
   modelName: 'Perspective',
   validateFilterAndThrowError,

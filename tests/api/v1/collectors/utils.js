@@ -30,7 +30,7 @@ const collectorToCreate =  {
 };
 
 const expectedProps = [
-  'aspects', 'collectorId', 'possibleCollectors', 'context', 'createdAt',
+  'aspects', 'collectorId', 'collectorGroup', 'collectorGroupId', 'context', 'createdAt',
   'createdBy', 'currentCollector', 'description', 'generatorTemplate',
   'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'isDeleted', 'name',
   'subjectQuery', 'tags', 'token', 'updatedAt', 'user',
@@ -99,17 +99,13 @@ function getCollector(userToken, collector) {
 function createGenerator(gen, userId, collector) {
   gen = JSON.parse(JSON.stringify(gen));
   gen.createdBy = userId;
+  gen.isActive = true;
 
-  if (collector) {
-    gen.isActive = true;
-    const possibleCollectors = gen.possibleCollectors;
-    gen.possibleCollectors = [collector.name];
-    return Generator.createWithCollectors(gen)
-    .then((g) => g.updateWithCollectors({ possibleCollectors }));
-  }
-
-  gen.collectorId = null;
-  return Generator.create(gen);
+  return Generator.createWithCollectors(gen)
+  .then((gen) => gen.update({
+    currentCollector: collector || null,
+    collectorId: collector && collector.id || null,
+  }));
 }
 
 function updateGenerator(gen, userToken, collector) {
@@ -197,6 +193,7 @@ module.exports = {
     tu.forceDelete(tu.db.Collector, testStartTime)
     .then(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime))
     .then(() => tu.forceDelete(tu.db.Generator, testStartTime))
+    .then(() => tu.forceDelete(tu.db.CollectorGroup, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => done())
     .catch(done);

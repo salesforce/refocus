@@ -37,6 +37,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   u.createSGtoSGTMapping(generatorTemplate, generator);
   let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+  collectorGroup1.collectors = [collector1.name];
 
   before((done) => {
     Promise.all([
@@ -54,12 +55,11 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       token = returnedToken;
       return GeneratorTemplate.create(generatorTemplate);
     })
-    .then(() => tu.db.CollectorGroup.create(collectorGroup1))
+    .then(() => tu.db.CollectorGroup.createCollectorGroup(collectorGroup1))
     .then((cg) => {
       collectorGroup1 = cg;
-      return cg.addCollector(collector1);
+      return u.createGeneratorAspects();
     })
-    .then(u.createGeneratorAspects())
     .then(() => done())
     .catch(done);
   });
@@ -68,13 +68,8 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('simple post returns collectors field', (done) => {
+  it('simple post returns collectorGroup field', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
-    localGenerator.possibleCollectors = [
-      collector1.name,
-      collector2.name,
-      collector3.name,
-    ];
     localGenerator.collectorGroup = collectorGroup1.name;
     api.post(path)
     .set('Authorization', token)
@@ -84,11 +79,6 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
       if (err) {
         return done(err);
       }
-
-      expect(res.body.possibleCollectors.length).to.equal(THREE);
-      const collectorNames = res.body.possibleCollectors.map((collector) =>
-        collector.name);
-      expect(collectorNames).to.deep.equal(sortedNames);
 
       const { collectorGroup } = res.body;
       expect(collectorGroup.name).to.equal(collectorGroup1.name);
@@ -100,51 +90,9 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
     });
   });
 
-  it('GETing a generator after posting should have its collector ' +
-    'array sorted', (done) => {
-    const _generator = JSON.parse(JSON.stringify(generator));
-    _generator.name = 'generatorForPosting';
-    _generator.possibleCollectors = [
-      collector1.name,
-      collector2.name,
-      collector3.name,
-    ];
-    api.post(path)
-    .set('Authorization', token)
-    .send(_generator)
-    .expect(constants.httpStatus.CREATED)
-    .then(() => {
-      api.get(`${path}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body).to.have.lengthOf(TWO);
-        const firstGenerator = res.body[ZERO];
-        expect(firstGenerator.possibleCollectors.length).to.equal(THREE);
-        let collectorNames = firstGenerator.possibleCollectors.map((collector) =>
-          collector.name);
-        expect(collectorNames).to.deep.equal(sortedNames);
-        expect(firstGenerator.id).to.not.equal(undefined);
-        const secondGenerator = res.body[ONE];
-        expect(secondGenerator.possibleCollectors.length).to.equal(THREE);
-
-        collectorNames = secondGenerator.possibleCollectors.map((collector) =>
-          collector.name);
-        expect(collectorNames).to.deep.equal(sortedNames);
-        expect(secondGenerator.id).to.not.equal(undefined);
-        return done();
-      });
-    });
-  });
-
-  it('404 error for request body with an non-existant collector',
-    (done) => {
+  it('post with nonexistent collector group - error', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
-    localGenerator.possibleCollectors = ['iDontExist'];
+    localGenerator.collectorGroup = 'aaa';
     api.post(path)
     .set('Authorization', token)
     .send(localGenerator)
@@ -154,27 +102,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
         return done(err);
       }
 
-      expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
-      expect(res.body.errors[0].source).to.equal('Generator');
-      return done();
-    });
-  });
-
-  it('404 error for request body with an existing and a non-existant collector',
-    (done) => {
-    const localGenerator = JSON.parse(JSON.stringify(generator));
-    localGenerator.possibleCollectors = [collector1.name, 'iDontExist'];
-    api.post(path)
-    .set('Authorization', token)
-    .send(localGenerator)
-    .expect(constants.httpStatus.NOT_FOUND)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
-      expect(res.body.errors[0].source).to.equal('Generator');
+      expect(res.body.errors[0].message).to.equal('CollectorGroup "aaa" not found.');
       return done();
     });
   });
@@ -182,7 +110,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
   describe('alive and running collector available >', () => {
     let clock;
     const now = Date.now();
-    const collector4 = {
+    let collector4 = {
       name: 'IamAliveAndRunning',
       version: '1.0.0',
       status: 'Running',
@@ -198,6 +126,7 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
 
       // creates alive and running collector
       .then(() => tu.db.Collector.create(collector4))
+      .then((c) => collector4 = c)
       .then(() => done())
       .catch(done);
     });
@@ -206,24 +135,29 @@ describe('tests/api/v1/generators/postWithCollector.js >', () => {
 
     it('posting generator should set currentCollector', (done) => {
       const localGenerator = JSON.parse(JSON.stringify(generator));
-      localGenerator.possibleCollectors = [
-        collector1.name, // not alive
-        collector4.name, // alive
-      ];
+      localGenerator.collectorGroup = collectorGroup1.name;
       localGenerator.isActive = true; // will make localGenerator active
-      api.post(path)
-      .set('Authorization', token)
-      .send(localGenerator)
-      .expect(constants.httpStatus.CREATED)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
 
-        expect(res.body.possibleCollectors.length).to.equal(TWO);
-        expect(res.body.currentCollector.name).to.equal('IamAliveAndRunning');
-        return done();
-      });
+      collectorGroup1.setCollectors([
+        collector1, // not alive
+        collector4, // alive
+      ])
+      .then(() => {
+        api.post(path)
+        .set('Authorization', token)
+        .send(localGenerator)
+        .expect(constants.httpStatus.CREATED)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.collectorGroup.collectors.length).to.equal(TWO);
+          expect(res.body.currentCollector.name).to.equal('IamAliveAndRunning');
+          return done();
+        });
+      })
+      .catch(done);
     });
   });
 });

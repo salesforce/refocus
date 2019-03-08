@@ -15,6 +15,7 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Collector = tu.db.Collector;
+const CollectorGroup = tu.db.CollectorGroup;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const sgUtils = require('../generator/utils');
@@ -27,6 +28,7 @@ describe('tests/db/model/collector/find.js >', () => {
   let collectorInst3;
   let generator1;
   let generator2;
+  let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
 
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   before((done) => {
@@ -40,21 +42,25 @@ describe('tests/db/model/collector/find.js >', () => {
     })
     .then((c) => {
       collectorInst1 = c;
+      collectorGroup1.collectors = [collectorInst1.name];
+      return CollectorGroup.createCollectorGroup(collectorGroup1);
+    })
+    .then((cg) => {
+      collectorGroup1 = cg;
       const gen = sgUtils.getGenerator();
       gen.name += 'generator-1';
-      return Generator.create(gen);
+      gen.collectorGroup = collectorGroup1.name;
+      return Generator.createWithCollectors(gen);
     })
     .then((g1) => {
       generator1 = g1;
       const gen = sgUtils.getGenerator();
       gen.name += 'generator-2';
-      return Generator.create(gen);
+      gen.collectorGroup = collectorGroup1.name;
+      return Generator.createWithCollectors(gen);
     })
     .then((g2) => {
       generator2 = g2;
-      return collectorInst1.addPossibleGenerators([generator1, generator2]);
-    })
-    .then(() => {
       const c = u.getCollectorObj();
       c.name += 'secondCollector';
       c.status = 'Running';
@@ -100,7 +106,8 @@ describe('tests/db/model/collector/find.js >', () => {
   });
 
   it('Collector Instance with related generators', (done) => {
-    collectorInst1.getPossibleGenerators()
+    collectorInst1.reload()
+    .then((coll) => coll.collectorGroup.getGenerators())
     .then((generators) => {
       expect(generators).to.have.lengthOf(2);
       const sg1 = generators.filter((gen) =>
@@ -114,13 +121,12 @@ describe('tests/db/model/collector/find.js >', () => {
     .catch(done);
   });
 
-  it('Collector Instance without generators ', (done) => {
-    collectorInst2.getPossibleGenerators()
-    .then((generators) => {
-      expect(generators).to.have.lengthOf(0);
+  it('Collector Instance without collector group ', (done) => {
+    collectorInst2.reload()
+    .then((coll) => {
+      expect(coll.collectorGroup).to.not.exist;
       done();
-    })
-    .catch(done);
+    });
   });
 
   it('Find, using where', (done) => {

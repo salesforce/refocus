@@ -21,6 +21,7 @@ const tu = require('../../testUtils');
 const forkUtils = require('./forkUtils');
 const constants = require('../../../api/v1/constants');
 const genPath = '/v1/generators';
+const cgPath = '/v1/collectorGroups';
 const api = supertest(app);
 supertest.Test.prototype.end = Promise.promisify(supertest.Test.prototype.end);
 supertest.Test.prototype.then = function (resolve, reject) {
@@ -35,6 +36,7 @@ module.exports = {
   postGenerator,
   patchGenerator,
   putGenerator,
+  patchCollectorGroup,
   postStatus,
   getStatus,
   getCollector,
@@ -205,6 +207,13 @@ function putGenerator(gen) {
   return api.put(`${genPath}/${gen.name}`)
   .set('Authorization', token)
   .send(gen)
+  .expect(constants.httpStatus.OK);
+}
+
+function patchCollectorGroup(key, body) {
+  return api.patch(`${cgPath}/${key}`)
+  .set('Authorization', token)
+  .send(body)
   .expect(constants.httpStatus.OK);
 }
 

@@ -31,6 +31,9 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
   let collector2 = { name: 'beautiful', version: '1.0.0' };
   let collector3 = { name: 'world', version: '1.0.0' };
   let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+  let collectorGroup2 = { name: `${tu.namePrefix}-cg2`, description: 'test' };
+  collectorGroup1.collectors = [collector1.name];
+  collectorGroup2.collectors = [collector2.name, collector3.name];
 
   const generatorTemplate = gtUtil.getGeneratorTemplate();
 
@@ -41,11 +44,11 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
   genWithOneCollector.name = 'refocus-info-generator';
   u.createSGtoSGTMapping(generatorTemplate, genWithOneCollector);
 
-  const genWithThreeCollectors = u.getGenerator();
-  genWithThreeCollectors.name = 'refocus-critical-generator';
-  u.createSGtoSGTMapping(generatorTemplate, genWithThreeCollectors);
+  const genWithTwoCollectors = u.getGenerator();
+  genWithTwoCollectors.name = 'refocus-critical-generator';
+  u.createSGtoSGTMapping(generatorTemplate, genWithTwoCollectors);
 
-  const sortedNames = [collector1, collector2, collector3]
+  const sortedNames = [collector2, collector3]
     .map((col) => col.name)
     .sort();
 
@@ -63,11 +66,8 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
       collector2 = collectors[ONE];
       collector3 = collectors[TWO];
     })
-    .then(() => tu.db.CollectorGroup.create(collectorGroup1))
-    .then((cg) => {
-      collectorGroup1 = cg;
-      return cg.addCollector(collector1);
-    })
+    .then(() => tu.db.CollectorGroup.createCollectorGroup(collectorGroup1))
+    .then(() => tu.db.CollectorGroup.createCollectorGroup(collectorGroup2))
     .then(() => tu.createToken())
     .then((returnedToken) => {
       token = returnedToken;
@@ -79,22 +79,18 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
 
       genWithOneCollector.isActive = true;
       genWithOneCollector.currentCollector = collector1.name;
-      genWithOneCollector.possibleCollectors = [collector1.name];
+      genWithOneCollector.collectorGroup = collectorGroup1.name;
       return Generator.createWithCollectors(genWithOneCollector);
     })
     .then((gen) => {
       genWithOneCollector.id = gen.id;
-      return gen.setCollectorGroup(collectorGroup1);
-    })
-    .then(() => {
-      genWithThreeCollectors.isActive = true;
-      genWithThreeCollectors.currentCollector = collector1.name;
-      genWithThreeCollectors.possibleCollectors =
-        [collector1.name, collector2.name, collector3.name];
-      return Generator.createWithCollectors(genWithThreeCollectors);
+      genWithTwoCollectors.isActive = true;
+      genWithTwoCollectors.currentCollector = collector1.name;
+      genWithTwoCollectors.collectorGroup = collectorGroup2.name;
+      return Generator.createWithCollectors(genWithTwoCollectors);
     })
     .then((gen) => {
-      genWithThreeCollectors.id = gen.id;
+      genWithTwoCollectors.id = gen.id;
       return done();
     })
     .catch(done);
@@ -115,34 +111,33 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
       }
 
       const firstGenerator = res.body[ZERO];
+      const secondGenerator = res.body[ONE];
+      const thirdGenerator = res.body[TWO];
       expect(res.body).to.have.lengthOf(THREE);
-      expect(firstGenerator.possibleCollectors.length).to.equal(THREE);
+      expect(firstGenerator.collectorGroup.collectors.length).to.equal(TWO);
 
-      const collectorNames = firstGenerator.possibleCollectors.map((collector) =>
-        collector.name);
-      expect(collectorNames).to.deep.equal(sortedNames);
+      const collectorNames = firstGenerator.collectorGroup.collectors
+                              .map((collector) => collector.name);
+      expect(collectorNames).to.have.members(sortedNames);
       expect(firstGenerator.id).to.not.equal(undefined);
-      expect(res.body[ONE].possibleCollectors.length).to.equal(ONE);
-      expect(res.body[ONE].possibleCollectors[ZERO].name).to.equal(collector1.name);
-      expect(res.body[ONE].id).to.not.equal(undefined);
-      expect(res.body[TWO].possibleCollectors.length).to.equal(ZERO);
-      expect(res.body[TWO].id).to.not.equal(undefined);
+      expect(secondGenerator.collectorGroup.name).to.equal(collectorGroup1.name);
+      expect(secondGenerator.collectorGroup.description)
+        .to.equal(collectorGroup1.description);
+      expect(secondGenerator.collectorGroup.collectors.length).to.equal(ONE);
+      expect(secondGenerator.collectorGroup.collectors[ZERO].name)
+        .to.equal(collector1.name);
+      expect(secondGenerator.collectorGroup.collectors[ZERO].status)
+        .to.equal(collector1.status);
+      expect(secondGenerator.id).to.not.equal(undefined);
+      expect(thirdGenerator.collectorGroup).to.not.exist;
+      expect(thirdGenerator.id).to.not.equal(undefined);
 
-      // check collectorGroup
-      expect(res.body[ONE].collectorGroup.name).to.equal(collectorGroup1.name);
-      expect(res.body[ONE].collectorGroup.description)
-      .to.equal(collectorGroup1.description);
-      expect(res.body[ONE].collectorGroup.collectors.length).to.equal(ONE);
-      expect(res.body[ONE].collectorGroup.collectors[0].name)
-      .to.equal(collector1.name);
-      expect(res.body[ONE].collectorGroup.collectors[0].status)
-      .to.equal(collector1.status);
       return done();
     });
   });
 
   it('get individual generator yields non-empty collectors field', (done) => {
-    api.get(`${path}/${genWithThreeCollectors.id}`)
+    api.get(`${path}/${genWithTwoCollectors.id}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
@@ -150,10 +145,10 @@ describe('tests/api/v1/generators/getWithCollector.js >', () => {
         return done(err);
       }
 
-      expect(res.body.possibleCollectors.length).to.equal(THREE);
-      const collectorNames = res.body.possibleCollectors.map((collector) =>
-        collector.name);
-      expect(collectorNames).to.deep.equal(sortedNames);
+      expect(res.body.collectorGroup.collectors.length).to.equal(TWO);
+      const collectorNames = res.body.collectorGroup.collectors
+                              .map((collector) => collector.name);
+      expect(collectorNames).to.have.members(sortedNames);
       return done();
     });
   });

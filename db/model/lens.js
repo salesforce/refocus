@@ -246,7 +246,7 @@ module.exports = function lens(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email'],
+          attributes: ['id', 'name', 'email'],
         },
       ],
     }, {
@@ -262,11 +262,11 @@ module.exports = function lens(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email'],
+          attributes: ['id', 'name', 'email'],
         },
         {
           association: assoc.owner,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
       attributes: { exclude: ['library'] },
@@ -279,7 +279,7 @@ module.exports = function lens(seq, dataTypes) {
       include: [
         {
           association: assoc.owner,
-          attributes: ['name', 'email'],
+          attributes: ['id', 'name', 'email'],
         },
       ],
     });
@@ -288,7 +288,7 @@ module.exports = function lens(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email'],
+          attributes: ['id', 'name', 'email'],
         },
       ],
     });

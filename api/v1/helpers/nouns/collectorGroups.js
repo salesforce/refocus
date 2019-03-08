@@ -23,6 +23,10 @@ module.exports = {
   model: CollectorGroup,
   modelName: 'CollectorGroup',
   fieldScopeMap: {
+    user: 'user',
+    owner: 'owner',
     collectors: 'collectors',
+    generators: 'generators',
   },
+  fieldsToExclude: ['createdBy', 'ownerId'],
 }; // exports
