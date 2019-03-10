@@ -76,15 +76,19 @@ function getGeneratorTemplate() {
 } // getGenerator
 
 module.exports = {
-  forceDelete(done) {
-    tu.forceDelete(tu.db.GeneratorTemplate, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Collector, testStartTime))
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.GeneratorTemplate, startTime)
+    .then(() => tu.forceDelete(tu.db.Collector, startTime))
     .then(() => done())
     .catch(done);
   },
 
   getGeneratorTemplate,
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(GENERATOR_TEMPLATE_SIMPLE));
     return Object.assign(defaultProps, overrideProps);
   },

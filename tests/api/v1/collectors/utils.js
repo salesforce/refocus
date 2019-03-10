@@ -19,7 +19,7 @@ const status = require('../../../../api/v1/constants').httpStatus;
 const collectorConfig = require('../../../../config/collectorConfig');
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
-const collectorToCreate =  {
+const collectorToCreate = {
   name: tu.namePrefix + 'Coll',
   description: 'This is my collector description.',
   helpEmail: 'a@bcd.com',
@@ -180,6 +180,10 @@ function getCollectorToCreate() {
 
 module.exports = {
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(collectorToCreate));
     return Object.assign(defaultProps, overrideProps);
   },
@@ -189,12 +193,12 @@ module.exports = {
     return tu.db.Collector.create(toCreate);
   },
 
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Collector, testStartTime)
-    .then(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Generator, testStartTime))
-    .then(() => tu.forceDelete(tu.db.CollectorGroup, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.CollectorGroup, startTime)
+    .then(() => tu.forceDelete(tu.db.Collector, startTime))
+    .then(() => tu.forceDelete(tu.db.GeneratorTemplate, startTime))
+    .then(() => tu.forceDelete(tu.db.Generator, startTime))
+    .then(() => tu.forceDelete(tu.db.Aspect, startTime))
     .then(() => done())
     .catch(done);
   },
