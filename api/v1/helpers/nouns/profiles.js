@@ -29,4 +29,5 @@ module.exports = {
   },
   model: Profile,
   modelName: 'Profile',
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

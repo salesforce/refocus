@@ -89,4 +89,5 @@ module.exports = {
   modelName: 'AuditEvent',
   modifyWhereClause,
   timeUnits,
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

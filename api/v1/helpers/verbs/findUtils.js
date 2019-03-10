@@ -19,6 +19,7 @@ const ONE = 1;
 const MINUS_ONE = -1;
 const RADIX = 10;
 const Op = require('sequelize').Op;
+const ms = require('ms');
 
 /**
  * Escapes all percent literals so they're not treated as wildcards.
@@ -156,6 +157,7 @@ function toSequelizeWhere(filter, props) {
   for (let i = ZERO; i < keys.length; i++) {
     const key = keys[i];
     if (filter[key] !== undefined) {
+      const filterKeyValue = filter[key];
       if (!Array.isArray(filter[key])) {
         filter[key] = [filter[key]];
       }
@@ -196,6 +198,12 @@ function toSequelizeWhere(filter, props) {
       else if (props.tagFilterName && key === props.tagFilterName) {
         const tagArr = filter[key];
         Object.assign(where, toWhereClause(tagArr, props));
+      } else if (props.timePeriodFilters &&
+        props.timePeriodFilters.includes(key)) {
+        const whereClause = {};
+        whereClause[Op.lte] = new Date();
+        whereClause[Op.gte] = new Date(Date.now() + ms(filterKeyValue));
+        where[key] = whereClause;
       } else {
         for (let j = ZERO; j < filter[key].length; j++) {
           const v = filter[key][j];
