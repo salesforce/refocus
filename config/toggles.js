@@ -167,6 +167,9 @@ const shortTermToggles = {
   attachSamplesPrefilterAspects: environmentVariableTrue(pe,
     'ATTACH_SAMPLES_PREFILTER_ASPECTS'),
 
+  attachSmallerSubjectToSample: environmentVariableTrue(pe,
+    'ATTACH_SMALLER_SUBJECT_TO_SAMPLE'),
+
   // turn on logging to log invalid hmset values
   logInvalidHmsetValues: environmentVariableTrue(pe,
     'LOG_INVALID_HMSET_VALUES'),

@@ -67,7 +67,6 @@ function trackStats(key, obj) {
 } // trackStats
 
 /**
->>>>>>> multiple publishers for perspectives, pick one at random
  * When passed an sample object, either a sequelize sample object or
  * a plain sample object, it returns either an sample add event or an sample
  * update event.
@@ -198,13 +197,15 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
       if (sample) {
         sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
 
-        // Replace the sample.subject with subject name/absolutePath/tags only
-        const miniSubject = {
-          absolutePath: sample.subject.absolutePath,
-          name: sample.subject.name,
-          tags: sample.subject.tags,
-        };
-        sample.subject = miniSubject;
+        if (!featureToggles.isFeatureEnabled('attachSmallerSubjectToSample')) {
+          // Replace the sample.subject with subject name/absolutePath/tags only
+          const miniSubject = {
+            absolutePath: sample.subject.absolutePath,
+            name: sample.subject.name,
+            tags: sample.subject.tags,
+          };
+          sample.subject = miniSubject;
+        }
 
         publishObject(sample, eventType);
         return sample;
