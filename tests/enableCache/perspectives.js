@@ -74,7 +74,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
 
       expect(res.body).to.have.length(ONE);
       expect(res.body[ZERO].name).to.be.equal('___testPersp');
-      expect(res.body).to.have.deep.property('[0].lensId', lensId);
+      expect(res.body).to.have.deep.property('[0].lens.id', lensId);
       return done();
     });
   });
@@ -93,7 +93,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
         const jsonReply = JSON.parse(reply);
         expect(jsonReply).to.have.length(ONE);
         expect(jsonReply[ZERO].name).to.be.equal('___testPersp');
-        expect(jsonReply).to.have.deep.property('[0].lensId', lensId);
+        expect(jsonReply).to.have.deep.property('[0].lens.id', lensId);
         return done();
       })
       .catch(() => done(cacheMissError));
@@ -238,7 +238,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
         const jsonReply = JSON.parse(reply);
         expect(jsonReply).to.have.length(ONE);
         expect(jsonReply[ZERO].name).to.be.equal('___testPersp');
-        expect(jsonReply).to.have.deep.property('[0].lensId', lensId);
+        expect(jsonReply).to.have.deep.property('[0].lens.id', lensId);
         tu.toggleOverride('enableApiActivityLogs', enableApiActivityLogs);
         return done();
       })
@@ -257,7 +257,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
 
       expect(res.body).to.have.length(ONE);
       expect(res.body[ZERO].name).to.be.equal('___testPersp');
-      expect(res.body).to.have.deep.property('[0].lensId', lensId);
+      expect(res.body).to.have.deep.property('[0].lens.id', lensId);
       return done();
     });
   });
@@ -290,7 +290,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
 
       expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
       expect(res.body.rootSubject).to.equal('myMainSubject');
-      expect(res.body.lensId).to.equal(lensId);
+      expect(res.body.lens.id).to.equal(lensId);
       return done();
     });
   });

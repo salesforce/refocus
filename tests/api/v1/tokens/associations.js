@@ -64,9 +64,11 @@ describe(`tests/api/v1/tokens/associations.js, GET ${path} >`, () => {
 
   const joiSchema = {
     user: Joi.object().keys({
+      id: Joi.string().required(),
       name: Joi.string().required(),
       email: Joi.string().required(),
       profile: Joi.object().keys({
+        id: Joi.string().required(),
         name: Joi.string().required(),
       }).required(),
     }),

@@ -154,7 +154,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
           return done(err);
         }
 
-        expect(res.body.profileId).to.equal(profileTwoId);
+        expect(res.body.profile.id).to.equal(profileTwoId);
         return done();
       });
     });
@@ -206,7 +206,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
           return done(err);
         }
 
-        expect(res.body.profileId).to.equal(profileTwoId);
+        expect(res.body.profile.id).to.equal(profileTwoId);
         return done();
       });
     });
@@ -255,7 +255,7 @@ describe(`tests/api/v1/users/put.js, PUT ${path} >`, () => {
           return done(err);
         }
 
-        expect(res.body.profileId).to.equal(profileTwoId);
+        expect(res.body.profile.id).to.equal(profileTwoId);
         return done();
       });
     });

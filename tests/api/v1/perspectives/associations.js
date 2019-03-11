@@ -73,17 +73,21 @@ describe(`tests/api/v1/perspectives/associations.js, GET ${path} >`, () => {
   const associations = ['user', 'owner', 'lens'];
   const schema = {
     user: Joi.object().keys({
+      id: Joi.string().required(),
       name: Joi.string().required(),
       email: Joi.string().required(),
       profile: Joi.object().keys({
+        id: Joi.string().required(),
         name: Joi.string().required(),
       }).required(),
     }),
     owner: Joi.object().keys({
+      id: Joi.string().required(),
       name: Joi.string().required(),
       fullName: Joi.string().optional().allow(null),
       email: Joi.string().required(),
       profile: Joi.object().keys({
+        id: Joi.string().required(),
         name: Joi.string().required(),
       }).required(),
     }),
@@ -94,28 +98,4 @@ describe(`tests/api/v1/perspectives/associations.js, GET ${path} >`, () => {
   };
 
   testAssociations(path, associations, schema, conf);
-
-  describe('Checking sequelize extra FK when multiple associations', () => {
-    it('Extra IDs must be returned from API', (done) => {
-      const fields = ['name', ...associations].toString();
-      api.get(`${path}?fields=${fields}`)
-        .set('Authorization', conf.token)
-        .expect(constants.httpStatus.OK)
-        .expect((res) => {
-          expect(res.body).to.be.an('array');
-          res.body.forEach((record) => {
-            associations.forEach((association) => {
-              expect(record).to.have.property(association);
-              /*
-              API is returning extra fields as a solution for Sequelize inner
-              query issue that doesn't not return FK when multiple associations.
-              */
-              expect(record).to.have.property('lensId');
-              expect(record).to.have.property('createdBy');
-            });
-          });
-        })
-        .end(done);
-    });
-  });
 });

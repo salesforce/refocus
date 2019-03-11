@@ -23,6 +23,7 @@ function testAssociations(path, associations, joiSchema, conf) {
 
   before((done) => {
     token = conf.token;
+
     done();
   });
 
@@ -35,8 +36,8 @@ function testAssociations(path, associations, joiSchema, conf) {
       recordId = res.body[0].id;
       expect(res.body).to.be.an('array');
       res.body.forEach((record) => {
+        expect(record).to.include.keys(associations);
         associations.forEach((assoc) => {
-          expect(record).to.have.property(assoc);
           expect(Joi.validate(record[assoc], joiSchema[assoc]).error).to.be.null;
         });
       });
@@ -51,9 +52,7 @@ function testAssociations(path, associations, joiSchema, conf) {
     .expect((res) => {
       expect(res.body).to.be.an('array');
       res.body.forEach((record) => {
-        associations.forEach((assoc) => {
-          expect(record).to.not.have.property(assoc);
-        });
+        expect(record).to.not.have.any.keys(associations);
       });
     })
     .end(done);
@@ -64,8 +63,8 @@ function testAssociations(path, associations, joiSchema, conf) {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
+      expect(res.body).to.include.keys(associations);
       associations.forEach((assoc) => {
-        expect(res.body).to.have.property(assoc);
         expect(Joi.validate(res.body[assoc], joiSchema[assoc]).error).to.be.null;
       });
     })
@@ -82,8 +81,8 @@ function testAssociations(path, associations, joiSchema, conf) {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
+      expect(res.body).to.include.keys(associations);
       associations.forEach((assoc) => {
-        expect(res.body).to.have.property(assoc);
         expect(Joi.validate(res.body[assoc], joiSchema[assoc]).error).to.be.null;
       });
     })
@@ -95,9 +94,7 @@ function testAssociations(path, associations, joiSchema, conf) {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      associations.forEach((assoc) => {
-        expect(res.body).to.not.have.property(assoc);
-      });
+      expect(res.body).to.not.have.any.keys(associations);
     })
     .end(done);
   });
@@ -112,9 +109,7 @@ function testAssociations(path, associations, joiSchema, conf) {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      associations.forEach((assoc) => {
-        expect(res.body).to.not.have.property(assoc);
-      });
+      expect(res.body).to.not.have.any.keys(associations);
     })
     .end(done);
   });
@@ -127,7 +122,7 @@ function testAssociations(path, associations, joiSchema, conf) {
       .expect((res) => {
         expect(res.body).to.be.an('array');
         res.body.forEach((record) => {
-          expect(record).to.have.keys('id', 'name', assoc, 'apiLinks');
+          expect(record).to.have.keys(['id', 'name', assoc, 'apiLinks']);
           expect(Joi.validate(record[assoc], joiSchema[assoc]).error)
             .to.be.null;
         });
@@ -177,8 +172,8 @@ function testAssociations(path, associations, joiSchema, conf) {
         .expect((res) => {
           expect(res.body).to.be.an('array');
           res.body.forEach((record) => {
+            expect(record).to.have.keys('id', 'name', ...associations, 'apiLinks');
             associations.forEach((assoc) => {
-              expect(record).to.have.property(assoc);
               expect(Joi.validate(record[assoc],
                 joiSchema[assoc]).error).to.be.null;
             });
@@ -194,8 +189,8 @@ function testAssociations(path, associations, joiSchema, conf) {
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
         .expect((res) => {
+          expect(res.body).to.have.keys('id', 'name', ...associations, 'apiLinks');
           associations.forEach((assoc) => {
-            expect(res.body).to.have.property(assoc);
             expect(Joi.validate(res.body[assoc],
               joiSchema[assoc]).error).to.be.null;
           });
@@ -215,8 +210,8 @@ function testAssociations(path, associations, joiSchema, conf) {
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
         .expect((res) => {
+          expect(res.body).to.have.keys('id', 'name', ...associations, 'apiLinks');
           associations.forEach((assoc) => {
-            expect(res.body).to.have.property(assoc);
             expect(Joi.validate(res.body[assoc],
               joiSchema[assoc]).error).to.be.null;
           });

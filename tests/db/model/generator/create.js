@@ -67,7 +67,7 @@ describe('tests/db/model/generator/create.js >', () => {
       expect(o.generatorTemplate.name).to.equal('refocus-ok-template');
       expect(o.generatorTemplate.version).to.equal('1.0.0');
       expect(typeof o.getWriters).to.equal('function');
-      expect(typeof o.getPossibleCollectors).to.equal('function');
+      expect(typeof o.getCollectorGroup).to.equal('function');
       done();
     })
     .catch(done);
@@ -382,7 +382,7 @@ describe('tests/db/model/generator/create.js >', () => {
         expect(o.generatorTemplate.name).to.equal('gtWithEncryption');
         expect(o.generatorTemplate.version).to.equal('1.0.0');
         expect(typeof o.getWriters).to.equal('function');
-        expect(typeof o.getPossibleCollectors).to.equal('function');
+        expect(typeof o.getCollectorGroup).to.equal('function');
         return cryptUtils
           .decryptSGContextValues(GlobalConfig, o, gtWithEncryption);
       })
@@ -417,7 +417,8 @@ describe('tests/db/model/generator/create.js >', () => {
       gen.isActive = true;
       return Generator.create(gen)
         .should.eventually.be.rejectedWith(
-          'isActive can only be turned on if at least one collector is specified.'
+          'isActive can only be turned on if a collector group is specified ' +
+          'with at least one collector.'
         );
     });
   });

@@ -51,7 +51,7 @@ describe('tests/api/v1/subjects/postWithCreatedBy.js, returnUser toggle on >',
         return done(err);
       }
 
-      expect(res.body.createdBy).to.equal(user.id);
+      expect(res.body.user.id).to.equal(user.id);
       expect(res.body.user.name).to.equal(user.name);
       expect(res.body.user.email).to.equal(user.email);
       done();

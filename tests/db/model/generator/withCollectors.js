@@ -14,6 +14,7 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const gtUtil = u.gtUtil;
+const CollectorGroup = tu.db.CollectorGroup;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const ZERO = 0;
@@ -22,8 +23,10 @@ const TWO = 2;
 
 describe('tests/db/model/generator/withCollectors.js >', () => {
   let createdGenerator;
+  let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
   const generatorTemplate = gtUtil.getGeneratorTemplate();
+  generator.collectorGroup = collectorGroup1.name;
   let userInst;
   before((done) => {
     tu.createUser('GeneratorOwner')
@@ -32,7 +35,8 @@ describe('tests/db/model/generator/withCollectors.js >', () => {
       generator.createdBy = user.id;
       return GeneratorTemplate.create(generatorTemplate);
     })
-    .then(() => Generator.create(generator))
+    .then(() => CollectorGroup.create(collectorGroup1))
+    .then(() => Generator.createWithCollectors(generator))
     .then((_createdGenerator) => {
       createdGenerator = _createdGenerator;
       done();
@@ -51,7 +55,7 @@ describe('tests/db/model/generator/withCollectors.js >', () => {
       tu.db.Collector.create({ name: 'snow', version: '1.0.0' })
       .then((_collector) => {
         collector = _collector;
-        return createdGenerator.addPossibleCollectors([collector]);
+        return createdGenerator.collectorGroup.addCollectors([collector]);
       })
       .then(() => Generator
         .findOne({ where: { name: generator.name } }))
@@ -70,17 +74,8 @@ describe('tests/db/model/generator/withCollectors.js >', () => {
     });
 
     it('ok, create with one collectors field', () => {
-      expect(relodedGenerator.possibleCollectors.length).to.equal(ONE);
-    });
-
-    it('get collector returns one collector', (done) => {
-      relodedGenerator.getPossibleCollectors()
-      .then((collectors) => {
-        expect(collectors.length).to.equal(ONE);
-        expect(collectors[ZERO].name).to.equal(collector.name);
-        done();
-      })
-      .catch(done);
+      expect(relodedGenerator.collectorGroup.collectors.length).to.equal(ONE);
+      expect(relodedGenerator.collectorGroup.collectors[ZERO].name).to.equal(collector.name);
     });
   });
 
@@ -97,7 +92,7 @@ describe('tests/db/model/generator/withCollectors.js >', () => {
       .then((collectors) => {
         collector1 = collectors[ZERO];
         collector2 = collectors[ONE];
-        return createdGenerator.addPossibleCollectors([collector1, collector2]);
+        return createdGenerator.collectorGroup.addCollectors([collector1, collector2]);
       })
       .then(() => Generator
         .findOne({ where: { name: generator.name } }))
@@ -112,18 +107,7 @@ describe('tests/db/model/generator/withCollectors.js >', () => {
     after(u.forceDeleteCollector);
 
     it('ok, create with two collectors field', () => {
-      expect(relodedGenerator.possibleCollectors.length).to.equal(TWO);
-    });
-
-    it('get collector returns two collector', (done) => {
-      relodedGenerator.getPossibleCollectors()
-      .then((collectors) => {
-        expect(collectors.length).to.equal(TWO);
-        expect(collectors[ZERO].name).to.equal(collector1.name);
-        expect(collectors[ONE].name).to.equal(collector2.name);
-        done();
-      })
-      .catch(done);
+      expect(relodedGenerator.collectorGroup.collectors.length).to.equal(TWO);
     });
   });
 });

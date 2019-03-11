@@ -250,11 +250,19 @@ function handleAssociations(reqObj, inst, props, method) {
  * the foreign keys to the query when more than one association is required.
  */
 function multipleAssociations(helperModule, requestedAttributes) {
+  const model = helperModule.model;
+
   // Filters all association just when requested
   const associations = requestedAttributes
-    .filter((attribute) => helperModule.model.associations[attribute]);
+    .filter((attribute) => model.associations[attribute]);
 
-  if (associations.length > 1) {
+  // Detect nested associations
+  const getNested = (model) => model._scope && model._scope.include || [];
+  const hasNested = ({ model }) => getNested(model).length;
+  const isRequested = ({ as: fieldName }) => associations.includes(fieldName);
+  const hasNestedAssociations = getNested(model).filter(isRequested).some(hasNested);
+
+  if (associations.length > 1 || hasNestedAssociations) {
     /*
      Transform association names (User, currentCollector, etc) to
      model.fk_names (createdBy, collectorId, etc)
@@ -263,14 +271,12 @@ function multipleAssociations(helperModule, requestedAttributes) {
       .filter((association) => {
         // filter all associations with respective fk in the model attributes
 
-        const foreignKey = helperModule.model
-          .associations[association].foreignKey;
-        return helperModule.model.attributes[foreignKey] !== undefined;
+        const foreignKey = model.associations[association].foreignKey;
+        return model.attributes[foreignKey] !== undefined;
       })
       .map((association) => {
-        const foreignKey = helperModule.model
-          .associations[association].foreignKey;
-        return helperModule.model.attributes[foreignKey].fieldName;
+        const foreignKey = model.associations[association].foreignKey;
+        return model.attributes[foreignKey].fieldName;
       });
 
     if (extraForeignKeys.length > 0) {
@@ -853,6 +859,8 @@ function responsify(rec, props, method) {
     key = o.name;
     delete o.id;
   }
+
+  removeFieldsFromResponse(props.fieldsToExclude, o);
 
   o.apiLinks = getApiLinks(key, props, method);
   if (props.stringify) {

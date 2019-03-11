@@ -51,17 +51,21 @@ describe(`tests/api/v1/lenses/associations.js, GET ${path} >`, () => {
   const associations = ['user', 'owner'];
   const schema = {
     user: Joi.object().keys({
+      id: Joi.string().required(),
       name: Joi.string().required(),
       email: Joi.string().required(),
       profile: Joi.object().keys({
+        id: Joi.string().required(),
         name: Joi.string().required(),
       }).required(),
     }),
     owner: Joi.object().keys({
+      id: Joi.string().required(),
       name: Joi.string().required(),
       fullName: Joi.string().optional().allow(null),
       email: Joi.string().required(),
       profile: Joi.object().keys({
+        id: Joi.string().required(),
         name: Joi.string().required(),
       }).required(),
     }),
