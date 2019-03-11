@@ -403,7 +403,6 @@ function startCollector(req, res, next) {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     collToReturn.dataValues.generatorsAdded = gens.map((g) => {
       delete g.GeneratorCollectors;
-      delete g.possibleCollectors;
       return g;
     });
 

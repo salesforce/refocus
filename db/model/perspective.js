@@ -180,11 +180,11 @@ module.exports = function perspective(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email'],
+          attributes: ['id', 'name', 'email'],
         },
         {
           association: assoc.owner,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
         {
           association: assoc.lens,
@@ -207,7 +207,7 @@ module.exports = function perspective(seq, dataTypes) {
       include: [
         {
           association: assoc.owner,
-          attributes: ['name', 'email'],
+          attributes: ['id', 'name', 'email'],
         },
       ],
     });
@@ -216,7 +216,7 @@ module.exports = function perspective(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email'],
+          attributes: ['id', 'name', 'email'],
         },
       ],
     });

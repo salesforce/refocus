@@ -10,6 +10,7 @@
  * db/model/collectorgroup.js
  */
 
+const Promise = require('bluebird');
 const common = require('../helpers/common');
 const collectorUtils = require('../helpers/collectorUtils');
 const constants = require('../constants');
@@ -91,6 +92,22 @@ module.exports = function collectorgroup(seq, dataTypes) {
         ],
       },
     ],
+
+    // defined here to be accessible in Generator/Collector.postImport()
+    scopes: {
+      embed: {
+        attributes: ['id', 'name', 'description'],
+        order: ['name'],
+        include: [
+          {
+            model: seq.models.Collector.scope('embed'),
+            as: 'collectors',
+            required: false,
+          },
+        ],
+      },
+    },
+
     paranoid: true,
   });
 
@@ -99,6 +116,11 @@ module.exports = function collectorgroup(seq, dataTypes) {
   CollectorGroup.postImport = function (models) {
     assoc.collectors = CollectorGroup.hasMany(models.Collector, {
       as: 'collectors',
+      foreignKey: 'collectorGroupId',
+    });
+
+    assoc.generators = CollectorGroup.hasMany(models.Generator, {
+      as: 'generators',
       foreignKey: 'collectorGroupId',
     });
 
@@ -126,7 +148,7 @@ module.exports = function collectorgroup(seq, dataTypes) {
       include: [
         {
           association: assoc.owner,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
     });
@@ -135,7 +157,7 @@ module.exports = function collectorgroup(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
     });
@@ -150,12 +172,23 @@ module.exports = function collectorgroup(seq, dataTypes) {
       ],
     });
 
+    CollectorGroup.addScope('generators', {
+      include: [
+        {
+          model: models.Generator.scope('embed'),
+          as: 'generators',
+          required: false,
+        },
+      ],
+    });
+
     CollectorGroup.addScope('defaultScope',
       dbUtils.combineScopes([
         'user',
         'owner',
         'baseScope',
         'collectors',
+        'generators',
       ], CollectorGroup),
       { override: true }
     );
@@ -170,7 +203,8 @@ module.exports = function collectorgroup(seq, dataTypes) {
       .then((collectorGroup) =>
         (collectors.length ? collectorGroup.setCollectors(collectors) :
           collectorGroup))
-      .then((collectorGroup) => collectorGroup.reload());
+      .then((collectorGroup) => collectorGroup.reload())
+      .then((collectorGroup) => collectorGroup.handleCollectorUpdates());
   }; // createCollectorGroup
 
   // Instance Methods
@@ -201,22 +235,23 @@ module.exports = function collectorgroup(seq, dataTypes) {
     return collectorUtils.validate(seq, arr)
       .then(collectorUtils.alreadyAssigned)
       .then((collectors) => this.addCollectors(collectors))
-      .then(() => this.reload());
+      .then(() => this.reload())
+      .then(() => this.handleCollectorUpdates());
   }; // addCollectorsToGroup
 
   /**
    * Set the named collectors to this collector group. Reject if any of the
-   * named collectors is already assigned to this group, or to a different
-   * group.
+   * named collectors is already assigned to a different group.
    *
    * @param {Array<String>} arr - array of collector names
    * @returns {Promise<any | never>}
    */
   CollectorGroup.prototype.patchCollectors = function (arr) {
     return collectorUtils.validate(seq, arr)
-      .then(collectorUtils.alreadyAssigned)
+      .then((colls) => collectorUtils.alreadyAssignedToOtherGroup(colls, this))
       .then((collectors) => this.setCollectors(collectors))
-      .then(() => this.reload());
+      .then(() => this.reload())
+      .then(() => this.handleCollectorUpdates());
   }; // patchCollectors
 
   /**
@@ -255,8 +290,36 @@ module.exports = function collectorgroup(seq, dataTypes) {
           !namesToRemove.includes(c.name));
         return this.setCollectors(toRemain);
       })
-      .then(() => this.reload());
+    .then(() => this.reload())
+    .then(() => this.handleCollectorUpdates());
   }; // deleteCollectorsFromGroup
+
+  /**
+   * When the list of collectors is changed, reassign any affected generators if either:
+   * 1) The generator was previously assigned, but it's collector is no longer in this group.
+   * 2) The generator was previously unassigned, and now a collector might be available.
+   *
+   * @returns {Promise<CollectorGroup>}
+   */
+  CollectorGroup.prototype.handleCollectorUpdates = function () {
+    return Promise.resolve()
+    .then(() => {
+      if (this.generators) {
+        return Promise.map(this.generators, (gen) => {
+          if (!gen.currentCollector || !isCurrentCollectorIncluded(gen, this.collectors)) {
+            return gen.assignToCollector().then(() => gen.save());
+          }
+        });
+      }
+    })
+    .then(() => this);
+
+    function isCurrentCollectorIncluded(gen, collectors) {
+      return collectors.some((coll) =>
+        coll.name === gen.currentCollector.name
+      );
+    }
+  }; // handleCollectorUpdates
 
   return CollectorGroup;
 };

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -7,26 +7,22 @@
  */
 
 /**
- * tests/api/v1/generators/associations.js
+ * tests/api/v1/collectorGroups/associations.js
  */
 'use strict';
 const tu = require('../../../testUtils');
-const cu = require('../collectors/utils');
-const gu = require('./utils');
+const cu = require('./utils');
+const gu = require('../generators/utils');
 const gtUtil = gu.gtUtil;
-const constants = require('../../../../api/v1/constants');
-const supertest = require('supertest');
-const expect = require('chai').expect;
-const api = supertest(require('../../../../index').app);
 const testAssociations = require('../common/testAssociations.js').testAssociations;
 const Collector = tu.db.Collector;
 const Generator = tu.db.Generator;
 const CollectorGroup = tu.db.CollectorGroup;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
-const path = '/v1/generators';
+const path = '/v1/collectorGroups';
 const Joi = require('joi');
 
-describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
+describe(`tests/api/v1/collectorGroups/associations.js, GET ${path} >`, () => {
   let conf = {};
 
   const generatorTemplate = gtUtil.getGeneratorTemplate();
@@ -47,7 +43,23 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
   collectorGroup1.collectors = [coll1.name, coll2.name];
 
   before((done) => {
-    Collector.create(coll1)
+    tu.createUser('assocUser')
+    .then((user) => {
+      generatorOk.createdBy = user.id;
+      generatorOk.ownerId = user.id;
+      generatorOk.collectorGroup = collectorGroup1.name;
+      generatorInfo.createdBy = user.id;
+      generatorInfo.ownerId = user.id;
+      generatorInfo.collectorGroup = collectorGroup1.name;
+      coll1.createdBy = user.id;
+      coll1.ownerId = user.id;
+      coll2.createdBy = user.id;
+      coll2.ownerId = user.id;
+      collectorGroup1.createdBy = user.id;
+      collectorGroup1.ownerId = user.id;
+      conf.token = tu.createTokenFromUserName(user.name);
+      return Collector.create(coll1);
+    })
     .then((created) => {
       coll1 = created;
       return Collector.create(coll2);
@@ -56,21 +68,7 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
       coll2 = created;
       return CollectorGroup.createCollectorGroup(collectorGroup1);
     })
-    .then(() =>
-      tu.createUser('assocUser')
-    )
-    .then((user) => {
-      generatorOk.createdBy = user.id;
-      generatorInfo.createdBy = user.id;
-      generatorOk.ownerId = user.id;
-      generatorInfo.ownerId = user.id;
-      generatorOk.collectorGroup = collectorGroup1.name;
-      generatorInfo.collectorGroup = collectorGroup1.name;
-      collectorGroup1.createdBy = user.id;
-      collectorGroup1.ownerId = user.id;
-      conf.token = tu.createTokenFromUserName(user.name);
-      return GeneratorTemplate.create(generatorTemplate);
-    })
+    .then(() => GeneratorTemplate.create(generatorTemplate))
     .then(() => Generator.createWithCollectors(generatorOk))
     .then((gen) => {
       generatorOk.id = gen.id;
@@ -89,9 +87,9 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['user', 'owner', 'currentCollector', 'collectorGroup'];
+  const associations = ['user', 'owner', 'collectors', 'generators'];
   const schema = {
-    user: Joi.object({
+    user: Joi.object().keys({
       id: Joi.string().required(),
       name: Joi.string().required(),
       fullName: Joi.string().optional().allow(null),
@@ -111,25 +109,41 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
         name: Joi.string().required(),
       }).required(),
     }),
-    currentCollector: Joi.object({
-      id: Joi.string().required(),
-      name: Joi.string().required(),
-      status: Joi.string().required(),
-      lastHeartbeat: Joi.string().required(),
-    }),
-    collectorGroup: Joi.object().keys({
-      id: Joi.string().required(),
-      name: Joi.string().required(),
-      description: Joi.string().required(),
-      collectors: Joi.array().length(2).items(
-        Joi.object({
+    generators: Joi.array().length(2).items(
+      Joi.object({
+        id: Joi.string().required(),
+        name: Joi.string().required(),
+        description: Joi.string().required(),
+        isActive: Joi.boolean().required(),
+        currentCollector: Joi.object().keys({
           id: Joi.string().required(),
           name: Joi.string().required(),
           status: Joi.string().required(),
           lastHeartbeat: Joi.string().required(),
-        })
-      ),
-    }),
+        }),
+        collectorGroup: Joi.object().keys({
+          id: Joi.string().required(),
+          name: Joi.string().required(),
+          description: Joi.string().required(),
+          collectors: Joi.array().length(2).items(
+            Joi.object({
+              id: Joi.string().required(),
+              name: Joi.string().required(),
+              status: Joi.string().required(),
+              lastHeartbeat: Joi.string().required(),
+            })
+          ),
+        }),
+      })
+    ),
+    collectors: Joi.array().length(2).items(
+      Joi.object({
+        id: Joi.string().required(),
+        name: Joi.string().required(),
+        status: Joi.string().required(),
+        lastHeartbeat: Joi.string().required(),
+      })
+    ),
   };
 
   testAssociations(path, associations, schema, conf);

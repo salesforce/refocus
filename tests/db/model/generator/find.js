@@ -17,6 +17,7 @@ const gtUtil = u.gtUtil;
 const Aspect = tu.db.Aspect;
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
+const CollectorGroup = tu.db.CollectorGroup;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const GlobalConfig = tu.db.GlobalConfig;
 const cryptUtils = require('../../../../utils/cryptUtils');
@@ -50,6 +51,7 @@ describe('tests/db/model/generator/find.js >', () => {
     name: 'collector2',
     version: '1.0.0',
   };
+  let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
   let userId;
 
   before((done) => {
@@ -74,16 +76,18 @@ describe('tests/db/model/generator/find.js >', () => {
       g2DBInstance = o;
       return Collector.create(collectorObj1);
     })
+    .then((c) =>
+      Collector.create(collectorObj2)
+    )
     .then((c) => {
-      generatorDBInstance.addPossibleCollector(c.id);
-      g2DBInstance.addPossibleCollector(c.id);
-      return Collector.create(collectorObj2);
+      collectorGroup1.collectors = [c.name];
+      return CollectorGroup.createCollectorGroup(collectorGroup1);
     })
-    .then((c) => {
-      generatorDBInstance.addPossibleCollector(c.id);
-      g2DBInstance.addPossibleCollector(c.id);
-      done();
+    .then((cg) => {
+      collectorGroup1 = cg;
+      return collectorGroup1.setGenerators([generatorDBInstance, g2DBInstance]);
     })
+    .then(() => done())
     .catch(done);
   });
 

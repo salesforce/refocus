@@ -235,12 +235,18 @@ function getNameFromAbsolutePath(absolutePath) {
  * complete subject hierarchy with samples
  */
 function completeSubjectHierarchy(res, params) {
-  // set the filters
+  const startTime = new Date();
   u.setFilters(params, filters);
   return traverseHierarchy(res)
   .then(() => {
     // once the filtering is done, reset it back.
     u.resetFilters(filters);
+
+    if (featureToggles.isFeatureEnabled('instrumentCompleteSubjectHierarchy')) {
+      console.log('cache/model/subject.completeSubjectHierarchy:' +
+        `${res.absolutePath}:${new Date() - startTime}`);
+    }
+
     return Promise.resolve(res);
   });
 } // completeSubjectHierarchy
@@ -266,6 +272,8 @@ function prepareFields(subject, opts, req) {
   if (opts.attributes) { // delete subject fields
     modelUtils.applyFieldListFilter(subject, opts.attributes);
   }
+
+  utils.removeFieldsFromResponse(helper.fieldsToExclude, subject);
 
   // add api links
   subject.apiLinks = utils.getApiLinks(subject.name, helper, req.method);

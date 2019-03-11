@@ -323,7 +323,7 @@ module.exports = function user(seq, dataTypes) {
       include: [
         {
           association: assoc.profile,
-          attributes: ['name'],
+          attributes: ['id', 'name'],
         },
       ],
       order: ['name'],
@@ -335,7 +335,7 @@ module.exports = function user(seq, dataTypes) {
       include: [
         {
           association: assoc.profile,
-          attributes: ['name'],
+          attributes: ['id', 'name'],
         },
       ],
     });
@@ -343,7 +343,7 @@ module.exports = function user(seq, dataTypes) {
       include: [
         {
           association: assoc.profile,
-          attributes: ['name'],
+          attributes: ['id', 'name'],
         },
       ],
       order: ['name'],

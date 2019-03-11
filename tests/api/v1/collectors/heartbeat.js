@@ -27,6 +27,7 @@ const Promise = require('bluebird');
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
+const CollectorGroup = tu.db.CollectorGroup;
 supertest.Test.prototype.end = Promise.promisify(supertest.Test.prototype.end);
 supertest.Test.prototype.then = function (resolve, reject) {
   return this.end().then(resolve).catch(reject);
@@ -67,6 +68,9 @@ coll2.name += '2';
 coll3.name += '3';
 const collTokens = {};
 
+let cg1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+cg1.collectors = [coll1.name, coll2.name, coll3.name];
+
 const sgt = gtUtil.getGeneratorTemplate();
 sgt.contextDefinition = contextDefinition;
 const generator1 = gu.getGenerator();
@@ -81,18 +85,20 @@ gu.createSGtoSGTMapping(sgt, generator3);
 generator1.name += '1';
 generator2.name += '2';
 generator3.name += '3';
-generator1.possibleCollectors = [coll1.name, coll2.name, coll3.name];
-generator2.possibleCollectors = [coll1.name, coll2.name, coll3.name];
-generator3.possibleCollectors = [coll1.name, coll2.name, coll3.name];
+generator1.collectorGroup = cg1.name;
+generator2.collectorGroup = cg1.name;
+generator3.collectorGroup = cg1.name;
 
 let userToken;
 let userId;
+let userName;
 
 describe('tests/api/v1/collectors/heartbeat.js >', () => {
   before((done) => {
     tu.createUserAndToken()
     .then((obj) => {
       userId = obj.user.id;
+      userName = obj.user.name;
       userToken = obj.token;
       done();
     })
@@ -134,6 +140,9 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       .then(() => u.startCollector(coll2, collTokens, userToken))
       .then(() => u.startCollector(coll3, collTokens, userToken))
     );
+
+    beforeEach(() => CollectorGroup.createCollectorGroup(cg1));
+    afterEach(() => tu.forceDelete(CollectorGroup));
 
     describe('validation >', () => {
       beforeEach(() => Promise.resolve()
@@ -974,7 +983,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
             return done(err);
           }
 
-          expect(res.body.createdBy).to.equal(userId);
+          expect(res.body.user.name).to.equal(userName);
           return u.createGenerator(generator2, userId, coll1)
           .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => {

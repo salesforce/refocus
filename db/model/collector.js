@@ -230,12 +230,6 @@ module.exports = function collector(seq, dataTypes) {
       foreignKey: 'collectorId',
     });
 
-    assoc.possibleGenerators = Collector.belongsToMany(models.Generator, {
-      as: 'possibleGenerators',
-      through: 'GeneratorCollectors',
-      foreignKey: 'collectorId',
-    });
-
     assoc.owner = Collector.belongsTo(models.User, {
       foreignKey: 'ownerId',
       as: 'owner',
@@ -260,7 +254,7 @@ module.exports = function collector(seq, dataTypes) {
       include: [
         {
           association: assoc.owner,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
     });
@@ -269,7 +263,7 @@ module.exports = function collector(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
     });
@@ -293,12 +287,11 @@ module.exports = function collector(seq, dataTypes) {
       ],
     });
 
-    Collector.addScope('possibleGenerators', {
+    Collector.addScope('collectorGroup', {
       include: [
         {
-          model: models.Generator.scope('embed'),
-          as: 'possibleGenerators',
-          through: { attributes: [] },
+          model: models.CollectorGroup.scope('embed'),
+          as: 'collectorGroup',
         },
       ],
     });
@@ -309,7 +302,7 @@ module.exports = function collector(seq, dataTypes) {
         'owner',
         'baseScope',
         'currentGenerators',
-        'possibleGenerators',
+        'collectorGroup',
       ], Collector),
       { override: true }
     );

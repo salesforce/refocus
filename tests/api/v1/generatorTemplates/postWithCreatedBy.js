@@ -36,7 +36,7 @@ describe('tests/api/v1/generatorTemplates/postWithCreatedBy.js > ', () => {
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('returnUser', false));
 
-  it('toggle returnUser on, createdBy and user fields returned', (done) => {
+  it('toggle returnUser on, user field returned', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(generatorTemplateToCreate)
@@ -46,7 +46,7 @@ describe('tests/api/v1/generatorTemplates/postWithCreatedBy.js > ', () => {
         return done(err);
       }
 
-      expect(res.body.createdBy).to.equal(user.id);
+      expect(res.body.user.id).to.equal(user.id);
       expect(res.body.user.name).to.equal(user.name);
       expect(res.body.user.email).to.equal(user.email);
       done();
