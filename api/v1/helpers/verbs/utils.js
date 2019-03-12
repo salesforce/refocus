@@ -1007,4 +1007,6 @@ module.exports = {
 
   setOwner,
 
+  findByIdThenName,
+
 }; // exports
