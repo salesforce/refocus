@@ -99,7 +99,7 @@ module.exports = {
           resultObj.process = req.process;
           resultObj.uri = req.url;
           resultObj.request_id = req.request_id || 'None';
-          resultObj.type = o.actionType ;
+          resultObj.type = o.actionType;
           resultObj.botName = o.botId;
 
           u.findByIdThenName(roomModel, o.roomId, {})
