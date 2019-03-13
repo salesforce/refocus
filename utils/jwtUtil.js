@@ -180,7 +180,7 @@ function verifySocketToken(token) {
           method: ['notRevoked', payload.tokenname, user.id],
         }).findOne());
     });
-} // verifyBotSocketToken
+} // verifySocketToken
 
 /**
  * Function to verify if a bot token is valid or not, i.e. does the token
@@ -207,8 +207,7 @@ function verifyBotToken(payload, req, cb) {
     assignHeaderValues(req, payload);
     return cb ? cb() : undefined;
   })
-  .catch((err) => {
-    console.log(err);
+  .catch(() => {
     throw new apiErrors.ForbiddenError({
       explanation: 'Authentication Failed',
     });
