@@ -10,17 +10,29 @@
  * ./realTime/redisPublisher.js
  */
 'use strict'; // eslint-disable-line strict
+const logger = require('winston');
+const featureToggles = require('feature-toggles');
 const rtUtils = require('./utils');
 const config = require('../config');
 const client = require('../cache/redisCache').client;
-const pubPerspective = client.pubPerspective;
+const pubPerspectives = client.pubPerspectives;
 const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
-const logger = require('winston');
-const featureToggles = require('feature-toggles');
-const rcache = require('../cache/redisCache').client.pubsubStats;
-const pubKeys = require('./constants').pubsubStatsKeys.pub;
+const pubSubStats = require('./pubSubStats');
 const ONE = 1;
+
+/**
+ * Returns a random integer between min (inclusive) and max (inclusive).
+ * The value is no lower than min (or the next integer greater than min
+ * if min isn't an integer) and no greater than max (or the next integer
+ * lower than max if max isn't an integer).
+ * Using Math.round() will give you a non-uniform distribution!
+ */
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 /**
  * Store pub stats in redis cache, tracking count and publish time by key. Note
@@ -108,12 +120,17 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
  */
 function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   if (!inst || !event) return false;
-
   const obj = {};
   obj[event] = inst.get ? inst.get() : inst;
 
-  // set pub client and channel to perspective unless there are overrides opts
-  let pubClient = pubPerspective;
+  /*
+   * Set pub client and channel to perspective unless there are overrides opts.
+   * There may be multiple publishers for perspectives to spread the load, so
+   * pick one at random.
+   */
+  const len = pubPerspectives.length;
+  const whichPubsub = len === 1 ? 0 : getRandomInt(0, (len - 1));
+  let pubClient = pubPerspectives[whichPubsub];
   let channelName = perspectiveChannelName;
   if (opts) {
     obj[event].pubOpts = opts;
@@ -135,7 +152,11 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   }
 
   if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
-    trackStats(event, obj[event]);
+    try {
+      pubSubStats.track('pub', event, obj[event]);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   pubClient.publish(channelName, JSON.stringify(obj));
@@ -176,7 +197,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
       if (sample) {
         sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
 
-        if (featureToggles.isFeatureEnabled('reduceSampleEventSize')) {
+        if (!featureToggles.isFeatureEnabled('attachSmallerSubjectToSample')) {
           // Replace the sample.subject with subject name/absolutePath/tags only
           const miniSubject = {
             absolutePath: sample.subject.absolutePath,

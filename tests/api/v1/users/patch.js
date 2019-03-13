@@ -145,7 +145,7 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
           return done(err);
         }
 
-        expect(res.body.profileId).to.equal(profileTwoId);
+        expect(res.body.profile.id).to.equal(profileTwoId);
         return done();
       });
     });
@@ -160,7 +160,7 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
           return done(err);
         }
 
-        expect(res.body.profileId).to.equal(profileTwoId);
+        expect(res.body.profile.id).to.equal(profileTwoId);
         return done();
       });
     });
@@ -194,7 +194,7 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
           return done(err);
         }
 
-        expect(res.body.profileId).to.equal(profileTwoId);
+        expect(res.body.profile.id).to.equal(profileTwoId);
         return done();
       });
     });

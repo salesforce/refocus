@@ -58,8 +58,14 @@ if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
   logger.info('Redis Retry Strategy', opts);
 }
 
-const subPerspective = redis.createClient(rconf.instanceUrl.pubsubPerspective, opts);
-subPerspective.subscribe(rconf.perspectiveChannelName);
+const subPerspectives = [];
+const pubPerspectives = [];
+rconf.instanceUrl.pubsubPerspectives.forEach((rp) => {
+  const s = redis.createClient(rp, opts);
+  s.subscribe(rconf.perspectiveChannelName);
+  subPerspectives.push(s);
+  pubPerspectives.push(redis.createClient(rp, opts));
+});
 
 const subBot = redis.createClient(rconf.instanceUrl.pubsubBots, opts);
 subBot.subscribe(rconf.botChannelName);
@@ -69,34 +75,48 @@ const client = {
   clock: redis.createClient(rconf.instanceUrl.clock, opts),
   heartbeat: redis.createClient(rconf.instanceUrl.heartbeat, opts),
   limiter: redis.createClient(rconf.instanceUrl.limiter, opts),
-  pubPerspective: redis.createClient(rconf.instanceUrl.pubsubPerspective, opts),
+  pubPerspectives,
   pubBot: redis.createClient(rconf.instanceUrl.pubsubBots, opts),
-  pubsubStats: redis.createClient(rconf.instanceUrl.pubsubStats, opts),
   realtimeLogging: redis.createClient(rconf.instanceUrl.realtimeLogging,
    opts),
   sampleStore: redis.createClient(rconf.instanceUrl.sampleStore, opts),
-  subPerspective,
+  subPerspectives,
   subBot,
 };
 
-Object.keys(client).forEach((key) => {
-  client[key].on('error', (err) => {
-    logger.error(`redisClientConnection=${key} event=error`, err);
+/**
+ * Register redis client handlers.
+ *
+ * @param {String} name - The name of this redis client
+ * @param {Object} cli - The redis client
+ */
+function registerHandlers(name, cli) {
+  cli.on('error', (err) => {
+    logger.error(`redisClientConnection=${name} event=error`, err);
     return new Error(err);
   });
 
   if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
-    client[key].on('connect', () => {
-      logger.info(`redisClientConnection=${key} event=connect`);
+    cli.on('connect', () => {
+      logger.info(`redisClientConnection=${name} event=connect`);
     });
 
-    client[key].on('ready', () => {
-      logger.info(`redisClientConnection=${key} event=ready`);
+    cli.on('ready', () => {
+      logger.info(`redisClientConnection=${name} event=ready`);
     });
 
-    client[key].on('reconnecting', () => {
-      logger.info(`redisClientConnection=${key} event=reconnecting`);
+    cli.on('reconnecting', () => {
+      logger.info(`redisClientConnection=${name} event=reconnecting`);
     });
+  }
+} // registerHandlers
+
+Object.keys(client).forEach((key) => {
+  const cli = client[key];
+  if (Array.isArray(cli)) {
+    cli.forEach((c) => registerHandlers(key, c));
+  } else {
+    registerHandlers(key, cli);
   }
 });
 

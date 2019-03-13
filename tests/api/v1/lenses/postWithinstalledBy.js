@@ -52,7 +52,7 @@ describe('tests/api/v1/lenses/postWithInstalledBy.js >', () => {
         return done(err);
       }
 
-      expect(res.body.installedBy).to.equal(user.id);
+      expect(res.body.user.id).to.equal(user.id);
       expect(res.body.user.name).to.equal(user.name);
       expect(res.body.user.email).to.equal(user.email);
       done();

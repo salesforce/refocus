@@ -153,6 +153,7 @@ function handleLensMetadata(requestObj, libraryParam, seqObj) {
  */
 function responsify(rec, props, method) {
   const o = lensUtil.cleanAndCreateLensJson(rec);
+  u.removeFieldsFromResponse(props.fieldsToExclude, o);
   o.apiLinks = u.getApiLinks(o.id, props, method);
   return o;
 }
@@ -271,6 +272,7 @@ module.exports = {
       if (reply) {
         // reply is responsified lens object as string.
         const lensObject = JSON.parse(reply);
+        u.removeFieldsFromResponse(helper.fieldsToExclude, lensObject);
 
         // add api links to the object and return response.
         lensObject.apiLinks = u.getApiLinks(lensObject.id, helper, req.method);

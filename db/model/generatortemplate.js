@@ -340,11 +340,11 @@ module.exports = function user(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
         {
           association: assoc.owner,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
       order: ['name'],
@@ -356,7 +356,7 @@ module.exports = function user(seq, dataTypes) {
       include: [
         {
           association: assoc.owner,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
     });
@@ -365,7 +365,7 @@ module.exports = function user(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
     });

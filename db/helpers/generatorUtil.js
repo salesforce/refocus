@@ -121,7 +121,9 @@ function validateCollectorGroup(seq, collectorGroupName) {
           resolve(_cg);
         }
 
-        const err = new dbErrors.ResourceNotFoundError();
+        const err = new dbErrors.ResourceNotFoundError(
+          `CollectorGroup "${collectorGroupName}" not found.`
+        );
         err.resourceType = 'CollectorGroup';
         err.resourceKey = collectorGroupName;
         reject(err);
