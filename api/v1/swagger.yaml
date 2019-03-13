@@ -4247,11 +4247,6 @@ paths:
                 minLength: 7
                 maxLength: 4096
                 description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-              possibleCollectors:
-                 description: List of collectors this Sample Generator should try to use.
-                 type: array
-                 items:
-                   type: string
               collectorGroup:
                  description: Name of set of collectors this Sample Generator should try to use.
                  type: string
@@ -4427,11 +4422,6 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
-              possibleCollectors:
-                description: Collectors to append to the list of collectors this Sample Generator should try to use.
-                type: array
-                items:
-                  type: string
               collectorGroup:
                  description: Name of set of collectors this Sample Generator should try to use.
                  type: string
@@ -4557,11 +4547,6 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
-              possibleCollectors:
-                description: List of collectors this Sample Generator should try to use.
-                type: array
-                items:
-                  type: string
               collectorGroup:
                  description: Name of set of collectors this Sample Generator should try to use.
                  type: string
@@ -13453,12 +13438,6 @@ definitions:
         items:
           type: "object"
         description: "Generators assigned to this collector."
-      possibleGenerators:
-        readOnly: true
-        type: "array"
-        items:
-          type: "object"
-        description: "Generators that could potentially be assigned to this collector."
       registered:
         type: boolean
         description: "Boolean. If false, means deregistered. Changed by the DEREGISTER command"
@@ -13661,11 +13640,6 @@ definitions:
         minLength: 7
         maxLength: 4096
         description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-      possibleCollectors:
-        description: List of collectors this Sample Generator should try to use.
-        type: array
-        items:
-          type: object
       collectorGroup:
          description: Specifies set of collectors this Sample Generator should try to use.
          type: object
@@ -13745,11 +13719,6 @@ definitions:
         minLength: 7
         maxLength: 4096
         description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-      possibleCollectors:
-        description: List of collectors this Sample Generator should try to use.
-        type: array
-        items:
-          type: object
       collectorGroup:
          description: Specifies set of collectors this Sample Generator should try to use.
          type: object
@@ -14040,7 +14009,7 @@ parameters:
         - status
         - registered
         - currentGenerators
-        - possibleGenerators
+        - collectorGroup
         - lastHeartbeat
         - lastModifiedAt
         - createdBy
@@ -14150,7 +14119,6 @@ parameters:
         - currentCollector
         - user
         - owner
-        - possibleCollectors
         - collectorGroup
 
   GeneratorTemplateFieldsParam:
@@ -14376,6 +14344,10 @@ parameters:
         - description
         - createdAt
         - updatedAt
+        - user
+        - owner
+        - collectors
+        - generators
 
 # =============================================================================
 responses:

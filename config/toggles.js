@@ -164,6 +164,12 @@ const longTermToggles = {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const shortTermToggles = {
+  attachSamplesPrefilterAspects: environmentVariableTrue(pe,
+    'ATTACH_SAMPLES_PREFILTER_ASPECTS'),
+
+  attachSmallerSubjectToSample: environmentVariableTrue(pe,
+    'ATTACH_SMALLER_SUBJECT_TO_SAMPLE'),
+
   // turn on logging to log invalid hmset values
   logInvalidHmsetValues: environmentVariableTrue(pe,
     'LOG_INVALID_HMSET_VALUES'),
@@ -187,6 +193,9 @@ const shortTermToggles = {
 
   // Add some job queue instrumentation logging
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
+
+  instrumentCompleteSubjectHierarchy: environmentVariableTrue(pe,
+    'INSTRUMENT_COMPLETE_SUBJECT_HIERARCHY'),
 
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 

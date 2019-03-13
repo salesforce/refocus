@@ -63,18 +63,16 @@ module.exports = {
   fieldScopeMap: {
     user: 'user',
     owner: 'owner',
-    possibleCollectors: 'possibleCollectors',
     currentCollector: 'currentCollector',
     collectorGroup: 'collectorGroup',
   },
+  fieldsToExclude: ['createdBy', 'ownerId', 'collectorId', 'collectorGroupId'],
 
   /*
    * list the fields containing an array of objects to be sorted here. The value
    * defines the field that will be used for comparision
    */
-  sortArrayObjects: {
-    possibleCollectors: 'name',
-  },
+  sortArrayObjects: {},
   readOnlyFields: ['id', 'isDeleted', 'currentCollector'],
 
 }; // exports

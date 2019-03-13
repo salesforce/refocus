@@ -99,12 +99,13 @@ module.exports = {
           resultObj.process = req.process;
           resultObj.uri = req.url;
           resultObj.request_id = req.request_id || 'None';
-          resultObj.type = event.actionType;
+          resultObj.type = o.actionType;
           resultObj.botName = o.botId;
-          u.findByIdThenName(roomModel, o.roomId)
-            .then((r) => u.findByIdThenName(roomTypeModel, r.type))
+
+          u.findByIdThenName(roomModel, o.roomId, {})
+            .then((r) => u.findByIdThenName(roomTypeModel, r.type, {}))
             .then((rt) => {
-              resultObj.RoomType = rt.name;
+              resultObj.roomType = rt.name;
               activityLogUtil.printActivityLogString(resultObj, 'event');
             });
         }

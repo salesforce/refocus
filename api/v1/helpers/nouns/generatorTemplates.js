@@ -37,6 +37,7 @@ module.exports = {
     user: 'user',
     owner: 'owner',
   },
+  fieldsToExclude: ['createdBy', 'ownerId'],
 
   hasMultipartKey: true,
 

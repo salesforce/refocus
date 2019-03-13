@@ -217,19 +217,17 @@ module.exports = {
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       instance = o;
-      return helper.model.validateCollectors(toPut.possibleCollectors);
+      return helper.model.validateCollectorGroup(toPut.collectorGroup);
     })
-    .then((_collectors) => {
+    .then((_collGroup) => {
       // prevent overwrite of reloaded collectors on update
-      delete puttableFields.possibleCollectors;
+      delete puttableFields.collectorGroup;
 
-      // mock possibleCollectors on instance so we don't need to reload
+      // mock collectorGroup on instance so we don't need to reload
       // again to get the currentCollector
-      instance.possibleCollectors = _collectors;
-      return instance.setPossibleCollectors(_collectors);
+      instance.collectorGroup = _collGroup;
+      return instance.setCollectorGroup(_collGroup);
     })
-    .then(() => helper.model.validateCollectorGroup(toPut.collectorGroup))
-    .then((_collGroup) => instance.setCollectorGroup(_collGroup))
     .then(() => u.updateInstance(instance, puttableFields, toPut))
     .then(() => instance.reload())
     .then((retVal) =>

@@ -35,7 +35,8 @@ module.exports = {
     user: 'user',
     owner: 'owner',
     status: 'status',
-    possibleGenerators: 'possibleGenerators',
+    collectorGroup: 'collectorGroup',
     currentGenerators: 'currentGenerators',
   },
+  fieldsToExclude: ['createdBy', 'ownerId', 'collectorGroupId'],
 }; // exports
