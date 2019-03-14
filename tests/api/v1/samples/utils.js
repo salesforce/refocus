@@ -103,6 +103,10 @@ module.exports = {
   sampleName,
   doCustomSetup,
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(basic));
     return Object.assign(defaultProps, overrideProps);
   },
@@ -154,10 +158,10 @@ module.exports = {
     });
   },
 
-  forceDelete(done) {
+  forceDelete(done, startTime=testStartTime) {
     samstoinit.eradicate()
-    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Subject, startTime))
+    .then(() => tu.forceDelete(tu.db.Aspect, startTime))
     .then(() => done())
     .catch(done);
   },

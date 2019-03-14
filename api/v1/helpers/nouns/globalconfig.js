@@ -25,4 +25,5 @@ module.exports = {
   model: GlobalConfig,
   modelName: 'GlobalConfig',
   nameFinder: 'key',
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

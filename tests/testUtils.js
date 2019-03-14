@@ -289,12 +289,12 @@ module.exports = {
   }, // createAdminToken
 
   // delete user
-  forceDeleteUser(done) {
-    forceDelete(db.User, testStartTime)
-    .then(() => forceDelete(db.Token, testStartTime))
-    .then(() => forceDelete(db.Profile, testStartTime))
-    .then(() => done())
-    .catch(done);
+  forceDeleteUser(done, startTime=testStartTime) {
+    forceDelete(db.User, startTime)
+      .then(() => forceDelete(db.Token, startTime))
+      .then(() => forceDelete(db.Profile, startTime))
+      .then(() => done())
+      .catch(done);
   }, // forceDeleteUser
 
   // delete subject

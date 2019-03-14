@@ -75,4 +75,5 @@ module.exports = {
   },
   cacheEnabled: featureToggles.isFeatureEnabled('enableCachePerspective'),
   resourceType,
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

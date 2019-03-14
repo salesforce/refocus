@@ -19,6 +19,7 @@ const ONE = 1;
 const MINUS_ONE = -1;
 const RADIX = 10;
 const Op = require('sequelize').Op;
+const ms = require('ms');
 
 /**
  * Escapes all percent literals so they're not treated as wildcards.
@@ -155,73 +156,81 @@ function toSequelizeWhere(filter, props) {
 
   for (let i = ZERO; i < keys.length; i++) {
     const key = keys[i];
-    if (filter[key] !== undefined) {
-      if (!Array.isArray(filter[key])) {
-        filter[key] = [filter[key]];
-      }
-
-      const values = [];
-
-      /*
-       * If enum filter is enabled and key is an enumerable field
-       * then create an "in"
-       * clause and add it to where clause, e.g.
-       * {
-       *  where: {
-            valueType: { [Op.in]: ["PERCENT", "BOOLEAN"] },
-          },
-       * }
-       */
-      if (Array.isArray(props.fieldsWithEnum) &&
-        props.fieldsWithEnum.indexOf(key) > -ONE) {
-
-        // if specified in props, convert the array in query to camelcase.
-        const enumArr = (props.fieldsToCamelCase &&
-          props.fieldsToCamelCase.indexOf(key) > -ONE) ?
-          convertArrayElementsToCamelCase(filter[key]) : filter[key];
-
-        // to use $in instead of $contains in toWhereClause
-        props.isEnum = true;
-        values.push(toWhereClause(enumArr, props));
-        where[key] = values[ZERO];
-      }
-
-      /*
-       * If tag filter is enabled and key is "tags":
-       * If it's an inclusion, create a "contains" clause:
-       * { where : { tags: { '$contains': ['tag1', 'tag2'] }}}
-       * If it's an exclusion, create a "not" "overlap" clause:
-       * { where : { '$not': { tags: { '$overlap': ['tag1', 'tag2'] }}}}}
-       */
-      else if (props.tagFilterName && key === props.tagFilterName) {
-        const tagArr = filter[key];
-        Object.assign(where, toWhereClause(tagArr, props));
+    let filterKeyValue = filter[key];
+    if (filterKeyValue !== undefined) {
+      if (props.timePeriodFilters &&
+        props.timePeriodFilters.includes(key)) {
+        const whereClause = {};
+        whereClause[Op.lte] = new Date();
+        whereClause[Op.gte] = new Date(Date.now() + ms(filterKeyValue));
+        where[key] = whereClause;
       } else {
-        for (let j = ZERO; j < filter[key].length; j++) {
-          const v = filter[key][j];
-          if (typeof v === 'boolean') {
-            values.push(v);
-          } else if (typeof v === 'number') {
-            values.push(v);
-          } else if (u.looksLikeId(v)) {
-            values.push(v);
-          } else if (typeof v === 'string') {
-            const arr = v.split(constants.COMMA);
-            for (let k = ZERO; k < arr.length; k++) {
-              values.push(toWhereClause(arr[k]));
-            }
-          } else if (typeof v === 'object') {
-            for (const p in v) {
-              values.push({ [p]: toWhereClause(v[p]) });
-            }
-          }
+        if (!Array.isArray(filterKeyValue)) {
+          filterKeyValue = [filterKeyValue];
         }
 
-        if (values.length === ONE) {
+        const values = [];
+
+        /*
+         * If enum filter is enabled and key is an enumerable field
+         * then create an "in"
+         * clause and add it to where clause, e.g.
+         * {
+         *  where: {
+              valueType: { [Op.in]: ["PERCENT", "BOOLEAN"] },
+            },
+         * }
+         */
+        if (Array.isArray(props.fieldsWithEnum) &&
+          props.fieldsWithEnum.indexOf(key) > -ONE) {
+          // if specified in props, convert the array in query to camelcase.
+          const enumArr = (props.fieldsToCamelCase &&
+            props.fieldsToCamelCase.indexOf(key) > -ONE) ?
+            convertArrayElementsToCamelCase(filterKeyValue) : filterKeyValue;
+
+          // to use $in instead of $contains in toWhereClause
+          props.isEnum = true;
+          values.push(toWhereClause(enumArr, props));
           where[key] = values[ZERO];
-        } else if (values.length > ONE) {
-          where[key] = {};
-          where[key][Op.or] = values;
+        }
+
+        /*
+         * If tag filter is enabled and key is "tags":
+         * If it's an inclusion, create a "contains" clause:
+         * { where : { tags: { '$contains': ['tag1', 'tag2'] }}}
+         * If it's an exclusion, create a "not" "overlap" clause:
+         * { where : { '$not': { tags: { '$overlap': ['tag1', 'tag2'] }}}}}
+         */
+        else if (props.tagFilterName && key === props.tagFilterName) {
+          const tagArr = filterKeyValue;
+          Object.assign(where, toWhereClause(tagArr, props));
+        } else {
+          for (let j = ZERO; j < filterKeyValue.length; j++) {
+            const v = filterKeyValue[j];
+            if (typeof v === 'boolean') {
+              values.push(v);
+            } else if (typeof v === 'number') {
+              values.push(v);
+            } else if (u.looksLikeId(v)) {
+              values.push(v);
+            } else if (typeof v === 'string') {
+              const arr = v.split(constants.COMMA);
+              for (let k = ZERO; k < arr.length; k++) {
+                values.push(toWhereClause(arr[k]));
+              }
+            } else if (typeof v === 'object') {
+              for (const p in v) {
+                values.push({ [p]: toWhereClause(v[p]) });
+              }
+            }
+          }
+
+          if (values.length === ONE) {
+            where[key] = values[ZERO];
+          } else if (values.length > ONE) {
+            where[key] = {};
+            where[key][Op.or] = values;
+          }
         }
       }
     }

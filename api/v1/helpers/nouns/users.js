@@ -38,4 +38,5 @@ module.exports = {
     profile: 'profile',
   },
   fieldsToExclude: ['profileId'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

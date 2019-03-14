@@ -40,6 +40,7 @@ module.exports = {
   fieldsToExclude: ['createdBy', 'ownerId'],
 
   hasMultipartKey: true,
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 
 }; // exports
 
