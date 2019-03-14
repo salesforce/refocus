@@ -386,29 +386,17 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   // Lookup by id is faster than case-insensitive ILIKE on absolutePath
   let subFinder;
   if (!sample.subject && subjectModel) {
-    if (featureToggles.isFeatureEnabled('attachSmallerSubjectToSample')) {
-      if (sample.subjectId) {
-        subFinder = subjectModel.unscoped().findById(sample.subjectId, {
-          attributes: subjectAttributesToAttach,
-        });
-      } else {
-        subFinder = subjectModel.unscoped().findOne({
-          where: {
-            absolutePath: { [Op.iLike]: subAbsPath },
-          },
-          attributes: subjectAttributesToAttach,
-        });
-      }
+    if (sample.subjectId) {
+      subFinder = subjectModel.unscoped().findById(sample.subjectId, {
+        attributes: subjectAttributesToAttach,
+      });
     } else {
-      if (sample.subjectId) {
-        subFinder = subjectModel.findById(sample.subjectId);
-      } else {
-        subFinder = subjectModel.findOne({
-          where: {
-            absolutePath: { [Op.iLike]: subAbsPath },
-          },
-        });
-      }
+      subFinder = subjectModel.unscoped().findOne({
+        where: {
+          absolutePath: { [Op.iLike]: subAbsPath },
+        },
+        attributes: subjectAttributesToAttach,
+      });
     }
   }
 
