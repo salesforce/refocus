@@ -74,5 +74,6 @@ module.exports = {
    */
   sortArrayObjects: {},
   readOnlyFields: ['id', 'isDeleted', 'currentCollector'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 
 }; // exports

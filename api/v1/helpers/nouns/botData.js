@@ -27,4 +27,5 @@ module.exports = {
   baseUrl: '/v1/botData',
   model: BotData,
   modelName: 'botData',
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

@@ -23,6 +23,10 @@ const basic = {
 
 module.exports = {
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(basic));
     return Object.assign(defaultProps, overrideProps);
   },
@@ -32,11 +36,11 @@ module.exports = {
     return tu.db.Subject.create(toCreate);
   },
 
-  forceDelete(done) {
+  forceDelete(done, startTime=testStartTime) {
     Promise.join(
       samstoinit.eradicate(),
-      tu.forceDelete(tu.db.Aspect, testStartTime)
-      .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+      tu.forceDelete(tu.db.Aspect, startTime)
+      .then(() => tu.forceDelete(tu.db.Subject, startTime))
     )
     .then(() => done())
     .catch(done);

@@ -123,13 +123,17 @@ module.exports = {
   },
 
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(standard));
     return Object.assign(defaultProps, overrideProps);
   },
 
   doSetup(props={}) {
-    const { createdBy } = props;
-    return roomTypeUtil.createBasic({ createdBy })
+    const { createdBy, name } = props;
+    return roomTypeUtil.createBasic({ createdBy, name })
     .then((roomType) => {
       const createdIds = {
         type: roomType.id,
@@ -139,8 +143,8 @@ module.exports = {
   },
 
   createBasic(overrideProps={}) {
-    const { createdBy } = overrideProps;
-    return this.doSetup({ createdBy })
+    const { createdBy, name } = overrideProps;
+    return this.doSetup({ createdBy, name })
     .then(({ type }) => {
       Object.assign(overrideProps, { type });
       const toCreate = this.getBasic(overrideProps);
@@ -152,9 +156,9 @@ module.exports = {
     return ['type'];
   },
 
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Room, testStartTime)
-    .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.Room, startTime)
+    .then(() => tu.forceDelete(tu.db.RoomType, startTime))
     .then(() => done())
     .catch(done);
   },

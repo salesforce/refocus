@@ -62,6 +62,10 @@ module.exports = {
   },
 
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(standard));
     return Object.assign(defaultProps, overrideProps);
   },
@@ -82,8 +86,14 @@ module.exports = {
   },
 
   createBasic(overrideProps={}) {
-    const { userId } = overrideProps;
-    return this.doSetup({ userId })
+    const { userId, name } = overrideProps;
+
+    if (overrideProps.botId && overrideProps.roomId) {
+      const toCreate = this.getBasic(overrideProps);
+      return tu.db.BotAction.create(toCreate);
+    }
+
+    return this.doSetup({ userId, name })
     .then(({ botId, roomId }) => {
       Object.assign(overrideProps, { botId, roomId });
       const toCreate = this.getBasic(overrideProps);
@@ -91,15 +101,53 @@ module.exports = {
     });
   },
 
+  createBasicWithActionName(overrideProps={}) {
+    const { name, userId } = overrideProps;
+
+    if (overrideProps.botId && overrideProps.roomId) {
+      return tu.db.Bot.findById(overrideProps.botId)
+        .then((bot) => {
+          const botActions = bot.actions;
+          botActions.push({ name, parameters: standard.parameters });
+          return bot.update({ actions: botActions });
+        })
+      .then(() => {
+        const toCreate = this.getBasic(overrideProps);
+        return tu.db.BotAction.create(toCreate);
+      });
+    }
+
+    const botObj = {
+      installedBy: userId,
+      actions: [{ name, parameters: standard.parameters }],
+    };
+    return Promise.all([
+      botUtil.createBasic(botObj),
+      roomUtil.createBasic(),
+    ])
+      .then(([bot, room]) => {
+        const createdIds = {
+          botId: bot.id,
+          roomId: room.id,
+        };
+        return createdIds;
+      })
+      .then(({ botId, roomId }) => {
+        Object.assign(overrideProps, { botId, roomId });
+        const toCreate = this.getBasic(overrideProps);
+        return tu.db.BotAction.create(toCreate);
+      });
+  },
+
   getDependencyProps() {
     return ['botId', 'roomId'];
   },
 
-  forceDelete(done) {
-    tu.forceDelete(tu.db.BotAction, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Bot, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Room, testStartTime))
-    .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.BotAction, startTime)
+    .then(() => tu.forceDelete(tu.db.Bot, startTime))
+    .then(() => tu.forceDelete(tu.db.Room, startTime))
+    .then(() => tu.forceDelete(tu.db.RoomType, startTime))
     .then(() => done())
     .catch(done);
   },
