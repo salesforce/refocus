@@ -280,7 +280,7 @@ function getValuesObject(accumulatorObject) {
      * lensLoadEvent is dispatched. Since hierarchyLoadEvent is truthy,
      * it is also dispatched.
      */
-    const getLens = getPromiseWithUrl('/v1/lenses/' + perspective.lensId)
+    const getLens = getPromiseWithUrl('/v1/lenses/' + perspective.lens.id)
       .then((res) => {
         // hierarchyLoadEvent can be undefined or a custom event
         // if hierarchyLoadEvent is custom event, it will be dispatched
