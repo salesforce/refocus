@@ -29,4 +29,5 @@ module.exports = {
     generators: 'generators',
   },
   fieldsToExclude: ['createdBy', 'ownerId'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

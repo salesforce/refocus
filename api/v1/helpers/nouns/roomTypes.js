@@ -27,4 +27,5 @@ module.exports = {
   baseUrl: '/v1/roomTypes',
   model: RoomTypes,
   modelName: 'roomTypes',
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports
