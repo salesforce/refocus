@@ -31,6 +31,9 @@ if (heartbeatLatencyToleranceMillis < FLOOR) {
   heartbeatLatencyToleranceMillis = 1000 * LATENCY_DEFAULT;
 }
 
+let generatorUpsertToleranceFactor = +pe.GENERATOR_UPSERT_TOLERANCE_FACTOR || 3;
+let generatorMissedActivityRetries = +pe.GENERATOR_MISSED_ACTIVITY_RETRIES || 2;
+
 let requireSslToRemoteDataSource = false;
 if (pe.COLLECTOR_REQUIRE_SSL_TO_REMOTE_DATA_SOURCE &&
   pe.COLLECTOR_REQUIRE_SSL_TO_REMOTE_DATA_SOURCE.toLowerCase() === 'true') {
@@ -70,6 +73,17 @@ module.exports = {
    * 12:00:20:000.
    */
   heartbeatLatencyToleranceMillis,
+
+  /*
+   * The number of upserts a generator can miss before it will be assumed to be
+   * stuck and reassigned to a different collector.
+   */
+  generatorUpsertToleranceFactor,
+
+  /*
+   * The number of times to try reassigning a generator before giving up
+   */
+  generatorMissedActivityRetries,
 
   /*
    * If flagged true, Refocus Collector will accept only external sources
