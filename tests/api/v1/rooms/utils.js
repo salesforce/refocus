@@ -16,9 +16,9 @@ const roomTypeUtil = require('../roomTypes/utils');
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestRoom`;
 const n2 = n + 'NonActive';
-const o = 'web';
-const o2 = 'other';
-const invalidOrigin = `${tu.namePrefix}origin`;
+const o = `${tu.namePrefix}TestOrigin`;
+const o2 = o + 'NonActive';
+const invalidOrigin = `${tu.namePrefix}^origin*`;
 
 const roomTypeSchema = {
   name: 'roomTypeTest',
@@ -165,7 +165,9 @@ module.exports = {
 
   forceDelete(done) {
     tu.forceDelete(tu.db.Room, testStartTime)
-    .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
+    .then(() => {
+      tu.forceDelete(tu.db.RoomType, testStartTime);
+    })
     .then(() => done())
     .catch(done);
   },

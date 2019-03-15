@@ -162,14 +162,14 @@ describe('tests/db/model/room/create.js >', () => {
     RoomType.create(v.getStandard())
     .then((roomType) => {
       const room = u.getStandard();
-      room.origin = 'gs';
+      room.origin = invalidValue;
       room.type = roomType.id;
       return Room.create(room);
     })
-    .then(() => done(tu.valError))
+    .then(() => done())
     .catch((err) => {
-      expect(err.name).to.equal(tu.dbErrorName);
-      expect(err.message.toLowerCase()).to.contain('invalid input');
+      expect(err.name).to.equal(tu.valErrorName);
+      expect(err.message.toLowerCase()).to.contain('validation error');
       done();
     })
     .catch(done);

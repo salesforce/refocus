@@ -27,5 +27,4 @@ module.exports = {
   baseUrl: '/v1/rooms',
   model: Rooms,
   modelName: 'rooms',
-  fieldsWithEnum: ['origin'],
 }; // exports

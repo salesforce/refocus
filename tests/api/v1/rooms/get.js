@@ -172,16 +172,15 @@ describe('tests/api/v1/rooms/get.js >', () => {
     room2.type = testRoom.type;
     Room.create(room2)
     .then(() => {
-      api.get(`${path}?origin=${u.originNonActive}`)
+      api.get(`${path}?origin=${u.origin}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
-
         expect(res.body.length).to.equal(ONE);
-        expect(res.body[ZERO].origin).to.equal(room2.origin);
+        expect(res.body[ZERO].origin).to.equal(u.origin);
         done();
       });
     })
