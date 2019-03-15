@@ -62,4 +62,18 @@ module.exports = {
     .then(() => done())
     .catch(done);
   },
+
+  getBasic(overrideProps={}) {
+    if (!overrideProps.resourceName) {
+      delete overrideProps.resourceName;
+    }
+
+    const defaultProps = getAuditEventObject();
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.AuditEvent.create(toCreate);
+  },
 };

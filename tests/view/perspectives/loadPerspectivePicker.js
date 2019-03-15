@@ -65,7 +65,7 @@ describe('tests/view/perspectives/loadPerspectivePicker.js, Perspective app >',
             {
               name: DUMMY_STRING,
               rootSubject: SUBJECT1,
-              lensId: DUMMY_ID,
+              lens: { id: DUMMY_ID },
               statusFilter: [],
               aspectFilter: [],
               aspectTagFilter: [],
@@ -75,7 +75,7 @@ describe('tests/view/perspectives/loadPerspectivePicker.js, Perspective app >',
               aspectTagFilterType: 'EXCLUDE',
               subjectTagFilterType: 'EXCLUDE',
             },
-            { name: 'perspective2', rootSubject: SUBJECT2, lensId: DUMMY_ID },
+            { name: 'perspective2', rootSubject: SUBJECT2, lens: { id: DUMMY_ID }, },
           ],
         },
       };
@@ -262,7 +262,7 @@ describe('tests/view/perspectives/loadPerspectivePicker.js, Perspective app >',
             .returns(Promise.resolve({
               body: [
                 {
-                  name: DUMMY_STRING, rootSubject: SUBJECT1, lensId: DUMMY_ID,
+                  name: DUMMY_STRING, rootSubject: SUBJECT1, lens: { id: DUMMY_ID },
                   aspectTagFilterType: 'EXCLUDE',
                   aspectFilterType: 'EXCLUDE',
                   subjectTagFilterType: 'EXCLUDE',

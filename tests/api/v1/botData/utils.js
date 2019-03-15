@@ -34,15 +34,19 @@ module.exports = {
   },
 
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(standard));
     return Object.assign(defaultProps, overrideProps);
   },
 
   doSetup(props={}) {
-    const { createdBy } = props;
+    const { createdBy, name } = props;
     return Promise.all([
-      botUtil.createBasic({ installedBy: createdBy }),
-      roomUtil.createBasic({ createdBy: createdBy }),
+      botUtil.createBasic({ installedBy: createdBy, name }),
+      roomUtil.createBasic({ createdBy: createdBy, name }),
     ])
     .then(([bot, room]) => {
       const createdIds = {
@@ -54,24 +58,29 @@ module.exports = {
   },
 
   createBasic(overrideProps={}) {
-    const { createdBy } = overrideProps;
-    return this.doSetup({ createdBy })
-    .then(({ botId, roomId }) => {
-      Object.assign(overrideProps, { botId, roomId });
+    const { createdBy, name } = overrideProps;
+    if (overrideProps.botId && overrideProps.roomId) {
       const toCreate = this.getBasic(overrideProps);
       return tu.db.BotData.create(toCreate);
-    });
+    }
+
+    return this.doSetup({ createdBy, name })
+      .then(({ botId, roomId }) => {
+        Object.assign(overrideProps, { botId, roomId });
+        const toCreate = this.getBasic(overrideProps);
+        return tu.db.BotData.create(toCreate);
+      });
   },
 
   getDependencyProps() {
     return ['botId', 'roomId'];
   },
 
-  forceDelete(done) {
-    tu.forceDelete(tu.db.BotData, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Bot, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Room, testStartTime))
-    .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.BotData, startTime)
+    .then(() => tu.forceDelete(tu.db.Bot, startTime))
+    .then(() => tu.forceDelete(tu.db.Room, startTime))
+    .then(() => tu.forceDelete(tu.db.RoomType, startTime))
     .then(() => done())
     .catch(done);
   },

@@ -29,6 +29,7 @@ const filters = [
   'statusFilter',
 ];
 const botAbsolutePath = '/Bots';
+const subjectAttributesToAttach = ['absolutePath', 'name', 'tags'];
 
 const ASPECT_INDEX = 0;
 const SUBJECT_INDEX = 1;
@@ -386,12 +387,15 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   let subFinder;
   if (!sample.subject && subjectModel) {
     if (sample.subjectId) {
-      subFinder = subjectModel.findById(sample.subjectId);
+      subFinder = subjectModel.unscoped().findById(sample.subjectId, {
+        attributes: subjectAttributesToAttach,
+      });
     } else {
-      subFinder = subjectModel.findOne({
+      subFinder = subjectModel.unscoped().findOne({
         where: {
           absolutePath: { [Op.iLike]: subAbsPath },
         },
+        attributes: subjectAttributesToAttach,
       });
     }
   }

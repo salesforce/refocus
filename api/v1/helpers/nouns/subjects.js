@@ -71,4 +71,5 @@ module.exports = {
     'hierarchyLevel', 'absolutePath', 'childCount', 'id', 'isDeleted',
   ],
   requireAtLeastOneFields: ['helpEmail', 'helpUrl'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

@@ -39,4 +39,5 @@ module.exports = {
     currentGenerators: 'currentGenerators',
   },
   fieldsToExclude: ['createdBy', 'ownerId', 'collectorGroupId'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

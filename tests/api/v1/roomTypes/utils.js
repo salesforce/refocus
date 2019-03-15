@@ -166,6 +166,10 @@ module.exports = {
   },
 
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(standard));
     return Object.assign(defaultProps, overrideProps);
   },
@@ -175,8 +179,8 @@ module.exports = {
     return tu.db.RoomType.create(toCreate);
   },
 
-  forceDelete(done) {
-    tu.forceDelete(tu.db.RoomType, testStartTime)
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.RoomType, startTime)
     .then(() => done())
     .catch(done);
   },

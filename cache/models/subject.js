@@ -10,7 +10,7 @@
  * cache/model/subject.js
  */
 'use strict'; // eslint-disable-line strict
-
+const featureToggles = require('feature-toggles');
 const helper = require('../../api/v1/helpers/nouns/subjects');
 const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const utils = require('../../api/v1/helpers/verbs/utils');
@@ -99,11 +99,33 @@ function attachSamples(res) {
   return redisClient.smembersAsync(subjectKey).then((aspectNames) => {
     const cmds = [];
     aspectNames.forEach((aspect) => {
-      const sampleKey = sampleStore.toKey(constants.objectType.sample,
-               res.absolutePath + '|' + aspect);
-      const aspectKey = sampleStore.toKey(constants.objectType.aspect, aspect);
-      cmds.push(['hgetall', sampleKey]);
-      cmds.push(['hgetall', aspectKey]);
+
+      if (featureToggles.isFeatureEnabled('attachSamplesPrefilterAspects')) {
+        /*
+         * If there is an aspect name filter, do it now instead of doing extra
+         * hgetall calls for aspects and samples we don't need!
+         */
+        let aspectPassesFilter = true; // default true if no aspect name filter
+        if (filters.aspect.includes && filters.aspect.includes.size) {
+          aspectPassesFilter = filters.aspect.includes.has(aspect.toLowerCase());
+        } else if (filters.aspect.excludes && filters.aspect.excludes.size) {
+          aspectPassesFilter = !filters.aspect.excludes.has(aspect.toLowerCase());
+        }
+
+        if (aspectPassesFilter) {
+          const sampleKey = sampleStore.toKey(constants.objectType.sample,
+            res.absolutePath + '|' + aspect);
+          const aspectKey = sampleStore.toKey(constants.objectType.aspect, aspect);
+          cmds.push(['hgetall', sampleKey]);
+          cmds.push(['hgetall', aspectKey]);
+        }
+      } else {
+        const sampleKey = sampleStore.toKey(constants.objectType.sample,
+          res.absolutePath + '|' + aspect);
+        const aspectKey = sampleStore.toKey(constants.objectType.aspect, aspect);
+        cmds.push(['hgetall', sampleKey]);
+        cmds.push(['hgetall', aspectKey]);
+      }
     });
 
     return redisClient.batch(cmds).execAsync();
@@ -115,8 +137,9 @@ function attachSamples(res) {
 
         // parse the array fields to JSON before adding them to the sample list
         sampleStore.arrayObjsStringsToJson(sample,
-                                    constants.fieldsToStringify.sample);
-        sampleStore.arrayObjsStringsToJson(asp, constants.fieldsToStringify.aspect);
+          constants.fieldsToStringify.sample);
+        sampleStore.arrayObjsStringsToJson(asp,
+          constants.fieldsToStringify.aspect);
         sampleStore.convertAspectStrings(asp);
 
         sample.aspect = asp;
@@ -124,7 +147,14 @@ function attachSamples(res) {
       }
     }
 
-    // apply aspect, aspectTag and sampleStatus filters to the samples
+    if (featureToggles.isFeatureEnabled('attachSamplesPrefilterAspects')) {
+      /*
+       * We already applied aspect name filter so clear that one, but apply
+       * aspectTag and sampleStatus filters to the samples here now.
+       */
+      filters.aspects = {};
+    }
+
     filterSamples(res);
 
     /* filterOnSubject: returns true(integer > 0) only if the subjecttags are
@@ -205,12 +235,18 @@ function getNameFromAbsolutePath(absolutePath) {
  * complete subject hierarchy with samples
  */
 function completeSubjectHierarchy(res, params) {
-  // set the filters
+  const startTime = new Date();
   u.setFilters(params, filters);
   return traverseHierarchy(res)
   .then(() => {
     // once the filtering is done, reset it back.
     u.resetFilters(filters);
+
+    if (featureToggles.isFeatureEnabled('instrumentCompleteSubjectHierarchy')) {
+      console.log('cache/model/subject.completeSubjectHierarchy:' +
+        `${res.absolutePath}:${new Date() - startTime}`);
+    }
+
     return Promise.resolve(res);
   });
 } // completeSubjectHierarchy
