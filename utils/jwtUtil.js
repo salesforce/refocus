@@ -163,14 +163,24 @@ function verifyGeneratorToken(payload, req, cb) {
 } // verifyGeneratorToken
 
 /**
- * Function to verify if a bot token is valid or not.
+ * Function to verify if a token is valid or not.
  *
  * @param {Object} payload - the decoded payload
  */
-function verifyBotSocketToken(token) {
+function verifySocketToken(token) {
   return jwtVerifyAsync(token, secret, {})
-  .then((payload) => Bot.findOne({ where: { name: payload.tokenname } }));
-} // verifyBotSocketToken
+    .then((payload) => {
+      if (payload.IsBot) {
+        return Bot.findOne({ where: { name: payload.tokenname } });
+      }
+
+      const username = payload.username;
+      return User.findOne({ name: username })
+        .then((user) => Token.scope({
+          method: ['notRevoked', payload.tokenname, user.id],
+        }).findOne());
+    });
+} // verifySocketToken
 
 /**
  * Function to verify if a bot token is valid or not, i.e. does the token
@@ -340,7 +350,7 @@ module.exports = {
   verifyCollectorToken, // for testing purposes only
   verifyGeneratorToken, // for testing purposes only
   verifyBotToken,
-  verifyBotSocketToken,
+  verifySocketToken,
   assignHeaderValues, // for testing purposes only
   headersWithDefaults, // for testing purposes only
 };

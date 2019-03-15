@@ -30,13 +30,17 @@ module.exports = {
   },
 
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(basic));
     return Object.assign(defaultProps, overrideProps);
   },
 
   doSetup(props={}) {
-    const { createdBy } = props;
-    return collectorUtil.createBasic({ createdBy })
+    const { createdBy, name } = props;
+    return collectorUtil.createBasic({ createdBy, name })
     .then((collector) => {
       const createdIds = {
         collectorName: collector.name,
@@ -46,8 +50,8 @@ module.exports = {
   },
 
   createBasic(overrideProps={}) {
-    const { createdBy } = overrideProps;
-    return this.doSetup({ createdBy })
+    const { createdBy, name } = overrideProps;
+    return this.doSetup({ createdBy, name })
     .then(({ collectorName }) => {
       Object.assign(overrideProps, { collectors: [collectorName] });
       const toCreate = this.getBasic(overrideProps);
@@ -59,11 +63,11 @@ module.exports = {
     return ['collectorName'];
   },
 
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Generator, testStartTime)
-      .then(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime))
-      .then(() => tu.forceDelete(tu.db.Collector, testStartTime))
-      .then(() => tu.forceDelete(tu.db.CollectorGroup, testStartTime))
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.Generator, startTime)
+      .then(() => tu.forceDelete(tu.db.GeneratorTemplate, startTime))
+      .then(() => tu.forceDelete(tu.db.Collector, startTime))
+      .then(() => tu.forceDelete(tu.db.CollectorGroup, startTime))
       .then(() => done())
       .catch(done);
   },

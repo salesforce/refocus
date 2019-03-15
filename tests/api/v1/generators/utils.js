@@ -70,12 +70,12 @@ function createGeneratorAspects() {
 }
 
 module.exports = {
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Generator, testStartTime)
-    .then(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Collector, testStartTime))
-    .then(() => tu.forceDelete(tu.db.CollectorGroup, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.Generator, startTime)
+    .then(() => tu.forceDelete(tu.db.GeneratorTemplate, startTime))
+    .then(() => tu.forceDelete(tu.db.Collector, startTime))
+    .then(() => tu.forceDelete(tu.db.CollectorGroup, startTime))
+    .then(() => tu.forceDelete(tu.db.Aspect, startTime))
     .then(() => done())
     .catch(done);
   },
@@ -86,15 +86,19 @@ module.exports = {
   createGeneratorAspects,
 
   getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
     const defaultProps = JSON.parse(JSON.stringify(GENERATOR_SIMPLE));
     return Object.assign(defaultProps, overrideProps);
   },
 
   doSetup(props={}) {
-    const { createdBy } = props;
+    const { createdBy, name } = props;
     return Promise.all([
-      gtUtil.createBasic({ createdBy }),
-      aspectUtil.createBasic({ createdBy }),
+      gtUtil.createBasic({ createdBy, name }),
+      aspectUtil.createBasic({ createdBy, name }),
     ])
     .then(([sgt, aspect]) => {
         const createdIds = {
@@ -109,8 +113,8 @@ module.exports = {
   },
 
   createBasic(overrideProps={}) {
-    const { createdBy } = overrideProps;
-    return this.doSetup({ createdBy })
+    const { createdBy, name } = overrideProps;
+    return this.doSetup({ createdBy, name })
     .then(({ generatorTemplate, aspects }) => {
       Object.assign(overrideProps, { generatorTemplate, aspects });
       const toCreate = this.getBasic(overrideProps);
