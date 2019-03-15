@@ -116,7 +116,8 @@ function validateNonRunningCollectors(req) {
         );
       }
 
-      return Promise.resolve();
+      // Track activity. Skip hooks so this doesn't get tracked for the heartbeat
+      return generator.update({ lastActivity: Date.now() }, { hooks: false });
     });
 }
 

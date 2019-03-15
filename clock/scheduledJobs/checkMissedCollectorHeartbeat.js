@@ -13,13 +13,15 @@
  * enqueues a job, otherwise just executes work directly in this process.
  */
 const Collector = require('../../db/index').Collector;
+const Generator = require('../../db/index').Generator;
 
 /**
  * Execute the call to check for missed heartbeat.
  * @returns {Promise}
  */
 function execute() {
-  return Collector.checkMissedHeartbeat();
+  return Collector.checkMissedHeartbeat()
+  .then(() => Generator.checkMissedActivity());
 } // execute
 
 module.exports = {
