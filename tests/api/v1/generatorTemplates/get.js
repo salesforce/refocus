@@ -278,7 +278,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     });
   });
 
-  describe('get with fields > ', () => {
+  describe.only('get with fields > ', () => {
     function getAllWithFields(done, ...fields) {
       const extraFields = ['apiLinks'];
       if (!fields.includes('id')) extraFields.push('id');
@@ -294,6 +294,11 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
         }
 
         expect(res.body).to.have.length(4);
+        expect(res.body[0]).to.have.property('name', 'template1');
+        expect(res.body[1]).to.have.property('name', 'template2');
+        expect(res.body[2]).to.have.property('name', 'template3');
+        expect(res.body[3]).to.have.property('name', 'template4');
+
         const templates = [template1, template2, template3, template4];
         for (let i = 0; i < 4; i++) {
           const template = templates[i];
