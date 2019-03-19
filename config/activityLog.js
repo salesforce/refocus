@@ -127,6 +127,8 @@ module.exports = {
   missedUpsert: {
     activity: 'missedUpsert',
     generator: 'None',
+    gtName: 'None',
+    gtVersion: 'None',
     currentCollector: 'None',
     lastUpsert: 'None',
     delta: 'None',

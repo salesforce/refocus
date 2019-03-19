@@ -445,6 +445,8 @@ module.exports = function generator(seq, dataTypes) {
   function logMissedUpsert(gen) {
     const logObj = {
       generator: gen.name,
+      gtName: gen.generatorTemplate && gen.generatorTemplate.name,
+      gtVersion: gen.generatorTemplate && gen.generatorTemplate.version,
       currentCollector: gen.currentCollector && gen.currentCollector.name,
       lastUpsert: gen.lastUpsert && gen.lastUpsert.getTime(),
       delta: gen.lastUpsert && Date.now() - gen.lastUpsert.getTime(),
