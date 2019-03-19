@@ -24,7 +24,7 @@ const TWO = 2;
 const THREE = 3;
 const RADIX = 10;
 
-describe('tests/api/v1/generatorTemplates/get.js > ', () => {
+describe.only('tests/api/v1/generatorTemplates/get.js > ', () => {
   let token;
   let o1;
   let o2;
@@ -278,7 +278,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     });
   });
 
-  describe.only('get with fields > ', () => {
+  describe('get with fields > ', () => {
     function getAllWithFields(done, ...fields) {
       const extraFields = ['apiLinks'];
       if (!fields.includes('id')) extraFields.push('id');
