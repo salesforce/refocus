@@ -93,7 +93,7 @@ module.exports = function generator(seq, dataTypes) {
       allowNull: false,
       defaultValue: false,
     },
-    lastActivity: {
+    lastUpsert: {
       type: dataTypes.DATE,
       allowNull: true,
     },
@@ -433,25 +433,25 @@ module.exports = function generator(seq, dataTypes) {
    *
    * @returns {Promise<Array<Generator>>}
    */
-  Generator.checkMissedActivity = function () {
+  Generator.checkMissedUpsert = function () {
     return Generator.findAll()
     .then((gens) => gens.filter((g) => g.shouldReassign()))
     .map((gen) => {
-      logMissedActivity(gen);
+      logMissedUpsert(gen);
       return gen.assignToCollector().then(() => gen.save());
     });
-  }; // checkMissedActivity
+  }; // checkMissedUpsert
 
-  function logMissedActivity(gen) {
+  function logMissedUpsert(gen) {
     const logObj = {
       generator: gen.name,
       currentCollector: gen.currentCollector && gen.currentCollector.name,
-      lastActivity: gen.lastActivity && gen.lastActivity.getTime(),
-      delta: gen.lastActivity && Date.now() - gen.lastActivity.getTime(),
+      lastUpsert: gen.lastUpsert && gen.lastUpsert.getTime(),
+      delta: gen.lastUpsert && Date.now() - gen.lastUpsert.getTime(),
     };
 
-    activityLogUtil.printActivityLogString(logObj, 'missedActivity');
-  } // logMissedActivity
+    activityLogUtil.printActivityLogString(logObj, 'missedUpsert');
+  } // logMissedUpsert
 
   /**
    * Instance Methods:
@@ -493,13 +493,13 @@ module.exports = function generator(seq, dataTypes) {
    * @returns {Boolean}
    */
   Generator.prototype.shouldReassign = function () {
-    if (!this.currentCollector || !this.lastActivity) return false;
+    if (!this.currentCollector || !this.lastUpsert) return false;
 
     const expectedInterval = this.intervalSecs * 1000;
     const toleranceFactor = conf.generatorUpsertToleranceFactor;
-    const retries = conf.generatorMissedActivityRetries;
+    const retries = conf.generatorMissedUpsertRetries;
     const heartbeatInterval = collectorConfig.heartbeatIntervalMillis;
-    const timeSinceUpsert = Date.now() - this.lastActivity.getTime();
+    const timeSinceUpsert = Date.now() - this.lastUpsert.getTime();
     const upsertTolerance = expectedInterval * toleranceFactor;
 
     const delta = timeSinceUpsert - upsertTolerance;
@@ -657,9 +657,9 @@ module.exports = function generator(seq, dataTypes) {
       this.currentCollector = mostAvailCollector || null;
       this._changed.collectorId = true;
 
-      // reset lastActivity when unassigned
+      // reset lastUpsert when unassigned
       if (!this.currentCollector) {
-        this.lastActivity = null;
+        this.lastUpsert = null;
       }
     });
   }; // assignToCollector

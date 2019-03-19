@@ -21,7 +21,7 @@ const Generator = require('../../db/index').Generator;
  */
 function execute() {
   return Collector.checkMissedHeartbeat()
-  .then(() => Generator.checkMissedActivity());
+  .then(() => Generator.checkMissedUpsert());
 } // execute
 
 module.exports = {

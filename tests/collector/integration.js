@@ -245,7 +245,7 @@ describe('tests/collector/integration.js >', function () {
     config.collector.heartbeatIntervalMillis = ms('15s');
     config.collector.heartbeatLatencyToleranceMillis = ms('5s');
     config.generatorUpsertToleranceFactor = 1;
-    config.generatorMissedActivityRetries = 3;
+    config.generatorMissedUpsertRetries = 3;
   });
 
   afterEach(() => forkUtils.killAllCollectors());
@@ -1275,7 +1275,7 @@ describe('tests/collector/integration.js >', function () {
       );
     });
 
-    describe('missed activity', () => {
+    describe('missed upsert', () => {
       let interval;
       const _gen2 = JSON.parse(JSON.stringify(gen2));
       _gen2.collectorGroup = cg1.name;
@@ -1365,7 +1365,7 @@ describe('tests/collector/integration.js >', function () {
         ))
       );
 
-      it('gen with no samples doesnt trigger missed activity', () =>
+      it('gen with no samples doesnt trigger missed upsert', () =>
         Promise.resolve()
         .then(() => Promise.join(
           u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),

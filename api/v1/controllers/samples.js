@@ -117,7 +117,7 @@ function validateNonRunningCollectors(req) {
       }
 
       // Track activity. Skip hooks so this doesn't get tracked for the heartbeat
-      return generator.update({ lastActivity: Date.now() }, { hooks: false });
+      return generator.update({ lastUpsert: Date.now() }, { hooks: false });
     });
 }
 

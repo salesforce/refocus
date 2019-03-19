@@ -124,11 +124,11 @@ module.exports = {
     lastHeartbeat: 'None',
     delta: 'None',
   },
-  missedActivity: {
-    activity: 'missedActivity',
+  missedUpsert: {
+    activity: 'missedUpsert',
     generator: 'None',
     currentCollector: 'None',
-    lastActivity: 'None',
+    lastUpsert: 'None',
     delta: 'None',
   },
   pubsub: {

@@ -118,7 +118,7 @@ let generatorUpsertToleranceFactor = +pe.GENERATOR_UPSERT_TOLERANCE_FACTOR || 3;
 /*
  * The number of times to try reassigning a generator before giving up
  */
-let generatorMissedActivityRetries = +pe.GENERATOR_MISSED_ACTIVITY_RETRIES || 2;
+let generatorMissedUpsertRetries = +pe.GENERATOR_MISSED_UPSERT_RETRIES || 2;
 
 const kueShutdownTimeout = +pe.KUE_SHUTDOWN_TIMEOUT || 5000;
 const waitingSigKillTimeout = +pe.WAITING_SIG_KILL_TIMEOUT || 60000;
@@ -292,7 +292,7 @@ module.exports = {
   redis: redisConfig,
   collector: collectorConfig,
   generatorUpsertToleranceFactor,
-  generatorMissedActivityRetries,
+  generatorMissedUpsertRetries,
   environment,
   getSamplesWildcardCacheInvalidation:
     pe.GET_SAMPLES_WILDCARD_CACHE_INVALIDATION ||

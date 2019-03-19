@@ -11,7 +11,7 @@ module.exports = {
   up: (queryInterface, Sequelize) =>
     queryInterface.addColumn(
       'Generators',
-      'lastActivity',
+      'lastUpsert',
       {
         type: Sequelize.DATE,
         allowNull: true,
@@ -21,7 +21,7 @@ module.exports = {
   down: (queryInterface, Sequelize) =>
     queryInterface.removeColumn(
       'Generators',
-      'lastActivity'
+      'lastUpsert'
     ),
 };
 
