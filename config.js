@@ -109,6 +109,17 @@ const JOB_QUEUE_TTL_SECONDS_SYNC = pe.TTL_KUE_JOBS_SYNC
 // sent to collector.
 const encryptionAlgoForCollector = 'aes-256-cbc';
 
+/*
+ * The number of upserts a generator can miss before it will be assumed to be
+ * stuck and reassigned to a different collector.
+ */
+let generatorUpsertToleranceFactor = +pe.GENERATOR_UPSERT_TOLERANCE_FACTOR || 3;
+
+/*
+ * The number of times to try reassigning a generator before giving up
+ */
+let generatorMissedActivityRetries = +pe.GENERATOR_MISSED_ACTIVITY_RETRIES || 2;
+
 const kueShutdownTimeout = +pe.KUE_SHUTDOWN_TIMEOUT || 5000;
 const waitingSigKillTimeout = +pe.WAITING_SIG_KILL_TIMEOUT || 60000;
 
@@ -280,6 +291,8 @@ module.exports = {
   db,
   redis: redisConfig,
   collector: collectorConfig,
+  generatorUpsertToleranceFactor,
+  generatorMissedActivityRetries,
   environment,
   getSamplesWildcardCacheInvalidation:
     pe.GET_SAMPLES_WILDCARD_CACHE_INVALIDATION ||

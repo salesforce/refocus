@@ -14,6 +14,7 @@ const common = require('../helpers/common');
 const dbUtils = require('../utils');
 const sgUtils = require('../helpers/generatorUtil');
 const collectorUtils = require('../helpers/collectorUtils');
+const conf = require('../../config');
 const collectorConfig = require('../../config/collectorConfig');
 const cryptUtils = require('../../utils/cryptUtils');
 const activityLogUtil = require('../../utils/activityLog');
@@ -495,8 +496,8 @@ module.exports = function generator(seq, dataTypes) {
     if (!this.currentCollector || !this.lastActivity) return false;
 
     const expectedInterval = this.intervalSecs * 1000;
-    const toleranceFactor = collectorConfig.generatorUpsertToleranceFactor;
-    const retries = collectorConfig.generatorMissedActivityRetries;
+    const toleranceFactor = conf.generatorUpsertToleranceFactor;
+    const retries = conf.generatorMissedActivityRetries;
     const heartbeatInterval = collectorConfig.heartbeatIntervalMillis;
     const timeSinceUpsert = Date.now() - this.lastActivity.getTime();
     const upsertTolerance = expectedInterval * toleranceFactor;

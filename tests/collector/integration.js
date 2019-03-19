@@ -244,8 +244,8 @@ describe('tests/collector/integration.js >', function () {
   beforeEach(() => {
     config.collector.heartbeatIntervalMillis = ms('15s');
     config.collector.heartbeatLatencyToleranceMillis = ms('5s');
-    config.collector.generatorUpsertToleranceFactor = 1;
-    config.collector.generatorMissedActivityRetries = 3;
+    config.generatorUpsertToleranceFactor = 1;
+    config.generatorMissedActivityRetries = 3;
   });
 
   afterEach(() => forkUtils.killAllCollectors());
@@ -516,7 +516,7 @@ describe('tests/collector/integration.js >', function () {
         ))
 
         .then(() => {
-          config.collector.generatorUpsertToleranceFactor = 3;
+          config.generatorUpsertToleranceFactor = 3;
           return u.awaitHeartbeat(coll2);
         })
         .then(({ res }) => expect(res.body.collectorConfig).to.include({
