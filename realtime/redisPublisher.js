@@ -196,17 +196,6 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     .then((sample) => {
       if (sample) {
         sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
-
-        if (!featureToggles.isFeatureEnabled('attachSmallerSubjectToSample')) {
-          // Replace the sample.subject with subject name/absolutePath/tags only
-          const miniSubject = {
-            absolutePath: sample.subject.absolutePath,
-            name: sample.subject.name,
-            tags: sample.subject.tags,
-          };
-          sample.subject = miniSubject;
-        }
-
         publishObject(sample, eventType);
         return sample;
       }
