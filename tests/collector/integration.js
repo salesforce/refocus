@@ -519,9 +519,6 @@ describe('tests/collector/integration.js >', function () {
           config.generatorUpsertToleranceFactor = 3;
           return u.awaitHeartbeat(coll2);
         })
-        .then(({ res }) => expect(res.body.collectorConfig).to.include({
-          generatorUpsertToleranceFactor: 3,
-        }))
 
         .then(() => u.stopGenerator(gen1, coll2))
         .then(() => forkUtils.tickFor(ms('2m')))
