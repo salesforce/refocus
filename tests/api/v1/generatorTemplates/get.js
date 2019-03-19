@@ -294,7 +294,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
         }
 
         expect(res.body).to.have.length(4);
-        console.log('\nFIELDS', ...fields)
+        console.log('\nFIELDS', ...fields);
         expect(res.body[0]).to.have.property('id', template1.id);
         expect(res.body[1]).to.have.property('id', template2.id);
         expect(res.body[2]).to.have.property('id', template3.id);
