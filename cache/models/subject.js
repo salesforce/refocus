@@ -100,26 +100,18 @@ function attachSamples(res) {
     const cmds = [];
     aspectNames.forEach((aspect) => {
 
-      if (featureToggles.isFeatureEnabled('attachSamplesPrefilterAspects')) {
-        /*
-         * If there is an aspect name filter, do it now instead of doing extra
-         * hgetall calls for aspects and samples we don't need!
-         */
-        let aspectPassesFilter = true; // default true if no aspect name filter
-        if (filters.aspect.includes && filters.aspect.includes.size) {
-          aspectPassesFilter = filters.aspect.includes.has(aspect.toLowerCase());
-        } else if (filters.aspect.excludes && filters.aspect.excludes.size) {
-          aspectPassesFilter = !filters.aspect.excludes.has(aspect.toLowerCase());
-        }
+      /*
+       * If there is an aspect name filter, do it now instead of doing extra
+       * hgetall calls for aspects and samples we don't need!
+       */
+      let aspectPassesFilter = true; // default true if no aspect name filter
+      if (filters.aspect.includes && filters.aspect.includes.size) {
+        aspectPassesFilter = filters.aspect.includes.has(aspect.toLowerCase());
+      } else if (filters.aspect.excludes && filters.aspect.excludes.size) {
+        aspectPassesFilter = !filters.aspect.excludes.has(aspect.toLowerCase());
+      }
 
-        if (aspectPassesFilter) {
-          const sampleKey = sampleStore.toKey(constants.objectType.sample,
-            res.absolutePath + '|' + aspect);
-          const aspectKey = sampleStore.toKey(constants.objectType.aspect, aspect);
-          cmds.push(['hgetall', sampleKey]);
-          cmds.push(['hgetall', aspectKey]);
-        }
-      } else {
+      if (aspectPassesFilter) {
         const sampleKey = sampleStore.toKey(constants.objectType.sample,
           res.absolutePath + '|' + aspect);
         const aspectKey = sampleStore.toKey(constants.objectType.aspect, aspect);
@@ -147,14 +139,11 @@ function attachSamples(res) {
       }
     }
 
-    if (featureToggles.isFeatureEnabled('attachSamplesPrefilterAspects')) {
-      /*
-       * We already applied aspect name filter so clear that one, but apply
-       * aspectTag and sampleStatus filters to the samples here now.
-       */
-      filters.aspects = {};
-    }
-
+    /*
+     * We already applied aspect name filter so clear that one, but apply
+     * aspectTag and sampleStatus filters to the samples here now.
+     */
+    filters.aspects = {};
     filterSamples(res);
 
     /* filterOnSubject: returns true(integer > 0) only if the subjecttags are
