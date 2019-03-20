@@ -42,7 +42,7 @@
     "start": "node index.js",
     "start-clock": "node clock/index.js",
     "start-worker": "node worker/index.js",
-    "test": "npm run reset-coverage && npm run test-all && npm run report",
+    "test": "./node_modules/mocha/bin/_mocha --recursive ./tests/api/v1/generatorTemplates ./tests/api/v1/generators",
     "test-all": "npm run test-main && npm run test-extra && npm run test-collector",
     "test-api": "npm run test-with-coverage -- --recursive tests/api",
     "test-api-log": "ENABLE_API_ACTIVITY_LOGS=true npm run test-with-coverage -- --recursive tests/api",

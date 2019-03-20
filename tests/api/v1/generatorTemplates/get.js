@@ -24,7 +24,7 @@ const TWO = 2;
 const THREE = 3;
 const RADIX = 10;
 
-describe.only('tests/api/v1/generatorTemplates/get.js > ', () => {
+describe('tests/api/v1/generatorTemplates/get.js > ', () => {
   let token;
   let o1;
   let o2;
@@ -294,7 +294,6 @@ describe.only('tests/api/v1/generatorTemplates/get.js > ', () => {
         }
 
         expect(res.body).to.have.length(4);
-        console.log('\nFIELDS', ...fields);
         expect(res.body[0]).to.have.property('id', template1.id);
         expect(res.body[1]).to.have.property('id', template2.id);
         expect(res.body[2]).to.have.property('id', template3.id);
