@@ -16,7 +16,7 @@ const Collector = require('../../db/index').Collector;
 const Generator = require('../../db/index').Generator;
 
 /**
- * Execute the call to check for missed heartbeat.
+ * Execute the calls to check for missed heartbeat and missed upsert.
  * @returns {Promise}
  */
 function execute() {
