@@ -57,7 +57,7 @@ module.exports = function room(seq, dataTypes) {
       validate: {
         is: constants.nameRegex,
       },
-      comment: 'Tracks where IMC room was created from',
+      comment: 'Tracks where refocus room was created from',
     },
     active: {
       type: dataTypes.BOOLEAN,
