@@ -164,8 +164,6 @@ const longTermToggles = {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const shortTermToggles = {
-  attachSamplesPrefilterAspects: environmentVariableTrue(pe,
-    'ATTACH_SAMPLES_PREFILTER_ASPECTS'),
 
   // turn on logging to log invalid hmset values
   logInvalidHmsetValues: environmentVariableTrue(pe,
