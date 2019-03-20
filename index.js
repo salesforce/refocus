@@ -163,14 +163,6 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
    */
   sampleStore.init();
 
-  /*
-   * If the clock dyno is NOT enabled, schedule all the scheduled jobs right
-   * from here.
-   */
-  if (!featureToggles.isFeatureEnabled('enableClockProcess')) {
-    require('./clock/index'); // eslint-disable-line global-require
-  }
-
   // View engine setup
   app.set('views', path.join(__dirname, 'view'));
   app.set('view engine', 'pug');
