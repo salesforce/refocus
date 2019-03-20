@@ -500,12 +500,22 @@ module.exports = function generator(seq, dataTypes) {
     const expectedInterval = this.intervalSecs * 1000;
     const toleranceFactor = conf.generatorUpsertToleranceFactor;
     const retries = conf.generatorMissedUpsertRetries;
-    const heartbeatInterval = collectorConfig.heartbeatIntervalMillis;
+    const jobInterval = collectorConfig.heartbeatIntervalMillis;
     const timeSinceUpsert = Date.now() - this.lastUpsert.getTime();
     const upsertTolerance = expectedInterval * toleranceFactor;
 
+    /* The time in ms the generator is over the upsert tolerance by. */
     const delta = timeSinceUpsert - upsertTolerance;
-    const retryCap = heartbeatInterval * retries;
+
+    /*
+     * The time past the upsert tolerance we should keep trying to reassign for.
+     * Once a generator has stopped, and if reassigning fails to fix it, it will
+     * be reassigned every interval when the job runs.
+     * This is necessary to prevent failing generators from being bounced around indefinitely.
+     */
+    const retryCap = jobInterval * retries;
+
+    /* Reassign the generator if it is over the upsert tolerance but not over the retry cap. */
     return 0 < delta && delta < retryCap;
   }; // shouldReassign
 
