@@ -113,12 +113,12 @@ const encryptionAlgoForCollector = 'aes-256-cbc';
  * The number of upserts a generator can miss before it will be assumed to be
  * stuck and reassigned to a different collector.
  */
-let generatorUpsertToleranceFactor = +pe.GENERATOR_UPSERT_TOLERANCE_FACTOR || 3;
+const generatorUpsertToleranceFactor = +pe.GENERATOR_UPSERT_TOLERANCE_FACTOR || 3;
 
 /*
  * The number of times to try reassigning a generator before giving up
  */
-let generatorMissedUpsertRetries = +pe.GENERATOR_MISSED_UPSERT_RETRIES || 2;
+const generatorMissedUpsertRetries = +pe.GENERATOR_MISSED_UPSERT_RETRIES || 2;
 
 const kueShutdownTimeout = +pe.KUE_SHUTDOWN_TIMEOUT || 5000;
 const waitingSigKillTimeout = +pe.WAITING_SIG_KILL_TIMEOUT || 60000;
