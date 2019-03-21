@@ -58,7 +58,7 @@
     "test-jobQueue": "npm run test-with-coverage -- --recursive tests/jobQueue",
     "test-limiter": "npm run test-with-coverage -- tests/limiter/limiter.js",
     "test-main": "npm run test-with-coverage -- --recursive tests/api tests/clock tests/config tests/db tests/enforceToken tests/realtime tests/enableCache tests/logging",
-    "test-travis": "./node_modules/mocha/bin/_mocha --recursive ./tests/api/v1/generatorTemplates ./tests/api/v1/generators",
+    "test-travis": "npm run test-api && npm run coveralls",
     "test-routes-enabled": "HIDE_ROUTES=true HIDDEN_ROUTES=aspects mocha -R dot --recursive tests/routeFlag/flagEnabled",
     "test-routes-disabled": "HIDE_ROUTES=false HIDDEN_ROUTES=aspects mocha -R dot --recursive tests/routeFlag/flagDisabled",
     "test-view": "NODE_ENV=build npm run test-with-coverage -- --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view",
