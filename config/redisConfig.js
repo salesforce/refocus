@@ -71,12 +71,6 @@ module.exports = {
       pe[pe.REDIS_PUBSUB_BOTS] : PRIMARY_REDIS,
 
     /*
-     * Redis instance to store pubsub statistics for logging
-     */
-    pubsubStats: pe.REDIS_PUBSUB_STATS && pe[pe.REDIS_PUBSUB_STATS] ?
-      pe[pe.REDIS_PUBSUB_STATS] : PRIMARY_REDIS,
-
-    /*
      * Kue job queue for work being delegated to worker dynos.
      */
     queue: pe.REDIS_QUEUE && pe[pe.REDIS_QUEUE] ?
