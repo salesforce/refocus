@@ -622,14 +622,14 @@ function userEnterRoom() {
 
   const message = currentUser.fullName + ' has joined the room at ' +
       moment().format('YYYY-MM-DD HH:mm Z');
-  const eventType =  {
+  const eventType = {
     type: 'User',
     user: currentUser,
     isActive: true,
   };
   const events = {
     log: message,
-    actionType: eventType.type + 'Login',
+    actionType: eventType.type + 'Enter',
     context: eventType,
     userId: _user.id,
     roomId: parseInt(ROOM_ID, 10),
@@ -661,7 +661,7 @@ function confirmUserExit() {
     moment().format('YYYY-MM-DD HH:mm Z');
   const events = {
     log: message,
-    actionType: eventType.type + 'Logout',
+    actionType: eventType.type + 'Exit',
     context: eventType,
     userId: _user.id,
     roomId: parseInt(ROOM_ID, 10),
