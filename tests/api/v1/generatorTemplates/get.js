@@ -294,6 +294,11 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
         }
 
         expect(res.body).to.have.length(4);
+        expect(res.body[0]).to.have.property('id', template1.id);
+        expect(res.body[1]).to.have.property('id', template2.id);
+        expect(res.body[2]).to.have.property('id', template3.id);
+        expect(res.body[3]).to.have.property('id', template4.id);
+
         const templates = [template1, template2, template3, template4];
         for (let i = 0; i < 4; i++) {
           const template = templates[i];
