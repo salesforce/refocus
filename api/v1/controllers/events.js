@@ -88,7 +88,7 @@ module.exports = {
       .then(() => helper.model.create(reqObj))
       .then((o) => o.reload())
       .then((o) => {
-        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        resultObj.dbTime = new Date() - resultObj.reqStartTime + 'ms';
         u.logAPI(req, resultObj, o.dataValues);
         if (featureToggles.isFeatureEnabled('enableEventActivityLogs')) {
           resultObj.user = req.headers.UserName;
@@ -101,6 +101,7 @@ module.exports = {
           resultObj.request_id = req.request_id || 'None';
           resultObj.type = o.actionType;
           resultObj.botName = o.botId;
+          resultObj.roomId = o.roomId;
 
           u.findByIdThenName(roomModel, o.roomId, {})
             .then((r) => u.findByIdThenName(roomTypeModel, r.type, {}))
