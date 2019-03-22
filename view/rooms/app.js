@@ -623,17 +623,17 @@ function userEnterRoom() {
   const message = currentUser.fullName + ' has joined the room at ' +
       moment().format('YYYY-MM-DD HH:mm Z');
   const eventType =  {
-      type: 'User',
-      user: currentUser,
-      isActive: true,
-    };
+    type: 'User',
+    user: currentUser,
+    isActive: true,
+  };
   const events = {
-      log: message,
-      eventType.type + 'Login',
-      context: eventType,
-      userId: _user.id,
-      roomId: parseInt(ROOM_ID, 10),
-    };
+    log: message,
+    actionType: eventType.type + 'Login',
+    context: eventType,
+    userId: _user.id,
+    roomId: parseInt(ROOM_ID, 10),
+  };
 
   return u.postPromiseWithUrl(GET_EVENTS, events);
 }
@@ -660,12 +660,12 @@ function confirmUserExit() {
   const message = currentUser.fullName + ' has left the room at ' +
     moment().format('YYYY-MM-DD HH:mm Z');
   const events = {
-      log: message,
-      actionType: eventType.type + 'Logout',
-      context: eventType,
-      userId: _user.id,
-      roomId: parseInt(ROOM_ID, 10),
-    };
+    log: message,
+    actionType: eventType.type + 'Logout',
+    context: eventType,
+    userId: _user.id,
+    roomId: parseInt(ROOM_ID, 10),
+  };
 
   return u.postPromiseWithUrl(GET_EVENTS, events);
 }
