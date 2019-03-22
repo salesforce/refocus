@@ -65,6 +65,7 @@ module.exports = {
     process: 'None',
     request_id: 'None',
     roomType: 'None',
+    roomId: 'None',
     token: 'None',
     totalTime: '0ms',
     type: 'None',

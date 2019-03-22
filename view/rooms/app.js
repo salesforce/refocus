@@ -41,6 +41,7 @@ const gotToRoomListButton =
   document.getElementById('room_list_button');
 const notFoundMessage = 'The requested room was not found, click below to create a room or view the list of available rooms';
 const AdmZip = require('adm-zip');
+const moment = require('moment');
 const u = require('../utils');
 const uPage = require('./utils/page');
 const uLayout = require('./utils/layout');
@@ -628,6 +629,7 @@ function userEnterRoom() {
     };
   const events = {
       log: message,
+      eventType.type + 'Login',
       context: eventType,
       userId: _user.id,
       roomId: parseInt(ROOM_ID, 10),
@@ -656,9 +658,10 @@ function confirmUserExit() {
   };
 
   const message = currentUser.fullName + ' has left the room at ' +
-      moment().format('YYYY-MM-DD HH:mm Z');
+    moment().format('YYYY-MM-DD HH:mm Z');
   const events = {
       log: message,
+      actionType: eventType.type + 'Logout',
       context: eventType,
       userId: _user.id,
       roomId: parseInt(ROOM_ID, 10),
