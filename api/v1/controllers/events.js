@@ -88,7 +88,7 @@ module.exports = {
       .then(() => helper.model.create(reqObj))
       .then((o) => o.reload())
       .then((o) => {
-        resultObj.dbTime = new Date() - resultObj.reqStartTime +'ms';
+        resultObj.dbTime = new Date() - resultObj.reqStartTime + 'ms';
         u.logAPI(req, resultObj, o.dataValues);
         if (featureToggles.isFeatureEnabled('enableEventActivityLogs')) {
           resultObj.user = req.headers.UserName;
