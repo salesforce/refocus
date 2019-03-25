@@ -51,7 +51,7 @@ module.exports = function (req, res, next) {
   .then(() => applyLimits(limiterConfig2))
   .then(() => applyLimits(limiterConfig1))
   .then(next)
-  .catch(next);
+  .catch(next); // calls "next" with error arg
 
   function applyLimits(config) {
     if (!config.max || !config.duration || !config.id) {
@@ -88,8 +88,11 @@ module.exports = function (req, res, next) {
             activityLogUtil.printActivityLogString(logObject, 'limiter');
           }
 
-          res.status(429).end();
-          return Promise.reject();
+          const msg = `Rate Limit: max ${config.max} requests per ` +
+            `${config.duration}ms`;
+          const err = new Error(msg);
+          err.status = 429;
+          return Promise.reject(err);
         }
       });
     }
