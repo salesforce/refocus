@@ -14,7 +14,7 @@ const supertest = require('supertest');
 const Promise = require('bluebird');
 supertest.Test.prototype.endAsync = Promise.promisify(supertest.Test
   .prototype.end);
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');

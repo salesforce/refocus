@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const getValuesObject = require('../../../../view/perspective/utils.js').getValuesObject;
 const tu = require('../../../testUtils');
