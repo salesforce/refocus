@@ -67,28 +67,12 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
       conf.pubSubStatsLoggingInterval);
   }
 
-  /*
-   * Log env vars. Only log once when there are multiple processes.
-   * Process id is 0 for a single process, 1-n for multiple throng workers.
-   */
+  // Log env vars. Only log once when there are multiple processes.
+  // Process id is 0 for a single process, 1-n for multiple throng workers.
   if (clusterProcessId < 2) logEnvVars.log(process.env);
 
-  /*
-   * Custom middleware to add timestamp, request id, and process info to the
-   * request, for use in logging.
-   */
+  // Custom middleware to add process info to the request (for use in logging)
   app.use((req, res, next) => {
-    // timestamp
-    req.timestamp = Date.now();
-
-    // request id (heroku only)
-    if (req.headers && req.headers['x-request-id']) {
-      req.request_id = req.headers['x-request-id'];
-    }
-
-    // dyno name (heroku only)
-    if (process.env.DYNO) req.dyno = process.env.DYNO;
-
     // process id (0 for a single process, 1-n for multiple throng workers)
     req.clusterProcessId = clusterProcessId;
 

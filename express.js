@@ -133,6 +133,27 @@ if (featureToggles.isFeatureEnabled('hideRoutes')) {
 }
 
 swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
+  /*
+   * Custom middleware to add timestamp, request id, and dyno name to the
+   * request, for use in logging.
+   */
+  app.use((req, res, next) => {
+    // timestamp
+    req.timestamp = Date.now();
+
+    // request id (heroku only)
+    if (req.headers && req.headers['x-request-id']) {
+      req.request_id = req.headers['x-request-id'];
+    }
+
+    // dyno name (heroku only)
+    if (process.env.DYNO) {
+      req.dyno = process.env.DYNO;
+    }
+
+    next();
+  });
+
   const staticOptions = {
     etag: true,
     setHeaders(res, path, stat) {
