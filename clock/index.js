@@ -11,9 +11,13 @@
  *
  * Defines all the scheduled processes to execute on regular intervals.
  *
- * This is the main module to start the clock process. To just start the clock process,
+ * If a separate clock dyno is enabled ("enableClockProcess"), this is the main
+ * module to start the clock process. To just start the clock process,
  * use "npm run start-clock". To start both the web and the clock processes
  * locally, use "heroku local".
+ *
+ * If a separate clock dyno is NOT enabled, this module is just loaded from
+ * inside the main web process.
  *
  * To define a new clock job: create a new job file in clock/jobs, update the
  * clockJobConfig object in config.js.

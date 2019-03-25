@@ -111,6 +111,9 @@ const longTermToggles = {
   enableEventActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'event'),
 
+  // Enable heroku clock dyno
+  enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
+
   // Hide routes
   hideRoutes: environmentVariableTrue(pe, 'HIDE_ROUTES'),
 
