@@ -18,10 +18,12 @@ const expect = require('chai').expect;
 
 function testAssociations(path, associations, joiSchema, conf) {
   let token;
+  let recordName;
   let recordId;
 
   before((done) => {
     token = conf.token;
+
     done();
   });
 
@@ -30,11 +32,12 @@ function testAssociations(path, associations, joiSchema, conf) {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      recordId = res.body[0].name;
+      recordName = res.body[0].name;
+      recordId = res.body[0].id;
       expect(res.body).to.be.an('array');
       res.body.forEach((record) => {
+        expect(record).to.include.keys(associations);
         associations.forEach((assoc) => {
-          expect(record).to.have.property(assoc);
           expect(Joi.validate(record[assoc], joiSchema[assoc]).error).to.be.null;
         });
       });
@@ -49,45 +52,64 @@ function testAssociations(path, associations, joiSchema, conf) {
     .expect((res) => {
       expect(res.body).to.be.an('array');
       res.body.forEach((record) => {
-        associations.forEach((assoc) => {
-          expect(record).to.not.have.property(assoc);
-        });
+        expect(record).to.not.have.any.keys(associations);
       });
     })
     .end(done);
   });
 
-  it('get by key includes associations', (done) => {
-    // GET /v1/generatorTemplates/name is invalid
-    if (path === '/v1/generatorTemplates') {
-      return done();
-    }
-
+  it('get by id includes associations', (done) => {
     api.get(`${path}/${recordId}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
+      expect(res.body).to.include.keys(associations);
       associations.forEach((assoc) => {
-        expect(res.body).to.have.property(assoc);
         expect(Joi.validate(res.body[assoc], joiSchema[assoc]).error).to.be.null;
       });
     })
     .end(done);
   });
 
-  it('get by key with field param does not include associations', (done) => {
+  it('get by name includes associations', (done) => {
     // GET /v1/generatorTemplates/name is invalid
     if (path === '/v1/generatorTemplates') {
       return done();
     }
 
+    api.get(`${path}/${recordName}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body).to.include.keys(associations);
+      associations.forEach((assoc) => {
+        expect(Joi.validate(res.body[assoc], joiSchema[assoc]).error).to.be.null;
+      });
+    })
+    .end(done);
+  });
+
+  it('get by id with field param does not include associations', (done) => {
     api.get(`${path}/${recordId}?fields=name`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
-      associations.forEach((assoc) => {
-        expect(res.body).to.not.have.property(assoc);
-      });
+      expect(res.body).to.not.have.any.keys(associations);
+    })
+    .end(done);
+  });
+
+  it('get by name with field param does not include associations', (done) => {
+    // GET /v1/generatorTemplates/name is invalid
+    if (path === '/v1/generatorTemplates') {
+      return done();
+    }
+
+    api.get(`${path}/${recordName}?fields=name`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body).to.not.have.any.keys(associations);
     })
     .end(done);
   });
@@ -100,7 +122,7 @@ function testAssociations(path, associations, joiSchema, conf) {
       .expect((res) => {
         expect(res.body).to.be.an('array');
         res.body.forEach((record) => {
-          expect(record).to.have.keys('id', 'name', assoc, 'apiLinks');
+          expect(record).to.have.keys(['id', 'name', assoc, 'apiLinks']);
           expect(Joi.validate(record[assoc], joiSchema[assoc]).error)
             .to.be.null;
         });
@@ -110,13 +132,25 @@ function testAssociations(path, associations, joiSchema, conf) {
   });
 
   associations.forEach((assoc) => {
-    it(`get by key: an association can be specified as a field param (${assoc})`, (done) => {
+    it(`get by id: an association can be specified as a field param (${assoc})`, (done) => {
+      api.get(`${path}/${recordId}?fields=name,${assoc}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body).to.be.an('object');
+        expect(res.body).to.have.keys('id', 'name', assoc, 'apiLinks');
+        expect(Joi.validate(res.body[assoc], joiSchema[assoc]).error).to.be.null;
+      })
+      .end(done);
+    });
+
+    it(`get by name: an association can be specified as a field param (${assoc})`, (done) => {
       // GET /v1/generatorTemplates/name is invalid
       if (path === '/v1/generatorTemplates') {
         return done();
       }
 
-      api.get(`${path}/${recordId}?fields=name,${assoc}`)
+      api.get(`${path}/${recordName}?fields=name,${assoc}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
@@ -138,8 +172,8 @@ function testAssociations(path, associations, joiSchema, conf) {
         .expect((res) => {
           expect(res.body).to.be.an('array');
           res.body.forEach((record) => {
+            expect(record).to.have.keys('id', 'name', ...associations, 'apiLinks');
             associations.forEach((assoc) => {
-              expect(record).to.have.property(assoc);
               expect(Joi.validate(record[assoc],
                 joiSchema[assoc]).error).to.be.null;
             });
@@ -148,15 +182,36 @@ function testAssociations(path, associations, joiSchema, conf) {
         .end(done);
       });
 
-      it('multiple associations can be specified with key and field' +
+      it('multiple associations can be specified with id and field' +
         ' params', (done) => {
         const fields = ['name', ...associations].toString();
         api.get(`${path}/${recordId}?fields=${fields}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
         .expect((res) => {
+          expect(res.body).to.have.keys('id', 'name', ...associations, 'apiLinks');
           associations.forEach((assoc) => {
-            expect(res.body).to.have.property(assoc);
+            expect(Joi.validate(res.body[assoc],
+              joiSchema[assoc]).error).to.be.null;
+          });
+        })
+        .end(done);
+      });
+
+      it('multiple associations can be specified with name and field' +
+        ' params', (done) => {
+        // GET /v1/generatorTemplates/name is invalid
+        if (path === '/v1/generatorTemplates') {
+          return done();
+        }
+
+        const fields = ['name', ...associations].toString();
+        api.get(`${path}/${recordName}?fields=${fields}`)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body).to.have.keys('id', 'name', ...associations, 'apiLinks');
+          associations.forEach((assoc) => {
             expect(Joi.validate(res.body[assoc],
               joiSchema[assoc]).error).to.be.null;
           });

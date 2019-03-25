@@ -329,6 +329,33 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
     .end(done);
   });
 
+  it('tags and related links not provided, should set to empty array',
+    (done) => {
+      api.patch(`${path}/${i1}`)
+      .set('Authorization', token)
+      .send({
+        name: `${tu.namePrefix}Quebec`,
+        isPublished: true,
+      })
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.tags).to.have.length(0);
+        expect(res.body.relatedLinks).to.have.length(0);
+      })
+      .end((err /* , res */) => {
+        if (err) {
+          done(err);
+        }
+
+        Subject.findById(i1)
+          .then((subj) => {
+            expect(subj.tags).to.eql([]);
+            expect(subj.relatedLinks).to.eql([]);
+            done();
+          });
+      });
+    });
+
   it('patch child name and isPublished', (done) => {
     p1.relatedLinks = [];
     api.patch(`${path}/${i1}`)

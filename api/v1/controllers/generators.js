@@ -149,6 +149,7 @@ module.exports = {
     const requestBody = req.swagger.params.queryBody.value;
     validateGeneratorAspectsPermissions(requestBody.aspects, req)
     .then(() => u.findByKey(helper, req.swagger.params))
+    .then((o) => u.setOwner(requestBody, req, o))
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       u.patchArrayFields(o, requestBody, helper);
@@ -174,7 +175,8 @@ module.exports = {
     u.mergeDuplicateArrayElements(params.queryBody.value, helper);
     const toPost = params.queryBody.value;
     toPost.createdBy = req.user.id;
-    validateGeneratorAspectsPermissions(toPost.aspects, req)
+    u.setOwner(toPost, req)
+    .then(() => validateGeneratorAspectsPermissions(toPost.aspects, req))
     .then(() =>
       helper.model.createWithCollectors(toPost))
     .then((o) => {
@@ -211,22 +213,21 @@ module.exports = {
      */
     validateGeneratorAspectsPermissions(toPut.aspects, req)
     .then(() => u.findByKey(helper, req.swagger.params))
+    .then((o) => u.setOwner(toPut, req, o))
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       instance = o;
-      return helper.model.validateCollectors(toPut.possibleCollectors);
+      return helper.model.validateCollectorGroup(toPut.collectorGroup);
     })
-    .then((_collectors) => {
+    .then((_collGroup) => {
       // prevent overwrite of reloaded collectors on update
-      delete puttableFields.possibleCollectors;
+      delete puttableFields.collectorGroup;
 
-      // mock possibleCollectors on instance so we don't need to reload
+      // mock collectorGroup on instance so we don't need to reload
       // again to get the currentCollector
-      instance.possibleCollectors = _collectors;
-      return instance.setPossibleCollectors(_collectors);
+      instance.collectorGroup = _collGroup;
+      return instance.setCollectorGroup(_collGroup);
     })
-    .then(() => helper.model.validateCollectorGroup(toPut.collectorGroup))
-    .then((_collGroup) => instance.setCollectorGroup(_collGroup))
     .then(() => u.updateInstance(instance, puttableFields, toPut))
     .then(() => instance.reload())
     .then((retVal) =>

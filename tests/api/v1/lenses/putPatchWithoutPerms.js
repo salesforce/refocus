@@ -29,7 +29,7 @@ describe('tests/api/v1/lenses/putPatchWithoutPerms.js >', () => {
   });
 
   before((done) => {
-    u.doSetup()
+    u.createBasic()
     .then((lns) => {
       lens = lns;
     })

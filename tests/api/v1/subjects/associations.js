@@ -37,6 +37,8 @@ describe(`tests/api/v1/subjects/associations.js, GET ${path} >`, () => {
     .then((user) => {
       na.createdBy = user.id;
       us.createdBy = user.id;
+      na.ownerId = user.id;
+      us.ownerId = user.id;
       conf.token = tu.createTokenFromUserName(user.name);
       done();
     })
@@ -54,13 +56,25 @@ describe(`tests/api/v1/subjects/associations.js, GET ${path} >`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['user'];
+  const associations = ['user', 'owner'];
   const schema = {
     user: Joi.object().keys({
+      id: Joi.string().required(),
       name: Joi.string().required(),
       fullName: Joi.string().optional().allow(null),
       email: Joi.string().required(),
       profile: Joi.object().keys({
+        id: Joi.string().required(),
+        name: Joi.string().required(),
+      }).required(),
+    }),
+    owner: Joi.object().keys({
+      id: Joi.string().required(),
+      name: Joi.string().required(),
+      fullName: Joi.string().optional().allow(null),
+      email: Joi.string().required(),
+      profile: Joi.object().keys({
+        id: Joi.string().required(),
         name: Joi.string().required(),
       }).required(),
     }),

@@ -360,6 +360,12 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
     });
   }
 
+  if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
+    const logPubSubStats = require('./realtime/pubSubStats').log;
+    setInterval(() => logPubSubStats(processName),
+      conf.pubSubStatsLoggingInterval);
+  }
+
   module.exports = { app, passportModule };
 } // start
 

@@ -19,6 +19,17 @@ const PRIMARY_REDIS = (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL);
 const perspectiveChannelName = 'focus';
 const botChannelName = 'imc';
 
+let pubsubPerspectives = [PRIMARY_REDIS];
+if (pe.REDIS_PUBSUB_PERSPECTIVES) {
+  const arr = pe.REDIS_PUBSUB_PERSPECTIVES.split(',')
+    .map((r) => r.trim())
+    .filter((r) => pe[r])
+    .map((r) => pe[r]);
+  if (arr.length > 0) {
+    pubsubPerspectives = arr;
+  }
+}
+
 module.exports = {
   perspectiveChannelName,
   botChannelName,
@@ -48,22 +59,16 @@ module.exports = {
       pe[pe.REDIS_LIMITER] : PRIMARY_REDIS,
 
     /*
-     * PubSub for perspective real-time events.
+     * Array of redis instance url(s) for pubsub for perspective real-time
+     * events.
      */
-    pubsubPerspective: pe.REDIS_PUBSUB_PERSPECTIVES && pe[pe.REDIS_PUBSUB_PERSPECTIVES] ?
-      pe[pe.REDIS_PUBSUB_PERSPECTIVES] : PRIMARY_REDIS,
+    pubsubPerspectives,
 
     /*
      * PubSub for bots real-time events.
      */
     pubsubBots: pe.REDIS_PUBSUB_BOTS && pe[pe.REDIS_PUBSUB_BOTS] ?
       pe[pe.REDIS_PUBSUB_BOTS] : PRIMARY_REDIS,
-
-    /*
-     * Redis instance to store pubsub statistics for logging
-     */
-    pubsubStats: pe.REDIS_PUBSUB_STATS && pe[pe.REDIS_PUBSUB_STATS] ?
-      pe[pe.REDIS_PUBSUB_STATS] : PRIMARY_REDIS,
 
     /*
      * Kue job queue for work being delegated to worker dynos.

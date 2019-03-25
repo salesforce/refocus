@@ -67,6 +67,10 @@ describe('tests/api/v1/aspects/patch.js >', () => {
           throw new Error('expecting aspect');
         }
 
+        // tags and relatedLinks should be empty
+        expect(res.body.tags).to.eql([]);
+        expect(res.body.relatedLinks).to.eql([]);
+
         if (res.body.timeout !== newTimeout) {
           throw new Error('Incorrect timeout Value');
         }
@@ -728,6 +732,150 @@ describe('tests/api/v1/aspects/patch.js >', () => {
         expect(res.body).to.have.property('timeout', '4s');
       })
       .end(done);
+    });
+  });
+
+  describe(`PATCH ${path} status ranges >`, () => {
+    let token;
+    let createdAspectId;
+
+    before((done) => {
+      Aspect.create({
+        name: `${tu.namePrefix}Weight`,
+        timeout: '110s',
+        helpUrl: 'http://abc.com',
+        helpEmail: 'abc@xyz.com',
+      })
+      .then((asp) => {
+        createdAspectId = asp.id;
+        return tu.createToken();
+      })
+      .then((returnedToken) => {
+        token = returnedToken;
+        done();
+      })
+      .catch(done);
+    });
+
+    after(u.forceDelete);
+    after(tu.forceDeleteUser);
+
+    it('OK, valueType=boolean, ranges valid', (done) => {
+      api.patch(`${path}/${createdAspectId}`)
+      .set('Authorization', token)
+      .send({ okRange: [1, 1], criticalRange: [0, 0] })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.okRange).to.be.eql([1, 1]);
+        expect(res.body.criticalRange).to.be.eql([0, 0]);
+        return done();
+      });
+    });
+
+    it('not OK, valueType=boolean, ranges invalid', (done) => {
+      api.patch(`${path}/${createdAspectId}`)
+      .set('Authorization', token)
+      .send({ okRange: [0, 1], criticalRange: [0, 0] })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('InvalidAspectStatusRange');
+        expect(res.body.errors[0].message).to.equal(
+          'Value type: BOOLEAN can only have ranges: [0,0] or [1,1]'
+        );
+        done();
+      });
+    });
+
+    it('OK, valueType=numeric, ranges valid', (done) => {
+      api.patch(`${path}/${createdAspectId}`)
+      .set('Authorization', token)
+      .send({
+        okRange: [-50, 1],
+        criticalRange: [30, 90],
+        valueType: 'NUMERIC',
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.okRange).to.be.eql([-50, 1]);
+        expect(res.body.criticalRange).to.be.eql([30, 90]);
+        return done();
+      });
+    });
+
+    it('not OK, valueType=numeric, ranges invalid', (done) => {
+      api.patch(`${path}/${createdAspectId}`)
+      .set('Authorization', token)
+      .send({
+        okRange: [Number.MIN_SAFE_INTEGER - 50, 1],
+        valueType: 'NUMERIC',
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('InvalidAspectStatusRange');
+        expect(res.body.errors[0].message).to.equal(
+          'Value type: NUMERIC can only have ranges with min value: ' +
+          '-9007199254740991, max value: 9007199254740991'
+        );
+        done();
+      });
+    });
+
+    it('OK, valueType=percent, ranges valid', (done) => {
+      api.patch(`${path}/${createdAspectId}`)
+      .set('Authorization', token)
+      .send({
+        okRange: [1, 50],
+        criticalRange: [50, 90],
+        valueType: 'PERCENT',
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.okRange).to.be.eql([1, 50]);
+        expect(res.body.criticalRange).to.be.eql([50, 90]);
+        return done();
+      });
+    });
+
+    it('not OK, valueType=percent, ranges invalid', (done) => {
+      api.patch(`${path}/${createdAspectId}`)
+      .set('Authorization', token)
+      .send({
+        okRange: [-20, 1],
+        valueType: 'PERCENT',
+      })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('InvalidAspectStatusRange');
+        expect(res.body.errors[0].message).to.equal(
+          'Value type: PERCENT can only have ranges with min value: ' +
+          '0, max value: 100'
+        );
+        done();
+      });
     });
   });
 });

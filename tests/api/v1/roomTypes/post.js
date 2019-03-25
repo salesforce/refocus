@@ -22,14 +22,16 @@ const bu = require('../bots/utils');
 
 describe(`tests/api/v1/roomTypes/post.js >`, () => {
   let token;
+  let userId;
 
   before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      token = obj.token;
     })
     .then(() => {
-      bu.createStandard();
+      bu.createStandard(userId);
       done();
     })
     .catch(done);
@@ -77,7 +79,7 @@ describe(`tests/api/v1/roomTypes/post.js >`, () => {
   });
 
   it('Fail, duplicate roomType', (done) => {
-    u.createStandard()
+    u.createStandard(userId)
     .then(() => {
       api.post(`${path}`)
       .set('Authorization', token)

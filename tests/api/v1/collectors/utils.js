@@ -19,7 +19,7 @@ const status = require('../../../../api/v1/constants').httpStatus;
 const collectorConfig = require('../../../../config/collectorConfig');
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
-const collectorToCreate =  {
+const collectorToCreate = {
   name: tu.namePrefix + 'Coll',
   description: 'This is my collector description.',
   helpEmail: 'a@bcd.com',
@@ -30,8 +30,8 @@ const collectorToCreate =  {
 };
 
 const expectedProps = [
-  'aspects', 'collectorId', 'possibleCollectors', 'context', 'createdAt', 'createdBy',
-  'currentCollector', 'description', 'generatorTemplate',
+  'aspects', 'collectorId', 'collectorGroup', 'collectorGroupId', 'context', 'createdAt',
+  'createdBy', 'currentCollector', 'description', 'generatorTemplate',
   'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'isDeleted', 'name',
   'subjectQuery', 'tags', 'token', 'updatedAt', 'user',
 ];
@@ -99,17 +99,13 @@ function getCollector(userToken, collector) {
 function createGenerator(gen, userId, collector) {
   gen = JSON.parse(JSON.stringify(gen));
   gen.createdBy = userId;
+  gen.isActive = true;
 
-  if (collector) {
-    gen.isActive = true;
-    const possibleCollectors = gen.possibleCollectors;
-    gen.possibleCollectors = [collector.name];
-    return Generator.createWithCollectors(gen)
-    .then((g) => g.updateWithCollectors({ possibleCollectors }));
-  }
-
-  gen.collectorId = null;
-  return Generator.create(gen);
+  return Generator.createWithCollectors(gen)
+  .then((gen) => gen.update({
+    currentCollector: collector || null,
+    collectorId: collector && collector.id || null,
+  }));
 }
 
 function updateGenerator(gen, userToken, collector) {
@@ -131,8 +127,12 @@ function updateGenerator(gen, userToken, collector) {
 function sendHeartbeat({ collector, collName, tokens, token, body }) {
   if (collector && !collName) collName = collector.name;
   if (tokens && !token) token = tokens[collName];
-  if (!body) body = { timestamp: Date.now() };
-
+  if (!body) body = {
+    timestamp: Date.now(),
+    collectorConfig: {
+      version: '1.0.0',
+    },
+  };
   const req = api.post(`/v1/collectors/${collName}/heartbeat`);
   if (token) req.set('Authorization', token);
   return req.send(body);
@@ -179,11 +179,26 @@ function getCollectorToCreate() {
 }
 
 module.exports = {
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Collector, testStartTime)
-    .then(() => tu.forceDelete(tu.db.GeneratorTemplate, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Generator, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+  getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
+    const defaultProps = JSON.parse(JSON.stringify(collectorToCreate));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.Collector.create(toCreate);
+  },
+
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.CollectorGroup, startTime)
+    .then(() => tu.forceDelete(tu.db.Collector, startTime))
+    .then(() => tu.forceDelete(tu.db.GeneratorTemplate, startTime))
+    .then(() => tu.forceDelete(tu.db.Generator, startTime))
+    .then(() => tu.forceDelete(tu.db.Aspect, startTime))
     .then(() => done())
     .catch(done);
   },

@@ -11,35 +11,62 @@
  */
 'use strict'; // eslint-disable-line strict
 const tu = require('../../../testUtils');
-const path = require('path');
-const fs = require('fs');
+const lensUtil = require('../lenses/utils');
 
 const testStartTime = new Date();
 
+const basic = {
+  name: `${tu.namePrefix}testPersp`,
+  lensId: '...',
+  rootSubject: 'myMainSubject',
+  aspectFilter: ['temperature', 'humidity'],
+  aspectFilterType: 'INCLUDE',
+  aspectTagFilter: ['temp', 'hum'],
+  aspectTagFilterType: 'INCLUDE',
+  subjectTagFilter: ['ea', 'na'],
+  subjectTagFilterType: 'INCLUDE',
+  statusFilter: ['Critical', '-OK'],
+  statusFilterType: 'INCLUDE',
+};
+
 module.exports = {
-  doSetup() {
-    return new tu.db.Sequelize.Promise((resolve, reject) => {
-      const willSendthis = fs.readFileSync(
-        path.join(__dirname,
-        '../apiTestsUtils/lens.zip')
-      );
-      const lens = {
-        name: `${tu.namePrefix}testLensName`,
-        sourceName: 'testSourceLensName',
-        description: 'test Description',
-        sourceDescription: 'test Source Description',
-        isPublished: true,
-        library: willSendthis,
+  getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
+    const defaultProps = JSON.parse(JSON.stringify(basic));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  doSetup(props={}) {
+    const { createdBy, name } = props;
+    return lensUtil.createBasic({ installedBy: createdBy, name })
+    .then((lens) => {
+      const createdIds = {
+        lensId: lens.id,
       };
-      tu.db.Lens.create(lens)
-      .then(resolve)
-      .catch(reject);
+      return createdIds;
     });
   },
 
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Perspective, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
+  createBasic(overrideProps={}) {
+    const { createdBy, name } = overrideProps;
+    return this.doSetup({ createdBy, name })
+    .then(({ lensId }) => {
+      Object.assign(overrideProps, { lensId });
+      const toCreate = this.getBasic(overrideProps);
+      return tu.db.Perspective.create(toCreate);
+    });
+  },
+
+  getDependencyProps() {
+    return ['lensId'];
+  },
+
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.Perspective, startTime)
+    .then(() => tu.forceDelete(tu.db.Lens, startTime))
     .then(() => done())
     .catch(done);
   },

@@ -21,6 +21,7 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const collectorStatuses = require('../../../../db/constants').collectorStatuses;
 const Collector = tu.db.Collector;
+const CollectorGroup = tu.db.CollectorGroup;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const sgUtils = require('../generator/utils');
@@ -32,6 +33,7 @@ describe('tests/db/model/collector/methods.js >', () => {
   let dbCollector1;
   let dbCollector2;
   let dbCollector3;
+  let dbCollectorGroup1;
 
   const collector1 = u.getCollectorObj();
   const collector2 = u.getCollectorObj();
@@ -45,6 +47,9 @@ describe('tests/db/model/collector/methods.js >', () => {
   collector3.status = 'Running';
   collector3.lastHeartbeat = new Date('2018-05-22T14:51:05');
 
+  let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+  collectorGroup1.collectors = [collector1.name, collector2.name, collector3.name];
+
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   const generator1 = sgUtils.getGenerator();
   const generator2 = sgUtils.getGenerator();
@@ -54,9 +59,9 @@ describe('tests/db/model/collector/methods.js >', () => {
   generator2.name += '2';
   generator3.name += '3';
 
-  generator1.possibleCollectors = [collector1.name, collector2.name, collector3.name];
-  generator2.possibleCollectors = [collector1.name, collector2.name, collector3.name];
-  generator3.possibleCollectors = [collector1.name, collector2.name, collector3.name];
+  generator1.collectorGroup = collectorGroup1.name;
+  generator2.collectorGroup = collectorGroup1.name;
+  generator3.collectorGroup = collectorGroup1.name;
 
   generator1.isActive = true;
   generator2.isActive = true;
@@ -75,6 +80,9 @@ describe('tests/db/model/collector/methods.js >', () => {
     generator1.collectorId = col1.id;
     generator2.collectorId = col2.id;
     generator3.collectorId = col3.id;
+    return CollectorGroup.createCollectorGroup(collectorGroup1);
+  }).then((cg) => {
+    dbCollectorGroup1 = cg;
   }));
 
   afterEach(() => clock.restore());
@@ -142,17 +150,11 @@ describe('tests/db/model/collector/methods.js >', () => {
             Generator.create(generator2, { validate: false, hooks: false }),
             Generator.create(generator3, { validate: false, hooks: false }),
           ).spread((gen1, gen2, gen3) => Promise.join(
-              gen1.setPossibleCollectors(
-                [dbCollector1, dbCollector2, dbCollector3]
-              ),
-              gen2.setPossibleCollectors(
-                [dbCollector1, dbCollector2, dbCollector3]
-              ),
-              gen3.setPossibleCollectors(
-                [dbCollector1, dbCollector2, dbCollector3]
-              ),
-            )
-          )));
+            gen1.setCollectorGroup(dbCollectorGroup1),
+            gen2.setCollectorGroup(dbCollectorGroup1),
+            gen3.setCollectorGroup(dbCollectorGroup1),
+          )
+        )));
 
       afterEach(u.forceDelete);
 
@@ -214,8 +216,7 @@ describe('tests/db/model/collector/methods.js >', () => {
         collectorConfig.heartbeatIntervalMillis = interval;
         collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
-        Collector.build({ lastHeartbeat })
-        .isAlive().should.be.true;
+        Collector.build({ lastHeartbeat }).isAlive().should.be.true;
       });
 
       it('dead', () => {
@@ -227,8 +228,7 @@ describe('tests/db/model/collector/methods.js >', () => {
         collectorConfig.heartbeatIntervalMillis = interval;
         collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
-        Collector.build({ lastHeartbeat })
-        .isAlive().should.be.false;
+        Collector.build({ lastHeartbeat }).isAlive().should.be.false;
       });
 
       it('undefined', () => {
@@ -240,8 +240,7 @@ describe('tests/db/model/collector/methods.js >', () => {
         collectorConfig.heartbeatIntervalMillis = interval;
         collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
-        Collector.build({ lastHeartbeat })
-        .isAlive().should.be.false;
+        Collector.build({ lastHeartbeat }).isAlive().should.be.false;
       });
     });
 
@@ -255,22 +254,16 @@ describe('tests/db/model/collector/methods.js >', () => {
          To bypass this logic, we set validate: false, hooks: false as second
          parameter in Generator.create
          */
-        .then(() => Promise.join(
-            Generator.create(generator1, { validate: false, hooks: false }),
-            Generator.create(generator2, { validate: false, hooks: false }),
-            Generator.create(generator3, { validate: false, hooks: false }),
-          ).spread((gen1, gen2, gen3) => Promise.join(
-              gen1.setPossibleCollectors(
-                [dbCollector1, dbCollector2, dbCollector3]
-              ),
-              gen2.setPossibleCollectors(
-                [dbCollector1, dbCollector2, dbCollector3]
-              ),
-              gen3.setPossibleCollectors(
-                [dbCollector1, dbCollector2, dbCollector3]
-              ),
-            )
-          )));
+        .then(() =>
+          Generator.create(generator1, { validate: false, hooks: false }))
+        .then((g1) => g1.setCollectorGroup(dbCollectorGroup1))
+        .then(() =>
+          Generator.create(generator2, { validate: false, hooks: false }))
+        .then((g2) => g2.setCollectorGroup(dbCollectorGroup1))
+        .then(() =>
+          Generator.create(generator3, { validate: false, hooks: false }))
+        .then((g3) => g3.setCollectorGroup(dbCollectorGroup1))
+      );
 
       afterEach(u.forceDelete);
 
@@ -288,9 +281,9 @@ describe('tests/db/model/collector/methods.js >', () => {
         .then((c1) => c1.reassignGenerators())
 
         .then(() => Promise.join(
-          Generator.find({ where: { name: generator1.name } }),
-          Generator.find({ where: { name: generator2.name } }),
-          Generator.find({ where: { name: generator3.name } }),
+          Generator.findOne({ where: { name: generator1.name } }),
+          Generator.findOne({ where: { name: generator2.name } }),
+          Generator.findOne({ where: { name: generator3.name } }),
         ))
         .spread((gen1, gen2, gen3) => {
           expect(gen1.currentCollector.name).to.equal(collector2.name);

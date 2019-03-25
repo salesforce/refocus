@@ -20,10 +20,10 @@ module.exports = {
     password: 'fakePasswd',
     username: 'user1@abc.com',
   },
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Token, testStartTime)
-    .then(() => tu.forceDelete(tu.db.User, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.Token, startTime)
+    .then(() => tu.forceDelete(tu.db.User, startTime))
+    .then(() => tu.forceDelete(tu.db.Profile, startTime))
     .then(() => done())
     .catch(done);
   },

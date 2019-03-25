@@ -138,12 +138,28 @@ module.exports = {
     return tu.db.Bot.create(nonActive);
   },
 
-  createStandard() {
-    return tu.db.Bot.create(standard);
+  createStandard(userId) {
+    const standardBot = standard;
+    standardBot.installedBy = userId;
+    return tu.db.Bot.create(standardBot);
   },
 
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Bot, testStartTime)
+  getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
+    const defaultProps = JSON.parse(JSON.stringify(standard));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.Bot.create(toCreate);
+  },
+
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.Bot, startTime)
     .then(() => done())
     .catch(done);
   },

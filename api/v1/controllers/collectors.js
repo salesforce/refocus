@@ -387,7 +387,9 @@ function startCollector(req, res, next) {
   })
 
   /* Update or create. Generators will be assigned in db hooks */
+  .then((coll) => u.setOwner(body, req, coll))
   .then((coll) => coll ? coll.update(body) : helper.model.create(body))
+  .then((coll) => coll.reload())
 
   /* Format assigned generators to send back to collector */
   .then((coll) => {
@@ -401,7 +403,6 @@ function startCollector(req, res, next) {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     collToReturn.dataValues.generatorsAdded = gens.map((g) => {
       delete g.GeneratorCollectors;
-      delete g.possibleCollectors;
       return g;
     });
 
@@ -414,13 +415,23 @@ function startCollector(req, res, next) {
 
     collToReturn.dataValues.collectorConfig = config.collector;
     collToReturn.dataValues.collectorConfig.status = collToReturn.status;
+    collToReturn.dataValues.timestamp = Date.now();
   })
+
+  // re-encrypt context values for added generators
+  .then(() => Promise.map(
+    collToReturn.dataValues.generatorsAdded,
+    (gen) => reEncryptSGContextValues(gen, collToReturn.dataValues.token,
+      collToReturn.dataValues.timestamp)
+  ))
+  .then((added) => collToReturn.dataValues.generatorsAdded = added)
 
   // reset the tracked changes so we don't send them again in the heartbeat
   .then(() => heartbeatUtils.resetChanges(collToReturn.name))
 
   // send response
   .then(() => {
+    collToReturn.dataValues.encryptionAlgorithm = encryptionAlgoForCollector;
     u.logAPI(req, resultObj, collToReturn);
     return res.status(httpStatus.OK)
       .json(u.responsify(collToReturn, helper, req.method));

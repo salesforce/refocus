@@ -33,8 +33,8 @@ describe('tests/api/v1/samples/post.js >', () => {
   let sampleToPost;
   beforeEach((done) => {
     u.doSetup()
-    .then((samp) => {
-      sampleToPost = samp;
+    .then(({ aspectId, subjectId }) => {
+      sampleToPost = u.getBasic({ aspectId, subjectId });
       done();
     })
     .catch(done);
@@ -197,6 +197,18 @@ describe('tests/api/v1/samples/post.js >', () => {
     .end(done);
   });
 
+  it('related links set to empty array if not provided', (done) => {
+    delete sampleToPost.relatedLinks;
+    api.post(path)
+      .set('Authorization', token)
+      .send(sampleToPost)
+      .expect(constants.httpStatus.CREATED)
+      .expect((res) => {
+        expect(res.body.relatedLinks).to.eql([]);
+      })
+      .end(done);
+  });
+
   it('posting with readOnly field previousStatus should fail', (done) => {
     sampleToPost.previousStatus = 'Invalid';
     api.post(path)
@@ -264,9 +276,9 @@ describe('tests/api/v1/samples/post.js > subject isPublished false >', () => {
 
   beforeEach((done) => {
     u.doSetup()
-    .then((samp) => {
-      sampleToPost = samp;
-      return tu.db.Subject.findById(samp.subjectId);
+    .then(({ aspectId, subjectId }) => {
+      sampleToPost = u.getBasic({ aspectId, subjectId });
+      return tu.db.Subject.findById(sampleToPost.subjectId);
     })
     .then((sub) => {
       sub.update({ isPublished: false });

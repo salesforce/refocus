@@ -37,9 +37,9 @@ describe('tests/api/v1/perspectives/get.js >', () => {
 
   before((done) => {
     u.doSetup()
-    .then((createdLens) => tu.db.Perspective.create({
+    .then(({ lensId }) => tu.db.Perspective.create({
       name: `${tu.namePrefix}testPersp`,
-      lensId: createdLens.id,
+      lensId,
       rootSubject: 'myMainSubject',
       aspectFilter: ['temperature', 'humidity'],
       aspectTagFilter: ['temp', 'hum'],
@@ -72,7 +72,7 @@ describe('tests/api/v1/perspectives/get.js >', () => {
       expect(res.body).to.have.deep.property(
         '[0].rootSubject', 'myMainSubject'
       );
-      expect(res.body).to.have.deep.property('[0].lensId', lensId);
+      expect(res.body).to.have.deep.property('[0].lens.id', lensId);
       expect(res.body[ZERO].aspectFilter).to.eql(['temperature', 'humidity']);
       expect(res.body[ZERO].aspectTagFilter).to.eql(['temp', 'hum']);
       expect(res.body[ZERO].subjectTagFilter).to.eql(['ea', 'na']);
@@ -93,7 +93,7 @@ describe('tests/api/v1/perspectives/get.js >', () => {
 
       expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
       expect(res.body.rootSubject).to.equal('myMainSubject');
-      expect(res.body.lensId).to.equal(lensId);
+      expect(res.body.lens.id).to.equal(lensId);
       expect(res.body.aspectFilter).to.eql(['temperature', 'humidity']);
       expect(res.body.aspectTagFilter).to.eql(['temp', 'hum']);
       expect(res.body.subjectTagFilter).to.eql(['ea', 'na']);
@@ -114,7 +114,7 @@ describe('tests/api/v1/perspectives/get.js >', () => {
 
       expect(res.body.name).to.equal(`${tu.namePrefix}testPersp`);
       expect(res.body.rootSubject).to.equal('myMainSubject');
-      expect(res.body.lensId).to.equal(lensId);
+      expect(res.body.lens.id).to.equal(lensId);
       expect(res.body).to.have.property('lens');
       expect(res.body.aspectFilter).to.eql(['temperature', 'humidity']);
       expect(res.body.aspectTagFilter).to.eql(['temp', 'hum']);

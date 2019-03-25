@@ -34,6 +34,7 @@ function doPut(req, res, next, props) {
 
   // find the instance, then update it
   u.findByKey(props, req.swagger.params)
+  .then((o) => u.setOwner(toPut, req, o))
   .then((o) => u.isWritable(req, o))
   .then((o) => u.updateInstance(o, puttableFields, toPut))
   .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, props, res))

@@ -12,12 +12,11 @@
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
 const api = supertest(require('../../../../index').app);
-const constants = require('../../../../api/v1/constants');
+const httpStatus = require('../../../../api/v1/constants').httpStatus;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Collector = tu.db.Collector;
 const expect = require('chai').expect;
-const collectorUtils = require('../collectors/utils');
 
 describe('tests/api/v1/collectorGroups/create.js >', () => {
   let token;
@@ -34,14 +33,14 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
   });
 
   beforeEach(() => {
-    collector1 = collectorUtils.getCollectorToCreate();
-    collector1.name = 'coll-1';
+    collector1 = u.getCollectorToCreate();
+    collector1.name += '1';
     Collector.create(collector1);
-    collector2 = collectorUtils.getCollectorToCreate();
-    collector2.name = 'coll-2';
+    collector2 = u.getCollectorToCreate();
+    collector2.name += '2';
     Collector.create(collector2);
-    collector3 = collectorUtils.getCollectorToCreate();
-    collector3.name = 'coll-3';
+    collector3 = u.getCollectorToCreate();
+    collector3.name += '3';
     Collector.create(collector3);
   });
 
@@ -49,14 +48,14 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
 
   after(tu.forceDeleteUser);
 
-  it('Must create a collector group with empty collector list', (done) => {
+  it('create collector group with empty collector list', (done) => {
     api.post('/v1/collectorGroups')
       .set('Authorization', token)
       .send({
         name: 'coll-group-name-empty-colls',
         description: 'coll-group-description-empty-colls',
       })
-      .expect(constants.httpStatus.CREATED)
+      .expect(httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -73,7 +72,7 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
       });
   });
 
-  it('Must create a collector group with 1 collector in the list', (done) => {
+  it('create collector group with 1 collector', (done) => {
     api.post('/v1/collectorGroups')
       .set('Authorization', token)
       .send({
@@ -81,7 +80,7 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
         description: 'coll-group-description-one-collector',
         collectors: [collector1.name],
       })
-      .expect(constants.httpStatus.CREATED)
+      .expect(httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -96,14 +95,13 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
         expect(res.body.collectors.length).to.be.equal(1);
         const coll = res.body.collectors[0];
         expect(coll).to.have.keys('id', 'name', 'status');
-        expect(coll.name).to.equal('coll-1');
+        expect(coll.name).to.equal('___Coll1');
         expect(coll.status).to.equal('Stopped');
         return done();
       });
   });
 
-  it('Must create a collector group with more than one collector in the list',
-    (done) => {
+  it('create collector group with more than one collector', (done) => {
     api.post('/v1/collectorGroups')
       .set('Authorization', token)
       .send({
@@ -111,7 +109,7 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
         description: 'coll-group-description-2-collectors',
         collectors: [collector1.name, collector2.name],
       })
-      .expect(constants.httpStatus.CREATED)
+      .expect(httpStatus.CREATED)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -128,7 +126,7 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
       });
   });
 
-  it('Must fail when one collector is already assigned', (done) => {
+  it('fail when one collector is already assigned', (done) => {
     api.post('/v1/collectorGroups')
       .set('Authorization', token)
       .send({ // Creating a Collector Group with Collector 3
@@ -136,7 +134,7 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
         description: 'coll-description',
         collectors: [collector3.name],
       })
-      .expect(constants.httpStatus.CREATED)
+      .expect(httpStatus.CREATED)
       .end(() => {
         api.post('/v1/collectorGroups')
           .set('Authorization', token)
@@ -145,22 +143,23 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
             description: 'coll-description-must-fail',
             collectors: [collector1.name, collector3.name],
           })
-          .expect(constants.httpStatus.BAD_REQUEST)
+          .expect(httpStatus.BAD_REQUEST)
           .end((err, res) => {
             if (err) {
               return done(err);
             }
 
             // Must inform that coll 3 is already assigned
-            expect(res.body.errors[0].message)
-              .to.be
-              .equal('Collector coll-3 already assigned to a different group');
+            const expectedMessage =
+              'Cannot double-assign collector(s) [___Coll3] to collector groups';
+            expect(res.body.errors[0])
+              .to.have.property('message', expectedMessage);
             return done();
           });
       });
   });
 
-  it('Must fail when more than one collector is already assigned', (done) => {
+  it('fail when more than one collector already assigned', (done) => {
     api.post('/v1/collectorGroups')
       .set('Authorization', token)
       .send({
@@ -168,7 +167,7 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
         description: 'coll-group-description',
         collectors: [collector1.name, collector2.name],
       })
-      .expect(constants.httpStatus.CREATED)
+      .expect(httpStatus.CREATED)
       .end(() => {
         api.post('/v1/collectorGroups')
           .set('Authorization', token)
@@ -177,18 +176,57 @@ describe('tests/api/v1/collectorGroups/create.js >', () => {
             description: 'coll-group-description-fail-2',
             collectors: [collector1.name, collector2.name],
           })
-          .expect(constants.httpStatus.BAD_REQUEST)
+          .expect(httpStatus.BAD_REQUEST)
           .end((err, res) => {
             if (err) {
               return done(err);
             }
 
-            const expectedMessage = 'Collector coll-1,coll-2 already assigned' +
-              ' to a different group';
+            const expectedMessage = 'Cannot double-assign collector(s) ' +
+              '[___Coll1, ___Coll2] to collector groups';
 
-            expect(res.body.errors[0].message).to.be.equal(expectedMessage);
+            expect(res.body.errors[0])
+              .to.have.property('message', expectedMessage);
             return done();
           });
       });
+  });
+
+  it('ok when collector was previously assigned but group was deleted', (done) => {
+    api.post('/v1/collectorGroups')
+    .set('Authorization', token)
+    .send({ // Creating a Collector Group with Collector 3
+      name: 'coll-group',
+      description: 'coll-description',
+      collectors: [collector3.name],
+    })
+    .expect(httpStatus.CREATED)
+    .end(() => {
+      api.delete('/v1/collectorGroups/coll-group')
+      .set('Authorization', token)
+      .expect(httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        api.post('/v1/collectorGroups')
+        .set('Authorization', token)
+        .send({ // Creating a new Collector Group with one Coll assigned
+          name: 'coll-group-2',
+          description: 'coll-description',
+          collectors: [collector3.name],
+        })
+        .expect(httpStatus.CREATED)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.collectors[0].name).to.equal(collector3.name);
+          return done();
+        });
+      });
+    });
   });
 });

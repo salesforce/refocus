@@ -248,6 +248,22 @@ paths:
              include result set.
           type: array
           required: false
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when aspects were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when aspects were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -406,6 +422,10 @@ paths:
                   Provide guidance for how a lens should display aspects--ascending order by
                   rank (numeric, nulls last) then within rank in ascending order by name
                   (alphanumeric).
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
               - timeout
@@ -643,6 +663,10 @@ paths:
                   Provide guidance for how a lens should display aspects--ascending order by
                   rank (numeric, nulls last) then within rank in ascending order by name
                   (alphanumeric).
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         200:
           description: Success, returns the updated aspect.
@@ -792,6 +816,7 @@ paths:
                   their type.
               tags:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -801,6 +826,7 @@ paths:
                   underscore (_) and dash (-). Tag names cannot start with a dash (-).
               relatedLinks:
                 type: array
+                default: []
                 items:
                   $ref: "#/definitions/RelatedLinkRequest"
                 description: >
@@ -811,6 +837,10 @@ paths:
                   Provide guidance for how a lens should display aspects--ascending order by
                   rank (numeric, nulls last) then within rank in ascending order by name
                   (alphanumeric).
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
       responses:
@@ -1284,6 +1314,22 @@ paths:
             Filter by auditEvent isError.
           required: false
           type: boolean
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when AuditEvents were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when AuditEvents were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -1476,6 +1522,22 @@ paths:
           required: false
           type: boolean
         -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when BotActions were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when BotActions were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
           $ref: "#/parameters/limitParam"
         -
           $ref: "#/parameters/offsetParam"
@@ -1537,6 +1599,10 @@ paths:
               userId:
                 type: string
                 description: The user of which this action is in reference with
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
               - roomId
@@ -1677,6 +1743,10 @@ paths:
               userId:
                 type: string
                 description: The user of which this action is in reference with
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         200:
           description: >-
@@ -1916,6 +1986,22 @@ paths:
           required: false
           type: string
         -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when BotData was created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when BotData was updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
           $ref: "#/parameters/limitParam"
         -
           $ref: "#/parameters/offsetParam"
@@ -1970,6 +2056,10 @@ paths:
                 type: integer
                 maxLength: 254
                 description: Number for the corresponding room
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
               - value
@@ -2223,6 +2313,10 @@ paths:
                 type: integer
                 maxLength: 254
                 description: Number for the corresponding room
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
               - value
@@ -2326,6 +2420,10 @@ paths:
                 type: integer
                 maxLength: 254
                 description: Number for the coresponding room
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         200:
           description: >-
@@ -2396,6 +2494,22 @@ paths:
           in: query
           required: false
           type: boolean
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when Bots were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when Bots were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
         -
           $ref: "#/parameters/limitParam"
         -
@@ -2492,6 +2606,12 @@ paths:
           items:
             type: string
           default: []
+        -
+          name: owner
+          in: formData
+          description: >
+            The name of the user to assign as the owner. Defaults to the user that created it
+          type: string
       responses:
         201:
           description: >-
@@ -2643,6 +2763,10 @@ paths:
                 description: Array of objects that contain the name of data on a bot
                 items:
                   type: object
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         200:
           description: >-
@@ -2735,10 +2859,15 @@ paths:
           items:
             type: string
           default: []
+        -
+          name: owner
+          in: formData
+          description: >
+            The name of the user to assign as the owner. Defaults to the user that created it
+          type: string
       responses:
-        201:
-          description: >-
-            Created bot
+        200:
+          description: Success, returns the updated bot.
           schema:
             $ref: "#/definitions/BotResponse"
         400:
@@ -3092,6 +3221,22 @@ paths:
             Filter by version; asterisk (*) wildcards ok.
           required: false
           type: string
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when collectors were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when collectors were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: Success, returns an array of zero or more Refocus collectors.
@@ -3149,6 +3294,10 @@ paths:
               version:
                 type: string
                 description: Access restricted to Refocus Collector only.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
               - version
@@ -3257,6 +3406,10 @@ paths:
               version:
                 type: string
                 description: Access restricted to Refocus Collector only.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         403:
           $ref: "#/responses/403"
@@ -3758,6 +3911,12 @@ paths:
           required: false
           type: string
         -
+          name: actionType
+          description: Get events that are a specific actionType
+          in: query
+          required: false
+          type: string
+        -
           name: sort
           description: >
             Specify the sort order using a field name, e.g. '...?sort=createdAt'. Prepend the
@@ -3784,6 +3943,22 @@ paths:
           in: query
           required: false
           type: string
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when events were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when events were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
         -
           $ref: "#/parameters/limitParam"
         -
@@ -3828,7 +4003,10 @@ paths:
                 description: Human readable log line to describe the context.
               context:
                 type: object
-                description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
+                description: Any object, typically JSON, used to describe to some information that needed to be logged.
+              actionType:
+                type: 'string'
+                description: 'This is the type of the event'
               roomId:
                 type: integer
                 description: Room that this event relates to.
@@ -3844,6 +4022,10 @@ paths:
               userId:
                 type: string
                 description: User that this event relates to.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - log
       responses:
@@ -3889,6 +4071,9 @@ paths:
                 context:
                   type: object
                   description: Any object, typically JSON, used to describe to some infomration that needed to be logged.
+                actionType:
+                  type: 'string'
+                  description: 'This is the type of the event'
                 roomId:
                   type: integer
                   description: Room that this event relates to.
@@ -3904,6 +4089,10 @@ paths:
                 userId:
                   type: string
                   description: User that this event relates to.
+                owner:
+                  type: string
+                  description: >
+                    The name of the user to assign as the owner. Defaults to the user that created it
               required:
                 - log
       responses:
@@ -3920,7 +4109,7 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
-          
+
   # ---------------------------------------------------------------------------
   /events/bulk/{key}/status:
     x-swagger-router-controller: events
@@ -4111,6 +4300,22 @@ paths:
              include result set.
           type: array
           required: false
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when generators were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when generators were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -4170,11 +4375,6 @@ paths:
                 minLength: 7
                 maxLength: 4096
                 description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-              possibleCollectors:
-                 description: List of collectors this Sample Generator should try to use.
-                 type: array
-                 items:
-                   type: string
               collectorGroup:
                  description: Name of set of collectors this Sample Generator should try to use.
                  type: string
@@ -4220,6 +4420,10 @@ paths:
                       left-most non-zero major, minor or patch number.
                       See https://github.com/npm/node-semver for more details
                       on semver matching.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
               - aspects
@@ -4330,6 +4534,7 @@ paths:
                   type: string
               tags:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -4345,11 +4550,6 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
-              possibleCollectors:
-                description: Collectors to append to the list of collectors this Sample Generator should try to use.
-                type: array
-                items:
-                  type: string
               collectorGroup:
                  description: Name of set of collectors this Sample Generator should try to use.
                  type: string
@@ -4378,6 +4578,10 @@ paths:
                       left-most non-zero major, minor or patch number.
                       See https://github.com/npm/node-semver for more details
                       on semver matching.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         200:
           description: Success, returns the updated generator.
@@ -4455,6 +4659,7 @@ paths:
                   type: string
               tags:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -4470,11 +4675,6 @@ paths:
                 type: object
                 description: >-
                   Variables accessible inside the transform function.
-              possibleCollectors:
-                description: List of collectors this Sample Generator should try to use.
-                type: array
-                items:
-                  type: string
               collectorGroup:
                  description: Name of set of collectors this Sample Generator should try to use.
                  type: string
@@ -4503,6 +4703,10 @@ paths:
                       left-most non-zero major, minor or patch number.
                       See https://github.com/npm/node-semver for more details
                       on semver matching.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
               - aspects
@@ -4768,6 +4972,22 @@ paths:
           type: boolean
           description: >-
             Filter by generatorTemplate isPublished (true|false)
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when GeneratorTemplates were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when GeneratorTemplates were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -4863,6 +5083,10 @@ paths:
                   Default false. When set to true, the generatorTemplate is
                   available to all users.
                 default: false
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
               - version
@@ -4945,6 +5169,10 @@ paths:
                   Default false. When set to true, the generatorTemplate is
                   available to all users.
                 default: false
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         200:
           description: Success, returns the updated generatorTemplate.
@@ -5187,6 +5415,20 @@ paths:
           $ref: "#/parameters/limitParam"
         -
           $ref: "#/parameters/offsetParam"
+        - name: createdAt
+          in: query
+          description: >-
+            Filter by time period when globalConfigs were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        - name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when globalConfigs were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -5477,6 +5719,22 @@ paths:
           in: query
           required: false
           description: The version of the lens.
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when lenses were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when lenses were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -5540,6 +5798,12 @@ paths:
           description: >-
             A version for the lens. Leave empty if you want to use the
             version provided by the lens publisher (i.e. sourceVersion).
+          type: string
+        -
+          name: owner
+          in: formData
+          description: >-
+            The name of the user to assign as the owner. Defaults to the user that created it
           type: string
       responses:
         201:
@@ -5672,6 +5936,10 @@ paths:
                   A version for the lens. Leave empty if you want to use the
                   version provided by the lens publisher (i.e. sourceVersion).
                 type: string
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         200:
           description: >-
@@ -5744,6 +6012,12 @@ paths:
           description: >-
             A version for the lens. Leave empty if you want to use the
             version provided by the lens publisher (i.e. sourceVersion).
+          type: string
+        -
+          name: owner
+          in: formData
+          description: >-
+            The name of the user to assign as the owner. Defaults to the user that created it
           type: string
       responses:
         200:
@@ -6081,6 +6355,22 @@ paths:
             Filter by root subject; asterisk (*) wildcards ok.
           required: false
           type: string
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when perspectives were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when perspectives were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -6191,6 +6481,10 @@ paths:
                 type: string
                 description: >
                   The id of Lens.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
               - lensId
@@ -6318,6 +6612,7 @@ paths:
                   The absolute path of the root subject.
               aspectFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -6327,6 +6622,7 @@ paths:
                   underscore (_) and dash (-).
               aspectTagFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -6336,6 +6632,7 @@ paths:
                   underscore (_) and dash (-).
               subjectTagFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -6360,6 +6657,7 @@ paths:
                   - EXCLUDE
               statusFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   enum:
@@ -6382,6 +6680,10 @@ paths:
                 type: string
                 description: >
                   The id of Lens.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         200:
           description: >-
@@ -6438,6 +6740,7 @@ paths:
                   The absolute path of the root subject.
               aspectFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -6447,6 +6750,7 @@ paths:
                   underscore (_) and dash (-).
               aspectTagFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -6456,6 +6760,7 @@ paths:
                   underscore (_) and dash (-).
               subjectTagFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -6465,6 +6770,7 @@ paths:
                   underscore (_) and dash (-).
               statusFilter:
                 type: array
+                default: []
                 items:
                   type: string
                   enum:
@@ -6507,6 +6813,10 @@ paths:
                 enum:
                   - INCLUDE
                   - EXCLUDE
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
               - lensId
@@ -6793,6 +7103,20 @@ paths:
           $ref: "#/parameters/limitParam"
         -
           $ref: "#/parameters/offsetParam"
+        - name: createdAt
+          in: query
+          description: >-
+            Filter by time period when profiles were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        - name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when profiles were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -7391,6 +7715,22 @@ paths:
           required: false
           type: string
         -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when rooms were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when rooms were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
           name: sort
           description: >
             Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
@@ -7448,6 +7788,10 @@ paths:
                 type: string
                 maxLength: 254
                 description: Name of the room
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
               - type
@@ -7482,9 +7826,9 @@ paths:
           name: key
           in: path
           description: >-
-            The id the room to retrieve
+            The id or name of the room to retrieve
           required: true
-          type: integer
+          type: string
       responses:
         200:
           description: >-
@@ -7511,9 +7855,9 @@ paths:
           name: key
           in: path
           description: >-
-            The id the room to retrieve
+            The id or name of the room to retrieve
           required: true
-          type: integer
+          type: string
         -
           name: active
           description: Get rooms depending on its active tag
@@ -7551,9 +7895,9 @@ paths:
           name: key
           in: path
           description: >-
-            The id the room to retrieve
+            The id or name of the room to retrieve
           required: true
-          type: integer
+          type: string
         -
           name: queryBody
           in: body
@@ -7574,6 +7918,10 @@ paths:
                 type: string
                 maxLength: 254
                 description: Id of roomType
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         200:
           description: >-
@@ -7896,6 +8244,22 @@ paths:
           required: false
           type: string
         -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when roomTypes were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when roomTypes were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
           $ref: "#/parameters/limitParam"
         -
           $ref: "#/parameters/offsetParam"
@@ -7953,6 +8317,10 @@ paths:
                 description: Default bots for roomType
                 items:
                   type: string
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
       responses:
@@ -8087,6 +8455,10 @@ paths:
                 description: Default bots for roomType
                 items:
                   type: string
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         200:
           description: >-
@@ -8453,6 +8825,10 @@ paths:
                 type: string
                 description: >
                   TODO
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - aspectId
               - subjectId
@@ -8584,10 +8960,15 @@ paths:
                   occurs, value is set to null.
               relatedLinks:
                 type: array
+                default: []
                 items:
                   $ref: "#/definitions/RelatedLinkRequest"
                 description: >
                   RelatedLinks associated with this model.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         200:
           description: >-
@@ -8657,6 +9038,10 @@ paths:
                   $ref: "#/definitions/RelatedLinkRequest"
                 description: >
                   RelatedLinks associated with this model.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         200:
           description: >-
@@ -8726,6 +9111,10 @@ paths:
                   $ref: "#/definitions/RelatedLinkRequest"
                 description: >
                   RelatedLinks associated with this model.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
       responses:
@@ -8795,6 +9184,10 @@ paths:
                     Stored as a string but will be treated as whatever the aspect’s
                     valueType was specified as, i.e. [BOOLEAN|NUMERIC|PERCENT]. If timeout
                     occurs, value is set to null.
+                owner:
+                  type: string
+                  description: >
+                    The name of the user to assign as the owner. Defaults to the user that created it
               required:
               - name
       responses:
@@ -9251,6 +9644,22 @@ paths:
              tags are not included in the result set.
           type: array
           required: false
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when subjects were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when subjects were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -9357,6 +9766,10 @@ paths:
                   type: number
                 description: >
                   If the subject has a physical location, specify its longitude and latitude in this two-element array, e.g. [-122.431297, 37.773972]. The first element in the array represents longitude; the second element represents latitude.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
       responses:
@@ -9546,6 +9959,10 @@ paths:
                   type: number
                 description: >
                   If the subject has a physical location, specify its longitude and latitude in this two-element array, e.g. [-122.431297, 37.773972]. The first element in the array represents longitude; the second element represents latitude.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
 
       responses:
         200:
@@ -9650,6 +10067,7 @@ paths:
                   The absolutePath of the subject's parent.
               tags:
                 type: array
+                default: []
                 items:
                   type: string
                   maxLength: 60
@@ -9659,6 +10077,7 @@ paths:
                   underscore (_) and dash (-). Tag names cannot start with a dash (-).
               relatedLinks:
                 type: array
+                default: []
                 items:
                   $ref: "#/definitions/RelatedLinkRequest"
                 description: >
@@ -9669,6 +10088,10 @@ paths:
                   type: number
                 description: >
                   If the subject has a physical location, specify its longitude and latitude in this two-element array, e.g. [-122.431297, 37.773972]. The first element in the array represents longitude; the second element represents latitude.
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
       responses:
@@ -10602,6 +11025,22 @@ paths:
             Filter by name; asterisk (*) wildcards ok.
           required: false
           type: string
+        -
+          name: createdAt
+          in: query
+          description: >-
+            Filter by time period when users were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        -
+          name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when users were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
       responses:
         200:
           description: >-
@@ -11252,6 +11691,10 @@ paths:
                 type: array
                 items:
                   type: string
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
             required:
               - name
       responses:
@@ -11267,8 +11710,106 @@ paths:
         default:
           $ref: "#/responses/genericError"
 
-  /collectorGroups/{name}:
+    get:
+      security:
+        - jwt: []
+      tags: [ collectorGroups ]
+      summary: Find collectorGroups
+      description: >-
+        Find a collectorGroup or collectorGroups. You may query using field filters with
+        asterisk (*) wildcards. You may also optionally specify sort, limit,
+        offset, and a list of fields to include in the response. The global
+        default limit will apply if no limit param is specified.
+      operationId: findCollectorGroups
+      parameters:
+        -
+          $ref: "#/parameters/CollectorGroupsFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - name
+              - description
+              - -name
+              - -description
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: name
+          in: query
+          description: >-
+            Filter by name; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: description
+          in: query
+          description: >-
+            Filter by description; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        - name: createdAt
+          in: query
+          description: >-
+            Filter by time period when CollectorGroups were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        - name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when CollectorGroups were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+      responses:
+        200:
+          description: Success, returns an array of zero or more Refocus collectorGroups.
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/CollectorGroupsResponse"
+
+  /collectorGroups/{key}:
     x-swagger-router-controller: collectorGroups
+    get:
+      security:
+        - jwt: []
+      tags: [ collectorGroups ]
+      summary: Get collectorGroups
+      description: >-
+        Retrieve the specified collectorGroup metadata by the collectorGroups's id or name.
+        You may also optionally specify a list of fields to include in the response.
+      operationId: getCollectorGroup
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collectorGroup to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/CollectorGroupsFieldsParam"
+      responses:
+        200:
+          description: Success, returns the specified collectorGroup's metadata.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "CollectorGroup not found"
+
     delete:
       security:
         - jwt: []
@@ -11276,58 +11817,18 @@ paths:
       tags: [ collectorGroups ]
       description: >-
         Delete collector group if it isn't in use by a Sample Generator.
-      operationId: deleteCollectorGroups
+      operationId: deleteCollectorGroup
       parameters:
-        - name: name
+        - name: key
           in: path
           description: >-
             The name of the collector group.
           required: true
           type: string
       responses:
-        400:
-          $ref: "#/responses/400"
-        401:
-          $ref: "#/responses/401"
-        403:
-          $ref: "#/responses/403"
-        404:
-          $ref: "#/responses/404"
-        default:
-          $ref: "#/responses/genericError"
-
-  /collectorGroups/{name}/collectors:
-    x-swagger-router-controller: collectorGroups
-    post:
-      security:
-        - jwt: []
-      summary: Add a collector to the group
-      tags: [ collectorGroups ]
-      description: >-
-        Add a collector to the group if any collector named in the array isn't already in the list or isn't already
-        assigned to a different group.
-      operationId: addCollectorsToGroup
-      parameters:
-        - name: name
-          in: path
+        200:
           description: >-
-            The name of the collector group.
-          required: true
-          type: string
-        - name: queryBody
-          description: Request body.
-          in: body
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-            description: >-
-              List of collectors
-      responses:
-        201:
-          description: >-
-            One or more collectors were added to the group.
+            Deleted.
           schema:
             $ref: "#/definitions/CollectorGroupsResponse"
         400:
@@ -11348,9 +11849,9 @@ paths:
       description: >-
         Update the specified fields. If patching the list of collectors, it will replace the current list.
         It will update if all collectors named in the array aren't already assigned to a different group.
-      operationId: patchCollectorGroups
+      operationId: patchCollectorGroup
       parameters:
-        - name: name
+        - name: key
           in: path
           description: The name of the collector group.
           required: true
@@ -11379,6 +11880,10 @@ paths:
                 type: array
                 items:
                   type: string
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
       responses:
         200:
           description: Success, returns the updated collector group.
@@ -11402,9 +11907,9 @@ paths:
       description: >-
         Update all fields, replacing any existing values, and if a field is not provided, it resets to default
         (e.g. empty array of collectors, empty description).
-      operationId: putCollectorGroups
+      operationId: putCollectorGroup
       parameters:
-        - name: name
+        - name: key
           in: path
           description: The name of the collector group.
           required: true
@@ -11433,6 +11938,13 @@ paths:
                 type: array
                 items:
                   type: string
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
+            required:
+              - name
+
       responses:
         200:
           description: Success, returns the updated collector group.
@@ -11448,16 +11960,20 @@ paths:
           $ref: "#/responses/404"
         default:
           $ref: "#/responses/genericError"
-    delete:
+
+  /collectorGroups/{key}/collectors:
+    x-swagger-router-controller: collectorGroups
+    post:
       security:
         - jwt: []
-      summary: Delete collector from the group.
+      summary: Add a collector to the group
       tags: [ collectorGroups ]
       description: >-
-        Delete collector from group if any collector named in the array is not already associated with this group.
-      operationId: deleteCollectorFromGroup
+        Add a collector to the group if any collector named in the array isn't already in the list or isn't already
+        assigned to a different group.
+      operationId: addCollectorsToGroup
       parameters:
-        - name: name
+        - name: key
           in: path
           description: >-
             The name of the collector group.
@@ -11471,9 +11987,58 @@ paths:
             type: array
             items:
               type: string
+            minItems: 1
+            uniqueItems: true
+            description: >-
+              List of collector names
+      responses:
+        200:
+          description: >-
+            One or more collectors were added to the group.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    delete:
+      security:
+        - jwt: []
+      summary: Delete named collector(s) from group.
+      tags: [ collectorGroups ]
+      description: >-
+        Delete named collector(s) from group. Reject if any named collector is not already associated with this group.
+      operationId: deleteCollectorsFromGroup
+      parameters:
+        - name: key
+          in: path
+          description: >-
+            The name of the collector group.
+          required: true
+          type: string
+        - name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 1
+            uniqueItems: true
             description: >-
               List of collectors
       responses:
+        200:
+          description: Success, returns the updated collector group.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
         400:
           $ref: "#/responses/400"
         401:
@@ -13056,6 +13621,9 @@ definitions:
       context:
         type: object
         description: A object, typically JSON, that contains the information to describe an event
+      actionType:
+        type: 'string'
+        description: 'This is the type of the event'
       roomId:
         type: integer
         description: The room ID in which the event deals with
@@ -13135,12 +13703,6 @@ definitions:
         items:
           type: "object"
         description: "Generators assigned to this collector."
-      possibleGenerators:
-        readOnly: true
-        type: "array"
-        items:
-          type: "object"
-        description: "Generators that could potentially be assigned to this collector."
       registered:
         type: boolean
         description: "Boolean. If false, means deregistered. Changed by the DEREGISTER command"
@@ -13343,11 +13905,6 @@ definitions:
         minLength: 7
         maxLength: 4096
         description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-      possibleCollectors:
-        description: List of collectors this Sample Generator should try to use.
-        type: array
-        items:
-          type: object
       collectorGroup:
          description: Specifies set of collectors this Sample Generator should try to use.
          type: object
@@ -13427,11 +13984,6 @@ definitions:
         minLength: 7
         maxLength: 4096
         description: The query to append to GET subjects. Only "absolutePath", "name", "tags" are allowed in subjectQuery.
-      possibleCollectors:
-        description: List of collectors this Sample Generator should try to use.
-        type: array
-        items:
-          type: object
       collectorGroup:
          description: Specifies set of collectors this Sample Generator should try to use.
          type: object
@@ -13711,7 +14263,7 @@ parameters:
         - status
         - registered
         - currentGenerators
-        - possibleGenerators
+        - collectorGroup
         - lastHeartbeat
         - lastModifiedAt
         - createdBy
@@ -13724,6 +14276,8 @@ parameters:
         - osInfo
         - processInfo
         - version
+        - user
+        - owner
 
   limitParam:
     name: limit
@@ -13773,6 +14327,7 @@ parameters:
         - valueType
         - warningRange
         - user
+        - owner
 
   AuditEventsFieldsParam:
     name: fields
@@ -13817,7 +14372,7 @@ parameters:
         - updatedAt
         - currentCollector
         - user
-        - possibleCollectors
+        - owner
         - collectorGroup
 
   GeneratorTemplateFieldsParam:
@@ -13845,6 +14400,7 @@ parameters:
         - transform
         - isPublished
         - user
+        - owner
 
   LensesFieldsParam:
     name: fields
@@ -13873,6 +14429,7 @@ parameters:
         - updatedAt
         - version
         - user
+        - owner
 
   PerspectivesFieldsParam:
     name: fields
@@ -13901,6 +14458,7 @@ parameters:
         - subjectTagFilterType
         - updatedAt
         - user
+        - owner
         - lens
 
   ProfilesFieldsParam:
@@ -13987,6 +14545,7 @@ parameters:
         - relatedLinks
         - updatedAt
         - user
+        - owner
 
   TokensFieldsParam:
     name: fields
@@ -14023,6 +14582,26 @@ parameters:
         - sso
         - updatedAt
         - profile
+
+  CollectorGroupsFieldsParam:
+    name: fields
+    in: query
+    description: >-
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - name
+        - description
+        - createdAt
+        - updatedAt
+        - user
+        - owner
+        - collectors
+        - generators
 
 # =============================================================================
 responses:

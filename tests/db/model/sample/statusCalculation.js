@@ -536,9 +536,9 @@ describe('tests/db/model/sample/statusCalculation.js >', () => {
     describe('infinite ranges >', () => {
       before((done) => {
         setupRanges({
-          criticalRange: [-Infinity, -1],
+          criticalRange: [Number.MIN_SAFE_INTEGER, -1],
           warningRange: [0, 0],
-          infoRange: [1, Infinity],
+          infoRange: [1, Number.MAX_SAFE_INTEGER],
           okRange: null,
         })
         .then(() => done())

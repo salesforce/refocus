@@ -21,7 +21,6 @@ const ValidationError = dbErrors.ValidationError;
 const Op = require('sequelize').Op;
 const semverRegex = require('semver-regex');
 const utils = require('../utils.js');
-const featureToggles = require('feature-toggles');
 
 const osInfoSchema = Joi.object().keys({
   arch: Joi.string(),
@@ -180,6 +179,7 @@ function getByNames(seq, collectorNames) {
  * rejected promise with the appropriate error otherwise.
  */
 function validate(seq, collectorNames) {
+  if (!collectorNames || !collectorNames.length) return Promise.resolve([]);
   return new seq.Promise((resolve, reject) =>
     validateNames(collectorNames)
       .then(() => getByNames(seq, collectorNames))
@@ -188,7 +188,47 @@ function validate(seq, collectorNames) {
   );
 }
 
+/**
+ * Checks if any of the collectors in the array is already assigned to a group.
+ * @param {Array<Object>} arr - array of collector objects
+ * @returns {Array<Object>} the original array
+ */
+function alreadyAssigned(arr) {
+  const toReject = arr.filter((collector) => collector.collectorGroup);
+  if (toReject.length === 0) {
+    return arr;
+  }
+
+  const names = toReject.map((c) => c.name);
+  const msg = `Cannot double-assign collector(s) [${names.join(', ')}] to ` +
+    'collector groups';
+  throw new ValidationError(msg);
+} // alreadyAssigned
+
+/**
+ * Checks if any of the collectors in the array is already assigned to a group
+ * other than the one specified
+ * @param {Array<Object>} arr - array of collector objects
+ * @param {CollectorGroup} group - collector group
+ * @returns {Array<Object>} the original array
+ */
+function alreadyAssignedToOtherGroup(arr, group) {
+  const toReject = arr.filter((collector) =>
+    collector.collectorGroup && collector.collectorGroup.id !== group.id
+  );
+  if (toReject.length === 0) {
+    return arr;
+  }
+
+  const names = toReject.map((c) => c.name);
+  const msg = `Cannot double-assign collector(s) [${names.join(', ')}] to ` +
+    'collector groups';
+  throw new ValidationError(msg);
+} // alreadyAssignedToOtherGroup
+
 module.exports = {
+  alreadyAssigned,
+  alreadyAssignedToOtherGroup,
   validateOsInfo,
   validateProcessInfo,
   validateVersion,

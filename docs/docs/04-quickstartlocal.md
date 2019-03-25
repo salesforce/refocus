@@ -15,6 +15,7 @@ title: Quick Start Local
 1. Install lunchy (`brew install Caskroom/cask/lunchy`). This will help you start redis.
 1. Run `lunchy start redis` to start redis.
 1. Run `npm start` to start your Node.js server at http://localhost:3000.
+1. Log in with username "admin@refocus.admin" and password "devPassword".
 1. If you want to run the sample timeout check in a separate background process:
     1. Start the server with environment variable (i.e. config setting) `ENABLE_CLOCK_PROCESS` set to `true`.
     1. Run `npm run start-clock` to start the clock process.

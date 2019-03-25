@@ -38,9 +38,9 @@ describe('tests/api/v1/perspectives/deleteWriters.js >', () => {
 
   beforeEach((done) => {
     u.doSetup()
-    .then((createdLens) => tu.db.Perspective.create({
+    .then(({ lensId }) => tu.db.Perspective.create({
       name: `${tu.namePrefix}testPersp`,
-      lensId: createdLens.id,
+      lensId,
       rootSubject: 'myMainSubject',
       aspectFilter: ['temperature', 'humidity'],
       aspectTagFilter: ['temp', 'hum'],

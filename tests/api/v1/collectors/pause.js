@@ -22,6 +22,7 @@ const pausePath = '/v1/collectors/{key}/pause';
 const expect = require('chai').expect;
 const Collector = tu.db.Collector;
 const Generator = tu.db.Generator;
+const CollectorGroup = tu.db.CollectorGroup;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const sgUtils = require('../generators/utils');
 const gtUtil = sgUtils.gtUtil;
@@ -33,8 +34,10 @@ describe('tests/api/v1/collectors/pause.js >', () => {
 
   let generator1;
   let collector1;
+  let collectorGroup1;
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   const collectorOneName = u.getCollectorToCreate().name + '-One';
+  let cg1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
 
   before((done) => {
     tu.createUserAndToken()
@@ -48,16 +51,21 @@ describe('tests/api/v1/collectors/pause.js >', () => {
 
   beforeEach((done) => {
     sgUtils.createGeneratorAspects()
-    .then(() => GeneratorTemplate.create(generatorTemplate))
+    .then(() => CollectorGroup.create(cg1))
+    .then((cg) => {
+      collectorGroup1 = cg;
+      return GeneratorTemplate.create(generatorTemplate);
+    })
     .then(() => {
       const gen = sgUtils.getGenerator();
       gen.name += 'generator-1';
       gen.createdBy = user.id;
       gen.currentCollector = collectorOneName;
+      gen.collectorGroup = collectorGroup1.name;
       sgUtils.createSGtoSGTMapping(generatorTemplate, gen);
 
       // create generator1
-      return Generator.create(gen);
+      return Generator.createWithCollectors(gen);
     })
     .then((generator) => {
       generator1 = generator;
@@ -108,7 +116,7 @@ describe('tests/api/v1/collectors/pause.js >', () => {
       collector1.update({ lastHeartbeat: now }) // make collector1 alive
 
       // add collector1 to possible collectors of generator1
-      .then(() => generator1.addPossibleCollectors(collector1))
+      .then(() => collectorGroup1.addCollector(collector1))
       .then(() => generator1.reload())
 
       // this should set currentCollector to collector1
@@ -127,7 +135,7 @@ describe('tests/api/v1/collectors/pause.js >', () => {
         collector2 = createdColl;
 
         // add collector2 to possible collectors of generator1
-        return generator1.addPossibleCollectors(createdColl);
+        return collectorGroup1.addCollector(collector2);
       })
       .then(() => generator1.reload())
       .then((updatedGen) => {

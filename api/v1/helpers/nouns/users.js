@@ -37,4 +37,6 @@ module.exports = {
   fieldScopeMap: {
     profile: 'profile',
   },
+  fieldsToExclude: ['profileId'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

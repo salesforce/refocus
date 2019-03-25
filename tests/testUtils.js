@@ -18,7 +18,7 @@ const constants = require('../api/v1/constants');
 const db = require('../db');
 const sampleModel = require('../cache/models/samples');
 const testStartTime = new Date();
-const userName = `${pfx}testUser@refocus.com`;
+const defaultUserName = `${pfx}testUser`;
 const featureToggles = require('feature-toggles');
 const adminUser = require('../config').db.adminUser;
 const adminProfile = require('../config').db.adminProfile;
@@ -41,7 +41,7 @@ const Sample = {
   // Return all the samples in sample store
   findAll: () => {
     const commands = [];
-    return redisClient.sortAsync(sampleStore.constants.indexKey.sample,'alpha')
+    return redisClient.sortAsync(sampleStore.constants.indexKey.sample, 'alpha')
     .then((sampleKeys) => {
 
       sampleKeys.forEach((key) => {
@@ -62,6 +62,7 @@ const Sample = {
       if (!sample || !aspect) {
         return null;
       }
+
       sample.aspect = aspect;
       return sample;
     }).catch((err) => err);
@@ -199,8 +200,8 @@ module.exports = {
     .then((createdProfile) =>
       db.User.create({
         profileId: createdProfile.id,
-        name: userName + 'third',
-        email: userName + 'third',
+        name: defaultUserName + 'third',
+        email: `${defaultUserName}third@refocus.com`,
         password: 'user123password',
       })
     );
@@ -214,8 +215,8 @@ module.exports = {
     .then((createdProfile) =>
       db.User.create({
         profileId: createdProfile.id,
-        name: userName + 'second',
-        email: userName + 'second',
+        name: defaultUserName + 'second',
+        email: `${defaultUserName}second@refocus.com`,
         password: 'user123password',
       })
     );
@@ -228,22 +229,21 @@ module.exports = {
 
   // create user and corresponding token to be used in api tests.
   // returns both the user and the token object
-  createUserAndToken() {
+  createUserAndToken(userName=defaultUserName) {
     let profile;
-    return db.Profile.create({ name: `${pfx}testProfile` })
+    return db.Profile.create({ name: `${pfx}${userName}testProfile` })
     .then((createdProfile) => {
       profile = createdProfile;
       return db.User.create({
         profileId: createdProfile.id,
         name: userName,
-        email: userName,
+        email: `${userName}@refocus.com`,
         password: 'user123password', });
     })
     .then((user) => {
       user.profile = profile.dataValues;
-      const obj = { user };
-      obj.token = jwtUtil.createToken(userName, userName);
-      return obj;
+      const token = jwtUtil.createToken(userName, userName);
+      return { user, token };
     });
   },
 
@@ -260,12 +260,12 @@ module.exports = {
   },
 
   // create user and corresponding token to be used in api tests.
-  createToken() {
-    return db.Profile.create({ name: `${pfx}testProfile` })
+  createToken(userName=defaultUserName) {
+    return db.Profile.create({ name: `${pfx}${userName}testProfile` })
     .then((createdProfile) => db.User.create({
       profileId: createdProfile.id,
       name: userName,
-      email: userName,
+      email: `${userName}@refocus.com`,
       password: 'user123password',
     }))
     .then(() => jwtUtil.createToken(userName, userName));
@@ -274,7 +274,7 @@ module.exports = {
   createGeneratorToken(tokenName) {
     return jwtUtil.createToken(
       tokenName,
-      userName,
+      defaultUserName,
       { IsGenerator: true }
     );
   },
@@ -289,12 +289,12 @@ module.exports = {
   }, // createAdminToken
 
   // delete user
-  forceDeleteUser(done) {
-    forceDelete(db.User, testStartTime)
-    .then(() => forceDelete(db.Token, testStartTime))
-    .then(() => forceDelete(db.Profile, testStartTime))
-    .then(() => done())
-    .catch(done);
+  forceDeleteUser(done, startTime=testStartTime) {
+    forceDelete(db.User, startTime)
+      .then(() => forceDelete(db.Token, startTime))
+      .then(() => forceDelete(db.Profile, startTime))
+      .then(() => done())
+      .catch(done);
   }, // forceDeleteUser
 
   // delete subject
@@ -310,8 +310,7 @@ module.exports = {
     featureToggles._toggles[key] = value;
   }, // toggleOverride
 
-
   // username used to create the token in all the tests
-  userName,
+  userName: defaultUserName,
 
 }; // exports

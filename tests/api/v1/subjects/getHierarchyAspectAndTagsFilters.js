@@ -279,7 +279,7 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
     it('should return samples with temperature and humidity aspects',
     (done) => {
       const endpoint = path.replace('{key}', par.id) +
-        '?aspect=humidity,temperature';
+        '?aspect=Humidity,TEMPERATURE';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)

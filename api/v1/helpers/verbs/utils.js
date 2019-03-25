@@ -19,6 +19,7 @@ const logAPI = require('../../../../utils/apiLog').logAPI;
 const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
 const redisCache = require('../../../../cache/redisCache').client.cache;
+const userProps = require('../nouns/users');
 const Op = require('sequelize').Op;
 const md5 = require('md5');
 const ADMIN_OVERRIDE_KEYWORD = 'admin';
@@ -32,13 +33,15 @@ const ADMIN_OVERRIDE_KEYWORD = 'admin';
 function updateInstance(o, puttableFields, toPut) {
   const keys = Object.keys(puttableFields);
   for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
-    if (toPut[key] === undefined) {
+    let key = keys[i];
+    const fieldDef = puttableFields[key];
+    if (key === 'owner') key = 'ownerId';
+    if (toPut[key] === undefined && key !== 'ownerId') {
       let nullish = null;
-      if (puttableFields[key].type === 'boolean') {
+      if (fieldDef.default) { // could be enum | array etc
+        nullish = fieldDef.default;
+      } else if (fieldDef.type === 'boolean') {
         nullish = false;
-      } else if (puttableFields[key].enum) {
-        nullish = puttableFields[key].default;
       }
 
       o.set(key, nullish);
@@ -53,7 +56,7 @@ function updateInstance(o, puttableFields, toPut) {
     }
   }
 
-  return o.save();
+  return o.save().then((o) => o.reload());
 }
 
 /**
@@ -247,11 +250,19 @@ function handleAssociations(reqObj, inst, props, method) {
  * the foreign keys to the query when more than one association is required.
  */
 function multipleAssociations(helperModule, requestedAttributes) {
+  const model = helperModule.model;
+
   // Filters all association just when requested
   const associations = requestedAttributes
-    .filter((attribute) => helperModule.model.associations[attribute]);
+    .filter((attribute) => model.associations[attribute]);
 
-  if (associations.length > 1) {
+  // Detect nested associations
+  const getNested = (model) => model._scope && model._scope.include || [];
+  const hasNested = ({ model }) => getNested(model).length;
+  const isRequested = ({ as: fieldName }) => associations.includes(fieldName);
+  const hasNestedAssociations = getNested(model).filter(isRequested).some(hasNested);
+
+  if (associations.length > 1 || hasNestedAssociations) {
     /*
      Transform association names (User, currentCollector, etc) to
      model.fk_names (createdBy, collectorId, etc)
@@ -260,14 +271,12 @@ function multipleAssociations(helperModule, requestedAttributes) {
       .filter((association) => {
         // filter all associations with respective fk in the model attributes
 
-        const foreignKey = helperModule.model
-          .associations[association].foreignKey;
-        return helperModule.model.attributes[foreignKey] !== undefined;
+        const foreignKey = model.associations[association].foreignKey;
+        return model.attributes[foreignKey] !== undefined;
       })
       .map((association) => {
-        const foreignKey = helperModule.model
-          .associations[association].foreignKey;
-        return helperModule.model.attributes[foreignKey].fieldName;
+        const foreignKey = model.associations[association].foreignKey;
+        return model.attributes[foreignKey].fieldName;
       });
 
     if (extraForeignKeys.length > 0) {
@@ -458,7 +467,7 @@ function findByIdThenName(model, key, opts, props) {
     delete opts.where;
     model.findById(key, opts)
     .then((found) => found)
-    .catch(() => {
+    .catch((err) => {
 
       /* The resource has non-unique name and hence GET /{resource}/$name is
       not allowed */
@@ -851,6 +860,8 @@ function responsify(rec, props, method) {
     delete o.id;
   }
 
+  removeFieldsFromResponse(props.fieldsToExclude, o);
+
   o.apiLinks = getApiLinks(key, props, method);
   if (props.stringify) {
     props.stringify.forEach((f) => {
@@ -873,6 +884,58 @@ function responsify(rec, props, method) {
 function getHash(resource, url) {
   return (resource + md5(url));
 } // getHash
+
+/**
+ * Set the owner id. Default to createdBy, also allow specifying a user name in
+ * the request body.
+ *
+ * @param {Object} requestBody - the request body
+ * @param {Object} req - the request object
+ * @param {Object} existing - the existing sequelize instance, if any
+ *
+ * @returns {Promise<Object>} - resolves to the existing instance
+ */
+function setOwner(requestBody, req, existing) {
+  const ownerKey = requestBody.owner;
+  delete requestBody.owner;
+
+  // check permissions to change existing owner
+  if (existing && ownerKey) {
+    const userName = req.user && req.user.name;
+    const ownerName = existing.owner && existing.owner.name;
+    const isAdmin = req.headers && req.headers.IsAdmin && req.query
+      && req.query.override === ADMIN_OVERRIDE_KEYWORD;
+    if (userName !== ownerName && !isAdmin) {
+      throw new apiErrors.ForbiddenError(
+        'Only the existing owner or an admin user can change the owner'
+      );
+    }
+  }
+
+  if (ownerKey) { // explicitly set owner
+    const params = { key: { value: ownerKey } };
+    return findByKey(userProps, params)
+    .then((user) => {
+      requestBody.ownerId = user.id;
+      return existing;
+    })
+    .catch((err) => {
+      if (err instanceof apiErrors.ResourceNotFoundError) {
+        throw new apiErrors.ValidationError(
+          'Attempted to set the owner to a nonexistent user.'
+        );
+      } else {
+        throw err;
+      }
+    });
+  } else {
+    if (!existing) { // default owner to createdBy on new record
+      requestBody.ownerId = req.user ? req.user.id : undefined;
+    }
+
+    return Promise.resolve(existing);
+  }
+} // setOwner
 
 // ----------------------------------------------------------------------------
 
@@ -941,5 +1004,9 @@ module.exports = {
   removeFieldsFromResponse,
 
   checkDuplicateRLinks,
+
+  setOwner,
+
+  findByIdThenName,
 
 }; // exports

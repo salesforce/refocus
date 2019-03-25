@@ -40,8 +40,7 @@ describe('tests/api/v1/lenses/get.js >', () => {
   describe('with returnUser toggle on, user object should be returned: ', () => {
     before((done) => {
       tu.toggleOverride('returnUser', true);
-      const lens = u.getLens({ installedBy: userId });
-      u.doSetup(lens)
+      u.createBasic({ installedBy: userId })
       .then((lens) => {
         expect(lens.installedBy).to.equal(userId);
         lensId = lens.id;
@@ -67,7 +66,7 @@ describe('tests/api/v1/lenses/get.js >', () => {
         expect(obj.id).to.be.an('string');
         expect(obj.name).to.equal(`${tu.namePrefix}testLensName`);
         expect(obj.library).to.be.defined;
-        expect(obj.installedBy).to.equal(userId);
+        expect(obj.user.id).to.equal(userId);
         done();
       });
     });
@@ -87,7 +86,7 @@ describe('tests/api/v1/lenses/get.js >', () => {
         expect(obj.library['lens.js']).to.exist;
         expect(obj.library['lens.json']).to.exist;
         expect(obj.user).to.be.an('object');
-        expect(obj.installedBy).to.equal(userId);
+        expect(obj.user.id).to.equal(userId);
         done();
       });
     });
@@ -95,7 +94,7 @@ describe('tests/api/v1/lenses/get.js >', () => {
 
   describe('returnUser toggle off, user object should NOT be returned: ', () => {
     before((done) => {
-      u.doSetup()
+      u.createBasic()
       .then((lens) => {
         lensId = lens.id;
         lensName = lens.name;

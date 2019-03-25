@@ -34,6 +34,7 @@ describe('tests/api/v1/events/get.js >', () => {
   let testEventOutput;
   let testEvent2 = u.getStandard();
   testEvent2.context.type = 'Comment';
+  testEvent2.actionType = 'sendEmail';
   testEvent2.log = 'Sample Event 2';
   let testEvent3 = u.getStandard();
   testEvent3.context.type = 'Comment';
@@ -230,6 +231,7 @@ describe('tests/api/v1/events/get.js >', () => {
       }
 
       expect(res.body.log).to.equal(u.log);
+      expect(res.body.actionType).to.equal('EventType');
       done();
     });
   });
@@ -244,6 +246,20 @@ describe('tests/api/v1/events/get.js >', () => {
       }
 
       expect(res.body.length).to.equal(TWO);
+      done();
+    });
+  });
+
+  it('Pass, get by actionType', (done) => {
+    api.get(`${path}?actionType=sendEmail`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
       done();
     });
   });

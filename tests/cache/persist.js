@@ -50,7 +50,7 @@ describe('tests/cache/persist.js, persist sample store back to db >', () => {
       isPublished: true,
       name: `${tu.namePrefix}Aspect2`,
       timeout: '10m',
-      valueType: 'BOOLEAN',
+      valueType: 'NUMERIC',
       okRange: [10, 100],
     }))
     .then((created) => (a2 = created))
@@ -58,7 +58,7 @@ describe('tests/cache/persist.js, persist sample store back to db >', () => {
       isPublished: true,
       name: `${tu.namePrefix}Aspect3`,
       timeout: '10m',
-      valueType: 'BOOLEAN',
+      valueType: 'NUMERIC',
       okRange: [10, 100],
     }))
     .then((created) => (a3 = created))
