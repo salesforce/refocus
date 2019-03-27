@@ -23,7 +23,7 @@ const supertest = require('supertest');
 
 // toggle must be set before the app start as process.on(SIGTERM) is at app boot
 tu.toggleOverride('enableSigtermEvent', true);
-const app = supertest(require('../../index').app);
+const app = supertest(require('../../express').app);
 
 /**
  * This test is covering the scenario when receives from OS the SIGTERM

@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const tu = require('../../../testUtils');
 const constants = require('../../../../api/v1/constants');
 const expect = require('chai').expect;

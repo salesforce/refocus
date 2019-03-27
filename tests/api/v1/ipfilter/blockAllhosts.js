@@ -12,7 +12,7 @@
 'use strict';
 process.env.NODE_ENV = 'testBlockAllhosts';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const path = '/v1';
