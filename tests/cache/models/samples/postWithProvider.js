@@ -12,7 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
 const adminUser = require('../../../../config').db.adminUser;
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const path = '/v1/samples';

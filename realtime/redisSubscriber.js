@@ -27,7 +27,7 @@ const ONE = 1;
  * @param {String} processName - Process name
  */
 const allSubscribers = subPerspectives.concat(subBot);
-module.exports = (io, processName) => {
+module.exports = (io) => {
   allSubscribers.forEach((s) => {
     s.on('message', (channel, messageAsString) => {
       const obj = JSON.parse(messageAsString);

@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../index').app);
+const api = supertest(require('../../express').app);
 
 process.send({ msg: 'ready' });
 process.on('message', (msg) => {
