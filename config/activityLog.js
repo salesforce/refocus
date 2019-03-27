@@ -125,6 +125,15 @@ module.exports = {
     lastHeartbeat: 'None',
     delta: 'None',
   },
+  missedUpsert: {
+    activity: 'missedUpsert',
+    generator: 'None',
+    gtName: 'None',
+    gtVersion: 'None',
+    currentCollector: 'None',
+    lastUpsert: 'None',
+    delta: 'None',
+  },
   pubsub: {
     activity: 'pubsub',
     key: 'None',
