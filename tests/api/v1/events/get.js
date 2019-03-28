@@ -52,31 +52,32 @@ describe('tests/api/v1/events/get.js >', () => {
   });
 
   beforeEach((done) => {
-    u.forceDelete
-    testEvent = u.getStandard();
-    rt.createStandard()
-    .then((roomType) => {
-      const room = r.getStandard();
-      room.type = roomType.id;
-      return Room.create(room);
-    })
-    .then((room) => {
-      testEvent.roomId = room.id;
-      testEvent2.roomId = room.id;
-      return b.createStandard();
-    })
-    .then((bot) => {
-      testEvent.botId = bot.id;
-      testEvent3.botId = bot.id;
-      return Event.create(testEvent);
-    })
-    .then((event) => {
-      testEventOutput = event;
-    })
-    .then(() => Event.create(testEvent2))
-    .then(() => Event.create(testEvent3))
-    .then(() => done())
-    .catch(done);
+    u.forceDelete().then(() => {
+      testEvent = u.getStandard();
+      rt.createStandard()
+      .then((roomType) => {
+        const room = r.getStandard();
+        room.type = roomType.id;
+        return Room.create(room);
+      })
+      .then((room) => {
+        testEvent.roomId = room.id;
+        testEvent2.roomId = room.id;
+        return b.createStandard();
+      })
+      .then((bot) => {
+        testEvent.botId = bot.id;
+        testEvent3.botId = bot.id;
+        return Event.create(testEvent);
+      })
+      .then((event) => {
+        testEventOutput = event;
+      })
+      .then(() => Event.create(testEvent2))
+      .then(() => Event.create(testEvent3))
+      .then(() => done())
+      .catch(done);
+    });
   });
 
   afterEach(u.forceDelete);
