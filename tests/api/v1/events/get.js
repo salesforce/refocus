@@ -52,6 +52,7 @@ describe('tests/api/v1/events/get.js >', () => {
   });
 
   beforeEach((done) => {
+    u.forceDelete
     testEvent = u.getStandard();
     rt.createStandard()
     .then((roomType) => {
