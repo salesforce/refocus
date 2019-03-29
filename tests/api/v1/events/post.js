@@ -31,7 +31,11 @@ describe('tests/api/v1/events/post.js >', () => {
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
+  afterEach((done) => {
+    u.forceDelete()
+    .then(() => done())
+    .catch(done);
+  });
   after(tu.forceDeleteToken);
 
   it('Pass, post event', (done) => {

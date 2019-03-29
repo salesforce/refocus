@@ -33,7 +33,11 @@ describe('tests/api/v1/events/postBulk.js >', () => {
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
+  afterEach((done) => {
+    u.forceDelete()
+    .then(() => done())
+    .catch(done);
+  });
   after(tu.forceDeleteToken);
 
   after(() => {
