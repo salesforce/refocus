@@ -36,15 +36,17 @@ function updateInstance(o, puttableFields, toPut) {
     let key = keys[i];
     const fieldDef = puttableFields[key];
     if (key === 'owner') key = 'ownerId';
-    if (toPut[key] === undefined && key !== 'ownerId') {
-      let nullish = null;
-      if (fieldDef.default) { // could be enum | array etc
-        nullish = fieldDef.default;
-      } else if (fieldDef.type === 'boolean') {
-        nullish = false;
-      }
+    if (toPut[key] === undefined) {
+      if (key !== 'ownerId') {
+        let nullish = null;
+        if (fieldDef.default) { // could be enum | array etc
+          nullish = fieldDef.default;
+        } else if (fieldDef.type === 'boolean') {
+          nullish = false;
+        }
 
-      o.set(key, nullish);
+        o.set(key, nullish);
+      }
     } else {
       /*
        * value may be set but not changed. set changed to true to
