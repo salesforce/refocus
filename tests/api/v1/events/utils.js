@@ -82,7 +82,7 @@ module.exports = {
   },
 
   forceDelete(done, startTime=testStartTime) {
-    tu.db.Event.destroy({
+    return tu.db.Event.destroy({
       where: {
         createdAt: {
           [Op.lt]: new Date(),
@@ -95,8 +95,6 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.BotAction, startTime))
     .then(() => tu.forceDelete(tu.db.Bot, startTime))
     .then(() => tu.forceDelete(tu.db.Room, startTime))
-    .then(() => tu.forceDelete(tu.db.RoomType, startTime))
-    .then(() => done())
-    .catch(done);
+    .then(() => tu.forceDelete(tu.db.RoomType, startTime));
   },
 };

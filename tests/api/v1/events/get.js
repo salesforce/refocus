@@ -28,6 +28,7 @@ const rt = require('../../../db/model/roomType/utils');
 const DEFAULT_LIMIT = 100;
 const TOTAL_EVENTS = 150;
 const PRE_BUILT_EVENTS = 3;
+const TEN = 10;
 
 describe('tests/api/v1/events/get.js >', () => {
   let testEvent = u.getStandard();
@@ -40,49 +41,54 @@ describe('tests/api/v1/events/get.js >', () => {
   testEvent3.context.type = 'Comment';
   testEvent3.log = 'Sample Event 3';
   let token;
+  let OLD_EVENTS;
 
   before((done) => {
-    u.forceDelete(null, new Date());
+    const dt = new Date();
+    u.forceDelete(null, dt.setMinutes(dt.getMinutes() - TEN));
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
-      done();
+    }).then(() => {
+      api.get(`${path}`)
+      .set('Authorization', token)
+      .then((res) => {
+        OLD_EVENTS = res.body.length;
+      }).then(() => done());
     })
     .catch(done);
   });
 
   beforeEach((done) => {
-    u.forceDelete().then(() => {
-      testEvent = u.getStandard();
-      rt.createStandard()
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        testEvent.roomId = room.id;
-        testEvent2.roomId = room.id;
-        return b.createStandard();
-      })
-      .then((bot) => {
-        testEvent.botId = bot.id;
-        testEvent3.botId = bot.id;
-        return Event.create(testEvent);
-      })
-      .then((event) => {
-        testEventOutput = event;
-      })
-      .then(() => Event.create(testEvent2))
-      .then(() => Event.create(testEvent3))
-      .then(() => done())
-      .catch(done);
-    });
+    testEvent = u.getStandard();
+    rt.createStandard()
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testEvent.roomId = room.id;
+      testEvent2.roomId = room.id;
+      return b.createStandard();
+    })
+    .then((bot) => {
+      testEvent.botId = bot.id;
+      testEvent3.botId = bot.id;
+      return Event.create(testEvent);
+    })
+    .then((event) => {
+      testEventOutput = event;
+    })
+    .then(() => Event.create(testEvent2))
+    .then(() => Event.create(testEvent3))
+    .then(() => done())
+    .catch(done);
   });
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  it.skip('Pass, get array of multiple', (done) => {
+  it('Pass, get array of multiple', (done) => {
     api.get(`${path}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -91,7 +97,7 @@ describe('tests/api/v1/events/get.js >', () => {
         return done(err);
       }
 
-      expect(res.body.length).to.equal(THREE);
+      expect(res.body.length).to.equal(OLD_EVENTS + THREE);
       done();
     });
   });
@@ -119,7 +125,7 @@ describe('tests/api/v1/events/get.js >', () => {
     });
   });
 
-  it.skip('Pass, offset events', (done) => {
+  it('Pass, offset events', (done) => {
     testEvent = u.getStandard();
     const arrayofPromises = [];
     for (let i = 0; i < TOTAL_EVENTS - PRE_BUILT_EVENTS; i++) {
@@ -136,7 +142,8 @@ describe('tests/api/v1/events/get.js >', () => {
           return done(err);
         }
 
-        expect(res.body.length).to.equal(TOTAL_EVENTS - DEFAULT_LIMIT);
+        expect(res.body.length).to.equal(OLD_EVENTS +
+         TOTAL_EVENTS - DEFAULT_LIMIT);
         done();
       });
     });
