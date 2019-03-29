@@ -9,6 +9,7 @@
 /**
  * /realtime/pubSubStats.js
  */
+const debug = require('debug')('refocus:pubsub:elapsed');
 const activityLogType = 'pubsub';
 const globalKey = require('./constants').pubSubStatsAggregator;
 const activityLog = require('../utils/activityLog');
@@ -57,12 +58,24 @@ function track(src, evt, obj) {
    * treat the elapsed time as 0 but console.trace the object.
    */
   let elapsed = 0;
+  let updatedAtFromObj;
+  let nameFromObj;
   if (obj.hasOwnProperty('updatedAt')) {
+    updatedAtFromObj = obj.updatedAt;
+    nameFromObj = obj.name;
     elapsed = now - new Date(obj.updatedAt);
   } else if (obj.hasOwnProperty('new') && obj.new.hasOwnProperty('updatedAt')) {
+    updatedAtFromObj = obj.new.updatedAt;
+    nameFromObj = obj.new.name;
     elapsed = now - new Date(obj.new.updatedAt);
   } else {
     console.trace('Where is updatedAt? ' + JSON.stringify(obj));
+  }
+
+  if (elapsed > 1000) {
+    debug(`/realtime/pubSubStats.js|track|src=${src}|evt=${evt}|` +
+      `now=${now}|name=${nameFromObj}|updatedAt=${updatedAtFromObj}|` +
+      `updatedAtAsDate=${new Date(updatedAtFromObj)}|elapsed=${elapsed}|`);
   }
 
   // Initialize the global variable if necessary
