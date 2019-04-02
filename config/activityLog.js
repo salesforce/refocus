@@ -26,6 +26,7 @@ module.exports = {
     totalTime: '0ms',
     uri: 'None',
     user: 'None',
+    collector: 'None',
   },
   collectorAssignment: {
     activity: 'collectorAssignment',
