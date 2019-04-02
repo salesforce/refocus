@@ -14,6 +14,7 @@
 module.exports = {
   api: {
     activity: 'api',
+    collector: 'None',
     dbTime: '0ms',
     ipAddress: 'None',
     method: 'None', // one of HTTP verbs
