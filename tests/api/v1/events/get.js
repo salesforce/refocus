@@ -52,8 +52,7 @@ describe('tests/api/v1/events/get.js >', () => {
   });
 
   beforeEach((done) => {
-    u.forceDelete()
-    .then(() => {
+    u.forceDeletePromise().then(() => {
       testEvent = u.getStandard();
       rt.createStandard()
       .then((roomType) => {
@@ -81,6 +80,7 @@ describe('tests/api/v1/events/get.js >', () => {
     });
   });
 
+  afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
   it('Pass, get array of multiple', (done) => {
