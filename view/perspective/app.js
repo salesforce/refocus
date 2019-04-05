@@ -181,31 +181,39 @@ function setupSocketIOClient(persBody) {
     options.transports = ['websocket'];
   }
 
-  const socket = _io.connect(namespace, options);
-  console.log('THIS IS SOCKET IO NAMESPACE', namespace);
-  console.log('THESE ARE SOCKET IO OPTIONS', options);
+  const socket = _io(namespace, options);
+  socket
+    .emit('authenticate', { token: 'A_TOKEN_FROM_AN_EMITTED_MESSAGE'})
+    .on('authenticated', () => {
+      console.log('THIS IS SOCKET IO NAMESPACE', namespace);
+      console.log('THESE ARE SOCKET IO OPTIONS', options);
 
-  socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SUBJ_DEL, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_DEL);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SUBJ_UPD, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_UPD);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SMPL_ADD, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_ADD);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SMPL_DEL, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_DEL);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
-  });
+      socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
+        handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
+      });
+      socket.on(eventsQueue.eventType.INTRNL_SUBJ_DEL, (data) => {
+        handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_DEL);
+      });
+      socket.on(eventsQueue.eventType.INTRNL_SUBJ_UPD, (data) => {
+        handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_UPD);
+      });
+      socket.on(eventsQueue.eventType.INTRNL_SMPL_ADD, (data) => {
+        handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_ADD);
+      });
+      socket.on(eventsQueue.eventType.INTRNL_SMPL_DEL, (data) => {
+        handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_DEL);
+      });
+      socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
+        handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
+      });
+      socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
+        handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
+      });
+    })
+    .on('unauthorized', (msg) => {
+      console.log("unauthorized: " + JSON.stringify(msg.data));
+      throw new Error(msg.data.type);
+    });
 } // setupSocketIOClient
 
 /**
