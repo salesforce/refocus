@@ -156,7 +156,7 @@ function setupSocketIOClient(persBody) {
    * side on connect.
    */
   const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
-    `?p=${persBody.name}`;
+    `?p=${persBody.name}&t=A_QUERY_PARAMETER_TOKEN`;
 
   /*
    * If transProtocol is set, initialize the socket.io client with the
@@ -169,7 +169,8 @@ function setupSocketIOClient(persBody) {
    */
   const options = {
     extraHeaders: {
-      authorization: 'A_TOKEN_FOR_THIS_UI_USER',
+      authorization: 'AN_AUTHORIZATION_HEADER_TOKEN',
+      'x-authorization': 'AN_X_AUTHORIZATION_HEADER_TOKEN',
     },
   };
   if (_transProtocol) {
