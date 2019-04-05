@@ -181,7 +181,8 @@ function setupSocketIOClient(persBody) {
     options.transports = ['websocket'];
   }
 
-  const socket = _io(namespace, options);
+  const socket = _io.connect(namespace, options);
+  console.log('THIS IS SOCKET IO NAMESPACE', namespace);
   console.log('THESE ARE SOCKET IO OPTIONS', options);
 
   socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
