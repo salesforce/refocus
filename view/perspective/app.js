@@ -181,6 +181,8 @@ function setupSocketIOClient(persBody) {
   }
 
   const socket = _io(namespace, options);
+  console.log('THESE ARE SOCKET IO OPTIONS', options);
+
   socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
     handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
   });
