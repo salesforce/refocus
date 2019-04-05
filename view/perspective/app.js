@@ -187,9 +187,11 @@ function setupSocketIOClient(persBody) {
 
   const socket = _io.connect(namespace, options);
   socket.on('connect', function () {
+    console.log('IN "CONNECT"');
     socket
       .emit('authenticate', { token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbm5hbWUiOiJTb21lQ29vbFRva2VuIiwidXNlcm5hbWUiOiJpZ29sZHN0ZWluQHNhbGVzZm9yY2UuY29tIiwidGltZXN0YW1wIjoxNTU0NTA0MDI4MzE3LCJQcm9maWxlTmFtZSI6IlJlZm9jdXNTU09Vc2VyIiwiSXNBZG1pbiI6ZmFsc2UsImlhdCI6MTU1NDUwNDAyOH0.-RQlOkjoCJWVOuumEqhTPt3ohMDD7XfGn-0Qwe6D41U' }) //send the jwt
-      .on('authenticated', function () {
+      .on('authenticated', () => {
+        console.log('IN "AUTHENTICATED');
         socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
           handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
         });
@@ -212,8 +214,8 @@ function setupSocketIOClient(persBody) {
           handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
         });
       })
-      .on('unauthorized', function(msg) {
-        console.log("unauthorized: " + JSON.stringify(msg.data));
+      .on('unauthorized', (msg) => {
+        console.log('IN "UNAUTHORIZED": ' + JSON.stringify(msg.data));
         throw new Error(msg.data.type);
       })
   });
