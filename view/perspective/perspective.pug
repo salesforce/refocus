@@ -27,6 +27,8 @@ html(lang = 'en')
 
   script(src='/static/scripts/socket.io.js')
   script.
+    var realtimeApplication = '#{realtimeApplication}';
+  script.
     var realtimeEventThrottleMilliseconds = #{eventThrottle};
   script.
     var transProtocol = '#{transportProtocol}';

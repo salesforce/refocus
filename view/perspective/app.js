@@ -77,6 +77,7 @@ const PERSPECTIVE_CONTAINER =
   document.getElementById('refocus_perspective_dropdown_container');
 const SPINNER_ID = 'lens_loading_spinner';
 
+let _realtimeApplication;
 let _realtimeEventThrottleMilliseconds;
 let _transProtocol;
 let _io;
@@ -154,7 +155,7 @@ function setupSocketIOClient(persBody) {
    * Add the perspective name as a query param so that it's available server-
    * side on connect.
    */
-  const namespace = u.getNamespaceString(persBody) +
+  const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
     `?p=${persBody.name}`;
 
   /*
@@ -166,18 +167,20 @@ function setupSocketIOClient(persBody) {
    * clientProtocol string. Finally, we split the comma-seperated values into
    * an array.
    */
-  const options = {};
+  const options = {
+    extraHeaders: {
+      authorization: 'A_TOKEN_FOR_THIS_UI_USER',
+    },
+  };
   if (_transProtocol) {
     options.transports = _transProtocol.replace(/\s*,\s*/g, ',').split(',');
   }
 
-  let socket;
   if (WEBSOCKET_ONLY) {
-    socket = _io(namespace, { transports: ['websocket'] });
-  } else {
-    socket = _io(namespace, options);
+    options.transports = ['websocket'];
   }
 
+  const socket = _io(namespace, options);
   socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
     handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
   });
@@ -464,6 +467,7 @@ function getPerspectiveUrl() {
 
 window.onload = () => {
   // Note: these are declared in perspective.pug:
+  _realtimeApplication = realtimeApplication;
   _realtimeEventThrottleMilliseconds = realtimeEventThrottleMilliseconds;
   _transProtocol = transProtocol;
   _io = io;

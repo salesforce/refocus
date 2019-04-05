@@ -72,6 +72,7 @@ function setupNamespace(io) {
  * disconnect, write out the activity log.
  *
  * @param {Socket.io} io - socket.io's server-side object
+ * @param {RedisStore} redisStore - the redis instance storing user sessions
  * @returns {Promise} - Returns a promise that resolves to the socket.io
  *  server-side object with the namespace initialized. (This is returned for
  *  testability.)

@@ -63,11 +63,13 @@ function getCookie(cname) {
  * statusFilterType=statusFilter.
  * NOTE: It looks like socketIO is not able to send data over namespace
  * containing ',' and a combination of '&|' characters.
+ *
+ * @param {String} realtimeApplication - the real-time application endpoint
  * @param  {Instance} inst - Perspective object
  * @returns {String} - namespace string.
  */
-function getNamespaceString(inst) {
-  let namespace = '/';
+function getNamespaceString(realtimeApplication, inst) {
+  let namespace = realtimeApplication;
   if (inst.rootSubject) {
     namespace += inst.rootSubject;
   }
