@@ -49,6 +49,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PerspectiveController from './PerspectiveController';
 import { getValuesObject } from './utils';
+
 const u = require('../utils');
 const eventsQueue = require('./eventsQueue');
 const pcValues = {};
@@ -182,38 +183,37 @@ function setupSocketIOClient(persBody) {
   }
 
   const socket = _io(namespace, options);
-  socket
-    .emit('authenticate', { token: 'A_TOKEN_FROM_AN_EMITTED_MESSAGE'})
-    .on('authenticated', () => {
-      console.log('THIS IS SOCKET IO NAMESPACE', namespace);
-      console.log('THESE ARE SOCKET IO OPTIONS', options);
+  socket.emit('authenticate', { token: 'A_TOKEN_FROM_AN_EMITTED_MESSAGE' });
+  socket.on('authenticated', () => {
+    console.log('THIS IS SOCKET IO NAMESPACE', namespace);
+    console.log('THESE ARE SOCKET IO OPTIONS', options);
 
-      socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
-        handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
-      });
-      socket.on(eventsQueue.eventType.INTRNL_SUBJ_DEL, (data) => {
-        handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_DEL);
-      });
-      socket.on(eventsQueue.eventType.INTRNL_SUBJ_UPD, (data) => {
-        handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_UPD);
-      });
-      socket.on(eventsQueue.eventType.INTRNL_SMPL_ADD, (data) => {
-        handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_ADD);
-      });
-      socket.on(eventsQueue.eventType.INTRNL_SMPL_DEL, (data) => {
-        handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_DEL);
-      });
-      socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
-        handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
-      });
-      socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
-        handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
-      });
-    })
-    .on('unauthorized', (msg) => {
-      console.log("unauthorized: " + JSON.stringify(msg.data));
-      throw new Error(msg.data.type);
+    socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
     });
+    socket.on(eventsQueue.eventType.INTRNL_SUBJ_DEL, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_DEL);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SUBJ_UPD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_UPD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_ADD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_ADD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_DEL, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_DEL);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
+    });
+  });
+  socket.on('unauthorized', (msg) => {
+    console.log('UNAUTHORIZED: ' + JSON.stringify(msg.data));
+    throw new Error(msg.data.type);
+  });
 } // setupSocketIOClient
 
 /**
@@ -228,7 +228,7 @@ function injectStyleTag(library, filename) {
   const t = document.createTextNode(library[filename]);
   style.appendChild(t);
   const head = document.head ||
-   document.getElementsByTagName('head')[ZERO];
+    document.getElementsByTagName('head')[ZERO];
 
   if (style.styleSheet) {
     style.styleSheet.cssText = library[filename];
@@ -326,10 +326,10 @@ function setupAspectTimeout(rootSubject) {
         traverseHierarchy(child);
       });
     }
-  })(rootSubject)
+  })(rootSubject);
 
   if (minAspectTimeout < Infinity) {
-    setupTimeoutInterval()
+    setupTimeoutInterval();
   }
 }
 
@@ -494,7 +494,7 @@ window.onload = () => {
     handleHierarchyEvent,
     handleLensDomEvent,
     customHandleError: (msg) => {
-        ERROR_INFO_DIV.innerHTML = msg;
+      ERROR_INFO_DIV.innerHTML = msg;
       u.removeSpinner(SPINNER_ID);
     },
     setupSocketIOClient,
@@ -502,16 +502,16 @@ window.onload = () => {
   };
 
   getValuesObject(accumulatorObject)
-  .then((valuesObject) => {
+    .then((valuesObject) => {
 
-    // skip loading the controller if nothing is returned
-    if (valuesObject) {
-      loadController(valuesObject);
-    }
-  })
-  .catch((error) => {
-    document.getElementById('errorInfo').innerHTML = error;
-  });
+      // skip loading the controller if nothing is returned
+      if (valuesObject) {
+        loadController(valuesObject);
+      }
+    })
+    .catch((error) => {
+      document.getElementById('errorInfo').innerHTML = error;
+    });
 };
 
 
@@ -523,7 +523,7 @@ window.onload = () => {
 function loadController(values) {
   ReactDOM.render(
     <PerspectiveController
-      values={ values }
+      values={values}
     />,
     PERSPECTIVE_CONTAINER
   );
@@ -531,8 +531,10 @@ function loadController(values) {
 
 //for testing
 function getTimeoutValues() {
-  return { minAspectTimeout, minTimeoutCount, maxAspectTimeout,
-           lastUpdateTime, intervalId };
+  return {
+    minAspectTimeout, minTimeoutCount, maxAspectTimeout,
+    lastUpdateTime, intervalId
+  };
 };
 
 
@@ -543,4 +545,4 @@ module.exports = {
   setupTimeoutInterval,
   parseTimeout,
   getTimeoutValues,
-}
+};
