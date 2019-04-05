@@ -70,6 +70,10 @@ function getCookie(cname) {
  */
 function getNamespaceString(realtimeApplication, inst) {
   let namespace = realtimeApplication;
+  if (!namespace.endsWith('/')) {
+    namespace += '/';
+  }
+
   if (inst.rootSubject) {
     namespace += inst.rootSubject;
   }
