@@ -42,7 +42,7 @@ describe('tests/api/v1/events/get.js >', () => {
   let token;
 
   before((done) => {
-    u.forceDelete();
+    u.forceDelete(null, new Date());
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -52,34 +52,31 @@ describe('tests/api/v1/events/get.js >', () => {
   });
 
   beforeEach((done) => {
-    u.forceDeletePromise().then(() => {
-      testEvent = u.getStandard();
-      rt.createStandard()
-      .then((roomType) => {
-        const room = r.getStandard();
-        room.type = roomType.id;
-        return Room.create(room);
-      })
-      .then((room) => {
-        testEvent.roomId = room.id;
-        testEvent2.roomId = room.id;
-        return b.createStandard();
-      })
-      .then((bot) => {
-        testEvent.botId = bot.id;
-        testEvent3.botId = bot.id;
-        return Event.create(testEvent);
-      })
-      .then((event) => {
-        testEventOutput = event;
-      })
-      .then(() => Event.create(testEvent2))
-      .then(() => Event.create(testEvent3))
-      .then(() => done())
-      .catch(done);
-    });
+    testEvent = u.getStandard();
+    rt.createStandard()
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testEvent.roomId = room.id;
+      testEvent2.roomId = room.id;
+      return b.createStandard();
+    })
+    .then((bot) => {
+      testEvent.botId = bot.id;
+      testEvent3.botId = bot.id;
+      return Event.create(testEvent);
+    })
+    .then((event) => {
+      testEventOutput = event;
+    })
+    .then(() => Event.create(testEvent2))
+    .then(() => Event.create(testEvent3))
+    .then(() => done())
+    .catch(done);
   });
-
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
