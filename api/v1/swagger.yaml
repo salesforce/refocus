@@ -7800,7 +7800,7 @@ paths:
                 maxLength: 60
                 default: other
                 pattern: ^[0-9A-Za-z_\\-]{0,60}$
-                description: Origin of the room
+                description: Tracks where refocus room was created from
               owner:
                 type: string
                 description: >
@@ -14132,7 +14132,7 @@ definitions:
           Id of the User who created this room.
       origin:
         type: string
-        description: Where the room was created
+        description: Tracks where refocus room was created from
 
   RoomTypeResponse:
     type: object
