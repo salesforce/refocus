@@ -201,6 +201,10 @@ const shortTermToggles = {
   // adds isBot to token and returns token on patches not just posts
   addIsBotToToken: environmentVariableTrue(
     pe, 'ADD_ISBOT_TO_TOKEN'),
+
+  // preload aspects for each bulk upsert
+  preloadAspectsForEachBulkUpsert: environmentVariableTrue(
+  pe, 'PRELOAD_ASPECTS_BULK_UPSERT'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
