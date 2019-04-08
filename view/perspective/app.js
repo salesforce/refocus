@@ -204,6 +204,12 @@ function setupSocketIOClient(persBody) {
     socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
       handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
     });
+
+    // TODO tell user? what's the point of loading perspective page if not
+    //      connected to real-time event stream?
+    socket.on('disconnect', (msg) => {
+      console.log('Disconnected from real-time event stream.');
+    });
   });
 } // setupSocketIOClient
 
@@ -475,7 +481,6 @@ window.onload = () => {
   _transProtocol = transProtocol;
   _io = io;
   _userSession = userSession;
-  console.log('THIS IS _userSession==============>', _userSession);
 
   if (_realtimeEventThrottleMilliseconds !== ZERO) {
     eventsQueue.scheduleFlushQueue(LENS_DIV, _realtimeEventThrottleMilliseconds);
