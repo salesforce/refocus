@@ -34,9 +34,11 @@ module.exports = {
   blockHeartbeat,
   unblockHeartbeat,
   killAllCollectors,
+  killCollector,
   setupMocking,
   tick,
   tickSync,
+  tickFor,
   tickUntilComplete,
 };
 
@@ -141,6 +143,7 @@ function awaitExit(collectorName) {
   if (subprocess && subprocess.connected) {
     return new Promise((resolve) => {
       subprocess.on('exit', () => {
+        delete subprocesses[collectorName];
         resolve();
       });
     });
@@ -154,15 +157,15 @@ function killAllCollectors() {
     Object.keys(subprocesses),
     (collectorName) => killCollector(collectorName),
   );
+}
 
-  function killCollector(collectorName) {
-    const subprocess = subprocesses[collectorName];
-    if (subprocess && subprocess.connected) {
-      const promise = awaitExit(collectorName);
-      delete subprocesses[collectorName];
-      subprocess.kill();
-      return promise;
-    }
+function killCollector(collectorName) {
+  const subprocess = subprocesses[collectorName];
+  if (subprocess && subprocess.connected) {
+    const promise = awaitExit(collectorName);
+    delete subprocesses[collectorName];
+    subprocess.kill();
+    return promise;
   }
 }
 
@@ -170,8 +173,8 @@ const tickMap = {};
 function tick(ms) {
   return tickSync(clock, ms)
   .then(() =>
-    Promise.map(Object.entries(subprocesses), ([name, subprocess]) => {
-      subprocess.send({ tick: ms });
+    Promise.each(Object.entries(subprocesses), ([name, subprocess]) => {
+      subprocess && subprocess.connected && subprocess.send({ tick: ms });
       return new Promise((resolve) =>
         tickMap[name] = resolve
       );
@@ -205,9 +208,24 @@ function tickSync(clock, ms) {
   }
 }
 
+function tickFor(ms) {
+  const endTime = Date.now() + ms;
+  return tickUntilTime(endTime);
+
+  function tickUntilTime(endTime) {
+    if (Date.now() >= endTime) {
+      return Promise.resolve();
+    } else {
+      return tick(1000)
+      .then(() => tickUntilTime(endTime));
+    }
+  }
+}
+
 let tickingPromises = [];
 let readyToTick = [];
 let readyToResolve = [];
+let readyToReject = [];
 function tickUntilComplete(awaitFunc, collectorName) {
   const awaitPromise = awaitFunc(collectorName);
   readyToTick.push(awaitPromise);
@@ -219,6 +237,9 @@ function tickUntilComplete(awaitFunc, collectorName) {
   return awaitPromise
   .then((res) => new Promise((resolve) =>
     readyToResolve.push(() => resolve(res))
+  ))
+  .catch((err) => new Promise((resolve, reject) =>
+    readyToReject.push(() => reject(err))
   ));
 
   function tickUntilAllComplete() {
@@ -230,7 +251,9 @@ function tickUntilComplete(awaitFunc, collectorName) {
       .then(() => tick(1000))
       .then(() => {
         readyToResolve.forEach(resolve => resolve());
+        readyToReject.forEach(reject => reject());
         readyToResolve = [];
+        readyToReject = [];
         return tickUntilAllComplete(tickingPromises);
       });
     }
