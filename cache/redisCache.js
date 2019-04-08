@@ -61,9 +61,12 @@ if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
 const subPerspectives = [];
 const pubPerspectives = [];
 rconf.instanceUrl.pubsubPerspectives.forEach((rp) => {
-  const s = redis.createClient(rp, opts);
-  s.subscribe(rconf.perspectiveChannelName);
-  subPerspectives.push(s);
+  if (!process.env.REALTIME_APPLICATION) {
+    const s = redis.createClient(rp, opts);
+    s.subscribe(rconf.perspectiveChannelName);
+    subPerspectives.push(s);
+  }
+
   pubPerspectives.push(redis.createClient(rp, opts));
 });
 
