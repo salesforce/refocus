@@ -12,7 +12,7 @@
 'use strict';
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
