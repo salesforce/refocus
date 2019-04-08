@@ -82,6 +82,7 @@ let _realtimeApplication;
 let _realtimeEventThrottleMilliseconds;
 let _transProtocol;
 let _io;
+let _userSession;
 
 let minAspectTimeout;
 let minTimeoutCount;
@@ -157,7 +158,7 @@ function setupSocketIOClient(persBody) {
    * side on connect.
    */
   const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
-    `?p=${persBody.name}&t=A_QUERY_PARAMETER_TOKEN`;
+    `?p=${persBody.name}&t=${_userSession}`;
 
   /*
    * If transProtocol is set, initialize the socket.io client with the
@@ -473,6 +474,8 @@ window.onload = () => {
   _realtimeEventThrottleMilliseconds = realtimeEventThrottleMilliseconds;
   _transProtocol = transProtocol;
   _io = io;
+  _userSession = userSession;
+  console.log('THIS IS _userSession==============>', _userSession);
 
   if (_realtimeEventThrottleMilliseconds !== ZERO) {
     eventsQueue.scheduleFlushQueue(LENS_DIV, _realtimeEventThrottleMilliseconds);
