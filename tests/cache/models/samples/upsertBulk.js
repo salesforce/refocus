@@ -59,7 +59,11 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
     }))
     .then((aspectTwo) => Subject.create({
       isPublished: true,
-      name: `${tu.namePrefix}Subject`,
+      name: `${tu.namePrefix}Subject1`,
+    }))
+    .then(() => Subject.create({
+      isPublished: true,
+      name: `${tu.namePrefix}Subject2`,
     }))
     .then(() => samstoinit.eradicate())
     .then(() => samstoinit.init())
@@ -95,8 +99,9 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
   });
 
   it('all succeed', (done) => {
-    const samp1Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`;
-    const samp2Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`;
+    const samp1Name = `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect1`;
+    const samp2Name = `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect2`;
+    const samp3Name = `${tu.namePrefix}Subject2|${tu.namePrefix}Aspect2`;
     api.post(path)
     .set('Authorization', token)
     .send([
@@ -106,6 +111,9 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
       }, {
         name: samp2Name,
         value: '20',
+      }, {
+        name: samp3Name,
+        value: '40',
       },
     ])
     .expect(constants.httpStatus.OK)
@@ -113,26 +121,34 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
   });
 
   it('bulkUpsert method: all succeed', (done) => {
-    const samp1Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`;
-    const samp2Name = `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`;
+    const samp1Name = `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect1`;
+    const samp2Name = `${tu.namePrefix}Subject2|${tu.namePrefix}Aspect1`;
+    const samp3Name = `${tu.namePrefix}Subject2|${tu.namePrefix}Aspect2`;
     bulkUpsert([
       {
         name: samp1Name,
         value: '0',
       }, {
         name: samp2Name,
-        value: '20',
+        value: '10',
+      }, {
+        name: samp3Name,
+        value: '50',
       },
     ])
     .then((response) => {
       expect(response[0].name).to.be.equal(
-        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`
+        `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect1`
       );
       expect(response[0].status).to.be.equal('Critical');
       expect(response[1].name).to.be.equal(
-        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`
+        `${tu.namePrefix}Subject2|${tu.namePrefix}Aspect1`
       );
-      expect(response[1].status).to.be.equal('OK');
+      expect(response[1].status).to.be.equal('Invalid');
+      expect(response[2].name).to.be.equal(
+        `${tu.namePrefix}Subject2|${tu.namePrefix}Aspect2`
+      );
+      expect(response[2].status).to.be.equal('OK');
       done();
     });
   });
@@ -145,8 +161,11 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
         name: `${tu.namePrefix}NOT_EXIST|${tu.namePrefix}Aspect1`,
         value: '2',
       }, {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
+        name: `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect2`,
         value: '4',
+      }, {
+        name: `${tu.namePrefix}Subject2|${tu.namePrefix}NOT_EXIST`,
+        value: '6',
       },
     ])
     .expect(constants.httpStatus.OK)
@@ -159,16 +178,27 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
         name: `${tu.namePrefix}NOT_EXIST|${tu.namePrefix}Aspect1`,
         value: '2',
       }, {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
+        name: `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect2`,
+        value: '4',
+      }, {
+        name: `${tu.namePrefix}Subject2|${tu.namePrefix}Aspect2`,
+        value: '4',
+      },
+      {
+        name: `${tu.namePrefix}Subject1|${tu.namePrefix}NOT_EXIST`,
         value: '4',
       },
     ])
     .then((response) => {
       expect(response[0].isFailed).to.be.true;
       expect(response[1].name).to.be.equal(
-        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`
+        `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect2`
+      );
+      expect(response[2].name).to.be.equal(
+        `${tu.namePrefix}Subject2|${tu.namePrefix}Aspect2`
       );
       expect(response[1].status).to.be.equal('Invalid');
+      expect(response[3].isFailed).to.be.true;
       done();
     })
     .catch(done);
@@ -182,7 +212,7 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
         name: `${tu.namePrefix}NOT_EXIST|${tu.namePrefix}Aspect1`,
         value: '2',
       }, {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}NOT_EXIST`,
+        name: `${tu.namePrefix}Subject1|${tu.namePrefix}NOT_EXIST`,
         value: '4',
       },
     ])
@@ -196,7 +226,11 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
         name: `${tu.namePrefix}NOT_EXIST|${tu.namePrefix}Aspect1`,
         value: '2',
       }, {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}NOT_EXIST`,
+        name: `${tu.namePrefix}Subject1|${tu.namePrefix}NOT_EXIST`,
+        value: '4',
+      },
+      {
+        name: `${tu.namePrefix}Invalid_Name`,
         value: '4',
       },
     ])
@@ -208,9 +242,14 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
         'subject for this sample was not found or has isPublished=false');
       expect(response[1].isFailed).to.be.true;
       expect(response[1].explanation).to.have.property('sample',
-        `${tu.namePrefix}Subject|${tu.namePrefix}NOT_EXIST`);
+        `${tu.namePrefix}Subject1|${tu.namePrefix}NOT_EXIST`);
       expect(response[1].explanation).to.have.property('explanation',
         'aspect for this sample was not found or has isPublished=false');
+      expect(response[2].isFailed).to.be.true;
+      expect(response[2].explanation).to.have.property('name',
+        'ResourceNotFoundError');
+      expect(response[2].explanation).to.have.property('explanation',
+        'Invalid sample name "___invalid_name"');
       done();
     })
       .catch(done);
@@ -221,11 +260,11 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
     .set('Authorization', token)
     .send([
       {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+        name: `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect1`,
         value: '2',
         relatedLinks,
       }, {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
+        name: `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect2`,
         value: '4',
         relatedLinks,
       },
@@ -239,14 +278,14 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
     .set('Authorization', token)
     .send([
       {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
+        name: `${tu.namePrefix}Subject1|${tu.namePrefix}AspectX`,
         value: '2',
         relatedLinks: [
           { name: 'link2', url: 'https://samples.com' },
           { name: 'link2', url: 'https://samples.com' },
         ],
       }, {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
+        name: `${tu.namePrefix}Subject1|${tu.namePrefix}AspectX`,
         value: '4',
         relatedLinks: [
           { name: 'link2', url: 'https://samples.com' },
@@ -264,11 +303,11 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
     .set('Authorization', token)
     .send([
       {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
+        name: `${tu.namePrefix}Subject1|${tu.namePrefix}AspectX`,
         value: '2',
         status: 'Invalid',
       }, {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}AspectX`,
+        name: `${tu.namePrefix}Subject1|${tu.namePrefix}AspectX`,
         value: '4',
         statusChangedAt: new Date().toString(),
       },
@@ -290,12 +329,12 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
     .set('Authorization', token)
     .send([
       {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+        name: `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect1`,
         value: '10',
         status: 'Info',
       },
       {
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
+        name: `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect2`,
         value: '10',
       },
     ])
@@ -307,7 +346,7 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
        */
       setTimeout(() => {
         api.get('/v1/samples?name=' +
-        `${tu.namePrefix}Subject|${tu.namePrefix}Aspect*`)
+        `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect*`)
         .set('Authorization', token)
         .end((err, res) => {
           if (err) {
@@ -353,7 +392,7 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
       .set('Authorization', token)
       .send([
         {
-          name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+          name: `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect1`,
           value: '6',
         },
       ])
@@ -364,7 +403,7 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
          */
         setTimeout(() => {
           api.get('/v1/samples?name=' +
-            `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`)
+            `${tu.namePrefix}Subject1|${tu.namePrefix}Aspect1`)
           .set('Authorization', token)
           .end((err, res) => {
             if (err) {
@@ -373,7 +412,7 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
 
             expect(res.body).to.have.length(1);
             expect(res.body[0].name)
-            .to.equal(`${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`);
+            .to.equal(`${tu.namePrefix}Subject1|${tu.namePrefix}Aspect1`);
             expect(res.body[0].value).to.be.equal('6');
             return done();
           });
