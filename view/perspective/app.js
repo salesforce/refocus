@@ -168,12 +168,7 @@ function setupSocketIOClient(persBody) {
    * clientProtocol string. Finally, we split the comma-seperated values into
    * an array.
    */
-  const options = {
-    extraHeaders: {
-      authorization: 'AN_AUTHORIZATION_HEADER_TOKEN',
-      'x-authorization': 'AN_X_AUTHORIZATION_HEADER_TOKEN',
-    },
-  };
+  const options = {};
   if (_transProtocol) {
     options.transports = _transProtocol.replace(/\s*,\s*/g, ',').split(',');
   }
@@ -186,38 +181,28 @@ function setupSocketIOClient(persBody) {
   console.log('THESE ARE SOCKET IO OPTIONS', options);
 
   const socket = _io.connect(namespace, options);
-  socket.on('connect', function () {
-    console.log('IN "CONNECT"');
-    socket
-      .emit('authenticate', { token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbm5hbWUiOiJTb21lQ29vbFRva2VuIiwidXNlcm5hbWUiOiJpZ29sZHN0ZWluQHNhbGVzZm9yY2UuY29tIiwidGltZXN0YW1wIjoxNTU0NTA0MDI4MzE3LCJQcm9maWxlTmFtZSI6IlJlZm9jdXNTU09Vc2VyIiwiSXNBZG1pbiI6ZmFsc2UsImlhdCI6MTU1NDUwNDAyOH0.-RQlOkjoCJWVOuumEqhTPt3ohMDD7XfGn-0Qwe6D41U' }) //send the jwt
-      .on('authenticated', () => {
-        console.log('IN "AUTHENTICATED');
-        socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
-          handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
-        });
-        socket.on(eventsQueue.eventType.INTRNL_SUBJ_DEL, (data) => {
-          handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_DEL);
-        });
-        socket.on(eventsQueue.eventType.INTRNL_SUBJ_UPD, (data) => {
-          handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_UPD);
-        });
-        socket.on(eventsQueue.eventType.INTRNL_SMPL_ADD, (data) => {
-          handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_ADD);
-        });
-        socket.on(eventsQueue.eventType.INTRNL_SMPL_DEL, (data) => {
-          handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_DEL);
-        });
-        socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
-          handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
-        });
-        socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
-          handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
-        });
-      })
-      .on('unauthorized', (msg) => {
-        console.log('IN "UNAUTHORIZED": ' + JSON.stringify(msg.data));
-        throw new Error(msg.data.type);
-      })
+  socket.on('connect', () => {
+    socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SUBJ_DEL, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_DEL);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SUBJ_UPD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_UPD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_ADD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_ADD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_DEL, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_DEL);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
+    });
   });
 } // setupSocketIOClient
 
