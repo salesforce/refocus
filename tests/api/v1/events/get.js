@@ -32,16 +32,17 @@ const PRE_BUILT_EVENTS = 3;
 describe('tests/api/v1/events/get.js >', () => {
   let testEvent = u.getStandard();
   let testEventOutput;
-  let testEvent2 = u.getStandard();
+  const testEvent2 = u.getStandard();
   testEvent2.context.type = 'Comment';
   testEvent2.actionType = 'sendEmail';
   testEvent2.log = 'Sample Event 2';
-  let testEvent3 = u.getStandard();
+  const testEvent3 = u.getStandard();
   testEvent3.context.type = 'Comment';
   testEvent3.log = 'Sample Event 3';
   let token;
 
   before((done) => {
+    u.forceDelete(null, new Date());
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -76,7 +77,6 @@ describe('tests/api/v1/events/get.js >', () => {
     .then(() => done())
     .catch(done);
   });
-
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
