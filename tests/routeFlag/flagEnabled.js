@@ -12,7 +12,7 @@
 'use strict';
 
 const supertest = require('supertest');
-const api = supertest(require('../../index').app);
+const api = supertest(require('../../express').app);
 const constants = require('../../api/v1/constants');
 const path = '/v1/aspects';
 const expect = require('chai').expect;

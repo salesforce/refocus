@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -207,6 +207,22 @@ describe('tests/api/v1/aspects/post.js >', () => {
       })
       .end(done);
     });
+
+    it('tags and related links set to empty array if not provided', (done) => {
+      const aspectToPost = {
+        name: `${tu.namePrefix}Weight`,
+        timeout: '110s',
+      };
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.CREATED)
+      .expect((res) => {
+        expect(res.body.tags).to.eql([]);
+        expect(res.body.relatedLinks).to.eql([]);
+      })
+      .end(done);
+    });
   });
 
   describe('validate helpEmail/helpUrl required >', () => {
@@ -311,6 +327,128 @@ describe('tests/api/v1/aspects/post.js >', () => {
         expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
       })
       .end(done);
+    });
+  });
+
+  describe('post aspect with status ranges >', () => {
+    const aspectToPost = {
+      name: `${tu.namePrefix}Weight`,
+      timeout: '110s',
+      helpUrl: 'http://abc.com',
+      helpEmail: 'abc@xyz.com',
+    };
+
+    it('OK, valueType=boolean, ranges valid', (done) => {
+      aspectToPost.okRange = [0, 0];
+      aspectToPost.criticalRange = [1, 1];
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.CREATED)
+      .expect((res) => {
+        expect(res.body.okRange).to.be.eql([0, 0]);
+        expect(res.body.criticalRange).to.be.eql([1, 1]);
+      })
+      .end(done);
+    });
+
+    it('not OK, valueType=boolean, ranges invalid', (done) => {
+      aspectToPost.okRange = [0, 1];
+      aspectToPost.criticalRange = [1, 1];
+
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('InvalidAspectStatusRange');
+        expect(res.body.errors[0].message).to.equal(
+          'Value type: BOOLEAN can only have ranges: [0,0] or [1,1]'
+        );
+        done();
+      });
+    });
+
+    it('OK, valueType=numeric, ranges valid', (done) => {
+      aspectToPost.okRange = [-45, 70];
+      aspectToPost.criticalRange = [30, 900];
+      aspectToPost.valueType = 'NUMERIC';
+
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.CREATED)
+      .expect((res) => {
+        expect(res.body.okRange).to.be.eql([-45, 70]);
+        expect(res.body.criticalRange).to.be.eql([30, 900]);
+      })
+      .end(done);
+    });
+
+    it('not OK, valueType=numeric, ranges invalid', (done) => {
+      aspectToPost.okRange =  [Number.MIN_SAFE_INTEGER - 10, 0];
+      aspectToPost.criticalRange = [1, 1];
+      aspectToPost.valueType = 'NUMERIC';
+
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('InvalidAspectStatusRange');
+        expect(res.body.errors[0].message).to.equal(
+          'Value type: NUMERIC can only have ranges with min value: -9007199254740991, ' +
+          'max value: 9007199254740991'
+        );
+        done();
+      });
+    });
+
+    it('OK, valueType=percent, ranges valid', (done) => {
+      aspectToPost.okRange = [0, 50];
+      aspectToPost.criticalRange = [60, 100];
+      aspectToPost.valueType = 'PERCENT';
+
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.CREATED)
+      .expect((res) => {
+        expect(res.body.okRange).to.be.eql([0, 50]);
+        expect(res.body.criticalRange).to.be.eql([60, 100]);
+      })
+      .end(done);
+    });
+
+    it('not OK, valueType=percent, ranges invalid', (done) => {
+      aspectToPost.okRange = [-5, 50];
+      aspectToPost.criticalRange = [1, 100];
+      aspectToPost.valueType = 'PERCENT';
+
+      api.post(path)
+      .set('Authorization', token)
+      .send(aspectToPost)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('InvalidAspectStatusRange');
+        expect(res.body.errors[0].message).to.equal(
+          'Value type: PERCENT can only have ranges with min value: 0, ' +
+          'max value: 100'
+        );
+        done();
+      });
     });
   });
 });

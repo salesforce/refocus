@@ -82,6 +82,10 @@ function envVarIncludes(env, envVarName, str) {
 const longTermToggles = {
   // Activity logging
   enableApiActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'api'),
+  enableCollectorAssignmentLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'collectorAssignment'),
+  enableCollectorHeartbeatLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'collectorHeartbeat'),
   enableEnvActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'env'),
   enableJobActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'job'),
   enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
@@ -104,6 +108,8 @@ const longTermToggles = {
     'unauthorized'),
   enableWorkerActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'worker'),
+  enableEventActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'event'),
 
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
@@ -158,6 +164,7 @@ const longTermToggles = {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const shortTermToggles = {
+
   // turn on logging to log invalid hmset values
   logInvalidHmsetValues: environmentVariableTrue(pe,
     'LOG_INVALID_HMSET_VALUES'),
@@ -182,6 +189,9 @@ const shortTermToggles = {
   // Add some job queue instrumentation logging
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
 
+  instrumentCompleteSubjectHierarchy: environmentVariableTrue(pe,
+    'INSTRUMENT_COMPLETE_SUBJECT_HIERARCHY'),
+
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
@@ -191,10 +201,6 @@ const shortTermToggles = {
   // adds isBot to token and returns token on patches not just posts
   addIsBotToToken: environmentVariableTrue(
     pe, 'ADD_ISBOT_TO_TOKEN'),
-
-  // reassign generators among running collectors to distribute load
-  distributeGenerators: environmentVariableTrue(
-    pe, 'DISTRIBUTE_GENERATORS'),
 
   // use old socket.io namespace format
   useOldNamespaceFormat: environmentVariableTrue(pe, 'USE_OLD_NAMESPACE_FORMAT'),

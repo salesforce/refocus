@@ -142,11 +142,16 @@ module.exports = {
         }
       }
 
-      helper.model.create(seqObj)
+      const user = req.user;
+      seqObj.installedBy = user.id;
+      u.setOwner(seqObj, req)
+        .then(() => helper.model.create(seqObj))
+        .then((o) => o.reload())
         .then((o) => {
           o.dataValues.ui = uiObj;
           if (featureToggles.isFeatureEnabled('addIsBotToToken')) {
-            o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name, { IsBot: true });
+            o.dataValues.token = jwtUtil.createToken(seqObj.name, req.headers.UserName,
+             { IsBot: true });
           } else {
             o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name);
           }
@@ -176,36 +181,39 @@ module.exports = {
     const resultObj = { reqStartTime: req.timestamp };
     const reqObj = req.swagger.params;
     const uiObj = {};
+    const seqObj = {};
     u.findByKey(helper, req.swagger.params)
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       for (const param in reqObj) {
         if (reqObj[param].value) {
           if (param === 'ui') {
-            o.set(param, reqObj[param].value.buffer);
+            seqObj[param] = reqObj[param].value.buffer;
             uiObj.name = reqObj[param].value.originalname;
             uiObj.size = reqObj[param].value.size;
           } else {
-            o.set(param, reqObj[param].value);
+            seqObj[param] = reqObj[param].value;
           }
         }
       }
 
-      return o.save();
+      return u.setOwner(seqObj, req, o);
     })
+    .then((o) => o.update(seqObj))
+    .then((o) => o.reload())
     .then((o) => {
       o.dataValues.ui = uiObj;
       if (featureToggles.isFeatureEnabled('addIsBotToToken')) {
         o.dataValues.token = jwtUtil.createToken(
           o.dataValues.name,
-          o.dataValues.name,
+          req.headers.UserName,
           { IsBot: true }
         );
       }
 
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, o.dataValues);
-      res.status(httpStatus.CREATED).json(u.responsify(o, helper, req.method));
+      res.status(httpStatus.OK).json(u.responsify(o, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },

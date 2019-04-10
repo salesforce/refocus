@@ -116,6 +116,11 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
     logObject.user = req.headers.UserName;
     logObject.token = req.headers.TokenName;
 
+    // Add collector name when available (included in collector upsert)
+    if (req.headers['collector-name']) {
+      logObject.collector = req.headers['collector-name'];
+    }
+
     combineAndLog(resultObj, logObject, obj, recordCountOverride);
   }
 }

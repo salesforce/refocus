@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -279,7 +279,7 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
     it('should return samples with temperature and humidity aspects',
     (done) => {
       const endpoint = path.replace('{key}', par.id) +
-        '?aspect=humidity,temperature';
+        '?aspect=Humidity,TEMPERATURE';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)

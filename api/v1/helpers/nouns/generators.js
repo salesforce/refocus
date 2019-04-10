@@ -62,18 +62,18 @@ module.exports = {
   tagFilterName: 'tags',
   fieldScopeMap: {
     user: 'user',
-    possibleCollectors: 'possibleCollectors',
+    owner: 'owner',
     currentCollector: 'currentCollector',
     collectorGroup: 'collectorGroup',
   },
+  fieldsToExclude: ['createdBy', 'ownerId', 'collectorId', 'collectorGroupId'],
 
   /*
    * list the fields containing an array of objects to be sorted here. The value
    * defines the field that will be used for comparision
    */
-  sortArrayObjects: {
-    possibleCollectors: 'name',
-  },
+  sortArrayObjects: {},
   readOnlyFields: ['id', 'isDeleted', 'currentCollector'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 
 }; // exports

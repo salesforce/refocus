@@ -175,16 +175,43 @@ module.exports = function room(seq, dataTypes) {
       },
       onDelete: 'CASCADE',
     });
+
+    assoc.owner = Room.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+
+    assoc.user = Room.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'user',
+    });
+
     assoc.writers = Room.belongsToMany(models.User, {
       as: 'writers',
       through: 'RoomWriters',
       foreignKey: 'roomId',
     });
+
     Room.addScope('namespace', {
       attributes: ['id', 'name'],
       where: {
         active: true,
       },
+    });
+
+    Room.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    }, {
+      override: true,
     });
   };
 
@@ -230,4 +257,3 @@ module.exports = function room(seq, dataTypes) {
 
   return Room;
 };
-

@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const path = '/v1/bots';
@@ -45,7 +45,7 @@ describe('tests/api/v1/bots/patchWithoutPerms.js >', () => {
     User.findOne({ where: { name: pfx + 'myUniqueValidUser' } })
     .then((usr) => {
       user = usr;
-      return u.createStandard();
+      return u.createStandard(user.id);
     })
     .then((newBot) => {
       testBot = newBot;

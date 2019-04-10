@@ -20,9 +20,7 @@ const Promise = require('bluebird');
 const assoc = {};
 const collectorConfig = require('../../config/collectorConfig');
 const heartbeatUtils = require('../../api/v1/helpers/verbs/heartbeatUtils');
-const MS_PER_SEC = 1000;
 const collectorStatus = constants.collectorStatuses;
-const featureToggles = require('feature-toggles');
 
 module.exports = function collector(seq, dataTypes) {
   const Collector = seq.define('Collector', {
@@ -232,14 +230,14 @@ module.exports = function collector(seq, dataTypes) {
       foreignKey: 'collectorId',
     });
 
-    assoc.possibleGenerators = Collector.belongsToMany(models.Generator, {
-      as: 'possibleGenerators',
-      through: 'GeneratorCollectors',
-      foreignKey: 'collectorId',
+    assoc.owner = Collector.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
     });
 
-    assoc.createdBy = Collector.belongsTo(models.User, {
+    assoc.user = Collector.belongsTo(models.User, {
       foreignKey: 'createdBy',
+      as: 'user',
     });
 
     assoc.writers = Collector.belongsToMany(models.User, {
@@ -250,6 +248,24 @@ module.exports = function collector(seq, dataTypes) {
 
     Collector.addScope('baseScope', {
       order: ['name'],
+    });
+
+    Collector.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['id', 'name', 'email', 'fullName'],
+        },
+      ],
+    });
+
+    Collector.addScope('user', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['id', 'name', 'email', 'fullName'],
+        },
+      ],
     });
 
     Collector.addScope('status', {
@@ -271,21 +287,22 @@ module.exports = function collector(seq, dataTypes) {
       ],
     });
 
-    Collector.addScope('possibleGenerators', {
+    Collector.addScope('collectorGroup', {
       include: [
         {
-          model: models.Generator.scope('embed'),
-          as: 'possibleGenerators',
-          through: { attributes: [] },
+          model: models.CollectorGroup.scope('embed'),
+          as: 'collectorGroup',
         },
       ],
     });
 
     Collector.addScope('defaultScope',
       dbUtils.combineScopes([
+        'user',
+        'owner',
         'baseScope',
         'currentGenerators',
-        'possibleGenerators',
+        'collectorGroup',
       ], Collector),
       { override: true }
     );
@@ -328,17 +345,8 @@ module.exports = function collector(seq, dataTypes) {
    * @returns {Promise<Array<Generator>>}
    */
   Collector.prototype.reassignGenerators = function () {
-    if (featureToggles.isFeatureEnabled('distributeGenerators')) {
-      return this.getCurrentGenerators()
-      .map((g) => g.assignToCollector()
-        .then(() => g.save()));
-    }
-
     return this.getCurrentGenerators()
-    .map((g) => {
-      g.assignToCollector();
-      return g.save();
-    });
+      .map((g) => g.assignToCollector().then(() => g.save()));
   };
 
   Collector.prototype.isWritableBy = function (who) {

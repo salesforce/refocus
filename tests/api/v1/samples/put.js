@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -178,6 +178,17 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
       expect(res.body.id).to.be.undefined;
       done();
     });
+  });
+
+  it('related links set to empty array if not provided', (done) => {
+    api.put(`${path}/${sampleName1}`)
+      .set('Authorization', token)
+      .send({ subjectId2, aspectId2, value: '3' })
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.relatedLinks).to.eql([]);
+      })
+      .end(done);
   });
 
   describe('subject isPublished false >', () => {

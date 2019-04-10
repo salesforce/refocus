@@ -29,6 +29,7 @@ const filters = [
   'statusFilter',
 ];
 const botAbsolutePath = '/Bots';
+const subjectAttributesToAttach = ['absolutePath', 'name', 'tags'];
 
 const ASPECT_INDEX = 0;
 const SUBJECT_INDEX = 1;
@@ -429,16 +430,37 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   const nameParts = sample.name.split('|');
   const subAbsPath = nameParts[0];
   const aspName = nameParts[1];
-  const subOpts = {
-    where: {
-      absolutePath: { [Op.iLike]: subAbsPath },
-    },
-  };
-  const aspOpts = {
-    where: {
-      name: { [Op.iLike]: aspName },
-    },
-  };
+
+  // Lookup by id is faster than case-insensitive ILIKE on absolutePath
+  let subFinder;
+  if (!sample.subject && subjectModel) {
+    if (sample.subjectId) {
+      subFinder = subjectModel.unscoped().findById(sample.subjectId, {
+        attributes: subjectAttributesToAttach,
+      });
+    } else {
+      subFinder = subjectModel.unscoped().findOne({
+        where: {
+          absolutePath: { [Op.iLike]: subAbsPath },
+        },
+        attributes: subjectAttributesToAttach,
+      });
+    }
+  }
+
+  // Lookup by id is faster than case-insensitive ILIKE on name
+  let aspFinder;
+  if (!sample.aspect && aspectModel) {
+    if (sample.aspectId) {
+      aspFinder = aspectModel.findById(sample.aspectId);
+    } else {
+      aspFinder = aspectModel.findOne({
+        where: {
+          name: { [Op.iLike]: aspName },
+        },
+      });
+    }
+  }
 
   if (sample.aspect) {
     redisStore.arrayObjsStringsToJson(
@@ -455,20 +477,20 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   }
 
   return Promise.all([
-    sample.aspect ? sample.aspect : aspectModel.findOne(aspOpts),
-    sample.subject ? sample.subject : subjectModel.findOne(subOpts),
+    sample.aspect ? sample.aspect : aspFinder,
+    sample.subject ? sample.subject : subFinder,
   ])
   .then((response) => {
     let asp = response[ASPECT_INDEX];
     let sub = response[SUBJECT_INDEX];
 
     if (!sub) {
-      const message = `Subject not found by Sample abs path ${subAbsPath}`;
+      const message = `Subject not found (${sample.subjectId || subAbsPath})`;
       throw new Error(message);
     }
 
     if (!asp) {
-      const message = `Aspect ${aspName} not found`;
+      const message = `Aspect not found (${sample.aspectId || aspName})`;
       throw new Error(message);
     }
 

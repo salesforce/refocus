@@ -12,7 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const registerPath = '/v1/register';

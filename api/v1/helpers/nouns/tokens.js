@@ -28,4 +28,5 @@ module.exports = {
   fieldScopeMap: {
     user: 'user',
   },
+  fieldsToExclude: ['createdBy'],
 }; // exports

@@ -11,6 +11,7 @@
  */
 'use strict';
 const common = require('../helpers/common');
+const dbUtils = require('../utils');
 const constants = require('../constants');
 const ValidationError = require('../dbErrors').ValidationError;
 const semver = require('semver');
@@ -103,7 +104,7 @@ module.exports = function user(seq, dataTypes) {
     },
     tags: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
-      allowNull: true,
+      allowNull: false,
       defaultValue: constants.defaultArrayValue,
     },
     author: {
@@ -315,6 +316,11 @@ module.exports = function user(seq, dataTypes) {
   };
 
   GeneratorTemplate.postImport = function (models) {
+    assoc.owner = GeneratorTemplate.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+
     assoc.user = GeneratorTemplate.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -327,26 +333,39 @@ module.exports = function user(seq, dataTypes) {
     });
 
     GeneratorTemplate.addScope('baseScope', {
-      order: ['name'],
+      order: ['name', 'version'],
     });
 
     GeneratorTemplate.addScope('defaultScope', {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
-      order: ['name'],
+      order: ['name', 'version'],
     }, {
       override: true,
+    });
+
+    GeneratorTemplate.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['id', 'name', 'email', 'fullName'],
+        },
+      ],
     });
 
     GeneratorTemplate.addScope('user', {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
     });

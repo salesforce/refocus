@@ -14,6 +14,7 @@
 module.exports = {
   api: {
     activity: 'api',
+    collector: 'None',
     dbTime: '0ms',
     ipAddress: 'None',
     method: 'None', // one of HTTP verbs
@@ -35,10 +36,42 @@ module.exports = {
     previousCollector: 'None',
     newCollector: 'None',
   },
+  collectorHeartbeat: {
+    activity: 'collectorHeartbeat',
+    generatorsAdded: 0,
+    generatorsDeleted: 0,
+    generatorsUpdated: 0,
+    memExternal: 0,
+    memHeapTotal: 0,
+    memHeapUsed: 0,
+    memRss: 0,
+    name: 'None',
+    nodeVersion: 'None',
+    uptime: 0,
+    version: 'None',
+  },
   env: {
     activity: 'env',
     name: 'None',
     value: 'None',
+  },
+  event: {
+    activity: 'event',
+    actionId: 'None',
+    actionSuccess: 'None',
+    botName: 'None',
+    ipAddress: 'None',
+    dbTime: '0ms',
+    method: 'None', // one of HTTP verbs
+    process: 'None',
+    request_id: 'None',
+    roomType: 'None',
+    roomId: 'None',
+    token: 'None',
+    totalTime: '0ms',
+    type: 'None',
+    uri: 'None',
+    user: 'None',
   },
   job: {
     activity: 'job',
@@ -91,6 +124,15 @@ module.exports = {
     activity: 'missedHeartbeat',
     collector: 'None',
     lastHeartbeat: 'None',
+    delta: 'None',
+  },
+  missedUpsert: {
+    activity: 'missedUpsert',
+    generator: 'None',
+    gtName: 'None',
+    gtVersion: 'None',
+    currentCollector: 'None',
+    lastUpsert: 'None',
     delta: 'None',
   },
   pubsub: {

@@ -49,7 +49,7 @@ module.exports = function perspective(seq, dataTypes) {
     aspectFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       defaultValue: constants.defaultArrayValue,
-      allowNull: true,
+      allowNull: false,
     },
     aspectTagFilterType: {
       type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
@@ -59,7 +59,7 @@ module.exports = function perspective(seq, dataTypes) {
     aspectTagFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       defaultValue: constants.defaultArrayValue,
-      allowNull: true,
+      allowNull: false,
     },
     subjectTagFilterType: {
       type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
@@ -69,7 +69,7 @@ module.exports = function perspective(seq, dataTypes) {
     subjectTagFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       defaultValue: constants.defaultArrayValue,
-      allowNull: true,
+      allowNull: false,
     },
     statusFilterType: {
       type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
@@ -79,7 +79,7 @@ module.exports = function perspective(seq, dataTypes) {
     statusFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING),
       defaultValue: constants.defaultArrayValue,
-      allowNull: true,
+      allowNull: false,
     },
   }, {
     hooks: {
@@ -148,6 +148,10 @@ module.exports = function perspective(seq, dataTypes) {
   };
 
   Perspective.postImport = function (models) {
+    assoc.owner = Perspective.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
     assoc.user = Perspective.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -173,7 +177,11 @@ module.exports = function perspective(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email'],
+          attributes: ['id', 'name', 'email'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
         {
           association: assoc.lens,
@@ -192,11 +200,20 @@ module.exports = function perspective(seq, dataTypes) {
       override: true,
     });
 
+    Perspective.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['id', 'name', 'email'],
+        },
+      ],
+    });
+
     Perspective.addScope('user', {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email'],
+          attributes: ['id', 'name', 'email'],
         },
       ],
     });

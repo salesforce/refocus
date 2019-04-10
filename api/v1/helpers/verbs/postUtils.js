@@ -15,13 +15,12 @@ const logAPI = require('../../../../utils/apiLog').logAPI;
 const u = require('./utils');
 
 /**
- * @param {Object} params From swagger
+ * @param {Object} toPost Request body to post
  * @param {Object} props The helpers/nouns module for the given DB model
  * @param {Object} req From express
  * @returns {Promise} - which resolves to a created instance of the model
  */
-function makePostPromise(params, props, req) {
-  const toPost = params.queryBody.value;
+function makePostPromise(toPost, props, req) {
   toPost.createdBy = req.user ? req.user.id : undefined;
   return props.model.create(toPost, req.user);
 }

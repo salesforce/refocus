@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const path = '/v1/bots';
@@ -25,18 +25,20 @@ const uiBlob2 = fs.readFileSync(paths.join(__dirname, './uiBlob2'));
 describe('tests/api/v1/bots/put.js >', () => {
   let testBot;
   let token;
+  let userId;
 
   before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      token = obj.token;
       done();
     })
     .catch(done);
   });
 
   beforeEach((done) => {
-    u.createStandard()
+    u.createStandard(userId)
     .then((newBot) => {
       testBot = newBot;
       done();
@@ -52,7 +54,7 @@ describe('tests/api/v1/bots/put.js >', () => {
     .set('Authorization', token)
     .field('name', u.name)
     .attach('ui', 'tests/api/v1/bots/uiBlob2')
-    .expect(constants.httpStatus.CREATED)
+    .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);
@@ -75,7 +77,7 @@ describe('tests/api/v1/bots/put.js >', () => {
     .field('version', '9.9.9')
     .field('url', newUrl)
     .field('helpUrl', newUrl)
-    .expect(constants.httpStatus.CREATED)
+    .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);
@@ -109,7 +111,7 @@ describe('tests/api/v1/bots/put.js >', () => {
     api.put(`${path}/${testBot.id}`)
     .set('Authorization', token)
     .send({ invalid: true })
-    .expect(constants.httpStatus.CREATED)
+    .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);

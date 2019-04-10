@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const getValuesObject = require('../../../../view/perspective/utils.js').getValuesObject;
 const tu = require('../../../testUtils');
@@ -38,9 +38,9 @@ describe('tests/api/v1/perspectives/app.js, dropdown and modal data >', () => {
 
   before((done) => {
     u.doSetup()
-    .then((createdLens) => tu.db.Perspective.create({
+    .then(({ lensId }) => tu.db.Perspective.create({
       name: `${tu.namePrefix}testPersp`,
-      lensId: createdLens.id,
+      lensId,
       rootSubject: 'myMainSubject',
       aspectFilter: ['temperature', 'humidity'],
       aspectTagFilter: ['temp', 'hum'],
@@ -73,7 +73,7 @@ describe('tests/api/v1/perspectives/app.js, dropdown and modal data >', () => {
       expect(res.body).to.have.deep.property(
         '[0].rootSubject', 'myMainSubject'
       );
-      expect(res.body).to.have.deep.property('[0].lensId', lensId);
+      expect(res.body).to.have.deep.property('[0].lens.id', lensId);
       expect(res.body[ZERO].aspectFilter).to.eql(['temperature', 'humidity']);
       expect(res.body[ZERO].aspectTagFilter).to.eql(['temp', 'hum']);
       expect(res.body[ZERO].subjectTagFilter).to.eql(['ea', 'na']);

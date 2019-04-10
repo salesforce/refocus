@@ -28,8 +28,9 @@ const tu = require('../testUtils');
 const forkUtils = require('./utils/forkUtils');
 const u = require('./utils/requestUtils');
 const dbConstants = require('../../db/constants');
+const missedHeartbeatJob = require('../../clock/scheduledJobs/checkMissedCollectorHeartbeat');
 const GlobalConfig = tu.db.GlobalConfig;
-const { Subject, Aspect, Generator, GeneratorTemplate, Collector } = tu.db;
+const { Subject, Aspect, Generator, GeneratorTemplate, Collector, CollectorGroup } = tu.db;
 
 const coll1 = tu.namePrefix + 'collector1';
 const coll2 = tu.namePrefix + 'collector2';
@@ -69,6 +70,9 @@ const sgt = {
   isPublished: true,
 };
 
+let cg1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+let cg2 = { name: `${tu.namePrefix}-cg2`, description: 'test' };
+
 const gen1 = {
   name: 'generator1',
   generatorTemplate: {
@@ -77,7 +81,7 @@ const gen1 = {
   },
   subjectQuery: '?absolutePath=sub1',
   aspects: ['asp1'],
-  possibleCollectors: [coll1],
+  collectorGroup: cg1.name,
   isActive: true,
   intervalSecs: 60,
 };
@@ -90,7 +94,7 @@ const gen2 = {
   },
   subjectQuery: '?absolutePath=sub2',
   aspects: ['asp2'],
-  possibleCollectors: [coll2],
+  collectorGroup: cg2.name,
   isActive: true,
   context: {},
   intervalSecs: 60,
@@ -142,9 +146,8 @@ const interceptConfig = {
     expectedRequestKeys: ['name', 'version'],
     expectedResponseKeys: [
       'id', 'name', 'lastHeartbeat', 'registered', 'status', 'isDeleted',
-      'version', 'createdAt', 'updatedAt', 'createdBy',
-      'generatorsAdded', 'token', 'collectorConfig',
-      'apiLinks',
+      'version', 'createdAt', 'updatedAt', 'generatorsAdded', 'token',
+      'collectorConfig', 'apiLinks',
     ],
   },
   Heartbeat: {
@@ -234,11 +237,15 @@ describe('tests/collector/integration.js >', function () {
     Subject.create(sub1),
     Subject.create(sub2),
     GeneratorTemplate.create(sgt),
+    CollectorGroup.create(cg1),
+    CollectorGroup.create(cg2),
   ]));
 
   beforeEach(() => {
     config.collector.heartbeatIntervalMillis = ms('15s');
     config.collector.heartbeatLatencyToleranceMillis = ms('5s');
+    config.generatorUpsertToleranceFactor = 1;
+    config.generatorMissedUpsertRetries = 3;
   });
 
   afterEach(() => forkUtils.killAllCollectors());
@@ -252,6 +259,7 @@ describe('tests/collector/integration.js >', function () {
     GeneratorTemplate,
     Aspect,
     Subject,
+    CollectorGroup,
   ));
 
   after(tu.forceDeleteUser);
@@ -260,6 +268,7 @@ describe('tests/collector/integration.js >', function () {
     it('from scratch - start collector, then post generator', () =>
       Promise.resolve()
       .then(() => u.doStart(coll1))
+      .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
       .then(() => u.postGenerator(gen1))
 
       .then(() => u.awaitHeartbeat())
@@ -279,6 +288,7 @@ describe('tests/collector/integration.js >', function () {
     describe('existing collector and generators', () => {
       beforeEach(() =>
         u.doStart(coll1)
+        .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
         .then(() => u.postGenerator(gen1))
         .then(() => forkUtils.doStop(coll1))
       );
@@ -297,7 +307,8 @@ describe('tests/collector/integration.js >', function () {
 
           u.awaitSubjectQuery()
           .then(({ req, res }) => {
-            expect(req.url).to.equal('/v1/subjects?absolutePath=sub1');
+            expect(req.url)
+              .to.equal('/v1/subjects?absolutePath=sub1&isPublished=true');
             expect(res.body).to.be.an('array').with.lengthOf(1);
             expect(res.body[0].name).to.equal('sub1');
           })
@@ -316,6 +327,7 @@ describe('tests/collector/integration.js >', function () {
   describe('field updates >', () => {
     beforeEach(() =>
       u.doStart(coll1)
+      .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
       .then(() => u.postGenerator(gen1))
       .then(() => forkUtils.doStop(coll1))
     );
@@ -323,7 +335,8 @@ describe('tests/collector/integration.js >', function () {
     it('subjectQuery updated', () =>
       u.doStart(coll1)
       .then(() => Promise.join(
-        u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
+        u.expectSubjectQuery(coll1,
+          '/v1/subjects?absolutePath=sub1&isPublished=true'),
         u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
       ))
 
@@ -335,7 +348,8 @@ describe('tests/collector/integration.js >', function () {
       .then(({ res }) => expect(res.body.generatorsUpdated).to.have.lengthOf(1))
 
       .then(() => Promise.join(
-        u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub*'),
+        u.expectSubjectQuery(coll1,
+          '/v1/subjects?absolutePath=sub*&isPublished=true'),
         u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1', 'sub2|asp1']),
       ))
     );
@@ -343,7 +357,8 @@ describe('tests/collector/integration.js >', function () {
     it('aspects updated', () =>
       u.doStart(coll1)
       .then(() => Promise.join(
-        u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
+        u.expectSubjectQuery(coll1,
+          '/v1/subjects?absolutePath=sub1&isPublished=true'),
         u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
       ))
 
@@ -355,7 +370,8 @@ describe('tests/collector/integration.js >', function () {
       .then(({ res }) => expect(res.body.generatorsUpdated).to.have.lengthOf(1))
 
       .then(() => Promise.join(
-        u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
+        u.expectSubjectQuery(coll1,
+          '/v1/subjects?absolutePath=sub1&isPublished=true'),
         u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1', 'sub1|asp2']),
       ))
     );
@@ -363,7 +379,8 @@ describe('tests/collector/integration.js >', function () {
     it('interval updated', () =>
       u.doStart(coll1)
       .then(() => Promise.join(
-        u.expectSubjectQuery(coll1, '/v1/subjects?absolutePath=sub1'),
+        u.expectSubjectQuery(coll1,
+          '/v1/subjects?absolutePath=sub1&isPublished=true'),
         u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
       ))
 
@@ -406,6 +423,7 @@ describe('tests/collector/integration.js >', function () {
   describe('collector config', () => {
     beforeEach(() =>
       u.doStart(coll1)
+      .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
       .then(() => u.postGenerator(gen1))
       .then(() => forkUtils.doStop(coll1))
     );
@@ -413,8 +431,8 @@ describe('tests/collector/integration.js >', function () {
     describe('defined in refocus', () => {
       let interval;
       beforeEach(() => {
-        setInterval(
-          Collector.checkMissedHeartbeat,
+        interval = setInterval(
+          missedHeartbeatJob.execute,
           config.collector.heartbeatIntervalMillis
         );
       });
@@ -447,7 +465,7 @@ describe('tests/collector/integration.js >', function () {
         .then(() => u.awaitHeartbeat())
 
         .then(() => forkUtils.blockHeartbeat(coll1))
-        .then(() => forkUtils.tick(ms('35s')))
+        .then(() => forkUtils.tickFor(ms('35s')))
         .then(() => u.getStatus(coll1))
         .then((res) => expect(res.body.status).to.equal('MissedHeartbeat'))
         .then(() => forkUtils.unblockHeartbeat(coll1))
@@ -463,17 +481,63 @@ describe('tests/collector/integration.js >', function () {
         }))
 
         .then(() => forkUtils.blockHeartbeat(coll1))
-        .then(() => forkUtils.tick(ms('35s')))
+        .then(() => forkUtils.tickFor(ms('35s')))
         .then(() => u.getStatus(coll1))
         .then((res) => expect(res.body.status).to.equal('Running'))
         .then(() => forkUtils.unblockHeartbeat(coll1))
         .then(() => u.awaitHeartbeat())
 
         .then(() => forkUtils.blockHeartbeat(coll1))
-        .then(() => forkUtils.tick(ms('60s')))
+        .then(() => forkUtils.tickFor(ms('60s')))
         .then(() => u.getStatus(coll1))
         .then((res) => expect(res.body.status).to.equal('MissedHeartbeat'))
         .then(() => forkUtils.unblockHeartbeat(coll1))
+      );
+
+      it('generatorUpsertToleranceFactor', () =>
+        u.doStart(coll1)
+        .then(() => u.doStart(coll2))
+        .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1, coll2] }))
+        .then(() => u.awaitHeartbeat(coll1))
+        .then(() => u.awaitHeartbeat(coll2))
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.awaitBulkUpsert(coll2)
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
+        ))
+
+        .then(() => u.stopGenerator(gen1, coll1))
+        .then(() => forkUtils.tickFor(ms('3m')))
+        .then(() => u.resumeGenerator(gen1, coll1))
+        .then(() => Promise.join(
+          u.awaitBulkUpsert(coll1)
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub1|asp1']),
+        ))
+
+        .then(() => {
+          config.generatorUpsertToleranceFactor = 3;
+          return u.awaitHeartbeat(coll2);
+        })
+
+        .then(() => u.stopGenerator(gen1, coll2))
+        .then(() => forkUtils.tickFor(ms('2m')))
+        .then(() => u.resumeGenerator(gen1, coll2))
+        .then(() => Promise.join(
+          u.awaitBulkUpsert(coll1)
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub1|asp1']),
+        ))
+
+        .then(() => u.stopGenerator(gen1, coll2))
+        .then(() => forkUtils.tickFor(ms('4m')))
+        .then(() => u.resumeGenerator(gen1, coll2))
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.awaitBulkUpsert(coll2)
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
+        ))
+        .then(() => u.clearBlocking())
       );
     });
 
@@ -492,8 +556,9 @@ describe('tests/collector/integration.js >', function () {
         .then(() => u.awaitHeartbeat())
         .then(({ req }) => {
           const conf = req.body.collectorConfig;
-          expect(conf).to.have.keys('processInfo');
-          expect(conf.processInfo).to.have.keys('memoryUsage', 'uptime');
+          expect(conf).to.have.keys('processInfo', 'osInfo', 'version');
+          expect(conf.processInfo).to.have.keys('execPath', 'memoryUsage',
+            'uptime', 'version', 'versions');
           processInfo.memoryUsage = conf.processInfo.memoryUsage;
           processInfo.uptime = conf.processInfo.uptime;
         })
@@ -529,6 +594,7 @@ describe('tests/collector/integration.js >', function () {
 
       return Promise.resolve()
       .then(() => u.doStart(coll1))
+      .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
       .then(() => u.awaitHeartbeat())
       .then(() => u.postGenerator(gen4))
 
@@ -552,6 +618,7 @@ describe('tests/collector/integration.js >', function () {
 
       return GeneratorTemplate.create(sgt2)
       .then(() => u.doStart(coll1))
+      .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
       .then(() => u.awaitHeartbeat())
       .then(() => u.postGenerator(gen4))
       .then(() => u.awaitHeartbeat())
@@ -565,7 +632,7 @@ describe('tests/collector/integration.js >', function () {
     });
   });
 
-  describe('with OAuth', () => {
+  describe('with OAuth >', () => {
     let nockConfig;
     beforeEach(() => {
       nockConfig = [
@@ -661,6 +728,7 @@ describe('tests/collector/integration.js >', function () {
 
       return Promise.resolve()
       .then(() => u.doStart(coll1))
+      .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
       .then(() => u.awaitHeartbeat())
       .then(() => u.postGenerator(gen4))
 
@@ -701,6 +769,7 @@ describe('tests/collector/integration.js >', function () {
 
       return GeneratorTemplate.create(sgt3)
       .then(() => u.doStart(coll1))
+      .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
       .then(() => u.awaitHeartbeat())
       .then(() => u.postGenerator(gen4))
       .then(() => u.awaitHeartbeat())
@@ -730,13 +799,22 @@ describe('tests/collector/integration.js >', function () {
 
       return Promise.resolve()
       .then(() => u.doStart(coll1))
+      .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
       .then(() => u.awaitHeartbeat())
       .then(() => u.postGenerator(gen4))
 
-      .then(() =>
-        u.awaitBulkUpsert()
-        .should.eventually.be.rejectedWith(Promise.TimeoutError)
-      );
+      .then(() => u.awaitBulkUpsert())
+      .then(({ req }) => {
+        expect(req.body).to.deep.equal([
+          {
+            name: 'sub1|asp1',
+            messageCode: 'ERROR',
+            messageBody: 'simple-oauth2 (method=ownerPassword): Unauthorized ' +
+              '(http://www.example.com)',
+            value: 'ERROR',
+          },
+        ]);
+      });
     });
 
     it('token expires, requests new one and retries', () => {
@@ -746,6 +824,7 @@ describe('tests/collector/integration.js >', function () {
 
       return Promise.resolve()
       .then(() => u.doStart(coll1))
+      .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
       .then(() => u.awaitHeartbeat())
       .then(() => u.postGenerator(gen4))
 
@@ -776,6 +855,7 @@ describe('tests/collector/integration.js >', function () {
 
       return Promise.resolve()
       .then(() => u.doStart(coll1))
+      .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
       .then(() => u.awaitHeartbeat())
       .then(() => u.postGenerator(gen4))
 
@@ -799,7 +879,8 @@ describe('tests/collector/integration.js >', function () {
             name: 'sub1|asp1',
             value: 'ERROR',
             messageCode: 'ERROR',
-            messageBody: 'http://www.example.com returned HTTP status 400: undefined',
+            messageBody: 'simple-oauth2 (method=ownerPassword): Bad Request ' +
+              '(http://www.example.com)',
           },
         ]);
       });
@@ -809,6 +890,7 @@ describe('tests/collector/integration.js >', function () {
   describe('change status >', () => {
     beforeEach(() =>
       u.doStart(coll1)
+      .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
       .then(() => u.postGenerator(gen1))
       .then(() => forkUtils.doStop(coll1))
     );
@@ -898,27 +980,23 @@ describe('tests/collector/integration.js >', function () {
 
   describe('assignment >', () => {
     describe('generator updated >', () => {
-      beforeEach(() => {
-        gen1.possibleCollectors = [coll1];
-        gen2.possibleCollectors = [coll2];
-      });
-
       it('generators created, assigned to collectors', () =>
         Promise.join(
           u.doStart(coll1)
-          .then(() => u.awaitHeartbeat(coll1)),
+            .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
+            .then(() => u.awaitHeartbeat(coll1)),
           u.doStart(coll2)
-          .then(() => u.awaitHeartbeat(coll2)),
+            .then(() => u.patchCollectorGroup(cg2.name, { collectors: [coll2] }))
+            .then(() => u.awaitHeartbeat(coll2)),
         )
 
         .then(() => Promise.join(
           u.awaitHeartbeat(coll1)
-          .then(() => u.postGenerator(gen1))
-          .then(() => u.expectHeartbeatGens(coll1, { added: [gen1] })),
-
+            .then(() => u.postGenerator(gen1))
+            .then(() => u.expectHeartbeatGens(coll1, { added: [gen1] })),
           u.awaitHeartbeat(coll2)
-          .then(() => u.postGenerator(gen2))
-          .then(() => u.expectHeartbeatGens(coll2, { added: [gen2] })),
+            .then(() => u.postGenerator(gen2))
+            .then(() => u.expectHeartbeatGens(coll2, { added: [gen2] })),
         ))
 
         .then(() => Promise.join(
@@ -927,22 +1005,23 @@ describe('tests/collector/integration.js >', function () {
         ))
       );
 
-      it('generator possibleCollectors updated, reassigned', () =>
+      it('generator collectorGroup updated, reassigned', () =>
         Promise.join(
           u.doStart(coll1)
-          .then(() => u.awaitHeartbeat(coll1)),
+            .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
+            .then(() => u.awaitHeartbeat(coll1)),
           u.doStart(coll2)
-          .then(() => u.awaitHeartbeat(coll2)),
+            .then(() => u.patchCollectorGroup(cg2.name, { collectors: [coll2] }))
+            .then(() => u.awaitHeartbeat(coll2)),
         )
 
         .then(() => Promise.join(
           u.awaitHeartbeat(coll1)
-          .then(() => u.postGenerator(gen1))
-          .then(() => u.expectHeartbeatGens(coll1, { added: [gen1] })),
-
+            .then(() => u.postGenerator(gen1))
+            .then(() => u.expectHeartbeatGens(coll1, { added: [gen1] })),
           u.awaitHeartbeat(coll2)
-          .then(() => u.postGenerator(gen2))
-          .then(() => u.expectHeartbeatGens(coll2, { added: [gen2] })),
+            .then(() => u.postGenerator(gen2))
+            .then(() => u.expectHeartbeatGens(coll2, { added: [gen2] })),
         ))
 
         .then(() => Promise.join(
@@ -956,8 +1035,9 @@ describe('tests/collector/integration.js >', function () {
         ))
 
         .then(() => {
-          gen1.possibleCollectors = [coll2];
-          return u.putGenerator(gen1);
+          const toPut = JSON.parse(JSON.stringify(gen1));
+          toPut.collectorGroup = cg2.name;
+          return u.putGenerator(toPut);
         })
 
         .then(() => Promise.join(
@@ -968,27 +1048,70 @@ describe('tests/collector/integration.js >', function () {
         .then(() => u.awaitBulkUpsert(coll2))
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
-          .should.eventually.be.rejectedWith(Promise.TimeoutError),
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
           u.expectBulkUpsertSamples(coll2, '60s', ['sub1|asp1'], ['sub2|asp2']),
+        ))
+      );
+
+      it('collectorGroup collectors updated, reassigned', () =>
+        Promise.join(
+          u.doStart(coll1)
+            .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
+            .then(() => u.awaitHeartbeat(coll1)),
+          u.doStart(coll2)
+            .then(() => u.awaitHeartbeat(coll2)),
+        )
+
+        .then(() => Promise.join(
+          u.awaitHeartbeat(coll1)
+            .then(() => u.postGenerator(gen1))
+            .then(() => u.expectHeartbeatGens(coll1, { added: [gen1] })),
+        ))
+
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.awaitBulkUpsert(coll2)
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
+        ))
+
+        .then(() => Promise.join(
+          u.awaitHeartbeat(coll1),
+          u.awaitHeartbeat(coll2),
+        ))
+
+        .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll2] }))
+
+        .then(() => Promise.join(
+          u.expectHeartbeatGens(coll1, { deleted: [gen1] }),
+          u.expectHeartbeatGens(coll2, { added: [gen1] }),
+        ))
+
+        .then(() => u.awaitBulkUpsert(coll2))
+        .then(() => Promise.join(
+          u.awaitBulkUpsert(coll1)
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub1|asp1']),
         ))
       );
 
       it('generator activated/deactivated', () =>
         Promise.join(
           u.doStart(coll1)
-          .then(() => u.awaitHeartbeat(coll1)),
+            .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
+            .then(() => u.awaitHeartbeat(coll1)),
           u.doStart(coll2)
-          .then(() => u.awaitHeartbeat(coll2)),
+            .then(() => u.patchCollectorGroup(cg2.name, { collectors: [coll2] }))
+            .then(() => u.awaitHeartbeat(coll2)),
         )
 
         .then(() => Promise.join(
           u.awaitHeartbeat(coll1)
-          .then(() => u.postGenerator(gen1))
-          .then(() => u.expectHeartbeatGens(coll1, { added: [gen1] })),
+            .then(() => u.postGenerator(gen1))
+            .then(() => u.expectHeartbeatGens(coll1, { added: [gen1] })),
 
           u.awaitHeartbeat(coll2)
-          .then(() => u.postGenerator(gen2))
-          .then(() => u.expectHeartbeatGens(coll2, { added: [gen2] })),
+            .then(() => u.postGenerator(gen2))
+            .then(() => u.expectHeartbeatGens(coll2, { added: [gen2] })),
         ))
 
         .then(() => Promise.join(
@@ -1002,7 +1125,7 @@ describe('tests/collector/integration.js >', function () {
 
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
-          .should.eventually.be.rejectedWith(Promise.TimeoutError),
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
           u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
         ))
 
@@ -1016,19 +1139,13 @@ describe('tests/collector/integration.js >', function () {
     });
 
     describe('collector status changed >', () => {
-      beforeEach(() => {
-        gen1.possibleCollectors = [coll1, coll2];
-        gen2.possibleCollectors = [coll2];
-      });
-      afterEach(() => {
-        gen1.possibleCollectors = [coll1];
-        gen2.possibleCollectors = [coll2];
-      });
-
       let interval;
+      const _gen2 = JSON.parse(JSON.stringify(gen2));
+      _gen2.collectorGroup = cg1.name;
+
       beforeEach(() => {
-        setInterval(
-          Collector.checkMissedHeartbeat,
+        interval = setInterval(
+          missedHeartbeatJob.execute,
           config.collector.heartbeatIntervalMillis
         );
       });
@@ -1039,34 +1156,34 @@ describe('tests/collector/integration.js >', function () {
         .then(() => u.doStart(coll1))
         .then(() => u.doStart(coll2))
 
-        .then(() => u.postGenerator(gen1))
-        .then(() => u.postGenerator(gen2))
+        .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1, coll2] }))
 
-        .then(() => forkUtils.doStop(coll2))
-        .then(() => forkUtils.doStop(coll1))
+        .then(() => u.postGenerator(gen1))
+        .then(() => u.postGenerator(_gen2))
       );
 
       it('started', () =>
-        u.doStart(coll1)
-        .then(() => u.awaitHeartbeat(coll1))
+        Promise.resolve()
+        .then(() => forkUtils.doStop(coll1))
+        .then(() => forkUtils.doStop(coll2))
+
+        .then(() => Promise.join(
+          u.awaitBulkUpsert(coll1)
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
+          u.awaitBulkUpsert(coll2)
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
+        ))
+
+        .then(() => u.doStart(coll1))
         .then(() => Promise.join(
           u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
           u.awaitBulkUpsert(coll2)
-          .should.eventually.be.rejectedWith(Promise.TimeoutError),
-        ))
-
-        .then(() => u.doStart(coll2))
-        .then(() => Promise.join(
-          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
-          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
         ))
       );
 
       it('stopped', () =>
         Promise.resolve()
-        .then(() => u.doStart(coll1))
-        .then(() => u.doStart(coll2))
-
         .then(() => Promise.join(
           u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
           u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
@@ -1077,16 +1194,13 @@ describe('tests/collector/integration.js >', function () {
 
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
-          .should.eventually.be.rejectedWith(Promise.TimeoutError),
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
           u.expectBulkUpsertSamples(coll2, '60s', ['sub1|asp1'], ['sub2|asp2']),
         ))
       );
 
       it('pause/resume', () =>
         Promise.resolve()
-          .then(() => u.doStart(coll1))
-          .then(() => u.doStart(coll2))
-
         .then(() => Promise.join(
           u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
           u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
@@ -1100,7 +1214,7 @@ describe('tests/collector/integration.js >', function () {
 
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
-          .should.eventually.be.rejectedWith(Promise.TimeoutError),
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
           u.expectBulkUpsertSamples(coll2, '60s', ['sub1|asp1'], ['sub2|asp2']),
         ))
 
@@ -1108,25 +1222,22 @@ describe('tests/collector/integration.js >', function () {
         .then(() => u.expectHeartbeatStatus(coll2, 'Stopped'))
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
-          .should.eventually.be.rejectedWith(Promise.TimeoutError),
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
           u.awaitBulkUpsert(coll2)
-          .should.eventually.be.rejectedWith(Promise.TimeoutError),
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
         ))
 
         .then(() => u.postStatus('Resume', coll1))
-        .then(() => u.expectHeartbeatGens(coll1, { added: [gen1] }))
+        .then(() => u.expectHeartbeatGens(coll1, { added: [gen1, gen2] }))
         .then(() => Promise.join(
-          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1'], ['sub2|asp2']),
           u.awaitBulkUpsert(coll2)
-          .should.eventually.be.rejectedWith(Promise.TimeoutError),
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
         ))
       );
 
       it('missed heartbeat', () =>
         Promise.resolve()
-        .then(() => u.doStart(coll1))
-        .then(() => u.doStart(coll2))
-
         .then(() => Promise.join(
           u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
           u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
@@ -1135,31 +1246,204 @@ describe('tests/collector/integration.js >', function () {
         .then(() => forkUtils.blockHeartbeat(coll1))
         .then(() =>
           u.awaitHeartbeat(coll1)
-          .should.eventually.be.rejectedWith(Promise.TimeoutError)
+            .should.eventually.be.rejectedWith(Promise.TimeoutError)
         )
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
-          .should.eventually.be.rejectedWith(Promise.TimeoutError),
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
           u.expectBulkUpsertSamples(coll2, '60s', ['sub1|asp1'], ['sub2|asp2']),
         ))
 
         .then(() => forkUtils.doStop(coll2))
         .then(() => Promise.join(
           u.awaitBulkUpsert(coll1)
-          .should.eventually.be.rejectedWith(Promise.TimeoutError),
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
           u.awaitBulkUpsert(coll2)
-          .should.eventually.be.rejectedWith(Promise.TimeoutError),
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
         ))
 
         .then(() => forkUtils.unblockHeartbeat(coll1))
         .then(() => u.expectHeartbeatGens(coll1, { updated: [gen1] }))
         .then(() => Promise.join(
-          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1'], ['sub2|asp2']),
           u.awaitBulkUpsert(coll2)
-          .should.eventually.be.rejectedWith(Promise.TimeoutError),
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
         ))
       );
     });
+
+    describe('missed upsert', () => {
+      let interval;
+      const _gen2 = JSON.parse(JSON.stringify(gen2));
+      _gen2.collectorGroup = cg1.name;
+
+
+      beforeEach(() => {
+        interval = setInterval(
+          missedHeartbeatJob.execute,
+          config.collector.heartbeatIntervalMillis
+        );
+      });
+      afterEach(() => clearInterval(interval));
+
+      beforeEach(() =>
+        Promise.resolve()
+        .then(() => Collector.findAll())
+        .then(() => CollectorGroup.findAll())
+        .then(() => u.doStart(coll1))
+        .then(() => u.doStart(coll2))
+
+        .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1, coll2] }))
+
+        .then(() => u.postGenerator(gen1))
+        .then(() => u.postGenerator(_gen2))
+      );
+      afterEach(() => u.clearBlocking());
+
+      it('gen misses upsert, reassigned to other collector', () =>
+        Promise.resolve()
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
+        ))
+
+        .then(() => u.stopGenerator(gen1, coll1))
+        .then(() => Promise.join(
+          u.awaitBulkUpsert(coll1)
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
+        ))
+        .then(() => Promise.join(
+          u.awaitBulkUpsert(coll1)
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub1|asp1'], ['sub2|asp2']),
+        ))
+      );
+
+      it('multiple gens on a single collector, only missed one is reassigned', () =>
+        Promise.resolve()
+        .then(() => forkUtils.doStop(coll2))
+        .then(() => u.awaitHeartbeat(coll2)
+          .should.eventually.be.rejectedWith(Promise.TimeoutError))
+        .then(() => u.doStart(coll2))
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1'], ['sub2|asp2']),
+          u.awaitBulkUpsert(coll2)
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
+        ))
+
+        .then(() => u.stopGenerator(gen2, coll1))
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
+        ))
+      );
+
+      it('no other alive collectors - reassigned to same collector', () =>
+        Promise.resolve()
+        .then(() => forkUtils.doStop(coll2))
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1'], ['sub2|asp2']),
+        ))
+
+        .then(() => u.stopGenerator(gen1, coll1))
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub2|asp2']),
+          Promise.resolve()
+            .then(() => u.expectHeartbeatGens(coll1, { updated: [] }))
+            .then(() => u.expectHeartbeatGens(coll1, { updated: [] }))
+            .then(() => u.expectHeartbeatGens(coll1, { updated: [] }))
+            .then(() => u.expectHeartbeatGens(coll1, { updated: [] }))
+            .then(() => u.expectHeartbeatGens(coll1, { updated: [gen1] }))
+        ))
+        .then(() => u.resumeGenerator(gen1, coll1))
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1'], ['sub2|asp2']),
+        ))
+      );
+
+      it('gen with no samples doesnt trigger missed upsert', () =>
+        Promise.resolve()
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
+        ))
+        .then(() => u.patchGenerator(gen1.name, { subjectQuery: '?absolutePath=' }))
+
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', []),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
+        ))
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', []),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
+        ))
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', []),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
+        ))
+      );
+
+      it('if reassigning doesnt fix it, dont keep bouncing around', () =>
+        Promise.resolve()
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
+        ))
+
+        .then(() => u.stopGenerator(gen1, coll1))
+        .then(() => u.stopGenerator(gen1, coll2))
+        .then(() => u.expectHeartbeatGens(coll2, { added: [] }))
+        .then(() => u.expectHeartbeatGens(coll2, { added: [] }))
+        .then(() => u.expectHeartbeatGens(coll2, { added: [] }))
+        .then(() => u.expectHeartbeatGens(coll2, { added: [] }))
+        .then(() => u.expectHeartbeatGens(coll2, { added: [gen1] }))
+        .then(() => u.expectHeartbeatGens(coll1, { added: [gen1] }))
+        .then(() => u.expectHeartbeatGens(coll2, { added: [gen1] }))
+        .then(() => u.expectHeartbeatGens(coll2, { added: [] }))
+        .then(() => u.expectHeartbeatGens(coll1, { added: [] }))
+      );
+
+      it('if updating doesnt fix it, dont keep updating', () =>
+        Promise.resolve()
+        .then(() => forkUtils.doStop(coll2))
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1'], ['sub2|asp2']),
+        ))
+
+        .then(() => u.stopGenerator(gen1, coll1))
+        .then(() => u.expectHeartbeatGens(coll1, { updated: [] }))
+        .then(() => u.expectHeartbeatGens(coll1, { updated: [] }))
+        .then(() => u.expectHeartbeatGens(coll1, { updated: [] }))
+        .then(() => u.expectHeartbeatGens(coll1, { updated: [] }))
+        .then(() => u.expectHeartbeatGens(coll1, { updated: [gen1] }))
+        .then(() => u.expectHeartbeatGens(coll1, { updated: [gen1] }))
+        .then(() => u.expectHeartbeatGens(coll1, { updated: [gen1] }))
+        .then(() => u.expectHeartbeatGens(coll1, { updated: [] }))
+        .then(() => u.expectHeartbeatGens(coll1, { updated: [] }))
+      );
+
+      it('misses heartbeat and upsert at the same time - reassigned', () =>
+        Promise.resolve()
+        .then(() => Promise.join(
+          u.expectBulkUpsertSamples(coll1, '60s', ['sub1|asp1']),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub2|asp2']),
+        ))
+
+        .then(() => u.expectHeartbeatGens(coll1, {}))
+        .then(() => u.expectHeartbeatGens(coll1, {}))
+        .then(() => u.expectHeartbeatGens(coll1, {}))
+        .then(() => forkUtils.killCollector(coll1))
+        .then(() => u.expectHeartbeatGens(coll2, { added: [] }))
+        .then(() => u.expectHeartbeatGens(coll2, { added: [gen1] }))
+        .then(() => Promise.join(
+          u.awaitBulkUpsert(coll1)
+            .should.eventually.be.rejectedWith(Promise.TimeoutError),
+          u.expectBulkUpsertSamples(coll2, '60s', ['sub1|asp1'], ['sub2|asp2']),
+        ))
+      );
+    });
+
   });
 });
 

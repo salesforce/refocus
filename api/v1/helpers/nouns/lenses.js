@@ -25,7 +25,9 @@ module.exports = {
   fieldScopeMap: {
     lensLibrary: 'lensLibrary',
     user: 'user',
+    owner: 'owner',
   },
+  fieldsToExclude: ['installedBy', 'ownerId'],
   baseUrl: '/v1/lenses',
   model: Lens,
   modelName: 'Lens',
@@ -34,4 +36,5 @@ module.exports = {
   belongsToManyAssoc: {
     users: 'writers',
   },
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

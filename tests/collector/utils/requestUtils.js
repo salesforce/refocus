@@ -16,11 +16,12 @@ const interceptor = require('express-interceptor');
 const Promise = require('bluebird');
 const supertest = require('supertest');
 const ms = require('ms');
-const app = require('../../../index').app;
+const app = require('../../../express').app;
 const tu = require('../../testUtils');
 const forkUtils = require('./forkUtils');
 const constants = require('../../../api/v1/constants');
 const genPath = '/v1/generators';
+const cgPath = '/v1/collectorGroups';
 const api = supertest(app);
 supertest.Test.prototype.end = Promise.promisify(supertest.Test.prototype.end);
 supertest.Test.prototype.then = function (resolve, reject) {
@@ -31,10 +32,15 @@ let token;
 
 module.exports = {
   setupInterception,
+  stopGenerator,
+  resumeGenerator,
+  clearBlocking,
   doStart,
+  getGenerator,
   postGenerator,
   patchGenerator,
   putGenerator,
+  patchCollectorGroup,
   postStatus,
   getStatus,
   getCollector,
@@ -56,11 +62,114 @@ function setupMiddleware(interceptConfig) {
     return {
       isInterceptable: () => regexes.some((re) => req.path.match(re)),
       intercept: (body, send) => {
-        res.body = JSON.parse(body);
+        res.body = JSON.parse(body); // used for assertions
+        body = JSON.parse(body); // actually sent to collector
+        body = doStopGenerator(req, body, interceptConfig);
         send(body);
       },
     };
   }));
+}
+
+function doStopGenerator(req, body, interceptConfig) {
+  let ret = JSON.stringify(body);
+  if (req.path.match(interceptConfig.Start.path)) {
+    const coll = req.headers['collector-name'];
+    if (body.generatorsAdded && body.generatorsAdded.length) {
+      if (!trackedGens[coll]) trackedGens[coll] = {};
+      body.generatorsAdded.forEach((gen) => {
+        trackedGens[coll][gen.name] = gen;
+      });
+    }
+  }
+
+  if (req.path.match(interceptConfig.Heartbeat.path)) {
+    const coll = req.headers['collector-name'];
+
+    if (body.generatorsAdded.length || body.generatorsUpdated.length) {
+      if (!trackedGens[coll]) trackedGens[coll] = {};
+      let toRemove = [];
+      body.generatorsAdded.forEach((gen, i) => {
+        if (blockedGens[coll] && blockedGens[coll][gen.name] === false) {
+          toRemove.push(i);
+        } else {
+          trackedGens[coll][gen.name] = gen;
+        }
+      });
+      toRemove.forEach((i) => body.generatorsAdded.splice(i, 1));
+
+      toRemove = [];
+      body.generatorsUpdated.forEach((gen, i) => {
+        if (blockedGens[coll] && blockedGens[coll][gen.name] === false) {
+          toRemove.push(i);
+        } else {
+          trackedGens[coll][gen.name] = gen;
+        }
+      });
+      toRemove.forEach((i) => body.generatorsUpdated.splice(i, 1));
+      ret = JSON.stringify(body);
+    }
+
+    if (body.generatorsDeleted.length) {
+      body.generatorsDeleted.forEach((gen) => {
+        delete trackedGens[coll][gen.name];
+      });
+    }
+
+    if (blockedGens[coll]) {
+      const entries = Object.entries(blockedGens[coll]).filter(([key, value]) => value);
+      const genNames = entries.map(([key, value]) => key);
+      const gens = entries.map(([key, value]) => value);
+      if (gens.length) {
+        body.generatorsDeleted.push(...gens);
+        ret = JSON.stringify(body);
+        genNames.forEach((genName) => {
+          // delete blockedGens[coll][genName];
+          blockedGens[coll][genName] = false;
+        });
+      }
+    }
+
+    if (unblockedGens[coll]) {
+      const gens = Object.keys(unblockedGens[coll]);
+      if (gens.length) {
+        const added = gens
+        .filter((genName) => trackedGens[coll] && trackedGens[coll][genName])
+        .map((genName) => trackedGens[coll][genName]);
+        body.generatorsAdded.push(...added);
+        ret = JSON.stringify(body);
+        gens.forEach((genName) => {
+          blockedGens[coll] && delete blockedGens[coll][genName];
+          delete unblockedGens[coll][genName];
+        });
+      }
+    }
+  }
+
+  return ret;
+}
+
+let trackedGens = {};
+let blockedGens = {};
+let unblockedGens = {};
+function stopGenerator(gen, ...colls) {
+  colls.forEach((coll) => {
+    if (!blockedGens[coll]) blockedGens[coll] = {};
+    blockedGens[coll][gen.name] = gen;
+  });
+}
+
+function resumeGenerator(gen, ...colls) {
+  colls.forEach((coll) => {
+    if (!unblockedGens[coll]) unblockedGens[coll] = {};
+    unblockedGens[coll][gen.name] = gen;
+  });
+}
+
+function clearBlocking() {
+  trackedGens = {};
+  blockedGens = {};
+  unblockedGens = {};
 }
 
 function setupInterceptFuncs(interceptConfig) {
@@ -187,6 +296,12 @@ function doStart(name) {
   .then(() => awaitStart);
 }
 
+function getGenerator(gen) {
+  return api.get(`${genPath}/${gen.name}`)
+  .set('Authorization', token)
+  .expect(constants.httpStatus.OK);
+}
+
 function postGenerator(gen) {
   return api.post(genPath)
   .set('Authorization', token)
@@ -205,6 +320,13 @@ function putGenerator(gen) {
   return api.put(`${genPath}/${gen.name}`)
   .set('Authorization', token)
   .send(gen)
+  .expect(constants.httpStatus.OK);
+}
+
+function patchCollectorGroup(key, body) {
+  return api.patch(`${cgPath}/${key}`)
+  .set('Authorization', token)
+  .send(body)
   .expect(constants.httpStatus.OK);
 }
 

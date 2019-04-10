@@ -61,8 +61,10 @@ module.exports = {
   baseUrl: '/v1/perspectives',
   fieldScopeMap: {
     user: 'user',
+    owner: 'owner',
     lens: 'lens',
   },
+  fieldsToExclude: ['createdBy', 'ownerId', 'lensId'],
   model: Perspective,
   modelName: 'Perspective',
   validateFilterAndThrowError,
@@ -73,4 +75,5 @@ module.exports = {
   },
   cacheEnabled: featureToggles.isFeatureEnabled('enableCachePerspective'),
   resourceType,
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

@@ -117,15 +117,5 @@ module.exports = {
 
   },
 
-  pubsubStatsKeys: {
-    pub: {
-      count: 'pubSubStats:pubCount',
-      time: 'pubSubStats:pubTime',
-    },
-    sub: {
-      count: 'pubSubStats:subCount',
-      time: 'pubSubStats:subTime',
-      processes: 'pubSubStats:subProcesses',
-    },
-  },
+  pubSubStatsAggregator: 'pubsubstats',
 };

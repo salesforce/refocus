@@ -38,8 +38,11 @@ module.exports = {
   fieldsWithEnum,
   fieldScopeMap: {
     user: 'user',
+    owner: 'owner',
   },
+  fieldsToExclude: ['createdBy', 'ownerId'],
   tagFilterName: 'tags',
   readOnlyFields: ['id', 'isDeleted'],
   requireAtLeastOneFields: ['helpEmail', 'helpUrl'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

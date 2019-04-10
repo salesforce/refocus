@@ -84,9 +84,14 @@ function validateSubjectQuery(subjectQuery) {
         'Format of subjectQuery must be "?{key}={value}"');
     }
 
-    if (splitSQ[0] == 'tags' && splitSQ[1].indexOf('*') > -1) {
+    if (splitSQ[0] === 'tags' && splitSQ[1].indexOf('*') > -1) {
       throw new dbErrors.ValidationError('subjectQuery ValidationError',
         'Wildcard "*" is prohibited in the subjectQuery for "tag" filters');
+    }
+
+    if (splitSQ[0] === 'isPublished' && splitSQ[1] === 'false') {
+      throw new dbErrors.ValidationError('subjectQuery ValidationError',
+        'Cannot generate samples for subjects with isPublished=false');
     }
   });
 
@@ -116,7 +121,9 @@ function validateCollectorGroup(seq, collectorGroupName) {
           resolve(_cg);
         }
 
-        const err = new dbErrors.ResourceNotFoundError();
+        const err = new dbErrors.ResourceNotFoundError(
+          `CollectorGroup "${collectorGroupName}" not found.`
+        );
         err.resourceType = 'CollectorGroup';
         err.resourceKey = collectorGroupName;
         reject(err);

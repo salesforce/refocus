@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const path = '/v1/rooms';
@@ -58,6 +58,9 @@ describe('tests/api/v1/rooms/post.js >', () => {
       }
 
       expect(res.body.name).to.equal(u.name);
+      expect(res.body).to.have.property('createdBy');
+      expect(res.body.user).to.have.property('email');
+      expect(res.body.user.email).to.equal('___testUser@refocus.com');
       done();
     });
   });

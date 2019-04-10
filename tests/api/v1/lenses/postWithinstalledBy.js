@@ -12,7 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -52,7 +52,7 @@ describe('tests/api/v1/lenses/postWithInstalledBy.js >', () => {
         return done(err);
       }
 
-      expect(res.body.installedBy).to.equal(user.id);
+      expect(res.body.user.id).to.equal(user.id);
       expect(res.body.user.name).to.equal(user.name);
       expect(res.body.user.email).to.equal(user.email);
       done();

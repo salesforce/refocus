@@ -12,7 +12,7 @@
 'use strict';
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const constants = require('../../../../api/v1/constants');
@@ -54,7 +54,7 @@ describe(`tests/api/v1/samples/upsertBulk.js, POST ${path} >`, () => {
         isPublished: true,
         name: `${tu.namePrefix}Aspect2`,
         timeout: '10m',
-        valueType: 'BOOLEAN',
+        valueType: 'NUMERIC',
         okRange: [10, 100],
       });
     })

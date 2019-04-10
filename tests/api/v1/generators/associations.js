@@ -17,10 +17,11 @@ const gtUtil = gu.gtUtil;
 const constants = require('../../../../api/v1/constants');
 const supertest = require('supertest');
 const expect = require('chai').expect;
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const testAssociations = require('../common/testAssociations.js').testAssociations;
 const Collector = tu.db.Collector;
 const Generator = tu.db.Generator;
+const CollectorGroup = tu.db.CollectorGroup;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const path = '/v1/generators';
 const Joi = require('joi');
@@ -42,6 +43,8 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
   coll2.name += '2';
   coll2.status = 'Running';
   coll2.lastHeartbeat = Date.now();
+  let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+  collectorGroup1.collectors = [coll1.name, coll2.name];
 
   before((done) => {
     Collector.create(coll1)
@@ -51,29 +54,32 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
     })
     .then((created) => {
       coll2 = created;
-      return tu.createUser('assocUser');
+      return CollectorGroup.createCollectorGroup(collectorGroup1);
     })
+    .then(() =>
+      tu.createUser('assocUser')
+    )
     .then((user) => {
       generatorOk.createdBy = user.id;
       generatorInfo.createdBy = user.id;
+      generatorOk.ownerId = user.id;
+      generatorInfo.ownerId = user.id;
+      generatorOk.collectorGroup = collectorGroup1.name;
+      generatorInfo.collectorGroup = collectorGroup1.name;
+      collectorGroup1.createdBy = user.id;
+      collectorGroup1.ownerId = user.id;
       conf.token = tu.createTokenFromUserName(user.name);
       return GeneratorTemplate.create(generatorTemplate);
     })
-    .then(() => Generator.create(generatorOk))
+    .then(() => Generator.createWithCollectors(generatorOk))
     .then((gen) => {
       generatorOk.id = gen.id;
-      return Promise.all([
-        gen.setPossibleCollectors([coll1, coll2]),
-        gen.setCurrentCollector(coll1),
-      ]);
+      return gen.setCurrentCollector(coll1);
     })
-    .then(() => Generator.create(generatorInfo))
+    .then(() => Generator.createWithCollectors(generatorInfo))
     .then((gen) => {
       generatorInfo.id = gen.id;
-      return Promise.all([
-        gen.setPossibleCollectors([coll1, coll2]),
-        gen.setCurrentCollector(coll2),
-      ]);
+      return gen.setCurrentCollector(coll2);
     })
     .then(() => done())
     .catch(done);
@@ -83,13 +89,25 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['user', 'currentCollector', 'possibleCollectors'];
+  const associations = ['user', 'owner', 'currentCollector', 'collectorGroup'];
   const schema = {
     user: Joi.object({
+      id: Joi.string().required(),
       name: Joi.string().required(),
       fullName: Joi.string().optional().allow(null),
       email: Joi.string().required(),
       profile: Joi.object().keys({
+        id: Joi.string().required(),
+        name: Joi.string().required(),
+      }).required(),
+    }),
+    owner: Joi.object().keys({
+      id: Joi.string().required(),
+      name: Joi.string().required(),
+      fullName: Joi.string().optional().allow(null),
+      email: Joi.string().required(),
+      profile: Joi.object().keys({
+        id: Joi.string().required(),
         name: Joi.string().required(),
       }).required(),
     }),
@@ -99,39 +117,20 @@ describe(`tests/api/v1/generators/associations.js, GET ${path} >`, () => {
       status: Joi.string().required(),
       lastHeartbeat: Joi.string().required(),
     }),
-    possibleCollectors: Joi.array().length(2).items(
-      Joi.object({
-        id: Joi.string().required(),
-        name: Joi.string().required(),
-        status: Joi.string().required(),
-        lastHeartbeat: Joi.string().required(),
-      })
-    ),
+    collectorGroup: Joi.object().keys({
+      id: Joi.string().required(),
+      name: Joi.string().required(),
+      description: Joi.string().required(),
+      collectors: Joi.array().length(2).items(
+        Joi.object({
+          id: Joi.string().required(),
+          name: Joi.string().required(),
+          status: Joi.string().required(),
+          lastHeartbeat: Joi.string().required(),
+        })
+      ),
+    }),
   };
 
   testAssociations(path, associations, schema, conf);
-
-  describe('Checking sequelize extra FK when multiple associations', () => {
-    it('Extra IDs must be returned from API', (done) => {
-      const fields = ['name', ...associations].toString();
-      api.get(`${path}?fields=${fields}`)
-        .set('Authorization', conf.token)
-        .expect(constants.httpStatus.OK)
-        .expect((res) => {
-          expect(res.body).to.be.an('array');
-          res.body.forEach((record) => {
-            associations.forEach((association) => {
-              expect(record).to.have.property(association);
-              /*
-              API is returning extra fields as a solution for Sequelize inner
-              query issue that doesn't not return FK when multiple associations.
-              */
-              expect(record).to.have.property('collectorId');
-              expect(record).to.have.property('createdBy');
-            });
-          });
-        })
-        .end(done);
-    });
-  });
 });

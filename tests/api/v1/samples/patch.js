@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -42,8 +42,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
     let sampleValue;
 
     beforeEach((done) => {
-      u.doSetup()
-      .then((samp) => Sample.create(samp))
+      u.createBasic()
       .then((samp) => {
         sampleName = samp.name;
         sampUpdatedAt = samp.updatedAt;
@@ -247,6 +246,18 @@ describe('tests/api/v1/samples/patch.js >', () => {
         .end(done);
       });
 
+      it('related links set to empty array if not provided', (done) => {
+        api.patch(`${path}/${sampleName}`)
+          .set('Authorization', token)
+          .send({
+            value: '2',
+          })
+          .expect((res) => {
+            expect(res.body.relatedLinks).to.eql([]);
+          })
+          .end(done);
+      });
+
       it('patching with readOnly field id should fail', (done) => {
         api.patch(`${path}/${sampleName}`)
         .set('Authorization', token)
@@ -340,8 +351,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
 
     before((done) => {
-      u.doSetup()
-      .then((samp) => Sample.create(samp))
+      u.createBasic()
       .then((samp) => {
         const subjectName = samp.name.split('|')[0].toLowerCase();
         return Subject.findOne({ where: { name: { [Op.iLike]: subjectName } } });
@@ -380,8 +390,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
 
     before((done) => {
-      u.doSetup()
-      .then((samp) => Sample.create(samp))
+      u.createBasic()
       .then((samp) => {
         sampleName = samp.name;
         const aspectName = sampleName.split('|')[1].toLowerCase();

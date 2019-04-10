@@ -12,7 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const status = require('../../../../api/v1/constants').httpStatus;
 const u = require('./utils');
 const gu = require('../generators/utils');
@@ -27,6 +27,7 @@ const Promise = require('bluebird');
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
+const CollectorGroup = tu.db.CollectorGroup;
 supertest.Test.prototype.end = Promise.promisify(supertest.Test.prototype.end);
 supertest.Test.prototype.then = function (resolve, reject) {
   return this.end().then(resolve).catch(reject);
@@ -67,6 +68,9 @@ coll2.name += '2';
 coll3.name += '3';
 const collTokens = {};
 
+let cg1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+cg1.collectors = [coll1.name, coll2.name, coll3.name];
+
 const sgt = gtUtil.getGeneratorTemplate();
 sgt.contextDefinition = contextDefinition;
 const generator1 = gu.getGenerator();
@@ -81,18 +85,20 @@ gu.createSGtoSGTMapping(sgt, generator3);
 generator1.name += '1';
 generator2.name += '2';
 generator3.name += '3';
-generator1.possibleCollectors = [coll1.name, coll2.name, coll3.name];
-generator2.possibleCollectors = [coll1.name, coll2.name, coll3.name];
-generator3.possibleCollectors = [coll1.name, coll2.name, coll3.name];
+generator1.collectorGroup = cg1.name;
+generator2.collectorGroup = cg1.name;
+generator3.collectorGroup = cg1.name;
 
 let userToken;
 let userId;
+let userName;
 
 describe('tests/api/v1/collectors/heartbeat.js >', () => {
   before((done) => {
     tu.createUserAndToken()
     .then((obj) => {
       userId = obj.user.id;
+      userName = obj.user.name;
       userToken = obj.token;
       done();
     })
@@ -134,6 +140,9 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       .then(() => u.startCollector(coll2, collTokens, userToken))
       .then(() => u.startCollector(coll3, collTokens, userToken))
     );
+
+    beforeEach(() => CollectorGroup.createCollectorGroup(cg1));
+    afterEach(() => tu.forceDelete(CollectorGroup));
 
     describe('validation >', () => {
       beforeEach(() => Promise.resolve()
@@ -326,7 +335,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         .catch(done);
       });
 
-      //TODO: need to add DB validation that Generator.currentCollector exists
+      // TODO: need to add DB validation that Generator.currentCollector exists
       describe.skip('make sure updating a nonexistent collector doesnt modify ' +
       'the collectorMap >', () => {
         const coll4 = u.getCollectorToCreate();
@@ -743,7 +752,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
         uptime: 0.500,
         version: 'v1.0.0',
         versions: {
-          http_parser: '1.0.0',
+          http_parser: '1.0.0', // eslint-disable-line camelcase
           node: '1.0.0',
           v8: '1.0.0',
           uv: '1.0.0',
@@ -757,17 +766,35 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
       const originalVersion = '1.0.0';
 
       const changedOsInfo = {
+        arch: 'x64',
+        hostname: 'host1.abc.com',
+        platform: 'darwin',
         release: '16.7.1',
+        type: 'Darwin',
         username: 'user2',
       };
       const changedProcessInfo = {
+        execPath: '/usr/local/bin/node',
         memoryUsage: { rss: 2000, heapTotal: 1000, heapUsed: 1000 },
         uptime: 1.500,
+        version: 'v1.0.0',
+        versions: {
+          http_parser: '1.0.0', // eslint-disable-line camelcase
+          node: '1.0.0',
+          v8: '1.0.0',
+          uv: '1.0.0',
+          zlib: '1.0.0',
+          ares: '1.0.0',
+          icu: '1.0.0',
+          modules: '1.0.0',
+          openssl: '1.0.0',
+        },
       };
       const changedVersion = '1.0.1';
 
       const updatedOsInfo = JSON.parse(JSON.stringify(originalOsInfo));
-      const updatedProcessInfo = JSON.parse(JSON.stringify(originalProcessInfo));
+      const updatedProcessInfo =
+        JSON.parse(JSON.stringify(originalProcessInfo));
       Object.assign(updatedOsInfo, changedOsInfo);
       Object.assign(updatedProcessInfo, changedProcessInfo);
       const updatedVersion = changedVersion;
@@ -802,6 +829,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
             timestamp: Date.now(),
             collectorConfig: {
               osInfo: changedOsInfo,
+              version: originalVersion,
             },
           },
         }))
@@ -818,6 +846,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
             timestamp: Date.now(),
             collectorConfig: {
               processInfo: changedProcessInfo,
+              version: originalVersion,
             },
           },
         }))
@@ -862,7 +891,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
             collectorConfig: {
               osInfo: changedOsInfo,
               processInfo: changedProcessInfo,
-              version: changedVersion,
+              version: updatedVersion,
             },
           },
         }))
@@ -954,7 +983,7 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
             return done(err);
           }
 
-          expect(res.body.createdBy).to.equal(userId);
+          expect(res.body.user.name).to.equal(userName);
           return u.createGenerator(generator2, userId, coll1)
           .then(() => u.sendHeartbeat({ collector: coll1, tokens: collTokens }))
           .then((res) => {

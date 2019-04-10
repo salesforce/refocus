@@ -20,35 +20,35 @@ const willSendthis = fs.readFileSync(
   path.join(__dirname,
     '../apiTestsUtils/lens.zip')
 );
-
-/**
- * @param {Object} overWriteObject - to replace select key values.
- * @returns {Object} - an input to Lens.create
- */
-function getLens(overWriteObject) {
-  return Object.assign(overWriteObject || {}, { name,
-    sourceName: 'testSourceLensName',
-    description: 'test Description',
-    sourceDescription: 'test Source Description',
-    isPublished: true,
-    library: willSendthis,
-  });
+const basic = {
+  name: `${tu.namePrefix}testLensName`,
+  sourceName: 'testSourceLensName',
+  description: 'test Description',
+  sourceDescription: 'test Source Description',
+  isPublished: true,
 };
 
 module.exports = {
   name,
-  getLens,
-  doSetup(_lens) {
-    return new tu.db.Sequelize.Promise((resolve, reject) => {
-      tu.db.Lens.create(_lens || getLens())
-      .then((createdLens) => resolve(createdLens))
-      .catch((err) => reject(err));
-    });
+
+  getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
+    const defaultProps = JSON.parse(JSON.stringify(basic));
+    defaultProps.library = willSendthis;
+    return Object.assign(defaultProps, overrideProps);
   },
 
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Perspective, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Lens, testStartTime))
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.Lens.create(toCreate);
+  },
+
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.Perspective, startTime)
+    .then(() => tu.forceDelete(tu.db.Lens, startTime))
     .then(() => done())
     .catch(done);
   },

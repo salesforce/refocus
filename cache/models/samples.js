@@ -10,6 +10,7 @@
  * cache/models/samples.js
  */
 'use strict'; // eslint-disable-line strict
+const debugUpsertErrors = require('debug')('refocus:sample:upsert:errors');
 const logInvalidHmsetValues = require('../../utils/common')
   .logInvalidHmsetValues;
 const helper = require('../../api/v1/helpers/nouns/samples');
@@ -47,6 +48,8 @@ const sampFields = {
   UPD_AT: 'updatedAt',
   ASP_ID: 'aspectId',
   SUBJ_ID: 'subjectId',
+  OWNER: 'owner',
+  OWNER_ID: 'ownerId',
 };
 const sampleFieldsArr = Object.keys(sampFields).map((key) => sampFields[key]);
 
@@ -483,6 +486,10 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
     return cleanAddSubjectToSample(updatedSamp, subject);
   })
   .catch((err) => {
+    debugUpsertErrors('refocus:sample:upsert:errors|upsertOneSample|%s|%o|%o',
+      user ? user.name : '',
+      sampleQueryBodyObj,
+      err.explanation.explanation || err.message);
     if (isBulk) return err;
     throw err;
   });

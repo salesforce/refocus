@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -19,12 +19,44 @@ const path = '/v1/collectors/start';
 const collectorConfig = require('../../../../config/collectorConfig');
 const getWritersPath = '/v1/collectors/{key}/writers';
 const Collector = tu.db.Collector;
+const CollectorGroup = tu.db.CollectorGroup;
 const expect = require('chai').expect;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const sgUtils = require('../generators/utils');
 const sinon = require('sinon');
+const dbConstants = require('../../../../db/constants');
+const GlobalConfig = tu.db.GlobalConfig;
 const gtUtil = sgUtils.gtUtil;
+const gu = require('../generators/utils');
+const cryptUtils = require('../../../../utils/cryptUtils');
+
+const password = 'superlongandsupersecretpassword';
+const secretInformation = 'asecretthatyoushouldnotknow';
+const otherNonSecretInformation = 'nonsecretInformation';
+const secretKey = 'mySecretKey';
+const algorithm = 'aes-256-cbc';
+
+const contextDefinition = {
+  password: {
+    description: 'password description...',
+    encrypted: true,
+  },
+  secretInformation: {
+    description: 'secretInformation description...',
+    encrypted: true,
+  },
+  otherNonSecretInformation: {
+    description: 'otherNonSecretInformation description...',
+    encrypted: false,
+  },
+};
+
+const context = {
+  password,
+  secretInformation,
+  otherNonSecretInformation,
+};
 
 describe('tests/api/v1/collectors/start.js >', () => {
   let token;
@@ -36,8 +68,11 @@ describe('tests/api/v1/collectors/start.js >', () => {
 
   let generator1;
   let generator2;
+  let collectorGroup1;
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   let collector1;
+  let cg1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+  cg1.collectors = [u.getCollectorToCreate().name];
 
   before((done) => {
     tu.createUserAndToken()
@@ -74,7 +109,11 @@ describe('tests/api/v1/collectors/start.js >', () => {
     .then((generators) => {
       generator1 = generators[0];
       generator2 = generators[1];
-      return collector1.addPossibleGenerators([generator1, generator2]);
+    })
+    .then(() => CollectorGroup.createCollectorGroup(cg1))
+    .then((cg) => {
+      collectorGroup1 = cg;
+      return collectorGroup1.addGenerators([generator1, generator2]);
     })
     .then(() => done())
     .catch(done);
@@ -106,11 +145,14 @@ describe('tests/api/v1/collectors/start.js >', () => {
           gen.name === generator2.name)[0];
         expect(sg1.id).to.include(generator1.id);
         expect(sg1.GeneratorCollectors).to.equal(undefined);
-        expect(sg1.possibleCollectors).to.equal(undefined);
+        expect(sg1.collectorGroup.collectors).to.have.lengthOf(1);
+        expect(sg1.collectorGroup.collectors[0].name).to.equal(collector1.name);
         expect(sg2.GeneratorCollectors).to.equal(undefined);
-        expect(sg2.possibleCollectors).to.equal(undefined);
+        expect(sg2.collectorGroup.collectors).to.have.lengthOf(1);
+        expect(sg2.collectorGroup.collectors[0].name).to.equal(collector1.name);
         expect(res.body.generatorsAdded[0].aspects[0])
           .to.contain.property('name', 'temperature');
+        expect(res.body.encryptionAlgorithm).to.equal(algorithm);
         return done();
       });
     });
@@ -145,7 +187,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
       gen3.name += 'generator-3';
       gen3.createdBy = user.id;
       gen3.isActive = true;
-      gen3.possibleCollectors = [defaultCollector.name];
+      gen3.collectorGroup = collectorGroup1.name;
       sgUtils.createSGtoSGTMapping(generatorTemplate, gen3);
 
       // create generator3 with collector1 as possible collector
@@ -289,5 +331,95 @@ describe('tests/api/v1/collectors/start.js >', () => {
         });
       });
     });
+  });
+});
+
+describe('tests/api/v1/collectors/start.js >', () => {
+  let token;
+  let tokenOfSecondUser;
+  let user;
+  const secondUserName = 'userTwo';
+  const defaultCollector = u.getCollectorToCreate();
+  defaultCollector.version = '0.0.1';
+
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
+  generatorTemplate.contextDefinition = contextDefinition;
+  let collector1;
+  let collectorGroup1;
+  let cg1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+
+  const generator1 = sgUtils.getGenerator();
+  generator1.context = context;
+  gu.createSGtoSGTMapping(generatorTemplate, generator1);
+
+  beforeEach((done) => {
+    tu.createUserAndToken()
+      .then((_user) => {
+        user = _user.user;
+        token = _user.token;
+        return tu.createUser(secondUserName);
+      })
+      .then(() => tu.createTokenFromUserName(secondUserName))
+      .then((_token) => {
+        tokenOfSecondUser = _token;
+      })
+      .then(() => GlobalConfig.create({
+        key: dbConstants.SGEncryptionKey,
+        value: secretKey,
+      }))
+      .then(() => GlobalConfig.create({
+        key: dbConstants.SGEncryptionAlgorithm,
+        value: algorithm,
+      }))
+      .then(() => sgUtils.createGeneratorAspects())
+      .then(() => CollectorGroup.create(cg1))
+      .then((cg) => collectorGroup1 = cg)
+      .then(() => GeneratorTemplate.create(generatorTemplate))
+      .then(() => Collector.create(defaultCollector))
+      .then((c) => {
+        collector1 = c;
+        generator1.createdBy = user.id;
+        generator1.collectorId = c.id;
+      })
+      .then(() => cryptUtils.encryptSGContextValues(GlobalConfig,
+        generator1, generatorTemplate))
+      .then((gen) => Generator.bulkCreate([gen]))
+      .then(([gen]) => collectorGroup1.addGenerators([gen]))
+      .then(() => collectorGroup1.addCollectors([collector1]))
+      .then(() => done())
+      .catch(done);
+  });
+
+  after((done) => {
+    GlobalConfig.destroy({ truncate: true, force: true })
+      .then(() => done())
+      .catch(done);
+  });
+
+  after(u.forceDelete);
+  after(tu.forceDeleteUser);
+
+  it('Start collector with encrypted context value', (done) => {
+    api.post(path)
+      .set('Authorization', token)
+      .send(defaultCollector)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        const newSecretKey = res.body.token + res.body.timestamp;
+        expect(res.body.encryptionAlgorithm).to.equal(algorithm);
+        expect(res.body.generatorsAdded[0].context.password).to
+          .equal(cryptUtils.encrypt(password, newSecretKey, algorithm));
+        expect(res.body.generatorsAdded[0].context.secretInformation).to
+          .equal(cryptUtils.encrypt(secretInformation,
+          newSecretKey, algorithm));
+        expect(res.body.generatorsAdded[0].context.otherNonSecretInformation).to
+          .equal(otherNonSecretInformation);
+        done();
+      })
+      .catch(() => done());
   });
 });

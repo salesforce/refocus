@@ -17,6 +17,7 @@
 
 const assoc = {};
 const realTime = require('../../realtime/redisPublisher');
+const constants = require('../constants');
 const rtConstants = require('../../realtime/constants');
 const botEventNames = rtConstants.events.botEvent;
 const pubOpts = rtConstants.pubOpts.event;
@@ -32,6 +33,11 @@ module.exports = function event(seq, dataTypes) {
       type: dataTypes.TEXT,
       allowNull: false,
       comment: 'This is a readable event logline',
+    },
+    actionType: {
+      type: dataTypes.STRING(constants.fieldlen.normalName),
+      allowNull: true,
+      comment: 'This is the type of the event',
     },
     context: {
       type: dataTypes.JSON,
@@ -75,6 +81,19 @@ module.exports = function event(seq, dataTypes) {
    * Class Methods:
    */
 
+  /**
+   * Creates multiple Events concurrently.
+   * @param  {Array} toCreate - An array of Event objects to create
+   * @param {Object} user - The user performing the write operation
+   * @returns {Array} - Resolves to an array of resolved promises
+   */
+  Event.bulkCreate = function (toCreate, user) {
+    const promises = toCreate.map((event) => Event.create(event, user)
+      .catch((err) => Promise.resolve({ explanation: err, isFailed: true })));
+
+    return seq.Promise.all(promises);
+  }; // bulkCreate
+
   Event.getEventAssociations = function () {
     return assoc;
   };
@@ -96,6 +115,10 @@ module.exports = function event(seq, dataTypes) {
     assoc.botAction = Event.belongsTo(models.BotAction, {
       foreignKey: 'botActionId',
     });
+    assoc.owner = Event.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
     assoc.user = Event.belongsTo(models.User, {
       foreignKey: 'userId',
     });
@@ -104,6 +127,40 @@ module.exports = function event(seq, dataTypes) {
       through: 'EventWriters',
       foreignKey: 'botId',
     });
+
+    Event.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    });
+
+    Event.addScope('user', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    });
+
+    Event.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    }, {
+      override: true,
+    });
+
   };
 
   return Event;

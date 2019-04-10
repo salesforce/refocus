@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -147,6 +147,19 @@ describe('tests/api/v1/generators/post.js >', () => {
         'Missing required property: generatorTemplate'
       );
       done();
+    });
+
+    it('tags set to empty array if not provided', (done) => {
+      generator.name += '-other';
+      delete generator.tags;
+      api.post(path)
+        .set('Authorization', token)
+        .send(generator)
+        .expect(constants.httpStatus.CREATED)
+        .expect((res) => {
+          expect(res.body.tags).to.eql([]);
+        })
+        .end(done);
     });
   });
 

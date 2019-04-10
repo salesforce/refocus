@@ -12,7 +12,7 @@
 'use strict';
 
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -637,6 +637,33 @@ describe('tests/api/v1/subjects/put.js >', () => {
         done();
       });
     });
+
+    it('tags and related links not provided, should set to empty array',
+      (done) => {
+        const toPut = {
+          name: `${tu.namePrefix}newName`,
+          timeout: '220s',
+        };
+        api.put(`${path}/${subjectId}`)
+          .set('Authorization', token)
+          .send(toPut)
+          .expect(constants.httpStatus.OK)
+          .expect((res) => {
+            expect(res.body.tags).to.have.length(ZERO);
+          })
+          .end((err /* , res */) => {
+            if (err) {
+              done(err);
+            }
+
+            Subject.findById(subjectId)
+            .then((subj) => {
+              expect(subj.tags).to.eql([]);
+              expect(subj.relatedLinks).to.eql([]);
+              done();
+            });
+          });
+      });
   });
 
   describe('api: PUT subjects, validate helpEmail/helpUrl required >', () => {

@@ -382,11 +382,7 @@ module.exports = {
 
     const key = redisStore.toKey(type, name);
     logInvalidHmsetValues(key, kvObj);
-    return [
-      'hmset',
-      key,
-      kvObj,
-    ];
+    return ['hmset', key, kvObj];
   },
 
   /**

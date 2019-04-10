@@ -20,8 +20,8 @@ const Joi = require('joi');
 describe(`tests/api/v1/lenses/associations.js, GET ${path} >`, () => {
   let conf = {};
 
-  const lens1 = u.getLens();
-  const lens2 = u.getLens();
+  const lens1 = u.getBasic();
+  const lens2 = u.getBasic();
   lens1.name = 'lens1';
   lens2.name = 'lens2';
 
@@ -30,6 +30,8 @@ describe(`tests/api/v1/lenses/associations.js, GET ${path} >`, () => {
     .then((user) => {
       lens1.installedBy = user.id;
       lens2.installedBy = user.id;
+      lens1.ownerId = user.id;
+      lens2.ownerId = user.id;
       conf.token = tu.createTokenFromUserName(user.name);
       done();
     })
@@ -46,12 +48,24 @@ describe(`tests/api/v1/lenses/associations.js, GET ${path} >`, () => {
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['user'];
+  const associations = ['user', 'owner'];
   const schema = {
     user: Joi.object().keys({
+      id: Joi.string().required(),
       name: Joi.string().required(),
       email: Joi.string().required(),
       profile: Joi.object().keys({
+        id: Joi.string().required(),
+        name: Joi.string().required(),
+      }).required(),
+    }),
+    owner: Joi.object().keys({
+      id: Joi.string().required(),
+      name: Joi.string().required(),
+      fullName: Joi.string().optional().allow(null),
+      email: Joi.string().required(),
+      profile: Joi.object().keys({
+        id: Joi.string().required(),
         name: Joi.string().required(),
       }).required(),
     }),

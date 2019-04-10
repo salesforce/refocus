@@ -14,7 +14,7 @@ const supertest = require('supertest');
 const Promise = require('bluebird');
 supertest.Test.prototype.endAsync = Promise.promisify(supertest.Test
   .prototype.end);
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -22,6 +22,7 @@ const stopPath = '/v1/collectors/{key}/stop';
 const expect = require('chai').expect;
 const Collector = tu.db.Collector;
 const Generator = tu.db.Generator;
+const CollectorGroup = tu.db.CollectorGroup;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const sgUtils = require('../generators/utils');
 const gtUtil = sgUtils.gtUtil;
@@ -33,8 +34,10 @@ describe('tests/api/v1/collectors/stop.js >', () => {
 
   let generator1;
   let collector1;
+  let collectorGroup1;
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   const collectorOneName = u.getCollectorToCreate().name + '-One';
+  let cg1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
 
   before((done) => {
     tu.createUserAndToken()
@@ -48,6 +51,8 @@ describe('tests/api/v1/collectors/stop.js >', () => {
 
   beforeEach((done) => {
     sgUtils.createGeneratorAspects()
+    .then(() => CollectorGroup.create(cg1))
+    .then((cg) => collectorGroup1 = cg)
     .then(() => GeneratorTemplate.create(generatorTemplate))
     .then(() => {
       const gen = sgUtils.getGenerator();
@@ -108,7 +113,8 @@ describe('tests/api/v1/collectors/stop.js >', () => {
       collector1.update({ lastHeartbeat: now }) // make collector1 alive
 
       // add collector1 to generator1 possible list of collectors
-      .then(() => generator1.addPossibleCollectors(collector1))
+      .then(() => collectorGroup1.addCollectors([collector1]))
+      .then(() => collectorGroup1.addGenerators([generator1]))
       .then(() => generator1.reload())
 
       // this should set currentCollector to collector1
@@ -127,7 +133,7 @@ describe('tests/api/v1/collectors/stop.js >', () => {
         collector2 = createdColl;
 
         // add collector2 to possible collectors of generator1
-        return generator1.addPossibleCollectors(createdColl);
+        return collectorGroup1.addCollectors([collector2]);
       })
       .then(() => generator1.reload())
       .then(() => done())

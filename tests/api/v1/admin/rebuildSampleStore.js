@@ -14,7 +14,7 @@ const supertest = require('supertest');
 const featureToggles = require('feature-toggles');
 const sampleStore = require('../../../../cache/sampleStore');
 const rcli = require('../../../../cache/redisCache').client.sampleStore;
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const tu = require('../../../testUtils');
@@ -134,7 +134,7 @@ describe('tests/api/v1/admin/rebuildSampleStore.js >', () => {
             isPublished: true,
             name: `${tu.namePrefix}Aspect2`,
             timeout: '10m',
-            valueType: 'BOOLEAN',
+            valueType: 'NUMERIC',
             okRange: [10, 100],
           }))
           .then((created) => (a2 = created))
@@ -142,7 +142,7 @@ describe('tests/api/v1/admin/rebuildSampleStore.js >', () => {
             isPublished: true,
             name: `${tu.namePrefix}Aspect3`,
             timeout: '10m',
-            valueType: 'BOOLEAN',
+            valueType: 'NUMERIC',
             okRange: [10, 100],
           }))
           .then((created) => (a3 = created))

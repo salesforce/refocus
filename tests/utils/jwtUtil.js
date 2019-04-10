@@ -24,6 +24,7 @@ const Bot = tu.db.Bot;
 const n = `${tu.namePrefix}Testing`;
 const User = tu.db.User;
 const Profile = tu.db.Profile;
+const Token = tu.db.Token;
 const Collector = tu.db.Collector;
 const gu = require('../api/v1/generators/utils');
 
@@ -79,7 +80,8 @@ describe('tests/utils/jwtUtil.js >', () => {
     })
     .then((token) => {
       userToken = token;
-      return jwtUtil.createToken(collectorInst.name, userInst.name, { IsCollector: true }
+      return jwtUtil.createToken(
+        collectorInst.name, userInst.name, { IsCollector: true }
       );
     })
     .then((token) => {
@@ -92,7 +94,7 @@ describe('tests/utils/jwtUtil.js >', () => {
       { IsGenerator: true }))
     .then((token) => generatorToken = token)
     .then(() => done())
-    .catch((err) => done());
+    .catch((err) => done(err));
   });
 
   after((done) => {
@@ -104,6 +106,7 @@ describe('tests/utils/jwtUtil.js >', () => {
     .then(() => tu.forceDelete(tu.db.Bot, testStartTime))
     .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Token, testStartTime))
     .then(() => done())
     .catch(done);
   });
@@ -111,7 +114,8 @@ describe('tests/utils/jwtUtil.js >', () => {
   it('ok, bot verified', (done) => {
     Bot.create(newBot)
     .then((o) => {
-      const token = jwtUtil.createToken(o.name, o.name);
+      const token = jwtUtil.createToken(o.name, userInst.name,
+        { IsBot: true });
       jwtUtil.verifyBotToken(token).then((check) => {
         expect(check).to.not.equal(undefined);
       });
@@ -439,6 +443,43 @@ describe('tests/utils/jwtUtil.js >', () => {
       expect(req.headers.IsBot).to.be.equal(false);
       expect(req.headers.Random).to.be.equal(undefined);
       return done();
+    });
+  });
+
+  describe('verifySocketToken > ', () => {
+    it('bot token', (done) => {
+      Bot.create(newBot)
+        .then((o) => {
+          const token = jwtUtil.createToken(o.name, userInst.name,
+            { IsBot: true });
+          return jwtUtil.verifySocketToken(token);
+        })
+        .then((ret) => {
+          expect(ret.name).to.equal(newBot.name);
+        })
+        .then(() => done())
+        .catch(done);
+    });
+
+    it('user token', (done) => {
+      const tokenName = 'myTokenName';
+      const token = jwtUtil.createToken(tokenName, userInst.name);
+      Token.create({ name: tokenName, createdBy: userInst.id })
+        .then(() => jwtUtil.verifySocketToken(token))
+        .then((ret) => {
+          expect(ret).to.have.property('id');
+        })
+        .then(() => done())
+        .catch(done);
+    });
+
+    it('non user/bot token', (done) => {
+      jwtUtil.verifySocketToken(generatorToken)
+      .then((ret) => {
+        expect(ret).to.be.null;
+      })
+      .then(() => done())
+      .catch(done);
     });
   });
 });

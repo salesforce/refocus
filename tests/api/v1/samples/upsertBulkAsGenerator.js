@@ -11,12 +11,13 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const tu = require('../../../testUtils');
 const u = require('../collectors/utils');
 const Collector = tu.db.Collector;
 const expect = require('chai').expect;
 const Generator = tu.db.Generator;
+const CollectorGroup = tu.db.CollectorGroup;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const sgUtils = require('../generators/utils');
 const gtUtil = sgUtils.gtUtil;
@@ -31,7 +32,9 @@ describe('tests/api/v1/samples/upsertBulkAsGenerator.js >', () => {
   let generatorWithCollector;
   let generatorWithoutCollector;
   let collector;
+  let collectorGroup1;
   const generatorTemplate = gtUtil.getGeneratorTemplate();
+  let cg1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
 
   before((done) => {
     tu.createUserAndToken()
@@ -45,16 +48,20 @@ describe('tests/api/v1/samples/upsertBulkAsGenerator.js >', () => {
 
   beforeEach((done) => {
     sgUtils.createGeneratorAspects()
+      .then(() => CollectorGroup.create(cg1))
+      .then((cg) => collectorGroup1 = cg)
       .then(() => GeneratorTemplate.create(generatorTemplate))
       .then(() => Collector.create(u.getCollectorToCreate()))
       .then((collectorCreated) => {
         collector = collectorCreated;
-
+        return collectorGroup1.setCollectors([collector]);
+      })
+      .then(() => {
         const generator1 = sgUtils.getGenerator();
         generator1.name += '-generator-1';
         generator1.createdBy = user.id;
-        generator1.collectorId = collectorCreated.id;
-        generator1.possibleCollectors = [collector.name];
+        generator1.collectorId = collector.id;
+        generator1.collectorGroup = collectorGroup1.name;
 
         // Create template to the Generator
         sgUtils.createSGtoSGTMapping(generatorTemplate, generator1);
@@ -62,16 +69,13 @@ describe('tests/api/v1/samples/upsertBulkAsGenerator.js >', () => {
         const generator2 = sgUtils.getGenerator();
         generator2.name += '-generator-2';
         generator2.createdBy = user.id;
-        generator2.possibleCollectors = [collector.name];
+        generator2.collectorGroup = collectorGroup1.name;
 
         return Generator.bulkCreate([generator1, generator2]);
       })
       .then((generators) => {
         generatorWithCollector = generators[0];
         generatorWithoutCollector = generators[1];
-        return collector.addPossibleGenerators(
-          [generatorWithCollector, generatorWithoutCollector]
-        );
       })
       .then(() => done())
       .catch(done);

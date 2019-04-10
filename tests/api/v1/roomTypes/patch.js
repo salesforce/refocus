@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const path = '/v1/roomTypes';
@@ -23,18 +23,20 @@ const bu = require('../bots/utils');
 describe('tests/api/v1/roomTypes/patch.js >', () => {
   let testRoomType;
   let token;
+  let userId;
 
   before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      token = obj.token;
       done();
     })
     .catch(done);
   });
 
   beforeEach((done) => {
-    u.createStandard()
+    u.createStandard(userId)
     .then((newRoomType) => {
       testRoomType = newRoomType;
       done();
@@ -63,7 +65,7 @@ describe('tests/api/v1/roomTypes/patch.js >', () => {
   });
 
   it('Pass, patch roomType bots', (done) => {
-    bu.createStandard();
+    bu.createStandard(userId);
     api.patch(`${path}/${testRoomType.name}`)
     .set('Authorization', token)
     .send({ bots: [bu.name] })

@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -37,8 +37,7 @@ describe('tests/api/v1/lenses/patch.js >', () => {
   describe('with returnUser toggle on, user object should be returned: ', () => {
     before((done) => {
       tu.toggleOverride('returnUser', true);
-      const lens = u.getLens({ installedBy: userId });
-      u.doSetup(lens)
+      u.createBasic({ installedBy: userId })
       .then((lens) => {
         expect(lens.installedBy).to.equal(userId);
         lensId = lens.id;
@@ -61,7 +60,7 @@ describe('tests/api/v1/lenses/patch.js >', () => {
 
         expect(res.body.description).to.equal('changed description');
         expect(res.body.user).to.be.an('object');
-        expect(res.body.installedBy).to.equal(userId);
+        expect(res.body.user.id).to.equal(userId);
         done();
       });
     });
@@ -69,7 +68,7 @@ describe('tests/api/v1/lenses/patch.js >', () => {
 
   describe('with returnUser toggle off, user should not be returned', () => {
     before((done) => {
-      u.doSetup()
+      u.createBasic()
       .then((lens) => {
         lensId = lens.id;
         done();

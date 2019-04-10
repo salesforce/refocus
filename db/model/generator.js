@@ -14,6 +14,8 @@ const common = require('../helpers/common');
 const dbUtils = require('../utils');
 const sgUtils = require('../helpers/generatorUtil');
 const collectorUtils = require('../helpers/collectorUtils');
+const conf = require('../../config');
+const collectorConfig = require('../../config/collectorConfig');
 const cryptUtils = require('../../utils/cryptUtils');
 const activityLogUtil = require('../../utils/activityLog');
 const constants = require('../constants');
@@ -91,6 +93,10 @@ module.exports = function generator(seq, dataTypes) {
       allowNull: false,
       defaultValue: false,
     },
+    lastUpsert: {
+      type: dataTypes.DATE,
+      allowNull: true,
+    },
     name: {
       type: dataTypes.STRING(constants.fieldlen.normalName),
       allowNull: false,
@@ -117,7 +123,7 @@ module.exports = function generator(seq, dataTypes) {
     },
     tags: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
-      allowNull: true,
+      allowNull: false,
       defaultValue: constants.defaultArrayValue,
     },
     generatorTemplate: {
@@ -161,110 +167,43 @@ module.exports = function generator(seq, dataTypes) {
       }, // beforeCreate
 
       beforeUpdate(inst /* , opts */) {
-        if (featureToggles.isFeatureEnabled('distributeGenerators')) {
-          const promises = [];
-
-          let isCurrentCollectorIncluded = true;
-
-          // if possibleCollectors have changed, check if the currentCollector
-          // is still included
-          if (inst.possibleCollectors && inst.changed('possibleCollectors')) {
-            isCurrentCollectorIncluded = inst.possibleCollectors.some(
-              (coll) => coll.name === inst.currentCollector.name
-            );
-          }
-
-          /*
-           Assign to collector in following cases:
-           1) isActive is changed.
-           2) If possibleCollectors are changed and this generator current
-            collector is not included in the changed possibleCollectors.
-           3) If possibleCollectors are changed and collector is not assigned
-            to generator
-           */
-          if (
-              inst.changed('isActive') ||
-              !isCurrentCollectorIncluded ||
-              (inst.changed('possibleCollectors') && !inst.currentCollector)
-             ) {
-            promises.push(inst.assignToCollector()); // promise
-          }
-
-          if (inst.changed('generatorTemplate') || inst.changed('context')) {
-            const gtName = inst.generatorTemplate.name;
-            const gtVersion = inst.generatorTemplate.version;
-
-            promises.push(seq.models.GeneratorTemplate // promise
-              .getSemverMatch(gtName, gtVersion)
-              .then((gt) => {
-                if (!gt) {
-                  throw new ValidationError('No Generator Template matches ' +
-                  `name: ${gtName} and version: ${gtVersion}`);
-                }
-
-                sgUtils.validateGeneratorCtx(
-                  inst.context, gt.contextDefinition
-                );
-
-                return cryptUtils
-                  .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
-                  .catch(() => {
-                    throw new dbErrors
-                      .SampleGeneratorContextEncryptionError();
-                  });
-              }));
-          }
-
-          return Promise.all(promises);
-        } // feature toggle
-
-        const gtName = inst.generatorTemplate.name;
-        const gtVersion = inst.generatorTemplate.version;
-
-        let isCurrentCollectorIncluded = true;
-
-        // if possibleCollectors have changed, check if the currentCollector
-        // is still included
-        if (inst.possibleCollectors && inst.changed('possibleCollectors')) {
-          isCurrentCollectorIncluded = inst.possibleCollectors.some(
-            (coll) => coll.name === inst.currentCollector.name
-          );
-        }
+        const promises = [];
 
         /*
          Assign to collector in following cases:
          1) isActive is changed.
-         2) If possibleCollectors are changed and this generator current
-          collector is not included in the changed possibleCollectors.
-         3) If possibleCollectors are changed and collector is not assigned
-          to generator
+         2) collectorGroup is changed
          */
-        if (
-            inst.changed('isActive') ||
-            !isCurrentCollectorIncluded ||
-            (inst.changed('possibleCollectors') && !inst.currentCollector)
-           ) {
-          inst.assignToCollector();
+        if (inst.changed('isActive') || inst.changed('collectorGroup')) {
+          promises.push(inst.assignToCollector()); // promise
         }
 
         if (inst.changed('generatorTemplate') || inst.changed('context')) {
-          return seq.models.GeneratorTemplate.getSemverMatch(gtName, gtVersion)
+          const gtName = inst.generatorTemplate.name;
+          const gtVersion = inst.generatorTemplate.version;
+
+          promises.push(seq.models.GeneratorTemplate // promise
+            .getSemverMatch(gtName, gtVersion)
             .then((gt) => {
               if (!gt) {
                 throw new ValidationError('No Generator Template matches ' +
                 `name: ${gtName} and version: ${gtVersion}`);
               }
 
-              sgUtils.validateGeneratorCtx(inst.context, gt.contextDefinition);
+              sgUtils.validateGeneratorCtx(
+                inst.context, gt.contextDefinition
+              );
+
               return cryptUtils
                 .encryptSGContextValues(seq.models.GlobalConfig, inst, gt)
                 .catch(() => {
-                  throw new dbErrors.SampleGeneratorContextEncryptionError();
+                  throw new dbErrors
+                    .SampleGeneratorContextEncryptionError();
                 });
-            });
+            }));
         }
 
-        return inst;
+        return Promise.all(promises);
       }, // beforeUpdate
 
       beforeDestroy(inst /* , opts */) {
@@ -300,10 +239,12 @@ module.exports = function generator(seq, dataTypes) {
     validate: {
       isActiveAndCollectors() {
         const isActiveSet = this.changed('isActive') && this.isActive;
-        const existingCollectors = this.possibleCollectors && this.possibleCollectors.length;
+        const existingCollectors = this.collectorGroup && this.collectorGroup.collectors
+          && this.collectorGroup.collectors.length;
         if (isActiveSet && !existingCollectors) {
           throw new ValidationError(
-            'isActive can only be turned on if at least one collector is specified.'
+            'isActive can only be turned on if a collector group is ' +
+            'specified with at least one collector.'
           );
         }
       },
@@ -324,6 +265,18 @@ module.exports = function generator(seq, dataTypes) {
       embed: {
         attributes: ['id', 'name', 'description', 'isActive'],
         order: ['name'],
+        include: [
+          {
+            model: seq.models.Collector.scope('embed'),
+            as: 'currentCollector',
+            required: false,
+          },
+          {
+            model: seq.models.CollectorGroup.scope('embed'),
+            as: 'collectorGroup',
+            required: false,
+          },
+        ],
       },
     },
 
@@ -348,6 +301,11 @@ module.exports = function generator(seq, dataTypes) {
       foreignKey: 'collectorGroupId',
     });
 
+    assoc.owner = Generator.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+
     assoc.user = Generator.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -356,12 +314,6 @@ module.exports = function generator(seq, dataTypes) {
     assoc.currentCollector = Generator.belongsTo(models.Collector, {
       as: 'currentCollector',
       foreignKey: 'collectorId',
-    });
-
-    assoc.possibleCollectors = Generator.belongsToMany(models.Collector, {
-      as: 'possibleCollectors',
-      through: 'GeneratorCollectors',
-      foreignKey: 'generatorId',
     });
 
     assoc.writers = Generator.belongsToMany(models.User, {
@@ -378,7 +330,16 @@ module.exports = function generator(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
+        },
+      ],
+    });
+
+    Generator.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
     });
@@ -392,21 +353,11 @@ module.exports = function generator(seq, dataTypes) {
       ],
     });
 
-    Generator.addScope('possibleCollectors', {
-      include: [
-        {
-          model: models.Collector.scope('embed'),
-          as: 'possibleCollectors',
-          through: { attributes: [] },
-        },
-      ],
-    });
-
     Generator.addScope('collectorGroup', {
       include: [
         {
-          association: assoc.collectorGroup,
-          attributes: ['id', 'name', 'description'],
+          model: models.CollectorGroup.scope('embed'),
+          as: 'collectorGroup',
         },
       ],
     });
@@ -415,8 +366,8 @@ module.exports = function generator(seq, dataTypes) {
       dbUtils.combineScopes([
         'baseScope',
         'user',
+        'owner',
         'currentCollector',
-        'possibleCollectors',
         'collectorGroup',
       ], Generator),
       { override: true }
@@ -456,35 +407,19 @@ module.exports = function generator(seq, dataTypes) {
    */
 
   Generator.createWithCollectors = function (requestBody) {
-    let createdGenerator;
-    let collectors;
+    let collectorGroup;
 
     return Promise.resolve()
-    .then(() => collectorUtils.validate(seq,
-      requestBody.possibleCollectors))
-    .then((_collectors) => collectors = _collectors)
-    .then(() => createdGenerator = Generator.build(requestBody))
-    .then(() => {
-      // when createdGen gets saved, it will validate that possible collectors
-      // exist on the instance being saved. This line mocks the presence of the
-      // possibleCollectors on the instance, but since this is an association,
-      // we still have to use the addPossibleCollectors later to save in the db.
-      createdGenerator.possibleCollectors = collectors;
-      return createdGenerator.save();
-    })
+    .then(() => sgUtils.validateCollectorGroup(seq, requestBody.collectorGroup))
+    .then((_cg) => collectorGroup = _cg)
+    .then(() => Generator.build(requestBody))
     .then((gen) => {
-      createdGenerator = gen;
-      return createdGenerator.addPossibleCollectors(collectors);
+      // mock for validation.
+      gen.collectorGroup = collectorGroup;
+      return gen.save();
     })
-    .then(() => {
-      if (requestBody.collectorGroup) {
-        return sgUtils.validateCollectorGroup(seq, requestBody.collectorGroup)
-        .then((_collGroup) => createdGenerator.setCollectorGroup(_collGroup));
-      }
-
-      return Promise.resolve();
-    })
-    .then(() => createdGenerator.reload());
+    .then((gen) => gen.setCollectorGroup(collectorGroup))
+    .then((gen) => gen.reload());
   };
 
   Generator.findForHeartbeat = function (findOpts) {
@@ -492,6 +427,33 @@ module.exports = function generator(seq, dataTypes) {
     .then((gens) => gens.map((g) => g.updateForHeartbeat()))
     .then((genpromises) => Promise.all(genpromises));
   }; // findForHeartbeat
+
+  /**
+   * Checks for generators that have missed their sample upsert, and reassigns to another collector.
+   *
+   * @returns {Promise<Array<Generator>>}
+   */
+  Generator.checkMissedUpsert = function () {
+    return Generator.findAll()
+    .then((gens) => gens.filter((g) => g.shouldReassign()))
+    .map((gen) => {
+      logMissedUpsert(gen);
+      return gen.assignToCollector().then(() => gen.save());
+    });
+  }; // checkMissedUpsert
+
+  function logMissedUpsert(gen) {
+    const logObj = {
+      generator: gen.name,
+      gtName: gen.generatorTemplate && gen.generatorTemplate.name,
+      gtVersion: gen.generatorTemplate && gen.generatorTemplate.version,
+      currentCollector: gen.currentCollector && gen.currentCollector.name,
+      lastUpsert: gen.lastUpsert && gen.lastUpsert.getTime(),
+      delta: gen.lastUpsert && Date.now() - gen.lastUpsert.getTime(),
+    };
+
+    activityLogUtil.printActivityLogString(logObj, 'missedUpsert');
+  } // logMissedUpsert
 
   /**
    * Instance Methods:
@@ -508,31 +470,54 @@ module.exports = function generator(seq, dataTypes) {
    */
   Generator.prototype.updateWithCollectors = function (requestBody) {
     return Promise.resolve()
-    .then(() => collectorUtils
-      .validate(seq, requestBody.possibleCollectors))
-    .then((collectors) => {
-      // prevent overwrite of reloaded collectors on update
-      delete requestBody.possibleCollectors;
 
-      // mock possibleCollectors on instance so we don't need to reload
-      // again to get the currentCollector (this matters if we try to set
-      // isActive=true and add a possibleCollector at the same time)
-      this.possibleCollectors = this.possibleCollectors || [];
-      this.possibleCollectors = this.possibleCollectors.concat(collectors);
+    .then(() => sgUtils.validateCollectorGroup(seq, requestBody.collectorGroup))
+    .then((collectorGroup) => {
+      if (collectorGroup) {
+        // prevent overwrite of reloaded collectorGroup on update
+        delete requestBody.collectorGroup;
 
-      return this.addPossibleCollectors(collectors);
-    })
-    .then(() => {
-      if (requestBody.collectorGroup) {
-        return sgUtils.validateCollectorGroup(seq, requestBody.collectorGroup)
-        .then((_collGroup) => this.setCollectorGroup(_collGroup));
+        // mock collectorGroup on instance so we don't need to reload
+        // again to get the currentCollector (this matters if we try to set
+        // isActive=true and set the collectorGroup at the same time)
+        this.collectorGroup = collectorGroup;
+        return this.setCollectorGroup(collectorGroup);
       }
-
-      return Promise.resolve();
     })
     .then(() => this.update(requestBody))
     .then(() => this.reload());
   };
+
+  /**
+   * Determines whether the time since the last sample upsert is within
+   * the latency tolerance.
+   *
+   * @returns {Boolean}
+   */
+  Generator.prototype.shouldReassign = function () {
+    if (!this.currentCollector || !this.lastUpsert) return false;
+
+    const expectedInterval = this.intervalSecs * 1000;
+    const toleranceFactor = conf.generatorUpsertToleranceFactor;
+    const retries = conf.generatorMissedUpsertRetries;
+    const jobInterval = collectorConfig.heartbeatIntervalMillis;
+    const timeSinceUpsert = Date.now() - this.lastUpsert.getTime();
+    const upsertTolerance = expectedInterval * toleranceFactor;
+
+    /* The time in ms the generator is over the upsert tolerance by. */
+    const delta = timeSinceUpsert - upsertTolerance;
+
+    /*
+     * The time past the upsert tolerance we should keep trying to reassign for.
+     * Once a generator has stopped, and if reassigning fails to fix it, it will
+     * be reassigned every interval when the job runs.
+     * This is necessary to prevent failing generators from being bounced around indefinitely.
+     */
+    const retryCap = jobInterval * retries;
+
+    /* Reassign the generator if it is over the upsert tolerance but not over the retry cap. */
+    return 0 < delta && delta < retryCap;
+  }; // shouldReassign
 
   Generator.prototype.isWritableBy = function (who) {
     return new seq.Promise((resolve /* , reject */) =>
@@ -573,53 +558,55 @@ module.exports = function generator(seq, dataTypes) {
   /**
    * Out of all the possible collectors that are running and alive, find the
    * one with the fewest number of currently assigned generators. Break ties
-   * based on the number of possible generators each collector has.
+   * based on the collector name.
    * @param  {Array} collectors - Array of collector objects
+   * @param  {Collector} currentCollector - The collector the generator is assigned to.
    * @return {Promise} - Resolves to most available collector found
    */
-  function getMostAvailableCollector(collectors) {
+  function getMostAvailableCollector(collectors, currentCollector) {
     // get alive and running collectors
-    const upCollectors = collectors.filter((c) =>
+    let upCollectors = collectors.filter((c) =>
      c.isRunning() && c.isAlive());
 
     if (upCollectors.length === 0) { // no alive/running collectors
       return Promise.resolve();
     }
 
+    // make sure we don't assign back to the same one, unless it's the only option
+    if (currentCollector && upCollectors.length !== 1) {
+      upCollectors = upCollectors.filter((coll) =>
+        coll.name !== currentCollector.name
+      );
+    }
+
     const promises = [];
 
     /* For all collectors, create a map of collector and its corresponding
-     current and possible generators */
+     current generators */
     for (let i = 0; i < upCollectors.length; i++) {
       const ithCollector = upCollectors[i];
       let promise;
 
-      /* If current generators and possible generators are present in
-      ithCollector object, just return the map.
-       */
-      if (ithCollector.currentGenerators && ithCollector.possibleGenerators) {
+      // If current generators are present in ithCollector object, just return the map.
+      if (ithCollector.currentGenerators) {
         promise = Promise.resolve({
           collector: ithCollector,
           numCurrentGen: ithCollector.currentGenerators.length,
-          numPossibleGen: ithCollector.possibleGenerators.length,
         });
       } else {
 
-        // If current/possible generators info not in obj, get the info from db
+        // If current generators info not in obj, get the info from db
         promise = dbUtils.seq.models.Collector.findById(ithCollector.id)
         .then((c) => {
           let numCurrGen = 0;
-          let numPossGen = 0;
 
-          if (c.currentGenerators && c.possibleGenerators) {
+          if (c.currentGenerators) {
             numCurrGen = c.currentGenerators.length;
-            numPossGen = c.possibleGenerators.length;
           }
 
           return Promise.resolve({
             collector: c,
             numCurrentGen: numCurrGen,
-            numPossibleGen: numPossGen,
           });
         });
       }
@@ -644,12 +631,9 @@ module.exports = function generator(seq, dataTypes) {
         if (numCurrGenInIthColl < numCurrGenInBestColl) {
           mostAvailCollectorInfo = collectorInfoArr[i];
         } else if ((numCurrGenInIthColl === numCurrGenInBestColl) &&
-          (collectorInfoArr[i].numPossibleGen <
-            mostAvailCollectorInfo.numPossibleGen)) {
-
+          (collectorInfoArr[i].collector.name < mostAvailCollectorInfo.collector.name)) {
           /* if number of assigned generators in this collector is equal to
-          mostAvailCollector, then break ties based on number of possible
-          generators */
+          mostAvailCollector, then break ties based on the collector name */
           mostAvailCollectorInfo = collectorInfoArr[i];
         }
       }
@@ -666,45 +650,30 @@ module.exports = function generator(seq, dataTypes) {
    * currentCollector field and expects the caller to save later.
    */
   Generator.prototype.assignToCollector = function () {
-    if (featureToggles.isFeatureEnabled('distributeGenerators')) {
-      return Promise.resolve()
-      .then(() => {
-        const possibleCollectors = this.possibleCollectors;
-        if (this.isActive && possibleCollectors && possibleCollectors.length) {
-          return getMostAvailableCollector(possibleCollectors);
-        }
+    return Promise.resolve()
+    .then(() => {
+      const collectorGroup = this.collectorGroup;
+      const potentialCollectors = collectorGroup && collectorGroup.collectors;
+      if (this.isActive && potentialCollectors && potentialCollectors.length) {
+        return getMostAvailableCollector(potentialCollectors, this.currentCollector);
+      }
 
-        return Promise.resolve();
-      })
-      .then((mostAvailCollector) => {
-        logAssignment(this.name, this.currentCollector, mostAvailCollector);
+      return Promise.resolve();
+    })
+    .then((mostAvailCollector) => {
+      logAssignment(this.name, this.currentCollector, mostAvailCollector);
 
-        // We could use setCurrentCollector, but that would result in database
-        // saves that would be unnecessary and complicate our logic in the db
-        // hooks. Instead, we set the foreign key (collectorId) from collector
-        // model. We also mock the currentCollector on the instance to avoid
-        // needing a database reload.
-        this.collectorId = mostAvailCollector ? mostAvailCollector.id : null;
-        this.currentCollector = mostAvailCollector || null;
-      });
-    }
+      // Doing setCurrentCollector would result in redundant db saves and
+      // complicate the hook logic. Instead, we mock it here and save later.
+      this.collectorId = mostAvailCollector ? mostAvailCollector.id : null;
+      this.currentCollector = mostAvailCollector || null;
+      this._changed.collectorId = true;
 
-    const possibleCollectors = this.possibleCollectors;
-    let newColl;
-    if (this.isActive && possibleCollectors && possibleCollectors.length) {
-      possibleCollectors.sort((c1, c2) => c1.name > c2.name);
-      newColl = possibleCollectors.find((c) => c.isRunning() && c.isAlive());
-    }
-
-    logAssignment(this.name, this.currentCollector, newColl);
-
-    // We could use setCurrentCollector, but that would result in database saves
-    // that would be unnecessary and complicate our logic in the db hooks.
-    // Instead, we set the foreign key (collectorId) from collector model.
-    // We also mock the currentCollector on the instance to avoid needing
-    // a database reload.
-    this.collectorId = newColl ? newColl.id : null;
-    this.currentCollector = newColl || null;
+      // reset lastUpsert when unassigned
+      if (!this.currentCollector) {
+        this.lastUpsert = null;
+      }
+    });
   }; // assignToCollector
 
   function logAssignment(gen, prevColl, newColl) {
@@ -724,15 +693,16 @@ module.exports = function generator(seq, dataTypes) {
       action = `${prevColl}->${newColl}`;
     }
 
-    const logObj = {
-      generator: gen,
-      action,
-      type,
-      previousCollector: prevColl,
-      newCollector: newColl,
-    };
-
-    activityLogUtil.printActivityLogString(logObj, 'collectorAssignment');
+    if (featureToggles.isFeatureEnabled('enableCollectorAssignmentLogs')) {
+      const logObj = {
+        generator: gen,
+        action,
+        type,
+        previousCollector: prevColl,
+        newCollector: newColl,
+      };
+      activityLogUtil.printActivityLogString(logObj, 'collectorAssignment');
+    }
   } // logAssignment
 
   return Generator;

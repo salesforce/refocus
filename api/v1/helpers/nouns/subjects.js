@@ -53,7 +53,9 @@ module.exports = {
   fieldScopeMap: {
     hierarchy: 'hierarchy',
     user: 'user',
+    owner: 'owner',
   },
+  fieldsToExclude: ['createdBy', 'ownerId'],
   model: Subject,
   modelName: 'Subject',
   nameFinder: 'absolutePath',
@@ -69,4 +71,5 @@ module.exports = {
     'hierarchyLevel', 'absolutePath', 'childCount', 'id', 'isDeleted',
   ],
   requireAtLeastOneFields: ['helpEmail', 'helpUrl'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

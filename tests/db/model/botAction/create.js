@@ -44,6 +44,7 @@ describe('db/model/botAction/create.js >', () => {
     })
     .then((o) => {
       expect(o).to.have.property('name');
+      expect(o).to.have.property('actionLog');
       done();
     })
     .catch(done);

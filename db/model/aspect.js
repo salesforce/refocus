@@ -111,12 +111,16 @@ module.exports = function aspect(seq, dataTypes) {
       type: dataTypes.STRING(valueLabelLength),
     },
     valueType: {
-      type: dataTypes.ENUM('BOOLEAN', 'NUMERIC', 'PERCENT'),
-      defaultValue: 'BOOLEAN',
+      type: dataTypes.ENUM(
+        u.aspValueTypes.boolean,
+        u.aspValueTypes.numeric,
+        u.aspValueTypes.percent
+      ),
+      defaultValue: u.aspValueTypes.boolean,
     },
     relatedLinks: {
       type: dataTypes.ARRAY(dataTypes.JSON),
-      allowNull: true,
+      allowNull: false,
       defaultValue: constants.defaultJsonArrayValue,
       validate: {
         validateJsonSchema(value) {
@@ -126,12 +130,14 @@ module.exports = function aspect(seq, dataTypes) {
     },
     tags: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
-      allowNull: true,
+      allowNull: false,
       defaultValue: constants.defaultArrayValue,
     },
   }, {
     hooks: {
-
+      beforeCreate(inst /* , opts */) {
+        u.validateAspectStatusRanges(inst);
+      }, // hooks.afterCreate
       /**
        * TODO:
        * 1. Have a look at the sampleStore logic and confirm that it is
@@ -189,6 +195,7 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       beforeUpdate(inst /* , opts */) {
+        u.validateAspectStatusRanges(inst);
         const promiseArr = [];
         const unpublished = inst.previous('isPublished') && !inst.isPublished;
         const renamed = inst.previous('name') !== inst.name;
@@ -407,6 +414,10 @@ module.exports = function aspect(seq, dataTypes) {
   };
 
   Aspect.postImport = function (models) {
+    assoc.owner = Aspect.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
     assoc.user = Aspect.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'user',
@@ -430,7 +441,11 @@ module.exports = function aspect(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
       order: ['name'],
@@ -438,11 +453,20 @@ module.exports = function aspect(seq, dataTypes) {
       override: true,
     });
 
+    Aspect.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['id', 'name', 'email', 'fullName'],
+        },
+      ],
+    });
+
     Aspect.addScope('user', {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
     });
@@ -454,7 +478,7 @@ module.exports = function aspect(seq, dataTypes) {
       include: [
         {
           association: assoc.user,
-          attributes: ['name', 'email', 'fullName'],
+          attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
     }));

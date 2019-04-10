@@ -147,6 +147,14 @@ module.exports = function bot(seq, dataTypes) {
   };
 
   Bot.postImport = function (models) {
+    assoc.owner = Bot.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+    assoc.user = Bot.belongsTo(models.User, {
+      foreignKey: 'installedBy',
+      as: 'user',
+    });
     assoc.writers = Bot.belongsToMany(models.User, {
       as: 'writers',
       through: 'BotWriters',
@@ -158,10 +166,30 @@ module.exports = function bot(seq, dataTypes) {
     });
 
     Bot.addScope('botUI', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
       attributes: { include: ['ui'] },
     });
 
     Bot.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
       attributes: { exclude: ['ui'] },
     }, {
       override: true,

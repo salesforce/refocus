@@ -22,4 +22,12 @@ module.exports = {
   baseUrl: '/v1/collectorGroups',
   model: CollectorGroup,
   modelName: 'CollectorGroup',
+  fieldScopeMap: {
+    user: 'user',
+    owner: 'owner',
+    collectors: 'collectors',
+    generators: 'generators',
+  },
+  fieldsToExclude: ['createdBy', 'ownerId'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

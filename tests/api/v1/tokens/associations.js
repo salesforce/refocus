@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -64,9 +64,11 @@ describe(`tests/api/v1/tokens/associations.js, GET ${path} >`, () => {
 
   const joiSchema = {
     user: Joi.object().keys({
+      id: Joi.string().required(),
       name: Joi.string().required(),
       email: Joi.string().required(),
       profile: Joi.object().keys({
+        id: Joi.string().required(),
         name: Joi.string().required(),
       }).required(),
     }),

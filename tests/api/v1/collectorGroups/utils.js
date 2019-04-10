@@ -11,12 +11,63 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
+const collectorUtil = require('../collectors/utils');
 const testStartTime = new Date();
+const colltoCreate = {
+  name: tu.namePrefix + 'Coll',
+  version: '1.0.0',
+};
+
+const basic = {
+  name: 'coll-group1',
+  description: 'description...',
+  collectors: [],
+};
 
 module.exports = {
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Collector, testStartTime)
-      .then(() => tu.forceDelete(tu.db.CollectorGroup, testStartTime))
+  getCollectorToCreate() {
+    return JSON.parse(JSON.stringify(colltoCreate));
+  },
+
+  getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
+    const defaultProps = JSON.parse(JSON.stringify(basic));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  doSetup(props={}) {
+    const { createdBy, name } = props;
+    return collectorUtil.createBasic({ createdBy, name })
+    .then((collector) => {
+      const createdIds = {
+        collectorName: collector.name,
+      };
+      return createdIds;
+    });
+  },
+
+  createBasic(overrideProps={}) {
+    const { createdBy, name } = overrideProps;
+    return this.doSetup({ createdBy, name })
+    .then(({ collectorName }) => {
+      Object.assign(overrideProps, { collectors: [collectorName] });
+      const toCreate = this.getBasic(overrideProps);
+      return tu.db.CollectorGroup.create(toCreate);
+    });
+  },
+
+  getDependencyProps() {
+    return ['collectorName'];
+  },
+
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.Generator, startTime)
+      .then(() => tu.forceDelete(tu.db.GeneratorTemplate, startTime))
+      .then(() => tu.forceDelete(tu.db.Collector, startTime))
+      .then(() => tu.forceDelete(tu.db.CollectorGroup, startTime))
       .then(() => done())
       .catch(done);
   },

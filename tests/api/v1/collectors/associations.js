@@ -17,6 +17,7 @@ const gtUtil = gu.gtUtil;
 const testAssociations = require('../common/testAssociations.js').testAssociations;
 const Collector = tu.db.Collector;
 const Generator = tu.db.Generator;
+const CollectorGroup = tu.db.CollectorGroup;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const path = '/v1/collectors';
 const Joi = require('joi');
@@ -38,38 +39,45 @@ describe(`tests/api/v1/collectors/associations.js, GET ${path} >`, () => {
   coll2.name += '2';
   coll2.status = 'Running';
   coll2.lastHeartbeat = Date.now();
+  let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+  collectorGroup1.collectors = [coll1.name, coll2.name];
 
   before((done) => {
-    Collector.create(coll1)
+    tu.createUser('assocUser')
+    .then((user) => {
+      generatorOk.createdBy = user.id;
+      generatorOk.ownerId = user.id;
+      generatorOk.collectorGroup = collectorGroup1.name;
+      generatorInfo.createdBy = user.id;
+      generatorInfo.ownerId = user.id;
+      generatorInfo.collectorGroup = collectorGroup1.name;
+      coll1.createdBy = user.id;
+      coll1.ownerId = user.id;
+      coll2.createdBy = user.id;
+      coll2.ownerId = user.id;
+      collectorGroup1.createdBy = user.id;
+      collectorGroup1.ownerId = user.id;
+      conf.token = tu.createTokenFromUserName(user.name);
+      return Collector.create(coll1);
+    })
     .then((created) => {
       coll1 = created;
       return Collector.create(coll2);
     })
     .then((created) => {
       coll2 = created;
-      return tu.createUser('assocUser');
+      return CollectorGroup.createCollectorGroup(collectorGroup1);
     })
-    .then((user) => {
-      generatorOk.createdBy = user.id;
-      generatorInfo.createdBy = user.id;
-      conf.token = tu.createTokenFromUserName(user.name);
-      return GeneratorTemplate.create(generatorTemplate);
-    })
-    .then(() => Generator.create(generatorOk))
+    .then(() => GeneratorTemplate.create(generatorTemplate))
+    .then(() => Generator.createWithCollectors(generatorOk))
     .then((gen) => {
       generatorOk.id = gen.id;
-      return Promise.all([
-        gen.setPossibleCollectors([coll1, coll2]),
-        gen.setCurrentCollector(coll1),
-      ]);
+      return gen.setCurrentCollector(coll1);
     })
-    .then(() => Generator.create(generatorInfo))
+    .then(() => Generator.createWithCollectors(generatorInfo))
     .then((gen) => {
       generatorInfo.id = gen.id;
-      return Promise.all([
-        gen.setPossibleCollectors([coll1, coll2]),
-        gen.setCurrentCollector(coll2),
-      ]);
+      return gen.setCurrentCollector(coll2);
     })
     .then(() => done())
     .catch(done);
@@ -79,24 +87,88 @@ describe(`tests/api/v1/collectors/associations.js, GET ${path} >`, () => {
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  const associations = ['currentGenerators', 'possibleGenerators'];
+  const associations = ['user', 'owner', 'currentGenerators', 'collectorGroup'];
   const schema = {
+    user: Joi.object().keys({
+      id: Joi.string().required(),
+      name: Joi.string().required(),
+      fullName: Joi.string().optional().allow(null),
+      email: Joi.string().required(),
+      profile: Joi.object().keys({
+        id: Joi.string().required(),
+        name: Joi.string().required(),
+      }).required(),
+    }),
+    owner: Joi.object().keys({
+      id: Joi.string().required(),
+      name: Joi.string().required(),
+      fullName: Joi.string().optional().allow(null),
+      email: Joi.string().required(),
+      profile: Joi.object().keys({
+        id: Joi.string().required(),
+        name: Joi.string().required(),
+      }).required(),
+    }),
     currentGenerators: Joi.array().length(1).items(
       Joi.object({
         id: Joi.string().required(),
         name: Joi.string().required(),
         description: Joi.string().required(),
         isActive: Joi.boolean().required(),
-      })
+        currentCollector: Joi.object().keys({
+          id: Joi.string().required(),
+          name: Joi.string().required(),
+          status: Joi.string().required(),
+          lastHeartbeat: Joi.string().required(),
+        }),
+        collectorGroup: Joi.object().keys({
+          id: Joi.string().required(),
+          name: Joi.string().required(),
+          description: Joi.string().required(),
+          collectors: Joi.array().length(2).items(
+            Joi.object({
+              id: Joi.string().required(),
+              name: Joi.string().required(),
+              status: Joi.string().required(),
+              lastHeartbeat: Joi.string().required(),
+            })
+          ),
+        }),
+      }),
     ),
-    possibleGenerators: Joi.array().length(2).items(
-      Joi.object({
+    collectorGroup: Joi.object().keys({
+      id: Joi.string().required(),
+      name: Joi.string().required(),
+      description: Joi.string().required(),
+      collectors: Joi.array().length(2).items(
+        Joi.object({
+          id: Joi.string().required(),
+          name: Joi.string().required(),
+          status: Joi.string().required(),
+          lastHeartbeat: Joi.string().required(),
+        })
+      ),
+      user: Joi.object().keys({
         id: Joi.string().required(),
         name: Joi.string().required(),
-        description: Joi.string().required(),
-        isActive: Joi.boolean().required(),
-      })
-    ),
+        fullName: Joi.string().optional().allow(null),
+        email: Joi.string().required(),
+        profile: Joi.object().keys({
+          id: Joi.string().required(),
+          name: Joi.string().required(),
+        }).required(),
+      }),
+      owner: Joi.object().keys({
+        id: Joi.string().required(),
+        name: Joi.string().required(),
+        fullName: Joi.string().optional().allow(null),
+        email: Joi.string().required(),
+        profile: Joi.object().keys({
+          id: Joi.string().required(),
+          name: Joi.string().required(),
+        }).required(),
+      }),
+    }),
   };
 
   testAssociations(path, associations, schema, conf);

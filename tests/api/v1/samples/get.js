@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -40,8 +40,8 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
 
   before((done) => {
     u.doSetup()
-    .then((samp) => {
-      samp.provider = userId;
+    .then(({ aspectId, subjectId }) => {
+      const samp = u.getBasic({ aspectId, subjectId, provider: userId });
       return Sample.create(samp, userObject);
     })
     .then((samp) => {
@@ -210,8 +210,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} > ` +
   });
 
   before((done) => {
-    u.doSetup()
-    .then((samp) => Sample.create(samp))
+    u.createBasic()
     .then((samp) => {
       sampleName = samp.name;
       done();

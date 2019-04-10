@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -337,6 +337,22 @@ describe('tests/api/v1/aspects/put.js >', () => {
         });
         done();
       });
+    });
+
+    it('tags and related links set to empty array if not provided', (done) => {
+      const toPut = {
+        name: `${tu.namePrefix}newName`,
+        timeout: '220s',
+      };
+      api.put(`${path}/${aspectId}`)
+      .set('Authorization', token)
+      .send(toPut)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.tags).to.eql([]);
+        expect(res.body.relatedLinks).to.eql([]);
+      })
+      .end(done);
     });
   });
 
@@ -779,6 +795,157 @@ describe('tests/api/v1/aspects/put.js >', () => {
         expect(res.body).to.have.property('timeout', '4s');
       })
       .end(done);
+    });
+  });
+
+  describe('status ranges >', () => {
+    let createdAspId;
+
+    before((done) => {
+      tu.createToken()
+      .then((returnedToken) => {
+        token = returnedToken;
+        done();
+      })
+      .catch(done);
+    });
+
+    const aspObj = {
+      name: `${tu.namePrefix}Weight`,
+      timeout: '110s',
+      helpUrl: 'http://abc.com',
+      helpEmail: 'abc@xyz.com',
+    };
+
+    beforeEach((done) => {
+      Aspect.create(aspObj)
+      .then((asp) => {
+        createdAspId = asp.id;
+        done();
+      })
+      .catch(done);
+    });
+
+    it('OK, valueType=boolean, ranges valid', (done) => {
+      const aspectObj = JSON.parse(JSON.stringify(aspObj));
+      aspectObj.okRange = [1, 1];
+      aspectObj.criticalRange = [0, 0];
+      aspectObj.valueType = 'BOOLEAN';
+
+      api.put(`${path}/${createdAspId}`)
+      .set('Authorization', token)
+      .send(aspectObj)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.okRange).to.be.eql([1, 1]);
+        expect(res.body.criticalRange).to.be.eql([0, 0]);
+      })
+      .end(done);
+    });
+
+    it('not OK, valueType=boolean, ranges invalid', (done) => {
+      const aspectObj = JSON.parse(JSON.stringify(aspObj));
+      aspectObj.okRange = [1, 1];
+      aspectObj.criticalRange = [0, 1];
+      aspectObj.valueType = 'BOOLEAN';
+
+      api.put(`${path}/${createdAspId}`)
+      .set('Authorization', token)
+      .send(aspectObj)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('InvalidAspectStatusRange');
+        expect(res.body.errors[0].message).to.equal(
+          'Value type: BOOLEAN can only have ranges: [0,0] or [1,1]'
+        );
+        done();
+      });
+    });
+
+    it('OK, valueType=numeric, ranges valid', (done) => {
+      const aspectObj = JSON.parse(JSON.stringify(aspObj));
+      aspectObj.okRange = [-11, 100];
+      aspectObj.criticalRange = [105, 50000];
+      aspectObj.valueType = 'NUMERIC';
+
+      api.put(`${path}/${createdAspId}`)
+      .set('Authorization', token)
+      .send(aspectObj)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.okRange).to.be.eql([-11, 100]);
+        expect(res.body.criticalRange).to.be.eql([105, 50000]);
+      })
+      .end(done);
+    });
+
+    it('not OK, valueType=numeric, ranges invalid', (done) => {
+      const aspectObj = JSON.parse(JSON.stringify(aspObj));
+      aspectObj.okRange = [Number.MIN_SAFE_INTEGER - 50, 100];
+      aspectObj.criticalRange = [105, 50000];
+      aspectObj.valueType = 'NUMERIC';
+
+      api.put(`${path}/${createdAspId}`)
+      .set('Authorization', token)
+      .send(aspectObj)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('InvalidAspectStatusRange');
+        expect(res.body.errors[0].message).to.equal(
+          'Value type: NUMERIC can only have ranges with min value: ' +
+          '-9007199254740991, max value: 9007199254740991'
+        );
+        done();
+      });
+    });
+
+    it('OK, valueType=percent, ranges valid', (done) => {
+      const aspectObj = JSON.parse(JSON.stringify(aspObj));
+      aspectObj.okRange = [0, 70];
+      aspectObj.criticalRange = [75, 100];
+      aspectObj.valueType = 'PERCENT';
+
+      api.put(`${path}/${createdAspId}`)
+      .set('Authorization', token)
+      .send(aspectObj)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.okRange).to.be.eql([0, 70]);
+        expect(res.body.criticalRange).to.be.eql([75, 100]);
+      })
+      .end(done);
+    });
+
+    it('not OK, valueType=percent, ranges invalid', (done) => {
+      const aspectObj = JSON.parse(JSON.stringify(aspObj));
+      aspectObj.okRange = [-70, 70];
+      aspectObj.criticalRange = [75, 100];
+      aspectObj.valueType = 'PERCENT';
+
+      api.put(`${path}/${createdAspId}`)
+      .set('Authorization', token)
+      .send(aspectObj)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('InvalidAspectStatusRange');
+        expect(res.body.errors[0].message).to.equal(
+          'Value type: PERCENT can only have ranges with min value: ' +
+          '0, max value: 100'
+        );
+        done();
+      });
     });
   });
 });

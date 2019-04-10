@@ -17,7 +17,7 @@ const bulkUpsertSamplesJob = require('../../../worker/jobs/bulkUpsertSamples');
 const getHierarchyJob = require('../../../worker/jobs/getHierarchy');
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const api = supertest(require('../../../index').app);
+const api = supertest(require('../../../express').app);
 const tu = require('../../testUtils');
 const rtu = require('../models/redisTestUtil');
 const samstoinit = require('../../../cache/sampleStoreInit');
@@ -60,7 +60,7 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
       isPublished: true,
       name: `${tu.namePrefix}Aspect2`,
       timeout: '10m',
-      valueType: 'BOOLEAN',
+      valueType: 'NUMERIC',
       okRange: [10, 100],
     }))
     .then(() => Subject.create({

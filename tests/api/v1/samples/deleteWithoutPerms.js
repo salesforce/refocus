@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -43,9 +43,8 @@ describe('tests/api/v1/samples/deleteWithoutPerms.js >', () => {
     User.findOne({ where: { name: tu.userName } })
     .then((usr) => {
       user = usr;
-      return u.doSetup();
+      return u.createBasic();
     })
-    .then((samp) => Sample.create(samp))
     .then((samp) => {
       sampleName = samp.name;
       const aspectName = sampleName.split('|')[1].toLowerCase();

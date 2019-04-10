@@ -139,6 +139,14 @@ errors.create({
   name: 'ReferencedByGenerator',
   parent: this.ValidationError,
 });
+errors.create({
+  scope: exports,
+  code: 10122,
+  status: 400,
+  name: 'InvalidAspectStatusRange',
+  parent: this.ValidationError,
+  defaultMessage: 'Invalid aspect status range.',
+});
 
 // ----------------------------------------------------------------------------
 // Not Found

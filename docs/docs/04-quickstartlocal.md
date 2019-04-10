@@ -5,9 +5,9 @@ title: Quick Start Local
 
 # QuickStart with Local Deployment
 # Installation
-1. Install [Node.js](https://nodejs.org/).
-1. Install [PostgreSQL](http://www.enterprisedb.com/products-services-training/pgdownload). Be sure to read the "PostgreSQL One Click Installer README" and follow the instructions there to adjust your shared memory as needed.
-1. Install [Redis](http://redis.io/download).
+1. Install [Node.js](https://nodejs.org/). *(We use Node 8 these days.)*
+1. Install [PostgreSQL](http://www.enterprisedb.com/products-services-training/pgdownload). Be sure to read the "PostgreSQL One Click Installer README" and follow the instructions there to adjust your shared memory as needed. *(We use Postgres 10 these days.)*
+1. Install [Redis](http://redis.io/download). *(We use Redis 3 these days.)*
 1. Clone this git repository.
 1. Run `cd refocus`.
 1. Create a new branch: ```git checkout -b <your branch name> master```
@@ -15,6 +15,7 @@ title: Quick Start Local
 1. Install lunchy (`brew install Caskroom/cask/lunchy`). This will help you start redis.
 1. Run `lunchy start redis` to start redis.
 1. Run `npm start` to start your Node.js server at http://localhost:3000.
+1. Log in with username "admin@refocus.admin" and password "devPassword".
 1. If you want to run the sample timeout check in a separate background process:
     1. Start the server with environment variable (i.e. config setting) `ENABLE_CLOCK_PROCESS` set to `true`.
     1. Run `npm run start-clock` to start the clock process.

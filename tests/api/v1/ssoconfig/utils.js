@@ -10,7 +10,7 @@
  * tests/api/v1/ssoconfig/utils.js
  */
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const tu = require('../../../testUtils');
 const samlParams = {
   samlEntryPoint: 'http://someurl.com',

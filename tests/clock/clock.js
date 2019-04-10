@@ -23,7 +23,7 @@ function intervalsInHour(interval) {
 }
 
 describe('tests/clock/clock.js >', function () {
-  this.timeout(5000);
+  this.timeout(10000);
 
   beforeEach(() => redisClient.flushallAsync());
   after(() => redisClient.flushallAsync());
@@ -79,7 +79,6 @@ describe('tests/clock/clock.js >', function () {
       deactivateRooms: intervalsInHour('5m'),
       jobCleanup: intervalsInHour('30m'),
       kueStatsActivityLogs: intervalsInHour('1m'),
-      pubsubStatsLogs: intervalsInHour('1m'),
       queueStatsActivityLogs: intervalsInHour('1m'),
       resetJobCounter: intervalsInHour('2h'),
       sampleTimeout: intervalsInHour('30s'),

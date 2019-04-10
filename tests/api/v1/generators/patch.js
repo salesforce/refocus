@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -136,6 +136,21 @@ describe('tests/api/v1/generators/patch.js >', () => {
         'You cannot modify the read-only field: currentCollector'
       );
       return done();
+    });
+  });
+
+  it('tags set to empty array if not provided', (done) => {
+    Generator.findById(i)
+    .then((gen) => gen.update({ tags: [] }))
+    .then(() => {
+      api.patch(`${path}/${i}`)
+        .set('Authorization', token)
+        .send({ name: 'New_Name' })
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body.tags).to.eql([]);
+        })
+        .end(done);
     });
   });
 });

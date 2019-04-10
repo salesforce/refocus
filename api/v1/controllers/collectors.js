@@ -12,6 +12,8 @@
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
 const Promise = require('bluebird');
+const get = require('just-safe-get');
+const activityLogUtils = require('../../../utils/activityLog');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/collectors');
@@ -31,7 +33,6 @@ const decryptSGContextValues = require('../../../utils/cryptUtils')
 const encrypt = require('../../../utils/cryptUtils').encrypt;
 const GlobalConfig = require('../helpers/nouns/globalconfig').model;
 const config = require('../../../config');
-const GeneratorTemplate = require('../../../db/index').GeneratorTemplate;
 const Generator = require('../../../db/index').Generator;
 const encryptionAlgoForCollector = config.encryptionAlgoForCollector;
 const MINUS_ONE = -1;
@@ -167,7 +168,7 @@ function patchCollector(req, res, next) {
       explanation: 'Authentication Failed',
     });
     return u.handleError(next, err, helper.modelName);
-  };
+  }
 
   return doPatch(req, res, next, helper);
 } // patchCollector
@@ -237,6 +238,7 @@ function heartbeat(req, res, next) {
   const timestamp = req.body.timestamp;
   const collectorNameFromToken = req.headers.TokenName;
   let collectorName;
+  const hblog = {};
 
   const retval = {
     collectorConfig: JSON.parse(JSON.stringify(config.collector)),
@@ -249,6 +251,7 @@ function heartbeat(req, res, next) {
   return u.findByKey(helper, req.swagger.params)
   .then((o) => {
     collectorName = o.name;
+    hblog.name = collectorName;
 
     /*
      * TODO: remove this 'if block', once spoofing between collectors can be
@@ -268,23 +271,18 @@ function heartbeat(req, res, next) {
     o.set('lastHeartbeat', timestamp);
 
     // update metadata
-    const changedConfig = req.body.collectorConfig;
-    if (changedConfig) {
-      if (changedConfig.osInfo) {
-        const osInfo = o.osInfo ? o.osInfo : {};
-        Object.assign(osInfo, changedConfig.osInfo);
-        o.set('osInfo', osInfo);
-      }
-
-      if (changedConfig.processInfo) {
-        const processInfo = o.processInfo ? o.processInfo : {};
-        Object.assign(processInfo, changedConfig.processInfo);
-        o.set('processInfo', processInfo);
-      }
-
-      if (changedConfig.version) {
-        o.set('version', changedConfig.version);
-      }
+    const hbConfig = req.body.collectorConfig;
+    if (hbConfig) {
+      o.set('osInfo', hbConfig.osInfo);
+      o.set('processInfo', hbConfig.processInfo);
+      o.set('version', hbConfig.version);
+      hblog.memExternal = get(hbConfig.processInfo, 'memoryUsage.external');
+      hblog.memHeapTotal = get(hbConfig.processInfo, 'memoryUsage.heapTotal');
+      hblog.memHeapUsed = get(hbConfig.processInfo, 'memoryUsage.heapUsed');
+      hblog.memRss = get(hbConfig.processInfo, 'memoryUsage.rss');
+      hblog.nodeVersion = get(hbConfig.processInfo, 'version');
+      hblog.uptime = get(hbConfig.processInfo, 'uptime');
+      hblog.version = hbConfig.version;
     }
 
     return o.save();
@@ -309,6 +307,9 @@ function heartbeat(req, res, next) {
     retval.generatorsAdded = generators[0];
     retval.generatorsDeleted = generators[1];
     retval.generatorsUpdated = generators[2];
+    hblog.generatorsAdded = retval.generatorsAdded.length;
+    hblog.generatorsDeleted = retval.generatorsDeleted.length;
+    hblog.generatorsUpdated = retval.generatorsUpdated.length;
   })
 
   // reset the tracked changes for this collector
@@ -327,6 +328,11 @@ function heartbeat(req, res, next) {
   .then((updated) => retval.generatorsUpdated = updated)
   .then(() => {
     u.logAPI(req, resultObj, retval);
+
+    if (featureToggles.isFeatureEnabled('enableCollectorHeartbeatLogs')) {
+      activityLogUtils.printActivityLogString(hblog, 'collectorHeartbeat');
+    }
+
     return res.status(httpStatus.OK).json(u.cleanAndStripNulls(retval));
   })
   .catch((err) => u.handleError(next, err, helper.modelName));
@@ -381,7 +387,9 @@ function startCollector(req, res, next) {
   })
 
   /* Update or create. Generators will be assigned in db hooks */
+  .then((coll) => u.setOwner(body, req, coll))
   .then((coll) => coll ? coll.update(body) : helper.model.create(body))
+  .then((coll) => coll.reload())
 
   /* Format assigned generators to send back to collector */
   .then((coll) => {
@@ -395,7 +403,6 @@ function startCollector(req, res, next) {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     collToReturn.dataValues.generatorsAdded = gens.map((g) => {
       delete g.GeneratorCollectors;
-      delete g.possibleCollectors;
       return g;
     });
 
@@ -408,13 +415,23 @@ function startCollector(req, res, next) {
 
     collToReturn.dataValues.collectorConfig = config.collector;
     collToReturn.dataValues.collectorConfig.status = collToReturn.status;
+    collToReturn.dataValues.timestamp = Date.now();
   })
+
+  // re-encrypt context values for added generators
+  .then(() => Promise.map(
+    collToReturn.dataValues.generatorsAdded,
+    (gen) => reEncryptSGContextValues(gen, collToReturn.dataValues.token,
+      collToReturn.dataValues.timestamp)
+  ))
+  .then((added) => collToReturn.dataValues.generatorsAdded = added)
 
   // reset the tracked changes so we don't send them again in the heartbeat
   .then(() => heartbeatUtils.resetChanges(collToReturn.name))
 
   // send response
   .then(() => {
+    collToReturn.dataValues.encryptionAlgorithm = encryptionAlgoForCollector;
     u.logAPI(req, resultObj, collToReturn);
     return res.status(httpStatus.OK)
       .json(u.responsify(collToReturn, helper, req.method));

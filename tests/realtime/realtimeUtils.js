@@ -48,6 +48,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
     name: tu.namePrefix + 'temperature',
     timeout: '30s',
     okRange: [1, 5],
+    valueType: 'NUMERIC',
     isPublished: true,
     tags: ['temp'],
   };
@@ -683,7 +684,11 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         .catch(done);
       });
 
-      it('Fail when no subject is found for the absolute path' +
+      /*
+       * This test is no longer relevant because if the sample has a subjectId
+       * we do the lookup by subjectId.
+       */
+      it.skip('Fail when no subject is found for the absolute path' +
         ' in the sample name',
         (done) => {
           const sampleObj = JSON.parse(JSON.stringify(sampleInstNA));
@@ -706,7 +711,11 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
             .catch(done);
         });
 
-      it('Fail when no aspect is found by sample name', (done) => {
+      /*
+       * This test is no longer relevant because if the sample has an aspectId
+       * we do the lookup by aspectId.
+       */
+      it.skip('Fail when no aspect is found by sample name', (done) => {
         const sampleObj = JSON.parse(JSON.stringify(sampleInstNA));
 
         delete sampleObj.aspect;
