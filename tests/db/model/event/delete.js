@@ -54,7 +54,7 @@ describe('tests/db/model/event/delete.js >', () => {
 
   afterEach(u.forceDelete);
 
-  it('ok, delete events by roomId', (done) => {
+  it.skip('ok, delete events by roomId', (done) => {
     Room.findAll()
     .then((rooms) => Event.destroy({ where: { roomId: rooms[ZERO].id } }))
     .then(() => Event.findAll())

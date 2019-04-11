@@ -80,7 +80,7 @@ describe('tests/api/v1/events/get.js >', () => {
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
-  it('Pass, get array of multiple', (done) => {
+  it.skip('Pass, get array of multiple', (done) => {
     api.get(`${path}`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -117,7 +117,7 @@ describe('tests/api/v1/events/get.js >', () => {
     });
   });
 
-  it('Pass, offset events', (done) => {
+  it.skip('Pass, offset events', (done) => {
     testEvent = u.getStandard();
     const arrayofPromises = [];
     for (let i = 0; i < TOTAL_EVENTS - PRE_BUILT_EVENTS; i++) {

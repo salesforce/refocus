@@ -55,7 +55,7 @@
     "test-cors": "CORS_ROUTES=/v1/bots,/v1/botActions,/v1/botData,/v1/events,/v1/rooms npm run test-with-coverage -- --recursive tests/cors",
     "test-db": "npm run checkdb && npm run test-with-coverage -- --recursive tests/db",
     "test-disablehttp": "REQUIRE_HTTPS=true npm run test-with-coverage -- --recursive tests/disableHttp",
-    "test-extra": "npm run test-api-log && npm run test-cache && npm run test-jobQueue && npm run test-view && npm run test-disablehttp && npm run test-cors && npm run test-limiter && npm run test-xfwd && npm run test-routes-enabled && npm run test-routes-disabled && test-cache-enable-preload-aspects",
+    "test-extra": "npm run test-api-log && npm run test-cache && npm run test-jobQueue && npm run test-view && npm run test-disablehttp && npm run test-cors && npm run test-limiter && npm run test-xfwd && npm run test-routes-enabled && npm run test-routes-disabled && npm run test-cache-enable-preload-aspects",
     "test-jobQueue": "npm run test-with-coverage -- --recursive tests/jobQueue",
     "test-limiter": "npm run test-with-coverage -- tests/limiter/limiter.js",
     "test-main": "npm run test-with-coverage -- --recursive tests/api tests/clock tests/config tests/db tests/enforceToken tests/realtime tests/enableCache tests/logging",
