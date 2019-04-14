@@ -12,7 +12,7 @@ module.exports = (req, res, next) => {
     console.log(`whitelist|remoteAddress|${ipAddr}`);
   }
 
-  request.get(`${ipWhitelistApplication}/${path}/${i}`)
+  request.get(`${ipWhitelistApplication}/${path}/${ipAddr}`)
     .then((_res) => {
       console.log(`whitelist|response|${_res.status}|${_res.body}`);
       if (_res.status === 200 && _res.body.allow === true) {
