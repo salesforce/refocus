@@ -19,16 +19,16 @@ module.exports = (req, res, next) => {
         console.log('whitelist response', _res.status, _res.body);
         Promise.resolve(_res.status === 200 && _res.body.allow)
       }));
-  if (promises.every((p) => {
-    console.log(`whitelist|${p}`);
-    return p;
-  })) {
-    return next();
-  }
+  Promise.all(promises)
+    .then((allow) => {
+      if (allow) {
+        return next();
+      }
 
-  const err = new Error('Access denied');
-  err.name = 'Unauthorized';
-  err.explanation = 'Unauthorized';
-  err.status = 401;
-  next(err);
+      const err = new Error('Access denied');
+      err.name = 'Unauthorized';
+      err.explanation = 'Unauthorized';
+      err.status = 401;
+      next(err);
+    });
 };
