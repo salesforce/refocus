@@ -19,9 +19,10 @@ module.exports = (req, res, next) => {
         console.log('whitelist response', _res.status, _res.body);
         Promise.resolve(_res.status === 200 && _res.body.allow)
       }));
-  Promise.all(promises)
+  return Promise.all(promises)
     .then((allow) => {
       if (allow) {
+        console.log('whitelist|OK');
         return next();
       }
 
@@ -29,6 +30,7 @@ module.exports = (req, res, next) => {
       err.name = 'Unauthorized';
       err.explanation = 'Unauthorized';
       err.status = 401;
-      next(err);
+      console.log('whitelist|unauthorized', err);
+      return next(err);
     });
 };
