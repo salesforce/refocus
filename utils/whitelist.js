@@ -17,10 +17,11 @@ module.exports = (req, res, next) => {
     request.get(`${ipWhitelistApplication}/${path}/${i}`)
       .then((_res) => {
         console.log('whitelist response', _res.status, _res.body);
-        Promise.resolve(_res.status === 200 && _res.body.allow)
+        return _res.status === 200 && _res.body.allow === true;
       }));
   return Promise.all(promises)
     .then((allow) => {
+      console.log()
       if (allow) {
         console.log('whitelist|OK');
         return next();
