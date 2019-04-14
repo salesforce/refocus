@@ -12,20 +12,12 @@ module.exports = (req, res, next) => {
     console.log(`whitelist|remoteAddress|${ipAddr}`);
   }
 
-  const arr = ipAddr.split(',').map((a) => a.trim());
-  const promises = arr.map((i) =>
-    request.get(`${ipWhitelistApplication}/${path}/${i}`)
-      .then((_res) => {
-        console.log('whitelist response', _res.status, _res.body);
-        return _res.status === 200 && _res.body.allow === true;
-      }));
-  return Promise.all(promises)
-    .then((allow) => {
-      console.log()
-      if (allow) {
-        console.log('whitelist|OK');
+  request.get(`${ipWhitelistApplication}/${path}/${i}`)
+    .then((_res) => {
+      console.log(`whitelist|response|${_res.status}|${_res.body}`);
+      if (_res.status === 200 && _res.body.allow === true) {
         return next();
-      }
+      };
 
       const err = new Error('Access denied');
       err.name = 'Unauthorized';
@@ -33,5 +25,6 @@ module.exports = (req, res, next) => {
       err.status = 401;
       console.log('whitelist|unauthorized', err);
       return next(err);
-    });
+    })
+    .catch(next);
 };
