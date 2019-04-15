@@ -18,25 +18,6 @@ const logger = new (winston.Logger)({
 });
 
 module.exports = {
-
-  /**
-   * Get IP Address from request.
-   * @param  {Object} req - Request object
-   * @returns {String} - IP Address
-   */
-  getIPAddrFromReq(req) {
-    let ipAddr = null;
-    if (req) {
-      if (req.headers && req.headers['x-forwarded-for']) {
-        ipAddr = req.headers['x-forwarded-for'];
-      } else if (req.connection && req.connection.remoteAddress) {
-        ipAddr = req.connection.remoteAddress;
-      }
-    }
-
-    return ipAddr;
-  },
-
   /**
    * Convert activity log object to String format and print.
    *

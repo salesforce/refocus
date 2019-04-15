@@ -33,7 +33,8 @@ const ENCODING = 'utf8';
 const compress = require('compression');
 const cors = require('cors');
 const etag = require('etag');
-const whitelist = require('./utils/whitelist');
+const ipAddressUtils = require('./utils/ipAddressUtils');
+const whitelistUtils = require('./utils/whitelistUtils');
 
 // set up server side socket.io and redis publisher
 const express = require('express');
@@ -85,6 +86,12 @@ if (featureToggles.isFeatureEnabled('requireHttps')) {
   app.use(enforcesSSL());
 }
 
+/*
+ * Set req.locals.ipAddress. Make sure this comes *before* the custom
+ * rejectMultipleXForwardedFor middleware!
+ */
+app.use(ipAddressUtils.middleware);
+
 // Reject (401) requests with multiple X-Forwarded-For values
 if (featureToggles.isFeatureEnabled('rejectMultipleXForwardedFor')) {
   app.use(rejectMultipleXForwardedFor);
@@ -92,7 +99,7 @@ if (featureToggles.isFeatureEnabled('rejectMultipleXForwardedFor')) {
 
 // Set the IP restricitions defined in config.js
 if (process.env.IP_WHITELIST_APPLICATION) {
-  app.use(whitelist);
+  app.use(whitelistUtils.middleware);
 } else {
   app.use(ipfilter(env.ipWhitelist, { mode: 'allow', log: false }));
 }

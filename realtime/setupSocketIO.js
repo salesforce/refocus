@@ -19,6 +19,8 @@ const rtUtils = require('./utils');
 const jwtUtils = require('../utils/jwtUtil');
 const redisClient = require('../cache/redisCache').client.realtimeLogging;
 const conf = require('../config');
+const ipAddressUtils = require('../utils/ipAddressUtils');
+const whitelistUtils = require('../utils/whitelistUtils');
 const ipWhitelist = conf.environment[conf.nodeEnv].ipWhitelist;
 const activityLogUtil = require('../utils/activityLog');
 const logEnabled = toggle.isFeatureEnabled('enableRealtimeActivityLogs');
@@ -97,34 +99,24 @@ function init(io, redisStore) {
       // console.log('[WSDEBUG] sid', sid);
       getUserFromSession(sid, redisStore)
       .then((user) => {
-
-        // OK, we've got a user from the session!
-        let ipAddress;
-
-        // Get IP address and perspective name from socket handshake.
-        if (socket.handshake) {
-          if (socket.handshake.headers && socket.handshake.headers[XFWD]) {
-            /*
-             * Reject if feature enabled and x-forwarded-for has multiple ip
-             * addresses.
-             */
-            if (toggle.isFeatureEnabled('rejectMultipleXForwardedFor') &&
-              socket.handshake.headers[XFWD].indexOf(',') !== -1) {
-              throw new Error(DISCO_MSG);
-            }
-
-            ipAddress = socket.handshake.headers[XFWD];
-
-            // console.log('[IPDEBUG] socket.handshake.headers' +
-            //   XFWD, ipAddress);
-          } else if (socket.handshake.address) {
-            // console.log('[IPDEBUG] socket.handshake.address', ipAddress);
-            ipAddress = socket.handshake.address;
-          }
-
-          rtUtils.isIpWhitelisted(ipAddress, ipWhitelist); // throws error
-        } else {
+        let ipAddress = ipAddressUtils.getIpAddress(socket);
+        if (!ipAddress) {
           throw new Error(DISCO_MSG);
+        }
+
+        /*
+         * Reject if feature enabled and x-forwarded-for has multiple ip
+         * addresses.
+         */
+        if (toggle.isFeatureEnabled('rejectMultipleXForwardedFor') &&
+          ipAddress.indexOf(',') !== -1) {
+          throw new Error(DISCO_MSG);
+        }
+
+        if (process.env.IP_WHITELIST_APPLICATION) {
+          whitelistUtils.isWhitelisted(ipAddress); // throws error
+        } else {
+          rtUtils.isIpWhitelisted(ipAddress, ipWhitelist); // throws error
         }
 
         if (logEnabled) {
