@@ -113,8 +113,6 @@ describe('tests/utils/ipAddressUtils.js > ', () => {
       expect(req.locals.ipAddress).to.equal('127.0.0.1');
     };
 
-    it('OK', () => {
-      mw(req, {}, fn);
-    });
+    it('OK', () => mw(req, {}, fn));
   });
 });

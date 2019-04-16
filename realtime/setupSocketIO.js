@@ -22,6 +22,7 @@ const conf = require('../config');
 const ipWhitelist = conf.environment[conf.nodeEnv].ipWhitelist;
 const activityLogUtil = require('../utils/activityLog');
 const ipAddressUtils = require('../utils/ipAddressUtils');
+const ipWhitelistUtils = require('../utils/ipWhitelistUtils');
 const logEnabled = toggle.isFeatureEnabled('enableRealtimeActivityLogs');
 const ONE = 1;
 const SID_REX = /connect.sid=s%3A([^\.]*)\./;
@@ -116,7 +117,17 @@ function init(io, redisStore) {
           throw new Error(DISCO_MSG);
         }
 
-        rtUtils.isIpWhitelisted(ipAddress, ipWhitelist); // throws error
+        if (conf.ipWhitelistService) {
+          ipWhitelistUtils.isWhitelisted(ipAddress)
+            .then((allowed) => {
+              if (!allowed) {
+                socket.disconnect();
+                return;
+              }
+            });
+        } else {
+          rtUtils.isIpWhitelisted(ipAddress, ipWhitelist); // throws error
+        }
 
         if (logEnabled) {
           const toLog = {
