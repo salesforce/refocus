@@ -21,6 +21,7 @@ const redisClient = require('../cache/redisCache').client.realtimeLogging;
 const conf = require('../config');
 const ipWhitelist = conf.environment[conf.nodeEnv].ipWhitelist;
 const activityLogUtil = require('../utils/activityLog');
+const ipAddressUtils = require('../utils/ipAddressUtils');
 const logEnabled = toggle.isFeatureEnabled('enableRealtimeActivityLogs');
 const ONE = 1;
 const SID_REX = /connect.sid=s%3A([^\.]*)\./;
@@ -99,33 +100,23 @@ function init(io, redisStore) {
       .then((user) => {
 
         // OK, we've got a user from the session!
-        let ipAddress;
-
         // Get IP address and perspective name from socket handshake.
-        if (socket.handshake) {
-          if (socket.handshake.headers && socket.handshake.headers[XFWD]) {
-            /*
-             * Reject if feature enabled and x-forwarded-for has multiple ip
-             * addresses.
-             */
-            if (toggle.isFeatureEnabled('rejectMultipleXForwardedFor') &&
-              socket.handshake.headers[XFWD].indexOf(',') !== -1) {
-              throw new Error(DISCO_MSG);
-            }
+        const ipAddress = ipAddressUtils.getIpAddressFromSocket(socket);
 
-            ipAddress = socket.handshake.headers[XFWD];
-
-            // console.log('[IPDEBUG] socket.handshake.headers' +
-            //   XFWD, ipAddress);
-          } else if (socket.handshake.address) {
-            // console.log('[IPDEBUG] socket.handshake.address', ipAddress);
-            ipAddress = socket.handshake.address;
-          }
-
-          rtUtils.isIpWhitelisted(ipAddress, ipWhitelist); // throws error
-        } else {
+        if (!ipAddress) {
           throw new Error(DISCO_MSG);
         }
+
+        /*
+         * Reject if feature enabled and x-forwarded-for has multiple ip
+         * addresses.
+         */
+        if (toggle.isFeatureEnabled('rejectMultipleXForwardedFor') &&
+          ipAddress.indexOf(',') !== -1) {
+          throw new Error(DISCO_MSG);
+        }
+
+        rtUtils.isIpWhitelisted(ipAddress, ipWhitelist); // throws error
 
         if (logEnabled) {
           const toLog = {

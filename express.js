@@ -33,6 +33,7 @@ const ENCODING = 'utf8';
 const compress = require('compression');
 const cors = require('cors');
 const etag = require('etag');
+const ipAddressUtils = require('./utils/ipAddressUtils');
 
 // set up server side socket.io and redis publisher
 const express = require('express');
@@ -83,6 +84,12 @@ if (featureToggles.isFeatureEnabled('requireHttps')) {
   app.enable('trust proxy');
   app.use(enforcesSSL());
 }
+
+/*
+ * Set req.locals.ipAddress. Make sure this comes *before* the custom
+ * rejectMultipleXForwardedFor middleware!
+ */
+app.use(ipAddressUtils.middleware);
 
 // Reject (401) requests with multiple X-Forwarded-For values
 if (featureToggles.isFeatureEnabled('rejectMultipleXForwardedFor')) {
