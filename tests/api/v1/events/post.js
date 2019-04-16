@@ -30,7 +30,7 @@ describe('tests/api/v1/events/post.js >', () => {
     })
     .catch(done);
   });
-
+  beforeEach(u.forceDelete);
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
