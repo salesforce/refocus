@@ -165,13 +165,8 @@ const longTermToggles = {
  */
 const shortTermToggles = {
 
-  // turn on logging to log invalid hmset values
-  logInvalidHmsetValues: environmentVariableTrue(pe,
-    'LOG_INVALID_HMSET_VALUES'),
-
-  // Enable GET from cache for /v1/subjects, /v1/subjects/{key}
-  getSubjectFromCache: environmentVariableTrue(pe,
-    'GET_SUBJECT_FROM_CACHE'),
+  // adds isBot to token and returns token on patches not just posts
+  addIsBotToToken: environmentVariableTrue(pe, 'ADD_ISBOT_TO_TOKEN'),
 
   // Enable caching for GET /v1/perspectives/{key}?
   enableCachePerspective: environmentVariableTrue(pe,
@@ -186,25 +181,30 @@ const shortTermToggles = {
   // Enable using worker dyno for hierarchy queries
   enqueueHierarchy: environmentVariableTrue(pe, 'ENQUEUE_HIERARCHY'),
 
-  // Add some job queue instrumentation logging
-  instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
+  // Enable GET from cache for /v1/subjects, /v1/subjects/{key}
+  getSubjectFromCache: environmentVariableTrue(pe, 'GET_SUBJECT_FROM_CACHE'),
 
   instrumentCompleteSubjectHierarchy: environmentVariableTrue(pe,
     'INSTRUMENT_COMPLETE_SUBJECT_HIERARCHY'),
 
-  returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
+  // Add some job queue instrumentation logging
+  instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
 
-  // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
-  requireHelpEmailOrHelpUrl: environmentVariableTrue(
-    pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
-
-  // adds isBot to token and returns token on patches not just posts
-  addIsBotToToken: environmentVariableTrue(
-    pe, 'ADD_ISBOT_TO_TOKEN'),
+  // turn on logging to log invalid hmset values
+  logInvalidHmsetValues: environmentVariableTrue(pe,
+    'LOG_INVALID_HMSET_VALUES'),
 
   // preload aspects for each bulk upsert
-  preloadAspectsForEachBulkUpsert: environmentVariableTrue(
-  pe, 'PRELOAD_ASPECTS_BULK_UPSERT'),
+  preloadAspectsForEachBulkUpsert: environmentVariableTrue(pe,
+    'PRELOAD_ASPECTS_BULK_UPSERT'),
+
+  // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
+  requireHelpEmailOrHelpUrl: environmentVariableTrue(pe,
+    'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
+
+  returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
+
+  useKafkaForPubsub: environmentVariableTrue(pe, 'USE_KAFKA_FOR_PUBSUB'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

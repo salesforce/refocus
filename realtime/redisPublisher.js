@@ -20,6 +20,7 @@ const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const pubSubStats = require('./pubSubStats');
 const ONE = 1;
+const kafka = require('./kafka');
 
 /**
  * Returns a random integer between min (inclusive) and max (inclusive).
@@ -119,6 +120,29 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
  * @returns {Object} - object that was published
  */
 function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
+  if (featureToggles.isFeatureEnabled('useKafkaForPubsub') {
+    return publishObjectToKafka(inst, event, changedKeys, ignoreAttributes,
+      opts);
+  } else {
+    return publishObjectToRedis(inst, event, changedKeys, ignoreAttributes,
+      opts);
+  }
+} // publishObject
+
+/**
+ * This function publishes an created, updated or a deleted model instance to
+ * the redis channel and returns the object that was published
+ *
+ * @param  {Object} inst - Model instance to be published
+ * @param  {String} event  - Type of the event that is being published
+ * @param  {[Array]} changedKeys - An array containing the fields of the model
+ * that were changed
+ * @param  {[Array]} ignoreAttributes An array containing the fields of the
+ * model that should be ignored
+ * @param  {Object} opts - Options for which client and channel to publish with
+ * @returns {Object} - object that was published
+ */
+function publishObjectToRedis(inst, event, changedKeys, ignoreAttributes, opts) {
   if (!inst || !event) return false;
   const obj = {};
   obj[event] = inst.get ? inst.get() : inst;
@@ -161,7 +185,65 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
 
   pubClient.publish(channelName, JSON.stringify(obj));
   return obj;
-} // publishObject
+} // publishObjectToRedis
+
+/**
+ * This function publishes an created, updated or a deleted model instance to
+ * the redis channel and returns the object that was published
+ *
+ * @param  {Object} inst - Model instance to be published
+ * @param  {String} event  - Type of the event that is being published
+ * @param  {[Array]} changedKeys - An array containing the fields of the model
+ * that were changed
+ * @param  {[Array]} ignoreAttributes An array containing the fields of the
+ * model that should be ignored
+ * @param  {Object} opts - Options for which client and channel to publish with
+ * @returns {Object} - object that was published
+ */
+function publishObjectToKafka(inst, event, changedKeys, ignoreAttributes, opts) {
+  if (!inst || !event) return false;
+  const obj = {};
+  obj[event] = inst.get ? inst.get() : inst;
+
+  /*
+   * Set pub client and channel to perspective unless there are overrides opts.
+   * There may be multiple publishers for perspectives to spread the load, so
+   * pick one at random.
+   */
+  const len = pubPerspectives.length;
+  const whichPubsub = len === 1 ? 0 : getRandomInt(0, (len - 1));
+  let pubClient = pubPerspectives[whichPubsub];
+  let channelName = perspectiveChannelName;
+  if (opts) {
+    obj[event].pubOpts = opts;
+    pubClient = opts.client ? client[opts.client] : pubClient;
+    channelName = opts.channel ? config.redis[opts.channel] : channelName;
+  }
+
+  /**
+   * The shape of the object required for update events are a bit different.
+   * changedKeys and ignoreAttributes are passed in as arrays by the
+   * afterUpdate hooks of the models, which are passed to the prepareToPublish
+   * to get the object just for update events.
+   */
+  if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
+    const prepared = prepareToPublish(obj[event], changedKeys,
+      ignoreAttributes);
+    if (!prepared) return false;
+    obj[event] = prepared;
+  }
+
+  if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
+    try {
+      pubSubStats.track('pub', event, obj[event]);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  pubClient.publish(channelName, JSON.stringify(obj));
+  return obj;
+} // publishObjectToKafka
 
 /**
  * The sample object needs to be attached its subject object and it also needs
