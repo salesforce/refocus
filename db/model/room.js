@@ -51,6 +51,14 @@ module.exports = function room(seq, dataTypes) {
       allowNull: true,
       comment: 'Key/Value pairs for user specific settings',
     },
+    origin: {
+      type: dataTypes.STRING,
+      defaultValue: 'other',
+      validate: {
+        is: constants.nameRegex,
+      },
+      comment: 'Tracks where refocus room was created from',
+    },
     active: {
       type: dataTypes.BOOLEAN,
       defaultValue: false,
