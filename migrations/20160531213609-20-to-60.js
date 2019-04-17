@@ -29,13 +29,6 @@ module.exports = {
       validate: {
         is: /^[0-9a-z_-]+$/i,
       },
-    }))
-    .then(() => qi.changeColumn('Tags', 'name', {
-      type: Sequelize.STRING(60),
-      allowNull: false,
-      validate: {
-        is: /^[0-9a-z_-]+$/i,
-      },
     }));
   },
 
@@ -55,13 +48,6 @@ module.exports = {
       },
     })
     .then(() => qi.changeColumn('Aspects', 'name', {
-      type: Sequelize.STRING(20),
-      allowNull: false,
-      validate: {
-        is: /^[0-9a-z_-]+$/i,
-      },
-    }))
-    .then(() => qi.changeColumn('Tags', 'name', {
       type: Sequelize.STRING(20),
       allowNull: false,
       validate: {
