@@ -120,7 +120,7 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
  * @returns {Object} - object that was published
  */
 function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
-  if (featureToggles.isFeatureEnabled('useKafkaForPubsub') {
+  if (featureToggles.isFeatureEnabled('useKafkaForPubsub')) {
     return publishObjectToKafka(inst, event, changedKeys, ignoreAttributes,
       opts);
   } else {
