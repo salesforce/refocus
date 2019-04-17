@@ -16,6 +16,9 @@ const roomTypeUtil = require('../roomTypes/utils');
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestRoom`;
 const n2 = n + 'NonActive';
+const o = `${tu.namePrefix}TestOrigin`;
+const o2 = o + 'NonActive';
+const invalidOrigin = `${tu.namePrefix}^origin*`;
 
 const roomTypeSchema = {
   name: 'roomTypeTest',
@@ -92,11 +95,13 @@ const roomTypeSchema = {
 const standard = {
   name: n,
   active: true,
+  origin: o,
 };
 
 const nonActive = {
   name: n2,
   active: true,
+  origin: o2,
 };
 
 module.exports = {
@@ -104,7 +109,13 @@ module.exports = {
 
   nameNonActive: n2,
 
+  origin: o,
+
+  originNonActive: o2,
+
   rtSchema: roomTypeSchema,
+
+  invalidOrigin,
 
   getStandard() {
     return JSON.parse(JSON.stringify(standard));
