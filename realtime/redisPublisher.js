@@ -22,6 +22,9 @@ const pubSubStats = require('./pubSubStats');
 const ONE = 1;
 const kafka = require('./kafka');
 
+console.log('/realtime/redisPublisher.js about to call kafka.init()');
+kafka.init();
+
 /**
  * Returns a random integer between min (inclusive) and max (inclusive).
  * The value is no lower than min (or the next integer greater than min
@@ -205,27 +208,6 @@ function publishObjectToKafka(inst, event, changedKeys, ignoreAttributes, opts) 
   const obj = {};
   obj[event] = inst.get ? inst.get() : inst;
 
-  /*
-   * Set pub client and channel to perspective unless there are overrides opts.
-   * There may be multiple publishers for perspectives to spread the load, so
-   * pick one at random.
-   */
-  const len = pubPerspectives.length;
-  const whichPubsub = len === 1 ? 0 : getRandomInt(0, (len - 1));
-  let pubClient = pubPerspectives[whichPubsub];
-  let channelName = perspectiveChannelName;
-  if (opts) {
-    obj[event].pubOpts = opts;
-    pubClient = opts.client ? client[opts.client] : pubClient;
-    channelName = opts.channel ? config.redis[opts.channel] : channelName;
-  }
-
-  /**
-   * The shape of the object required for update events are a bit different.
-   * changedKeys and ignoreAttributes are passed in as arrays by the
-   * afterUpdate hooks of the models, which are passed to the prepareToPublish
-   * to get the object just for update events.
-   */
   if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
     const prepared = prepareToPublish(obj[event], changedKeys,
       ignoreAttributes);
@@ -233,15 +215,15 @@ function publishObjectToKafka(inst, event, changedKeys, ignoreAttributes, opts) 
     obj[event] = prepared;
   }
 
-  if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
-    try {
-      pubSubStats.track('pub', event, obj[event]);
-    } catch (err) {
-      console.error(err);
+  kafka.producer.send({
+    topic: 'perspectives',
+    partition: 0,
+    message: {
+      key: event,
+      value: obj[event]
     }
-  }
+  });
 
-  pubClient.publish(channelName, JSON.stringify(obj));
   return obj;
 } // publishObjectToKafka
 
