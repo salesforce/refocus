@@ -19,6 +19,8 @@ const pubSubStats = require('./pubSubStats');
 const ZERO = 0;
 const ONE = 1;
 const kafkaConsumer = require('./kafkaConsumer');
+const { StringDecoder } = require('string_decoder');
+const decoder = new StringDecoder('utf8');
 
 function emitViaRedis(io) {
   const allSubscribers = subPerspectives.concat(subBot);
@@ -53,7 +55,7 @@ function emitViaKafka(io) {
   kafkaConsumer.subscribe((messageSet, topic, partition) => {
     messageSet.forEach((m) => {
       console.log('KAFKA', topic, partition, m.offset,
-        JSON.stringify(m.message.key), JSON.stringify(m.message.value));
+        decoder.write(m.message.key), decoder.write(m.message.value));
     });
   });
 } // emitViaKafka
