@@ -10,6 +10,7 @@
  * ./realTime/redisSubscriber.js
  */
 'use strict'; // eslint-disable-line strict
+const debug = require('debug')('k');
 const featureToggles = require('feature-toggles');
 const emitter = require('./socketIOEmitter');
 const subPerspectives = require('../cache/redisCache').client.subPerspectives;
@@ -55,10 +56,10 @@ function emitViaRedis(io) {
 function emitViaKafka(io) {
   kafkaConsumer.subscribe((messageSet, topic, partition) => {
     messageSet.forEach((m) => {
-      const key = m.message.key.toString();
-      const value = m.message.value.toString();
-      console.log('KEY', key);
-      console.log('VALUE', util.inspect(value, { depth: 5 }));
+      const keyStr = m.message.key.toString();
+      const valueStr = m.message.value.toString();
+      const valueObj = JSON.parse(valueStr);
+      debug('emitViaKafka %s/%s keyStr=%s valueStr=%s valueObj=%o', topic, partition, keyStr, valueStr, valueObj);
       // emitter(io, key, value, {});
     });
   });
