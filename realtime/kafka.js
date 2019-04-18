@@ -5,6 +5,7 @@ console.log('KAFKA entered realtime/kafka.js');
 const producer = new Kafka.Producer({
   'debug' : 'all',
   'metadata.broker.list': process.env.KAFKA_URL,
+  'dr_cb': true , // delivery report callback
 });
 
 const topicName = 'perspectives';
