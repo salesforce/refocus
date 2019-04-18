@@ -76,4 +76,3 @@ return producer.init().then(function (initResponse) {
 //   },
 // }
 
-const
