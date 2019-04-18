@@ -1,5 +1,7 @@
 const Kafka = require('node-rdkafka');
 
+console.log('KAFKA entered realtime/kafka.js');
+
 const producer = new Kafka.Producer({
   'debug' : 'all',
   'metadata.broker.list': process.env.KAFKA_URL,
@@ -11,6 +13,7 @@ producer.connect();
 
 // Wait for the ready event before proceeding
 producer.on('ready', () => {
+  console.log('KAFKA producer is ready');
   try {
     producer.produce(
       topicName, // topic name
@@ -21,6 +24,7 @@ producer.on('ready', () => {
       // you can send an opaque token here, which gets passed along
       // to your delivery reports
     );
+    console.log('KAFKA producer produced a message')
   } catch (err) {
     console.error('A problem occurred when sending our message');
     console.error(err);
