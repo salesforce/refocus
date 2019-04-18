@@ -21,6 +21,7 @@ const ONE = 1;
 const kafkaConsumer = require('./kafkaConsumer');
 const { StringDecoder } = require('string_decoder');
 const decoder = new StringDecoder('utf8');
+const util = require('util');
 
 function emitViaRedis(io) {
   const allSubscribers = subPerspectives.concat(subBot);
@@ -54,8 +55,10 @@ function emitViaRedis(io) {
 function emitViaKafka(io) {
   kafkaConsumer.subscribe((messageSet, topic, partition) => {
     messageSet.forEach((m) => {
-      console.log('THIS IS M.MESSAGE.KEY', m.message.key.toString());
-      console.log('THIS IS M.MESSAGE.VALUE', m.message.value.toString());
+      const key = m.message.key.toString();
+      const value = m.message.value.toString();
+      console.log('KEY', key);
+      console.log('VALUE', util.inspect(value, { depth: 5 }));
       // emitter(io, key, value, {});
     });
   });
