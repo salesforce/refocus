@@ -18,16 +18,10 @@ const rtUtils = require('./utils');
 const pubSubStats = require('./pubSubStats');
 const ZERO = 0;
 const ONE = 1;
+const kafkaConsumer = require('./kafkaConsumer');
 
-/**
- * Redis subscriber uses socket.io to broadcast messages to Perspectives and
- * Bots.
- *
- * @param {Socket.io} io - Socket.io's Server API
- * @param {String} processName - Process name
- */
-const allSubscribers = subPerspectives.concat(subBot);
-module.exports = (io) => {
+function emitViaRedis(io) {
+  const allSubscribers = subPerspectives.concat(subBot);
   allSubscribers.forEach((s) => {
     s.on('message', (channel, messageAsString) => {
       const obj = JSON.parse(messageAsString);
@@ -53,4 +47,29 @@ module.exports = (io) => {
       emitter(io, key, parsedObj, pubOpts);
     });
   });
+} // emitViaRedis
+
+function emitViaKafka(io) {
+  function handler(messageSet, topic, partition) {
+    messageSet.forEach((m) => {
+      console.log('KAFKA', topic, partition, m.offset, m.message);
+    });
+  } // handler
+
+  kafkaConsumer.subscribe('perspectives', handler);
+} // emitViaKafka
+
+/**
+ * Redis subscriber uses socket.io to broadcast messages to Perspectives and
+ * Bots.
+ *
+ * @param {Socket.io} io - Socket.io's Server API
+ * @param {String} processName - Process name
+ */
+module.exports = (io) => {
+  if (featureToggles.isFeatureEnabled('useKafkaForPubsub')) {
+    emitViaKafka(io);
+  } else {
+    emitViaRedis(io);
+  }
 };

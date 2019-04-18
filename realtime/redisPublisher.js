@@ -20,10 +20,7 @@ const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const pubSubStats = require('./pubSubStats');
 const ONE = 1;
-const kafka = require('./kafka');
-
-console.log('/realtime/redisPublisher.js about to call kafka.init()');
-kafka.init();
+const kafkaProducer = require('./kafkaProducer');
 
 /**
  * Returns a random integer between min (inclusive) and max (inclusive).
@@ -215,14 +212,7 @@ function publishObjectToKafka(inst, event, changedKeys, ignoreAttributes, opts) 
     obj[event] = prepared;
   }
 
-  kafka.producer.send({
-    topic: 'perspectives',
-    partition: 0,
-    message: {
-      key: event,
-      value: obj[event]
-    }
-  });
+  kafkaProducer.send(event, obj[event]);
 
   return obj;
 } // publishObjectToKafka
