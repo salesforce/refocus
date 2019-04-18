@@ -54,11 +54,14 @@ function emitViaRedis(io) {
 function emitViaKafka(io) {
   kafkaConsumer.subscribe((messageSet, topic, partition) => {
     messageSet.forEach((m) => {
-      const key = decoder.write(m.message.key);
-      const value = decoder.write(m.message.value);
-      console.log('KAFKA', topic, partition, m.offset, key,
-        JSON.stringify(value));
-      emitter(io, key, value, {});
+      console.log('THIS IS M', typeof m, JSON.stringify(m));
+      console.log('THIS IS M.MESSAGE', typeof m.message, JSON.stringify(m.message));
+      console.log('THIS IS M.MESSAGE.KEY', typeof m.message.key, JSON.stringify(m.message.key));
+      console.log('THIS IS M.MESSAGE.VALUE', typeof m.message.value, JSON.stringify(m.message.value));
+      // const msg = decoder.write(m.message);
+      // const value = decoder.write(m.message.value);
+      console.log('KAFKA', topic, partition, m.offset);
+      // emitter(io, key, value, {});
     });
   });
 } // emitViaKafka
