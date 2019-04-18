@@ -16,9 +16,6 @@ module.exports = {
   send: (key, value) => producer.send({
     topic: 'perspectives',
     partition: 0,
-    message: {
-      key: event,
-      value: m,
-    }
+    message: { key, value },
   }),
 };
