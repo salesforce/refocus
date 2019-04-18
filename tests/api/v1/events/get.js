@@ -28,7 +28,6 @@ const rt = require('../../../db/model/roomType/utils');
 const DEFAULT_LIMIT = 100;
 const TOTAL_EVENTS = 150;
 const PRE_BUILT_EVENTS = 3;
-const TEN = 10;
 
 describe('tests/api/v1/events/get.js >', () => {
   let testEvent = u.getStandard();
@@ -44,8 +43,7 @@ describe('tests/api/v1/events/get.js >', () => {
   let OLD_EVENTS;
 
   before((done) => {
-    const dt = new Date();
-    u.forceDelete(null, dt.setMinutes(dt.getMinutes() - TEN));
+    u.forceDelete(null, new Date());
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
