@@ -15,7 +15,7 @@ console.log("Kafka consumer has been started");
 consumer.init();
 
 module.exports = {
-  subscribe: (topic, handler) => {
-    consumer.subscribe(topic, handler);
+  subscribe: (handler) => {
+    consumer.subscribe('perspectives', handler);
   }
 };

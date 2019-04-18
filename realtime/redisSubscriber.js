@@ -50,13 +50,11 @@ function emitViaRedis(io) {
 } // emitViaRedis
 
 function emitViaKafka(io) {
-  function handler(messageSet, topic, partition) {
+  kafkaConsumer.subscribe((messageSet, topic, partition) => {
     messageSet.forEach((m) => {
-      console.log('KAFKA', topic, partition, m.offset, m.message);
+      console.log('KAFKA', topic, partition, m.offset, JSON.stringify(m.message));
     });
-  } // handler
-
-  kafkaConsumer.subscribe('perspectives', handler);
+  });
 } // emitViaKafka
 
 /**
