@@ -54,8 +54,8 @@ function emitViaRedis(io) {
 function emitViaKafka(io) {
   kafkaConsumer.subscribe((messageSet, topic, partition) => {
     messageSet.forEach((m) => {
-      console.log('THIS IS M.MESSAGE.KEY', typeof m.message.key, m.message.key instanceof Buffer, m.message.key.toJSON(), JSON.stringify(m.message.key.toJSON()));
-      console.log('THIS IS M.MESSAGE.VALUE', typeof m.message.value, m.message.value instanceof Buffer, m.message.value.toJSON(), JSON.stringify(m.message.value.toJSON()));
+      console.log('THIS IS M.MESSAGE.KEY', m.message.key.toString());
+      console.log('THIS IS M.MESSAGE.VALUE', m.message.value.toString());
       // emitter(io, key, value, {});
     });
   });
