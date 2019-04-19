@@ -12,7 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const status = require('../../../../api/v1/constants').httpStatus;
 const u = require('./utils');
 const gu = require('../generators/utils');

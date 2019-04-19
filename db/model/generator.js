@@ -14,6 +14,8 @@ const common = require('../helpers/common');
 const dbUtils = require('../utils');
 const sgUtils = require('../helpers/generatorUtil');
 const collectorUtils = require('../helpers/collectorUtils');
+const conf = require('../../config');
+const collectorConfig = require('../../config/collectorConfig');
 const cryptUtils = require('../../utils/cryptUtils');
 const activityLogUtil = require('../../utils/activityLog');
 const constants = require('../constants');
@@ -90,6 +92,10 @@ module.exports = function generator(seq, dataTypes) {
       type: dataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
+    },
+    lastUpsert: {
+      type: dataTypes.DATE,
+      allowNull: true,
     },
     name: {
       type: dataTypes.STRING(constants.fieldlen.normalName),
@@ -423,6 +429,33 @@ module.exports = function generator(seq, dataTypes) {
   }; // findForHeartbeat
 
   /**
+   * Checks for generators that have missed their sample upsert, and reassigns to another collector.
+   *
+   * @returns {Promise<Array<Generator>>}
+   */
+  Generator.checkMissedUpsert = function () {
+    return Generator.findAll()
+    .then((gens) => gens.filter((g) => g.shouldReassign()))
+    .map((gen) => {
+      logMissedUpsert(gen);
+      return gen.assignToCollector().then(() => gen.save());
+    });
+  }; // checkMissedUpsert
+
+  function logMissedUpsert(gen) {
+    const logObj = {
+      generator: gen.name,
+      gtName: gen.generatorTemplate && gen.generatorTemplate.name,
+      gtVersion: gen.generatorTemplate && gen.generatorTemplate.version,
+      currentCollector: gen.currentCollector && gen.currentCollector.name,
+      lastUpsert: gen.lastUpsert && gen.lastUpsert.getTime(),
+      delta: gen.lastUpsert && Date.now() - gen.lastUpsert.getTime(),
+    };
+
+    activityLogUtil.printActivityLogString(logObj, 'missedUpsert');
+  } // logMissedUpsert
+
+  /**
    * Instance Methods:
    */
 
@@ -454,6 +487,37 @@ module.exports = function generator(seq, dataTypes) {
     .then(() => this.update(requestBody))
     .then(() => this.reload());
   };
+
+  /**
+   * Determines whether the time since the last sample upsert is within
+   * the latency tolerance.
+   *
+   * @returns {Boolean}
+   */
+  Generator.prototype.shouldReassign = function () {
+    if (!this.currentCollector || !this.lastUpsert) return false;
+
+    const expectedInterval = this.intervalSecs * 1000;
+    const toleranceFactor = conf.generatorUpsertToleranceFactor;
+    const retries = conf.generatorMissedUpsertRetries;
+    const jobInterval = collectorConfig.heartbeatIntervalMillis;
+    const timeSinceUpsert = Date.now() - this.lastUpsert.getTime();
+    const upsertTolerance = expectedInterval * toleranceFactor;
+
+    /* The time in ms the generator is over the upsert tolerance by. */
+    const delta = timeSinceUpsert - upsertTolerance;
+
+    /*
+     * The time past the upsert tolerance we should keep trying to reassign for.
+     * Once a generator has stopped, and if reassigning fails to fix it, it will
+     * be reassigned every interval when the job runs.
+     * This is necessary to prevent failing generators from being bounced around indefinitely.
+     */
+    const retryCap = jobInterval * retries;
+
+    /* Reassign the generator if it is over the upsert tolerance but not over the retry cap. */
+    return 0 < delta && delta < retryCap;
+  }; // shouldReassign
 
   Generator.prototype.isWritableBy = function (who) {
     return new seq.Promise((resolve /* , reject */) =>
@@ -496,15 +560,23 @@ module.exports = function generator(seq, dataTypes) {
    * one with the fewest number of currently assigned generators. Break ties
    * based on the collector name.
    * @param  {Array} collectors - Array of collector objects
+   * @param  {Collector} currentCollector - The collector the generator is assigned to.
    * @return {Promise} - Resolves to most available collector found
    */
-  function getMostAvailableCollector(collectors) {
+  function getMostAvailableCollector(collectors, currentCollector) {
     // get alive and running collectors
-    const upCollectors = collectors.filter((c) =>
+    let upCollectors = collectors.filter((c) =>
      c.isRunning() && c.isAlive());
 
     if (upCollectors.length === 0) { // no alive/running collectors
       return Promise.resolve();
+    }
+
+    // make sure we don't assign back to the same one, unless it's the only option
+    if (currentCollector && upCollectors.length !== 1) {
+      upCollectors = upCollectors.filter((coll) =>
+        coll.name !== currentCollector.name
+      );
     }
 
     const promises = [];
@@ -583,7 +655,7 @@ module.exports = function generator(seq, dataTypes) {
       const collectorGroup = this.collectorGroup;
       const potentialCollectors = collectorGroup && collectorGroup.collectors;
       if (this.isActive && potentialCollectors && potentialCollectors.length) {
-        return getMostAvailableCollector(potentialCollectors);
+        return getMostAvailableCollector(potentialCollectors, this.currentCollector);
       }
 
       return Promise.resolve();
@@ -591,13 +663,16 @@ module.exports = function generator(seq, dataTypes) {
     .then((mostAvailCollector) => {
       logAssignment(this.name, this.currentCollector, mostAvailCollector);
 
-      // We could use setCurrentCollector, but that would result in database
-      // saves that would be unnecessary and complicate our logic in the db
-      // hooks. Instead, we set the foreign key (collectorId) from collector
-      // model. We also mock the currentCollector on the instance to avoid
-      // needing a database reload.
+      // Doing setCurrentCollector would result in redundant db saves and
+      // complicate the hook logic. Instead, we mock it here and save later.
       this.collectorId = mostAvailCollector ? mostAvailCollector.id : null;
       this.currentCollector = mostAvailCollector || null;
+      this._changed.collectorId = true;
+
+      // reset lastUpsert when unassigned
+      if (!this.currentCollector) {
+        this.lastUpsert = null;
+      }
     });
   }; // assignToCollector
 

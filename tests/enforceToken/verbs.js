@@ -14,7 +14,7 @@
 const expect = require('chai').expect;
 const constants = require('../../api/v1/constants');
 const supertest = require('supertest');
-const api = supertest(require('../../index').app);
+const api = supertest(require('../../express').app);
 const u = require('../testUtils');
 const registerPath = '/v1/register';
 const { OK, CREATED, FORBIDDEN } = constants.httpStatus;

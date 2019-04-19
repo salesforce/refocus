@@ -10,7 +10,7 @@
  * tests/api/v1/events/postBulk.js
  */
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const tu = require('../../../testUtils');
@@ -33,7 +33,6 @@ describe('tests/api/v1/events/postBulk.js >', () => {
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
   after(() => {

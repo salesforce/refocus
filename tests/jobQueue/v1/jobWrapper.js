@@ -107,6 +107,9 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
           TokenName: 'Smaug',
           'x-forwarded-for': '123.456.789',
         },
+        locals: {
+          ipAddress: '123.456.789',
+        },
       })).to.equal('high');
     });
 
@@ -116,6 +119,9 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
           UserName: 'legolas@elf.com',
           TokenName: 'abcdefg',
           'x-forwarded-for': '456.789.123',
+        },
+        locals: {
+          ipAddress: '456.789.123',
         },
       })).to.equal('high');
     });
@@ -127,6 +133,9 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
           TokenName: 'Smaug',
           'x-forwarded-for': '123.456.789',
         },
+        locals: {
+          ipAddress: '123.456.789',
+        },
       })).to.equal('high');
     });
 
@@ -136,6 +145,9 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
           UserName: 'bilbo.baggins@hobbiton.com',
           TokenName: 'Smaug',
           'x-forwarded-for': '789.123.456',
+        },
+        locals: {
+          ipAddress: '789.123.456',
         },
       })).to.equal('low');
     });
@@ -147,6 +159,9 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
           TokenName: 'hijklmnop',
           'x-forwarded-for': '789.123.456',
         },
+        locals: {
+          ipAddress: '789.123.456',
+        },
       })).to.equal('low');
     });
 
@@ -157,6 +172,9 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
           TokenName: 'Smaug',
           'x-forwarded-for': '456.789.123',
         },
+        locals: {
+          ipAddress: '456.789.123',
+        },
       })).to.equal('low');
     });
 
@@ -166,6 +184,9 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
           UserName: 'frodo.baggins@hobbiton.com',
           TokenName: 'Smaug',
           'x-forwarded-for': '123.456.789',
+        },
+        locals: {
+          ipAddress: '123.456.789',
         },
       })).to.equal('normal');
     });

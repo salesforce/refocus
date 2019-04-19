@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../index').app);
+const api = supertest(require('../../express').app);
 const constants = require('../../api/v1/constants');
 const tu = require('../testUtils');
 const u = require('./utils');
@@ -183,12 +183,20 @@ describe('tests/limiter/limiter.js >', () => {
     });
 
     it('First user, 429', (done) => {
-      makeRequest('/v1/aspects', 'post', token1)
+      makeRequest('/v1/aspects', 'post', token1,
+        { name: tu.namePrefix + 'Oops' })
       .then((res) => {
         expect(res.status).to.equal(constants.httpStatus.TOO_MANY_REQUESTS);
         expect(res.header['x-ratelimit-limit']).to.equal('3');
         expect(res.header['x-ratelimit-remaining']).to.equal('0');
-        done();
+
+        // Now make sure the new aspect was NOT created!
+        makeRequest(`/v1/aspects/${tu.namePrefix}Oops`, 'get', token1)
+          .then((res) => {
+            expect(res.status).to.equal(404);
+            done();
+          })
+          .catch(done);
       })
       .catch(done);
     });

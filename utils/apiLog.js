@@ -99,7 +99,7 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
 
     // create api activity log object
     const logObject = {
-      ipAddress: activityLogUtil.getIPAddrFromReq(req),
+      ipAddress: req.locals.ipAddress,
       method: req.method,
       process: req.process,
       requestBytes: getSize(req.body),
@@ -115,6 +115,11 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
      */
     logObject.user = req.headers.UserName;
     logObject.token = req.headers.TokenName;
+
+    // Add collector name when available (included in collector upsert)
+    if (req.headers['collector-name']) {
+      logObject.collector = req.headers['collector-name'];
+    }
 
     combineAndLog(resultObj, logObject, obj, recordCountOverride);
   }

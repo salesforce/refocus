@@ -159,7 +159,7 @@ module.exports = function errorHandler(err, req, res, next) {
         if (featureToggles.isFeatureEnabled('enableUnauthorizedActivityLogs')) {
           const logObject = {
             activity: 'unauthorized',
-            ipAddress: activityLog.getIPAddrFromReq(req),
+            ipAddress: req.locals.ipAddress,
             uri: req.url,
             method: req.method,
           };
@@ -168,7 +168,7 @@ module.exports = function errorHandler(err, req, res, next) {
           if (req.request_id) logObject.request_id = req.request_id;
           activityLog.printActivityLogString(logObject, 'unauthorized');
         }
-      } else {
+      } else if (!err.status) {
         err.status = constants.httpStatus.BAD_REQUEST;
       }
     }

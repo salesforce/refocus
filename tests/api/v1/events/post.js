@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const path = '/v1/events';
@@ -30,7 +30,7 @@ describe('tests/api/v1/events/post.js >', () => {
     })
     .catch(done);
   });
-
+  beforeEach(u.forceDelete);
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 

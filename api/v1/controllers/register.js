@@ -10,7 +10,7 @@
  * api/v1/controllers/register.js
  */
 
-const configuredPassport = require('../../../index').passportModule;
+const configuredPassport = require('../../../express').passportModule;
 const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
 const helper = require('../helpers/nouns/users');

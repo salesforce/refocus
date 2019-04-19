@@ -14,6 +14,7 @@
 module.exports = {
   api: {
     activity: 'api',
+    collector: 'None',
     dbTime: '0ms',
     ipAddress: 'None',
     method: 'None', // one of HTTP verbs
@@ -123,6 +124,15 @@ module.exports = {
     activity: 'missedHeartbeat',
     collector: 'None',
     lastHeartbeat: 'None',
+    delta: 'None',
+  },
+  missedUpsert: {
+    activity: 'missedUpsert',
+    generator: 'None',
+    gtName: 'None',
+    gtVersion: 'None',
+    currentCollector: 'None',
+    lastUpsert: 'None',
     delta: 'None',
   },
   pubsub: {
