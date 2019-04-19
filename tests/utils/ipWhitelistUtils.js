@@ -56,7 +56,7 @@ describe('tests/utils/ipWhitelistUtils.js > ', () => {
         .then(() => done(new Error('expecting error')))
         .catch((err) => {
           expect(err).to.be.Error;
-          expect(err).to.have.property('message', 'refocus-whitelist error')
+          expect(err).to.have.property('message', 'refocus-whitelist error');
           done();
         });
     });
