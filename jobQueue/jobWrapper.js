@@ -123,7 +123,7 @@ function logJobOnComplete(req, job) {
      */
     if (req) {
       if (req.request_id) logObject.request_id = req.request_id;
-      logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
+      logObject.ipAddress = req.locals.ipAddress;
 
       /*
        * we already set UserName and TokenName in req headers when verifying
@@ -152,7 +152,7 @@ function logJobOnComplete(req, job) {
 function calculateJobPriority(prioritize, deprioritize, req) {
   // low=10, normal=0, medium=-5, high=-10, critical=-15
   if (!req) return 'normal';
-  const ip = activityLogUtil.getIPAddrFromReq(req);
+  const ip = req.locals.ipAddress;
   const un = req.headers.UserName || '';
   const tn = req.headers.TokenName || '';
   if (prioritize.includes(ip) ||
