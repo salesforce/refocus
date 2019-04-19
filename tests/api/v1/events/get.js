@@ -40,6 +40,7 @@ describe('tests/api/v1/events/get.js >', () => {
   testEvent3.context.type = 'Comment';
   testEvent3.log = 'Sample Event 3';
   let token;
+
   // Figured out events being made elsewhere and not getting deleted.
   // This gets a count of any events before the tests are run.
   // We can then check our gets + this amount to get amount of events.
