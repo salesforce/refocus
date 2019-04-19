@@ -121,9 +121,11 @@ function init(io, redisStore) {
           ipWhitelistUtils.isWhitelisted(ipAddress)
             .then((allowed) => {
               if (!allowed) {
-                socket.disconnect();
-                return;
+                throw new Error('Access denied');
               }
+            })
+            .catch((err) => {
+              throw new Error('Access denied');
             });
         } else {
           rtUtils.isIpWhitelisted(ipAddress, ipWhitelist); // throws error

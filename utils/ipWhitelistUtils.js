@@ -32,12 +32,19 @@ unauthorizedErr.status = 401;
  */
 function isWhitelisted(addr) {
   return request.get(`${conf.ipWhitelistService}/${path}/${addr}`)
-    .then((_res) => _res.status === 200 && _res.body.allow === true)
-    .catch((err) => false);
+    .then((_res) => _res.body.allow)
+    .catch((err) => {
+      if (err.status === 400) {
+        return false;
+      }
+
+      throw new Error('refocus-whitelist error');
+    });
 } // isWhitelisted
 
 module.exports = {
   isWhitelisted,
   middleware: (req, res, next) => isWhitelisted(req.locals.ipAddress)
-    .then((allow) => (allow ? next() : next(unauthorizedErr))),
+    .then((allow) => (allow ? next() : next(unauthorizedErr)))
+    .catch((err) => next(err)),
 };
