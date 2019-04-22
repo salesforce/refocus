@@ -71,7 +71,7 @@ module.exports = function (req, res, next) {
           if (req && featureToggles.isFeatureEnabled('enableLimiterActivityLogs')) {
             const logObject = {
               activity: 'limiter',
-              ipAddress: activityLogUtil.getIPAddrFromReq(req),
+              ipAddress: req.locals.ipAddress,
               limit: `${config.max}/${config.duration}`,
               method: req.method,
               requestBytes: JSON.stringify(req.body).length,
