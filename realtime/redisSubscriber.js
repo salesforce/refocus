@@ -56,11 +56,12 @@ function emitViaRedis(io) {
 
 function emitViaKafka(io) {
   kafkaConsumer.subscribe((messageSet, topic, partition) => {
-    debug('Subscribed|%s|%s|%o', topic, partition, messageSet);
+    debug('Subscribed topic=%s partition=%s|%o', topic, partition, messageSet);
     messageSet.forEach((m) => {
       const key = m.message.key.toString();
       const value = JSON.parse(m.message.value.toString());
-      debug('emitViaKafka %s/%s key=%s value=%o', topic, partition, key, value);
+      debug('emitViaKafka topic=%s partition=%s key=%s value=%o', topic,
+        partition, key, value);
       emitter(io, key, value);
     });
   });
