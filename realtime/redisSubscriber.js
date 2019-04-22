@@ -56,7 +56,8 @@ function emitViaRedis(io) {
 
 function emitViaKafka(io) {
   kafkaConsumer.subscribe((messageSet, topic, partition) => {
-    debug('Subscribed topic=%s partition=%s|%o', topic, partition, messageSet);
+    debug('Subscribed topic=%s partition=%s|%o', topic, partition,
+      messageSet.map((m) => ({ offset: m.offset, messageSize: m.messageSize })));
     messageSet.forEach((m) => {
       const key = m.message.key.toString();
       const value = JSON.parse(m.message.value.toString());
