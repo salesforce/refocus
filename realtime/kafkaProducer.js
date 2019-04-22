@@ -1,3 +1,4 @@
+const debug = require('debug')('k');
 const KafkaProducer = require('no-kafka');
 
 console.log('KAFKA entered realtime/kafkaProducer.js');
@@ -24,5 +25,5 @@ module.exports = {
       key,
       value: JSON.stringify(value),
     },
-  }),
+  }).then((res) => debug('Sent %o', res)),
 };

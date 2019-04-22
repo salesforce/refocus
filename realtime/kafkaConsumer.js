@@ -1,3 +1,4 @@
+const debug = require('debug')('k');
 const Kafka = require('no-kafka');
 
 const consumer = new Kafka.SimpleConsumer({

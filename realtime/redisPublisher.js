@@ -213,7 +213,6 @@ function publishObjectToKafka(inst, event, changedKeys, ignoreAttributes, opts) 
   }
 
   kafkaProducer.send(event, obj[event]);
-
   return obj;
 } // publishObjectToKafka
 
