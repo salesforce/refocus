@@ -3,7 +3,7 @@ const Kafka = require('no-kafka');
 
 const consumer = new Kafka.SimpleConsumer({
   idleTimeout: 1000,
-  clientId: 'sample-consumer',
+  clientId: 'consumer-' + process.pid,
   connectionString: process.env.KAFKA_URL.replace(/\+ssl/g,''),
   ssl: {
     cert: process.env.KAFKA_CLIENT_CERT || '.ssl/client.crt',
