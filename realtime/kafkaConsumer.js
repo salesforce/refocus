@@ -1,9 +1,11 @@
 const debug = require('debug')('k');
 const Kafka = require('no-kafka');
 
+const clientId = 'consumer-' + process.pid;
+
 const consumer = new Kafka.SimpleConsumer({
   idleTimeout: 1000,
-  clientId: 'consumer-' + process.pid,
+  clientId,
   connectionString: process.env.KAFKA_URL.replace(/\+ssl/g,''),
   ssl: {
     cert: process.env.KAFKA_CLIENT_CERT || '.ssl/client.crt',
@@ -11,7 +13,7 @@ const consumer = new Kafka.SimpleConsumer({
   }
 });
 
-console.log("Kafka consumer has been started");
+console.log(`Kafka consumer ${clientId} has been started`);
 
 consumer.init();
 

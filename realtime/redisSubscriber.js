@@ -56,14 +56,15 @@ function emitViaRedis(io) {
 } // emitViaRedis
 
 function emitViaKafka(io) {
+  const clientId = 'consumer-' + process.pid;
   kafkaConsumer.subscribe((messageSet, topic, partition) => {
-    debug('emitViaKafka|subscribe topic=%s partition=%s numMessages=%d', topic, partition,
-      messageSet.length);
+    debug('emitViaKafka|subscribe %s topic=%s partition=%s numMessages=%d',
+      clientId, topic, partition, messageSet.length);
     messageSet.forEach((m) => {
       const key = m.message.key.toString();
       const value = JSON.parse(m.message.value.toString());
-      debug('emitViaKafka|emit topic=%s partition=%s key=%s sampleName=%s (%d)',
-        topic, partition, key, value.name, value.messageCode);
+      debug('emitViaKafka|emit %s topic=%s partition=%s key=%s sampleName=%s (%d)',
+        clientId, topic, partition, key, value.name, value.messageCode);
       emitter(io, key, value);
     });
   });
