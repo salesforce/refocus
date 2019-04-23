@@ -9,10 +9,6 @@ const producer = new KafkaProducer.Producer({
     cert: process.env.KAFKA_CLIENT_CERT || '.ssl/client.crt',
     key: process.env.KAFKA_CLIENT_CERT_KEY || '.ssl/client.key'
   },
-  batch: {
-    size: 0,
-    maxWait: 0,
-  },
 });
 
 producer.init();

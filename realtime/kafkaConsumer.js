@@ -4,7 +4,6 @@ const Kafka = require('no-kafka');
 const clientId = 'consumer-' + process.pid;
 
 const consumer = new Kafka.SimpleConsumer({
-  idleTimeout: 1000,
   clientId,
   connectionString: process.env.KAFKA_URL.replace(/\+ssl/g,''),
   ssl: {
@@ -16,6 +15,7 @@ const consumer = new Kafka.SimpleConsumer({
 console.log(`Kafka consumer ${clientId} has been started`);
 
 consumer.init();
+debug('Kafka Consumer %s %o', clientId, consumer);
 
 module.exports = {
   subscribe: (handler) => {
