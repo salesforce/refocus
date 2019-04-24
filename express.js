@@ -34,6 +34,7 @@ const compress = require('compression');
 const cors = require('cors');
 const etag = require('etag');
 const ipAddressUtils = require('./utils/ipAddressUtils');
+const ipWhitelistUtils = require('./utils/ipWhitelistUtils');
 
 // set up server side socket.io and redis publisher
 const express = require('express');
@@ -97,7 +98,11 @@ if (featureToggles.isFeatureEnabled('rejectMultipleXForwardedFor')) {
 }
 
 // Set the IP restricitions defined in config.js
-app.use(ipfilter(env.ipWhitelist, { mode: 'allow', log: false }));
+if (conf.ipWhitelistService) {
+  app.use(ipWhitelistUtils.middleware);
+} else {
+  app.use(ipfilter(env.ipWhitelist, { mode: 'allow', log: false }));
+}
 
 if (isDevelopment) {
   const webpack = require('webpack');

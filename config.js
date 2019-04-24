@@ -89,6 +89,8 @@ const DEFAULT_JOB_REMOVAL_BATCH_SIZE = 1000;
 const JOB_REMOVAL_BATCH_SIZE = pe.KUE_JOBS_REMOVAL_BATCH_SIZE ||
   DEFAULT_JOB_REMOVAL_BATCH_SIZE;
 
+const ipWhitelistService = pe.IP_WHITELIST_SERVICE || false;
+
 /*
  * If you're using worker dynos, you can set env vars PRIORITIZE_JOBS_FROM
  * and/or DEPRIORITIZE_JOBS_FROM to comma-separated lists of user names, token
@@ -316,6 +318,7 @@ module.exports = {
   expressLimiterExpire2,
   botEventLimit,
   hiddenRoutes,
+  ipWhitelistService,
   jobConcurrency,
   jobType,
   kueShutdownTimeout,
