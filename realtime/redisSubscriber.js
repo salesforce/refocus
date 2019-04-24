@@ -64,7 +64,7 @@ function emitViaKafka(io) {
       const value = JSON.parse(m.message.value.toString());
       debug('emitViaKafka|emit %s topic=%s partition=%s key=%s sampleName=%s (%d)',
         clientId, topic, partition, key, value.name, value.messageCode);
-      emitter(io, key, value);
+      // emitter(io, key, value);
     });
   });
 } // emitViaKafka
