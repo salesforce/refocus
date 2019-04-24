@@ -48,8 +48,7 @@ function emitViaRedis(io) {
        * pass on the message received through the redis subscriber to the socket
        * io emitter to send data to the browser clients.
        */
-      debug('emitViaRedis key=%s parsedObj=%o pubOpts=%o', key, parsedObj,
-        pubOpts);
+      debug('emitViaRedis key=%s', key);
       emitter(io, key, parsedObj, pubOpts);
     });
   });
