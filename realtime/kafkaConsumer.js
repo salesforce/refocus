@@ -10,8 +10,8 @@ const consumer = new Kafka.SimpleConsumer({
     cert: process.env.KAFKA_CLIENT_CERT || '.ssl/client.crt',
     key: process.env.KAFKA_CLIENT_CERT_KEY || '.ssl/client.key'
   },
-  maxWaitTime: process.env.KAFKA_CONSUMER_MAX_WAIT_TIME_MS || 100,
-  maxBytes: process.env.KAFKA_CONSUMER_MAX_BYTES || (1024 * 1024),
+  maxWaitTime: +process.env.KAFKA_CONSUMER_MAX_WAIT_TIME_MS || 100,
+  maxBytes: +process.env.KAFKA_CONSUMER_MAX_BYTES || (1024 * 1024),
 });
 
 console.log(`Kafka consumer ${clientId} has been started`);
