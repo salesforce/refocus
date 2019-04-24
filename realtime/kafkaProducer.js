@@ -3,6 +3,10 @@ const KafkaProducer = require('no-kafka');
 
 console.log('KAFKA entered realtime/kafkaProducer.js');
 
+// FOR LOCALHOST...
+const producer = new KafkaProducer.Producer();
+
+// FOR HEROKU...
 const producer = new KafkaProducer.Producer({
   connectionString: process.env.KAFKA_URL,
   ssl: {
@@ -21,5 +25,6 @@ module.exports = {
       key,
       value: JSON.stringify(value),
     },
-  }).then((res) => debug('Sent %o', res)),
+  })
+    .then((res) => debug('Sent %o', res)),
 };
