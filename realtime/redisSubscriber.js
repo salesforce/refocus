@@ -59,13 +59,13 @@ function emitViaKafka(io) {
   kafkaConsumer.subscribe((messageSet, topic, partition) => {
     debug('emitViaKafka|subscribe %s topic=%s partition=%s numMessages=%d',
       clientId, topic, partition, messageSet.length);
-    // messageSet.forEach((m) => {
-    //   const key = m.message.key.toString();
-    //   const value = JSON.parse(m.message.value.toString());
-    //   debug('emitViaKafka|emit %s topic=%s partition=%s key=%s sampleName=%s (%d)',
-    //     clientId, topic, partition, key, value.name, value.messageCode);
-    //   emitter(io, key, value);
-    // });
+    messageSet.forEach((m) => {
+      const key = m.message.key.toString();
+      const value = JSON.parse(m.message.value.toString());
+      debug('emitViaKafka|emit %s topic=%s partition=%s key=%s sampleName=%s (%d)',
+        clientId, topic, partition, key, value.name, value.messageCode);
+      emitter(io, key, value);
+    });
   });
 } // emitViaKafka
 
