@@ -4,7 +4,7 @@ const KafkaProducer = require('no-kafka');
 console.log('KAFKA entered realtime/kafkaProducer.js');
 
 // FOR LOCALHOST...
-const producer = new KafkaProducer.Producer();
+// const producer = new KafkaProducer.Producer();
 
 // FOR HEROKU...
 const producer = new KafkaProducer.Producer({
