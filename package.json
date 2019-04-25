@@ -40,6 +40,7 @@
     "report": "istanbul report text-summary lcovonly",
     "reset-coverage": "rm -rf ./coverage",
     "start": "node index.js",
+    "start-bot-integration-test": "npm run cleanup && npm start",
     "start-clock": "node clock/index.js",
     "start-worker": "node worker/index.js",
     "test": "npm run reset-coverage && npm run test-all && npm run report",
