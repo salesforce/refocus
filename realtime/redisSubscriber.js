@@ -62,8 +62,8 @@ function emitViaKafka(io) {
     messageSet.forEach((m) => {
       const key = m.message.key.toString();
       const value = JSON.parse(m.message.value.toString());
-      debug('emitViaKafka|emit %s topic=%s partition=%s key=%s sampleName=%s (%d)',
-        clientId, topic, partition, key, value.name, value.messageCode);
+      // debug('emitViaKafka|emit %s topic=%s partition=%s key=%s sampleName=%s (%d)',
+      //   clientId, topic, partition, key, value.name, value.messageCode);
       emitter(io, key, value);
     });
   });

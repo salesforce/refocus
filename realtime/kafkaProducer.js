@@ -26,5 +26,5 @@ module.exports = {
       value: JSON.stringify(value),
     },
   })
-    .then((res) => debug('kafkaProducer|Sent|%o', res)),
+    // .then((res) => debug('kafkaProducer|Sent|%o', res)),
 };
