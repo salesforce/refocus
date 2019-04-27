@@ -1161,27 +1161,41 @@ module.exports = {
       sortArgs.push('LIMIT', opts.offset, opts.limit);
     }
 
-    return redisClient.sortAsync(sortArgs)
+    return Promise.resolve()
+    .then(() => {
+      // If there is a name param with no wildcards, get the sample directly.
+      const nameFilter = opts.filter.name;
+      if (nameFilter && !nameFilter.includes('*')) {
+        return getOneSample(nameFilter)
+        .then(([samp, asp]) =>
+          samp && asp ? [samp, asp] : []
+        );
+      }
 
-    /*
-     * Prefilter based on sample name, if specified. Then, for each of the
-     * remaining sample keys, derive the aspect name and key from the sample
-     * name, then add the commands to get the sample details and aspect details
-     * from their respective objects in the sample store and execute that
-     * batch of commands.
-     */
-    .then((allSampKeys) => {
-      const filteredSampKeys = hasFilters ?
-        modelUtils.prefilterKeys(allSampKeys, opts) : allSampKeys;
-      const commands = [];
-      filteredSampKeys.forEach((sKey) => {
-        const aName = sKey.split('|')[ONE];
-        const aKey = sampleStore.toKey(constants.objectType.aspect, aName);
-        commands.push(['hgetall', sKey]);
-        commands.push(['hgetall', aKey]);
-      });
+      /*
+       * Otherwise, get all sample keys, then prefilter based on sample name,
+       * if specified. Then, for each of the
+       * remaining sample keys, derive the aspect name and key from the sample
+       * name, then add the commands to get the sample details and aspect details
+       * from their respective objects in the sample store and execute that
+       * batch of commands.
+       */
+      else {
+        return redisClient.sortAsync(sortArgs)
+        .then((allSampKeys) => {
+          const filteredSampKeys = hasFilters ?
+            modelUtils.prefilterKeys(allSampKeys, opts) : allSampKeys;
+          const commands = [];
+          filteredSampKeys.forEach((sKey) => {
+            const aName = sKey.split('|')[ONE];
+            const aKey = sampleStore.toKey(constants.objectType.aspect, aName);
+            commands.push(['hgetall', sKey]);
+            commands.push(['hgetall', aKey]);
+          });
 
-      return redisClient.batch(commands).execAsync();
+          return redisClient.batch(commands).execAsync();
+        });
+      }
     })
     .then((redisResponses) => { // samples and aspects
       const samples = [];
