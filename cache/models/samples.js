@@ -1167,9 +1167,9 @@ module.exports = {
       const nameFilter = opts.filter.name;
       if (nameFilter && !nameFilter.includes('*')) {
         return getOneSample(nameFilter)
-        .then(([samp, asp]) => {
-          return samp && asp ? [samp, asp] : [];
-        });
+        .then(([samp, asp]) =>
+          samp && asp ? [samp, asp] : []
+        );
       }
 
       /*
