@@ -683,6 +683,7 @@ module.exports = {
       }
 
       sampObjToReturn = sampleObj;
+      sampObjToReturn.updatedAt = new Date().toISOString();
 
       cmds.push(redisOps.getHashCmd(aspectType, aspName));
 
