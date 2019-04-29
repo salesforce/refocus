@@ -85,6 +85,7 @@ class FormController extends React.Component {
       active: this.state.active,
       settings: JSON.parse(this.state.JSONsettings),
       bots: this.state.botString.split(','),
+      origin: 'web',
     };
     req
       .send(obj)
