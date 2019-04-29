@@ -76,6 +76,7 @@ function track(src, evt, obj) {
     debug(`/realtime/pubSubStats.js|track|src=${src}|evt=${evt}|` +
       `now=${now}|name=${nameFromObj}|updatedAt=${updatedAtFromObj}|` +
       `updatedAtAsDate=${new Date(updatedAtFromObj)}|elapsed=${elapsed}|`);
+    debug('SRC %s EVT %s OBJ %o', src, evt, obj);
   }
 
   // Initialize the global variable if necessary
