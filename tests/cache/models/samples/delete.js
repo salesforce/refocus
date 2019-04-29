@@ -87,6 +87,7 @@ describe('tests/cache/models/samples/delete.js >', () => {
           return done(err);
         }
 
+        expect(res.body.updatedAt).to.be.gt(res.body.createdAt);
         expect(res.body.aspect).to.be.an('object');
         expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
         expect(tu.looksLikeId(res.body.subjectId)).to.be.true;
