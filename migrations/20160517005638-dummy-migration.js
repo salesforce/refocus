@@ -10,8 +10,8 @@
 
 module.exports = {
   up(qi, Sequelize) {
-  	// no changes
-  	return new Promise((resolve) => resolve());
+    // no changes
+    return new Promise((resolve) => resolve());
   },
 
   down(qi, Sequelize) {
