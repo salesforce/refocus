@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/realtime/pubsub.js
+ * tests/realtime/pubSub.js
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;

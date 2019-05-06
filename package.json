@@ -60,7 +60,7 @@
     "test-jobQueue": "npm run test-with-coverage -- --recursive tests/jobQueue",
     "test-limiter": "npm run test-with-coverage -- tests/limiter/limiter.js",
     "test-main": "npm run test-with-coverage -- --recursive tests/api tests/clock tests/config tests/db tests/enforceToken tests/realtime tests/enableCache tests/logging",
-    "test-realtime-application": "REALTIME_APPLICATION=https://abc.def npm run test-with-coverage -- --recursive tests/realtime/pubsub",
+    "test-realtime-application": "REALTIME_APPLICATION=https://abc.def npm run test-with-coverage -- tests/realtime/pubSub.js",
     "test-travis": "npm run test && npm run coveralls",
     "test-routes-enabled": "HIDE_ROUTES=true HIDDEN_ROUTES=aspects mocha -R dot --recursive tests/routeFlag/flagEnabled",
     "test-routes-disabled": "HIDE_ROUTES=false HIDDEN_ROUTES=aspects mocha -R dot --recursive tests/routeFlag/flagDisabled",
