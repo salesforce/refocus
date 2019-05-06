@@ -195,7 +195,6 @@ function loadView(app, passport) {
           user: JSON.stringify(copyOfUser).replace(/'/g,"apos;"),
           realtimeApplication: viewConfig.realtimeApplication,
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
-          transportProtocol: viewConfig.socketIOtransportProtocol,
         };
 
         // This is temporary - remove when separate deployment has settled

@@ -88,6 +88,20 @@ function getNamespaceString(realtimeApplication, inst) {
   return namespace;
 }
 
+function getSocketOptions(token) {
+  return {
+    allowUpgrades: true,
+    transports: ['polling', 'websocket'],
+    transportOptions: {
+      polling: {
+        extraHeaders: {
+          authorization: token,
+        },
+      },
+    },
+  }
+} // getSocketOptions
+
 /**
  * Remove spinner from DOM
  *
@@ -171,6 +185,7 @@ module.exports = {
   setCookie,
   getCookie,
   getNamespaceString,
+  getSocketOptions,
   removeSpinner,
   getPromiseWithUrl,
   patchPromiseWithUrl,

@@ -686,7 +686,7 @@ function setupSocketIOClient(realtimeApp, bots) {
 
   const realtimeEndpoint = realtimeApp.endsWith('/') ? realtimeApp :
     (realtimeApp + '/');
-  const socket = _io(realtimeEndpoint, { transports: ['websocket'] });
+  const socket = _io(realtimeEndpoint, u.getSocketOptions(_userSession));
 
   // Socket Event Names
   const settingsChangedEventName =

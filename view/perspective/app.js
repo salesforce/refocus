@@ -56,8 +56,6 @@ const ZERO = 0;
 const ONE = 1;
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
-const WEBSOCKET_ONLY = window.location.href.split(/[&\?]/)
-  .includes('protocol=websocket');
 const REQ_HEADERS = {
   'X-Requested-With': 'XMLHttpRequest',
   Expires: '-1',
@@ -79,7 +77,7 @@ const SPINNER_ID = 'lens_loading_spinner';
 
 let _realtimeApplication;
 let _realtimeEventThrottleMilliseconds;
-let _transProtocol;
+let _userSession;
 let _io;
 
 let minAspectTimeout;
@@ -157,26 +155,7 @@ function setupSocketIOClient(persBody) {
    */
   const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
     `?p=${persBody.name}`;
-
-  /*
-   * If transProtocol is set, initialize the socket.io client with the
-   * transport protocol options. The "options" object is used to set the
-   * transport type. For example, to specify websockets as the only transport
-   * protocol, the options object will be { transports: ['websocket'] }.
-   * The regex is used to trim whitespace from around any commas in the
-   * clientProtocol string. Finally, we split the comma-seperated values into
-   * an array.
-   */
-  const options = {};
-  if (_transProtocol) {
-    options.transports = _transProtocol.replace(/\s*,\s*/g, ',').split(',');
-  }
-
-  if (WEBSOCKET_ONLY) {
-    options.transports = ['websocket'];
-  }
-
-  const socket = _io.connect(namespace, options);
+  const socket = _io.connect(namespace, u.getSocketOptions(_userSession));
   socket.on('connect', () => {
     socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
       handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
@@ -474,7 +453,7 @@ window.onload = () => {
   // Note: these are declared in perspective.pug:
   _realtimeApplication = realtimeApplication;
   _realtimeEventThrottleMilliseconds = realtimeEventThrottleMilliseconds;
-  _transProtocol = transProtocol;
+  _userSession = userSession;
   _io = io;
 
   if (_realtimeEventThrottleMilliseconds !== ZERO) {
