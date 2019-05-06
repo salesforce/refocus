@@ -58,6 +58,7 @@ const BOT_REQ_HEADERS = {
   Expires: '-1',
   'Cache-Control': 'private, max-age=31536000', // 31536000s = 1 year
 };
+let _realtimeApplication;
 let _io;
 let _user;
 let _roomName;
@@ -674,15 +675,18 @@ function confirmUserExit() {
  * Setup the socket.io client to listen to a namespace, and once sockets
  * are connected install the bots in the room.
  *
+ * @param {String} realtimeApp - the real-time application endpoint
  * @param  {Array} bots - Array of Bots
  */
-function setupSocketIOClient(bots) {
+function setupSocketIOClient(realtimeApp, bots) {
   // Map Bot Ids to Bot Names
   bots.forEach((bot) => {
     botInfo[bot.body.id] = bot.body.name;
   });
 
-  const socket = _io('/', { transports: ['websocket'] });
+  const realtimeEndpoint = realtimeApp.endsWith('/') ? realtimeApp :
+    (realtimeApp + '/');
+  const socket = _io(realtimeEndpoint, { transports: ['websocket'] });
 
   // Socket Event Names
   const settingsChangedEventName =
@@ -1013,6 +1017,7 @@ window.onload = () => {
   setupColumns();
 
   // Note: this is declared in index.pug:
+  _realtimeApplication = realtimeApplication;
   _io = io;
   /* looks for apos; instead of &apos; due to whole
    * string being html escaped but ' being skipped
@@ -1074,7 +1079,7 @@ window.onload = () => {
     }
   })
   .then((res) => {
-    res && setupSocketIOClient(res);
+    res && setupSocketIOClient(_realtimeApplication, res);
     uPage.removeSpinner();
   });
 };

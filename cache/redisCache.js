@@ -61,14 +61,22 @@ if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
 const subPerspectives = [];
 const pubPerspectives = [];
 rconf.instanceUrl.pubsubPerspectives.forEach((rp) => {
-  const s = redis.createClient(rp, opts);
-  s.subscribe(rconf.perspectiveChannelName);
-  subPerspectives.push(s);
+  // Only create subscribers here if we're doing real-time events from main app
+  if (!process.env.REALTIME_APPLICATION) {
+    const s = redis.createClient(rp, opts);
+    s.subscribe(rconf.perspectiveChannelName);
+    subPerspectives.push(s);
+  }
+
   pubPerspectives.push(redis.createClient(rp, opts));
 });
 
-const subBot = redis.createClient(rconf.instanceUrl.pubsubBots, opts);
-subBot.subscribe(rconf.botChannelName);
+// Only create subscribers here if we're doing real-time events from main app
+let subBot;
+if (!process.env.REALTIME_APPLICATION) {
+  subBot = redis.createClient(rconf.instanceUrl.pubsubBots, opts);
+  subBot.subscribe(rconf.botChannelName);
+}
 
 const client = {
   cache: redis.createClient(rconf.instanceUrl.cache, opts),
@@ -115,7 +123,7 @@ Object.keys(client).forEach((key) => {
   const cli = client[key];
   if (Array.isArray(cli)) {
     cli.forEach((c) => registerHandlers(key, c));
-  } else {
+  } else if (cli) {
     registerHandlers(key, cli);
   }
 });

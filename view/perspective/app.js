@@ -77,6 +77,7 @@ const PERSPECTIVE_CONTAINER =
   document.getElementById('refocus_perspective_dropdown_container');
 const SPINNER_ID = 'lens_loading_spinner';
 
+let _realtimeApplication;
 let _realtimeEventThrottleMilliseconds;
 let _transProtocol;
 let _io;
@@ -154,7 +155,7 @@ function setupSocketIOClient(persBody) {
    * Add the perspective name as a query param so that it's available server-
    * side on connect.
    */
-  const namespace = u.getNamespaceString(persBody) +
+  const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
     `?p=${persBody.name}`;
 
   /*
@@ -171,34 +172,43 @@ function setupSocketIOClient(persBody) {
     options.transports = _transProtocol.replace(/\s*,\s*/g, ',').split(',');
   }
 
-  let socket;
   if (WEBSOCKET_ONLY) {
-    socket = _io(namespace, { transports: ['websocket'] });
-  } else {
-    socket = _io(namespace, options);
+    options.transports = ['websocket'];
   }
 
-  socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SUBJ_DEL, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_DEL);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SUBJ_UPD, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_UPD);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SMPL_ADD, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_ADD);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SMPL_DEL, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_DEL);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
-  });
+  const socket = _io.connect(namespace, options);
+  socket.on('connect', () => {
+    socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SUBJ_DEL, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_DEL);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SUBJ_UPD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_UPD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_ADD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_ADD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_DEL, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_DEL);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
+    });
+
+    /*
+     * TODO once we build new perspective page, we should have a way to tell
+     *      the user that they have been disconnected from the real-time event
+     *      stream. In the meantime, just log it in the browser.
+     */
+    socket.on('disconnect', (msg) => {
+      console.log('Disconnected from real-time event stream.');
+    });
+  }
 } // setupSocketIOClient
 
 /**
@@ -218,9 +228,7 @@ function injectStyleTag(library, filename) {
   if (style.styleSheet) {
     style.styleSheet.cssText = library[filename];
   } else {
-    style.appendChild(
-      document.createTextNode(library[filename])
-    );
+    style.appendChild(document.createTextNode(library[filename]));
   }
 
   head.appendChild(style);
@@ -311,10 +319,10 @@ function setupAspectTimeout(rootSubject) {
         traverseHierarchy(child);
       });
     }
-  })(rootSubject)
+  })(rootSubject);
 
   if (minAspectTimeout < Infinity) {
-    setupTimeoutInterval()
+    setupTimeoutInterval();
   }
 }
 
@@ -464,6 +472,7 @@ function getPerspectiveUrl() {
 
 window.onload = () => {
   // Note: these are declared in perspective.pug:
+  _realtimeApplication = realtimeApplication;
   _realtimeEventThrottleMilliseconds = realtimeEventThrottleMilliseconds;
   _transProtocol = transProtocol;
   _io = io;
@@ -478,7 +487,7 @@ window.onload = () => {
     handleHierarchyEvent,
     handleLensDomEvent,
     customHandleError: (msg) => {
-        ERROR_INFO_DIV.innerHTML = msg;
+      ERROR_INFO_DIV.innerHTML = msg;
       u.removeSpinner(SPINNER_ID);
     },
     setupSocketIOClient,
@@ -498,33 +507,31 @@ window.onload = () => {
   });
 };
 
-
 /**
  * Passes data on to Controller to pass onto renderers.
  *
  * @param {Object} values Data returned from AJAX.
  */
 function loadController(values) {
-  ReactDOM.render(
-    <PerspectiveController
-      values={ values }
-    />,
-    PERSPECTIVE_CONTAINER
-  );
+  ReactDOM.render(<PerspectiveController values={ values } />,
+    PERSPECTIVE_CONTAINER);
 }
 
-//for testing
+// For Testing
 function getTimeoutValues() {
-  return { minAspectTimeout, minTimeoutCount, maxAspectTimeout,
-           lastUpdateTime, intervalId };
-};
+  return {
+    minAspectTimeout,
+    minTimeoutCount,
+    maxAspectTimeout,
+    lastUpdateTime,
+    intervalId,
+  };
+}
 
-
-//for testing
 module.exports = {
+  getTimeoutValues,
   handleEvent,
+  parseTimeout,
   setupAspectTimeout,
   setupTimeoutInterval,
-  parseTimeout,
-  getTimeoutValues,
-}
+};

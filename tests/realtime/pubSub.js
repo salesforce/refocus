@@ -67,6 +67,12 @@ describe('tests/realtime/pubsub.js >', () => {
     });
 
     it('subscribers receive all published messages', (done) => {
+      // No subscribers if running with separate real-time application
+      if (process.env.REALTIME_APPLICATION) {
+        expect(subClients.length).to.equal(0);
+        return done();
+      }
+
       const receivedMsgs = [];
 
       // count messages received in each subscriber
