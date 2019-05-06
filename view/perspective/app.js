@@ -208,7 +208,7 @@ function setupSocketIOClient(persBody) {
     socket.on('disconnect', (msg) => {
       console.log('Disconnected from real-time event stream.');
     });
-  }
+  });
 } // setupSocketIOClient
 
 /**
