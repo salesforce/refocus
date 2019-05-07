@@ -12,6 +12,7 @@
  * When page is loaded we take all the bots queried and processed
  * to have their UI appended to the page.
  */
+const constants = require('../constants');
 const NEG_ONE = -1;
 const ZERO = 0;
 const ONE = 1;
@@ -686,7 +687,7 @@ function setupSocketIOClient(realtimeApp, bots) {
 
   const realtimeEndpoint = realtimeApp.endsWith('/') ? realtimeApp :
     (realtimeApp + '/');
-  const socket = _io(realtimeEndpoint, u.getSocketOptions(_userSession));
+  const socket = _io(realtimeEndpoint, constants.socketOptions);
 
   // Socket Event Names
   const settingsChangedEventName =

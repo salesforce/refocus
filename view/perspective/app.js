@@ -50,6 +50,7 @@ import ReactDOM from 'react-dom';
 import PerspectiveController from './PerspectiveController';
 import { getValuesObject } from './utils';
 const u = require('../utils');
+const constants = require('../constants');
 const eventsQueue = require('./eventsQueue');
 const pcValues = {};
 const ZERO = 0;
@@ -155,7 +156,7 @@ function setupSocketIOClient(persBody) {
    */
   const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
     `?p=${persBody.name}`;
-  const socket = _io.connect(namespace, u.getSocketOptions(_userSession));
+  const socket = _io.connect(namespace, constants.socketOptions);
   socket.on('connect', () => {
     socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
       handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
