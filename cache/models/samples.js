@@ -32,7 +32,6 @@ const sampleType = redisOps.sampleType;
 const commonUtils = require('../../utils/common');
 const sampleNameSeparator = '|';
 const logger = require('winston');
-const featureToggles = require('feature-toggles');
 
 const sampFields = {
   PROVIDER: 'provider',
@@ -1230,25 +1229,21 @@ module.exports = {
    * @returns {Promise} - Resolves to upserted sample
    */
   upsertSample(qbObj, user) {
-    if (featureToggles.isFeatureEnabled('preloadAspectsForEachBulkUpsert')) {
-      let parsedSample = {};
-      try {
-        parsedSample = parseName(qbObj.name.toLowerCase());
-      } catch (err) {
-        return Promise.reject(err);
-      }
-
-      return redisClient.hgetallAsync(sampleStore.toKey(
-        constants.objectType.aspect, parsedSample.aspect.name))
-        .then((asp) => {
-          const aspectObj = sampleStore.arrayObjsStringsToJson(asp,
-            constants.fieldsToStringify.aspect);
-          parsedSample.aspect.item = aspectObj;
-          return upsertOneParsedSample(qbObj, parsedSample, false, user);
-        });
+    let parsedSample = {};
+    try {
+      parsedSample = parseName(qbObj.name.toLowerCase());
+    } catch (err) {
+      return Promise.reject(err);
     }
 
-    return upsertOneSample(qbObj, false, user);
+    return redisClient.hgetallAsync(sampleStore.toKey(
+      constants.objectType.aspect, parsedSample.aspect.name))
+      .then((asp) => {
+        const aspectObj = sampleStore.arrayObjsStringsToJson(asp,
+          constants.fieldsToStringify.aspect);
+        parsedSample.aspect.item = aspectObj;
+        return upsertOneParsedSample(qbObj, parsedSample, false, user);
+      });
   },
 
   /**
@@ -1263,72 +1258,58 @@ module.exports = {
       return Promise.resolve([]);
     }
 
-    if (featureToggles.isFeatureEnabled('preloadAspectsForEachBulkUpsert')) {
-      const parsedSampleNames = {}; // sample name <-> subject and aspect name
-      const aspectsNameToObjMap = {}; // aspect name <-> aspect object
-      const aspectsSet = new Set();
+    const parsedSampleNames = {}; // sample name <-> subject and aspect name
+    const aspectsNameToObjMap = {}; // aspect name <-> aspect object
+    const aspectsSet = new Set();
 
-      // parse sample names and create aspects set
-      sampleQueryBody.forEach((squery) => {
-        const sampleName = squery.name.toLowerCase();
-        try {
-          const parsedSampleName = parseName(sampleName);
-          aspectsSet.add(parsedSampleName.aspect.name);
-          parsedSampleNames[sampleName] = parsedSampleName;
-        } catch (err) { // invalid sample name
-          parsedSampleNames[sampleName] = err;
-        }
-      });
-
-      const getAspectsCmds = [...aspectsSet].map((aspectName) =>
-        redisOps.getHashCmd(aspectType, aspectName)
-      );
-
-      return redisOps.executeBatchCmds(getAspectsCmds) // get aspects
-        .then((aspectsFromRedis) => {
-          aspectsFromRedis.forEach((asp) => {
-            if (asp) {
-              const aspObj = sampleStore.arrayObjsStringsToJson(asp,
-                constants.fieldsToStringify.aspect);
-              aspectsNameToObjMap[asp.name.toLowerCase()] = aspObj;
-            }
-          });
-
-          const promises = sampleQueryBody.map((sampleReq) => {
-            // Throw error if sample is upserted with read-only field.
-            try {
-              commonUtils.noReadOnlyFieldsInReq(sampleReq, readOnlyFields);
-              const sampleName = sampleReq.name.toLowerCase();
-              const parsed = parsedSampleNames[sampleName];
-              if (parsed instanceof Error) { // invalid sample name
-                throw parsed;
-              }
-
-              const aspectObj = aspectsNameToObjMap[parsed.aspect.name];
-              parsed.aspect.item = aspectObj;
-
-              // parsed object has subject name, aspect name and aspect item
-              return upsertOneParsedSample(sampleReq, parsed, true, user);
-            } catch (err) {
-              return Promise.resolve({ isFailed: true, explanation: err });
-            }
-          });
-
-          return Promise.all(promises);
-        });
-    }
-
-    const promises = sampleQueryBody.map((sampleReq) => {
-      // Throw error if sample is upserted with read-only field.
+    // parse sample names and create aspects set
+    sampleQueryBody.forEach((squery) => {
+      const sampleName = squery.name.toLowerCase();
       try {
-        commonUtils.noReadOnlyFieldsInReq(sampleReq, readOnlyFields);
-        return upsertOneSample(sampleReq, true, user);
-      } catch (err) {
-        return Promise.resolve({ isFailed: true, explanation: err });
+        const parsedSampleName = parseName(sampleName);
+        aspectsSet.add(parsedSampleName.aspect.name);
+        parsedSampleNames[sampleName] = parsedSampleName;
+      } catch (err) { // invalid sample name
+        parsedSampleNames[sampleName] = err;
       }
     });
 
-    return Promise.all(promises);
+    const getAspectsCmds = [...aspectsSet].map((aspectName) =>
+      redisOps.getHashCmd(aspectType, aspectName)
+    );
+
+    return redisOps.executeBatchCmds(getAspectsCmds) // get aspects
+      .then((aspectsFromRedis) => {
+        aspectsFromRedis.forEach((asp) => {
+          if (asp) {
+            const aspObj = sampleStore.arrayObjsStringsToJson(asp,
+              constants.fieldsToStringify.aspect);
+            aspectsNameToObjMap[asp.name.toLowerCase()] = aspObj;
+          }
+        });
+
+        const promises = sampleQueryBody.map((sampleReq) => {
+          // Throw error if sample is upserted with read-only field.
+          try {
+            commonUtils.noReadOnlyFieldsInReq(sampleReq, readOnlyFields);
+            const sampleName = sampleReq.name.toLowerCase();
+            const parsed = parsedSampleNames[sampleName];
+            if (parsed instanceof Error) { // invalid sample name
+              throw parsed;
+            }
+
+            const aspectObj = aspectsNameToObjMap[parsed.aspect.name];
+            parsed.aspect.item = aspectObj;
+
+            // parsed object has subject name, aspect name and aspect item
+            return upsertOneParsedSample(sampleReq, parsed, true, user);
+          } catch (err) {
+            return Promise.resolve({ isFailed: true, explanation: err });
+          }
+        });
+
+        return Promise.all(promises);
+      });
   }, // bulkUpsertByName
 
   cleanAddSubjectToSample, // export for testing only
