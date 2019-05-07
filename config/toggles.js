@@ -195,16 +195,11 @@ const shortTermToggles = {
   returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
 
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
-  requireHelpEmailOrHelpUrl: environmentVariableTrue(
-    pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
+  requireHelpEmailOrHelpUrl: environmentVariableTrue(pe,
+    'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
 
   // adds isBot to token and returns token on patches not just posts
-  addIsBotToToken: environmentVariableTrue(
-    pe, 'ADD_ISBOT_TO_TOKEN'),
-
-  // preload aspects for each bulk upsert
-  preloadAspectsForEachBulkUpsert: environmentVariableTrue(
-  pe, 'PRELOAD_ASPECTS_BULK_UPSERT'),
+  addIsBotToToken: environmentVariableTrue(pe, 'ADD_ISBOT_TO_TOKEN'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
