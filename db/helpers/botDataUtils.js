@@ -194,11 +194,7 @@ function updateValues(seq, instance) {
       room = currentRoom;
       return Bot.findAll({
         attributes: ['name', 'id'],
-        where: {
-          name: {
-            [Op.in]: room.bots,
-          },
-        },
+        where: { active: true },
       });
     }
 
