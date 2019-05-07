@@ -685,8 +685,8 @@ function setupSocketIOClient(realtimeApp, bots) {
     botInfo[bot.body.id] = bot.body.name;
   });
 
-  const realtimeEndpoint = realtimeApp.endsWith('/') ? realtimeApp :
-    (realtimeApp + '/');
+  const realtimeEndpoint = (realtimeApp.endsWith('/') ? realtimeApp :
+    (realtimeApp + '/')) + `?t=${_userSession}`;
   const socket = _io(realtimeEndpoint, constants.socketOptions);
 
   // Socket Event Names

@@ -155,7 +155,7 @@ function setupSocketIOClient(persBody) {
    * side on connect.
    */
   const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
-    `?p=${persBody.name}`;
+    `?p=${persBody.name}&t=${_userSession}`;
   const socket = _io.connect(namespace, constants.socketOptions);
   socket.on('connect', () => {
     socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
