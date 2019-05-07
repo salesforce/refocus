@@ -148,7 +148,7 @@ module.exports = function room(seq, dataTypes) {
 
         if (instance.changed('active')) {
           if (instance.active) {
-            return realTime.publishObject(instance.toJSON(), roomEventNames.add,
+            return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
               null, null, pubOpts);
           }
         }
