@@ -127,6 +127,7 @@ function throwNotMatchError(parentId, parentAbsolutePath) {
  * @returns {Promise} which resolves to the deleted samples.
  */
 function removeRelatedSamples(subject, seq) {
+  const now = new Date().toISOString();
   let samples = [];
   return redisOps.deleteSampleKeys(subAspMapType, subject.absolutePath)
   .then((_samples) => {
@@ -154,6 +155,7 @@ function removeRelatedSamples(subject, seq) {
          */
         if (sample) {
           sample.subject = subject;
+          sample.updatedAt = now;
           promises.push(publishSample(sample, null, sampleEvent.del,
             seq.models.Aspect));
         }
