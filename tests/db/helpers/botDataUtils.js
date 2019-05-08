@@ -578,7 +578,7 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
         expect(bdRes.value).to.equal('this is a test of replacement.');
         done();
       }).catch(done);
-  });
+    });
 
   it('OK, cannot share data with bot which is not active',
     (done) => {
@@ -611,5 +611,5 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
         expect(bdRes.value).to.equal('empty');
         done();
       }).catch(done);
-  });
+    });
 });
