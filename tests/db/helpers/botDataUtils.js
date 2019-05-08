@@ -59,6 +59,18 @@ const bot3 = {
   version: '1.0.0',
 };
 
+const inactiveBot = {
+  name: 'inactiveBot',
+  url: 'http://www.bar3.com',
+  active: false,
+  settings: [],
+  actions: [],
+  data: [
+    { name: 'data', type: 'STRING' },
+  ],
+  version: '1.0.0',
+};
+
 const roomType = {
   name: 'roomTypeTests',
   isEnabled: true,
@@ -126,11 +138,31 @@ const roomType4 = {
         TestBot2: {
           data: 'this is a ${TestBot1.response}',
         },
+        inactiveBot: {
+          data: 'this is a ${TestBot1.response}',
+        },
       },
     },
   },
   bots: [
     'TestBot1',
+  ],
+};
+
+const roomTypeWithInactiveBot = {
+  name: 'roomTypeWithInactiveBot',
+  isEnabled: true,
+  settings: {
+    sharedContext: {
+      TestBot1: {
+        inactiveBot: {
+          data: 'this is a ${TestBot1.response}',
+        },
+      },
+    },
+  },
+  bots: [
+    'TestBot1', 'inactiveBot',
   ],
 };
 
@@ -335,39 +367,6 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
     done();
   });
 
-  it('ok, one bot isn\'t defined in room but botData can still be shared',
-    (done) => {
-      Bot.create(bot1)
-      .then((botRes) => {
-        bot1Id = botRes.id;
-        return Bot.create(bot2);
-      })
-      .then((botRes2) => {
-        bot2Id = botRes2.id;
-        return RoomType.create(roomType4);
-      })
-      .then((rtRes) => {
-        room.type = rtRes.id;
-        return Room.create(room);
-      })
-      .then((roomRes) => {
-        roomId = roomRes.id;
-        bot2data.botId = bot2Id;
-        bot2data.roomId = roomId;
-        return BotData.create(bot2data);
-      })
-      .then(() => {
-        bot1data.botId = bot1Id;
-        bot1data.roomId = roomId;
-        return BotData.create(bot1data);
-      })
-      .then(() => BotData.findOne({ where: { botId: bot2Id } }))
-      .then((bdRes) => {
-        expect(bdRes.value).to.equal('this is a test of replacement.');
-        done();
-      }).catch(done);
-  });
-
   it('ok, Sync one botData with another on creation', (done) => {
     Bot.create(bot1)
     .then((botRes) => {
@@ -549,5 +548,71 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
       expect(bdRes.value).to.equal('{"name": "tausif"}');
       done();
     }).catch(done);
+  });
+
+  it('ok, one bot isn\'t defined in room but botData can still be shared',
+    (done) => {
+      Bot.create(bot1)
+      .then((botRes) => {
+        bot1Id = botRes.id;
+        return Bot.create(bot2);
+      })
+      .then((botRes2) => {
+        bot2Id = botRes2.id;
+        return RoomType.create(roomType4);
+      })
+      .then((rtRes) => {
+        room.type = rtRes.id;
+        return Room.create(room);
+      })
+      .then((roomRes) => {
+        roomId = roomRes.id;
+        bot2data.botId = bot2Id;
+        bot2data.roomId = roomId;
+        return BotData.create(bot2data);
+      })
+      .then(() => {
+        bot1data.botId = bot1Id;
+        bot1data.roomId = roomId;
+        return BotData.create(bot1data);
+      })
+      .then(() => BotData.findOne({ where: { botId: bot2Id } }))
+      .then((bdRes) => {
+        expect(bdRes.value).to.equal('this is a test of replacement.');
+        done();
+      }).catch(done);
+  });
+
+  it('ok, cannot share data with bot which is not active',
+    (done) => {
+      Bot.create(bot1)
+      .then((botRes) => {
+        bot1Id = botRes.id;
+        return Bot.create(inactiveBot);
+      })
+      .then((botRes2) => {
+        bot2Id = botRes2.id;
+        return RoomType.create(roomType4);
+      })
+      .then((rtRes) => {
+        room.type = rtRes.id;
+        return Room.create(room);
+      })
+      .then((roomRes) => {
+        roomId = roomRes.id;
+        bot2data.botId = bot2Id;
+        bot2data.roomId = roomId;
+        return BotData.create(bot2data);
+      })
+      .then(() => {
+        bot1data.botId = bot1Id;
+        bot1data.roomId = roomId;
+        return BotData.create(bot1data);
+      })
+      .then(() => BotData.findOne({ where: { botId: bot2Id } }))
+      .then((bdRes) => {
+        expect(bdRes.value).to.equal('empty');
+        done();
+      }).catch(done);
   });
 });
