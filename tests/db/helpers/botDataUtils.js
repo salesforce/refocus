@@ -129,16 +129,13 @@ const roomType3 = {
   ],
 };
 
-const roomType4 = {
-  name: 'roomTypeTests4',
+const sharedContextBotOutsideRoomType = {
+  name: 'sharedContextBotOutsideRoomType',
   isEnabled: true,
   settings: {
     sharedContext: {
       TestBot1: {
         TestBot2: {
-          data: 'this is a ${TestBot1.response}',
-        },
-        inactiveBot: {
           data: 'this is a ${TestBot1.response}',
         },
       },
@@ -550,7 +547,7 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
     }).catch(done);
   });
 
-  it('ok, one bot isn\'t defined in room but botData can still be shared',
+  it('ok, bot isn\'t defined in room but botData can still be shared with it',
     (done) => {
       Bot.create(bot1)
       .then((botRes) => {
@@ -559,7 +556,7 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
       })
       .then((botRes2) => {
         bot2Id = botRes2.id;
-        return RoomType.create(roomType4);
+        return RoomType.create(sharedContextBotOutsideRoomType);
       })
       .then((rtRes) => {
         room.type = rtRes.id;
@@ -592,7 +589,7 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
       })
       .then((botRes2) => {
         bot2Id = botRes2.id;
-        return RoomType.create(roomType4);
+        return RoomType.create(roomTypeWithInactiveBot);
       })
       .then((rtRes) => {
         room.type = rtRes.id;
