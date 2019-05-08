@@ -34,6 +34,7 @@ const bot1 = {
   ],
   version: '1.0.0',
 };
+
 const bot2 = {
   name: 'TestBot2',
   url: 'http://www.bar2.com',
@@ -45,6 +46,7 @@ const bot2 = {
   ],
   version: '1.0.0',
 };
+
 const bot3 = {
   name: 'TestBot3',
   url: 'http://www.bar3.com',
@@ -56,6 +58,7 @@ const bot3 = {
   ],
   version: '1.0.0',
 };
+
 const roomType = {
   name: 'roomTypeTests',
   isEnabled: true,
@@ -72,6 +75,7 @@ const roomType = {
     'TestBot1', 'TestBot2',
   ],
 };
+
 const roomType2 = {
   name: 'roomTypeTests2',
   isEnabled: true,
@@ -134,22 +138,27 @@ const room = {
   name: 'roomTest',
   active: true,
 };
+
 const bot1data = {
   name: 'response',
   value: 'test of replacement.',
 };
+
 const bot2data = {
   name: 'data',
   value: 'empty',
 };
+
 const bot3data = {
   name: 'data',
   value: '{"name": "tausif"}',
 };
+
 const bot4data = {
   name: 'stringName',
   value: 'tausif',
 };
+
 let bot1Id;
 let bot2Id;
 let bot3Id;
@@ -325,16 +334,6 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
       );
     done();
   });
-
-/*
- * 1. Create bot1, bot2
- * 2. Create roomType3
- * 3. Create room with type roomType3
- *
- *
- *
- *
- */
 
   it('ok, one bot isn\'t defined in room but botData can still be shared',
     (done) => {
