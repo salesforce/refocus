@@ -41,6 +41,7 @@ See the [Quickstart](https://salesforce.github.io/refocus/docs/01-quickstart.htm
 
 ## Securing Refocus
 1. Set the DEFAULT_ADMIN_PASSWORD environment variable before running the app; the default admin user will be created with the password you supply. If you do not set this the app will fail to start. For non-production environments, you can skip this step and it will be initialized with password "devPassword".
+1. Set the SECRET_TOKEN environment variable before running the app. If you do not set this the app will fail to start. For non-production environments, you can skip this step and it will be initialized with secret "CHANGE_ME".
 1. After installation, log in (UI or API) as `admin@refocus.admin` with the password you set. Delete the environment variable.
 1. Create a new user record for yourself with your real email address, and set your profile to the `Admin` profile.
 1. If you want to restrict access to specific IP ranges, see [IP Restrictions](#ip-restrictions) below.
