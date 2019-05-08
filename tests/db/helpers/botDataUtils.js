@@ -547,7 +547,7 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
     }).catch(done);
   });
 
-  it('ok, bot isn\'t defined in room but botData can still be shared with it',
+  it('OK, bot isn\'t defined in room but botData can still be shared with it',
     (done) => {
       Bot.create(bot1)
       .then((botRes) => {
@@ -580,7 +580,7 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
       }).catch(done);
   });
 
-  it('ok, cannot share data with bot which is not active',
+  it('OK, cannot share data with bot which is not active',
     (done) => {
       Bot.create(bot1)
       .then((botRes) => {
