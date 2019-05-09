@@ -37,7 +37,7 @@ describe('tests/utils/logEnvVars.js >', () => {
   describe('prepareObjectsToLog >', () => {
     describe('with mask list >', () => {
       const opts = {
-        MASK_LIST: 'ABC,DEF',
+        MASK_LIST: 'ABC,DEF , GHI',
       };
 
       it('hides exact, case-sensitive matches', () => {
@@ -49,12 +49,14 @@ describe('tests/utils/logEnvVars.js >', () => {
           abc: '5',
           ab: '6',
           DEF: '7',
+          GHI: '8',
         };
         expect(logEnvVars.prepareObjectsToLog(data, opts)).to.deep.equal([
           { name: '$ABC', value: '"4"' },
           { name: 'ABC', value: '"hidden"' },
           { name: 'ABC_', value: '"3"' },
           { name: 'DEF', value: '"hidden"' },
+          { name: 'GHI', value: '"hidden"' },
           { name: '_ABC', value: '"2"' },
           { name: 'ab', value: '"6"' },
           { name: 'abc', value: '"5"' },
