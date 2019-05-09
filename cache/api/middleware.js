@@ -13,17 +13,18 @@
  */
 const apicache = require('apicache');
 const featureToggles = require('feature-toggles');
-const redisClient = require('../redisCache').client.cache;
+const redis = require('../redisCache');;
 const opts = {
   enabled: featureToggles.isFeatureEnabled('enableApiCache'),
-  headerBlacklist: [
+  headerBlacklist: [ // list of headers that should never be cached
     'retry-after',
     'x-ratelimit-limit',
     'x-ratelimit-remaining',
+    'x-ratelimit-reset',
   ],
-  redisClient,
+  redisClient: redis.client.cache,
   statusCodes: {
-    include: 200,
+    include: [200], // caches ONLY responses with a success/200 code
   },
 };
 
