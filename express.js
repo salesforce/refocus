@@ -23,6 +23,7 @@ const swaggerTools = require('swagger-tools');
 const errorHandler = require('./api/v1/errorHandler');
 const pathsToCache = require('./cache/api/paths');
 const cache = require('./cache/api/middleware');
+const logApi = require('./cache/api/logApi');
 const path = require('path');
 const fs = require('fs');
 const yaml = require('js-yaml');
@@ -258,7 +259,7 @@ swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
   if (featureToggles.isFeatureEnabled('enableApiCache')) {
     // Cache responses for GET requests
     Object.keys(pathsToCache)
-      .forEach((path) => app.get(path, cache(pathsToCache[path])));
+      .forEach((path) => app.get(path, cache(pathsToCache[path]), logApi));
   }
 
   /*
