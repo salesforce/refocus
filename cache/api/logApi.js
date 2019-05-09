@@ -26,7 +26,7 @@ module.exports = (req, res, next) => {
   obj.uri = req.url;
   obj.user = req.headers.UserName;
 
-  // What about setting "recordCount" and "responseBytes"? No access to res.body?
+  // What about "recordCount" and "responseBytes"? No access to res.body?
   if (res.body) {
     if (Array.isArray(res.body)) {
       obj.recordCount = res.body.length;
@@ -35,6 +35,10 @@ module.exports = (req, res, next) => {
     }
 
     obj.responseBytes = JSON.stringify(res.body).length;
+  } else {
+    // Signal that it's returning from apicache, until we can figure out how
+    obj.recordCount = -1;
+    obj.responseBytes = -1;
   }
 
   activityLogUtils.printActivityLogString(obj, 'api');
