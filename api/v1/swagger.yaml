@@ -3116,6 +3116,399 @@ paths:
           $ref: "#/responses/genericError"
 
   # ---------------------------------------------------------------------------
+  /collectorGroups:
+    x-swagger-router-controller: collectorGroups
+    post:
+      security:
+        - jwt: []
+      summary: Create a new collector group
+      tags: [ collectorGroups ]
+      description: >-
+        Create a new collector group if all the collectors aren't already assigned to a different group.
+      operationId: createCollectorGroup
+      parameters:
+        - name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: Create a collector group.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >-
+                  A description of the collector group.
+              name:
+                type: string
+                maxLength: 60
+                description: A unique and descriptive name for the collector group.
+              collectors:
+                description: List of collectors for the group.
+                type: array
+                items:
+                  type: string
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
+            required:
+              - name
+      responses:
+        201:
+          description: >-
+            Created.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        default:
+          $ref: "#/responses/genericError"
+
+    get:
+      security:
+        - jwt: []
+      tags: [ collectorGroups ]
+      summary: Find collectorGroups
+      description: >-
+        Find a collectorGroup or collectorGroups. You may query using field filters with
+        asterisk (*) wildcards. You may also optionally specify sort, limit,
+        offset, and a list of fields to include in the response. The global
+        default limit will apply if no limit param is specified.
+      operationId: findCollectorGroups
+      parameters:
+        -
+          $ref: "#/parameters/CollectorGroupsFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - name
+              - description
+              - -name
+              - -description
+        -
+          $ref: "#/parameters/limitParam"
+        -
+          $ref: "#/parameters/offsetParam"
+        -
+          name: name
+          in: query
+          description: >-
+            Filter by name; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        -
+          name: description
+          in: query
+          description: >-
+            Filter by description; asterisk (*) wildcards ok.
+          required: false
+          type: string
+        - name: createdAt
+          in: query
+          description: >-
+            Filter by time period when CollectorGroups were created.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+        - name: updatedAt
+          in: query
+          description: >-
+            Filter by time period when CollectorGroups were updated.
+          required: false
+          type: string
+          pattern: '^-\d+[smdh]$'
+      responses:
+        200:
+          description: Success, returns an array of zero or more Refocus collectorGroups.
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/CollectorGroupsResponse"
+
+  /collectorGroups/{key}:
+    x-swagger-router-controller: collectorGroups
+    get:
+      security:
+        - jwt: []
+      tags: [ collectorGroups ]
+      summary: Get collectorGroups
+      description: >-
+        Retrieve the specified collectorGroup metadata by the collectorGroups's id or name.
+        You may also optionally specify a list of fields to include in the response.
+      operationId: getCollectorGroup
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collectorGroup to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/CollectorGroupsFieldsParam"
+      responses:
+        200:
+          description: Success, returns the specified collectorGroup's metadata.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "CollectorGroup not found"
+
+    delete:
+      security:
+        - jwt: []
+      summary: Delete collector group.
+      tags: [ collectorGroups ]
+      description: >-
+        Delete collector group if it isn't in use by a Sample Generator.
+      operationId: deleteCollectorGroup
+      parameters:
+        - name: key
+          in: path
+          description: >-
+            The name of the collector group.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Deleted.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    patch:
+      security:
+        - jwt: []
+      summary: Update collector group (partial).
+      tags: [ collectorGroups ]
+      description: >-
+        Update the specified fields. If patching the list of collectors, it will replace the current list.
+        It will update if all collectors named in the array aren't already assigned to a different group.
+      operationId: patchCollectorGroup
+      parameters:
+        - name: key
+          in: path
+          description: The name of the collector group.
+          required: true
+          type: string
+        - name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: >
+              A collector group.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  A description of the collector group.
+              name:
+                type: string
+                maxLength: 60
+                description: >
+                  A unique and descriptive name for the collector group.
+              collectors:
+                description: List of collectors for the group.
+                type: array
+                items:
+                  type: string
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
+      responses:
+        200:
+          description: Success, returns the updated collector group.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/404"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    put:
+      security:
+        - jwt: []
+      summary: Update collector group.
+      tags: [ collectorGroups ]
+      description: >-
+        Update all fields, replacing any existing values, and if a field is not provided, it resets to default
+        (e.g. empty array of collectors, empty description).
+      operationId: putCollectorGroup
+      parameters:
+        - name: key
+          in: path
+          description: The name of the collector group.
+          required: true
+          type: string
+        - name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: >
+              A collector group.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  A description of the collector group.
+              name:
+                type: string
+                maxLength: 60
+                description: >
+                  A unique and descriptive name for the collector group.
+              collectors:
+                description: List of collectors for the group.
+                type: array
+                items:
+                  type: string
+              owner:
+                type: string
+                description: >
+                  The name of the user to assign as the owner. Defaults to the user that created it
+            required:
+              - name
+
+      responses:
+        200:
+          description: Success, returns the updated collector group.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/404"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  /collectorGroups/{key}/collectors:
+    x-swagger-router-controller: collectorGroups
+    post:
+      security:
+        - jwt: []
+      summary: Add a collector to the group
+      tags: [ collectorGroups ]
+      description: >-
+        Add a collector to the group if any collector named in the array isn't already in the list or isn't already
+        assigned to a different group.
+      operationId: addCollectorsToGroup
+      parameters:
+        - name: key
+          in: path
+          description: >-
+            The name of the collector group.
+          required: true
+          type: string
+        - name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 1
+            uniqueItems: true
+            description: >-
+              List of collector names
+      responses:
+        200:
+          description: >-
+            One or more collectors were added to the group.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    delete:
+      security:
+        - jwt: []
+      summary: Delete named collector(s) from group.
+      tags: [ collectorGroups ]
+      description: >-
+        Delete named collector(s) from group. Reject if any named collector is not already associated with this group.
+      operationId: deleteCollectorsFromGroup
+      parameters:
+        - name: key
+          in: path
+          description: >-
+            The name of the collector group.
+          required: true
+          type: string
+        - name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 1
+            uniqueItems: true
+            description: >-
+              List of collectors
+      responses:
+        200:
+          description: Success, returns the updated collector group.
+          schema:
+            $ref: "#/definitions/CollectorGroupsResponse"
+        400:
+          $ref: "#/responses/400"
+        401:
+          $ref: "#/responses/401"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  # ---------------------------------------------------------------------------
   /collectors:
     x-swagger-router-controller: collectors
     get:
@@ -11665,399 +12058,6 @@ paths:
             $ref: "#/definitions/GetBulkSubjectDeleteStatusResponse"
         400:
           $ref: "#/responses/400"
-        404:
-          $ref: "#/responses/404"
-        default:
-          $ref: "#/responses/genericError"
-
-  # ---------------------------------------------------------------------------
-  /collectorGroups:
-    x-swagger-router-controller: collectorGroups
-    post:
-      security:
-        - jwt: []
-      summary: Create a new collector group
-      tags: [ collectorGroups ]
-      description: >-
-        Create a new collector group if all the collectors aren't already assigned to a different group.
-      operationId: createCollectorGroup
-      parameters:
-        - name: queryBody
-          description: Request body.
-          in: body
-          required: true
-          schema:
-            type: object
-            description: Create a collector group.
-            properties:
-              description:
-                type: string
-                maxLength: 4096
-                description: >-
-                  A description of the collector group.
-              name:
-                type: string
-                maxLength: 60
-                description: A unique and descriptive name for the collector group.
-              collectors:
-                description: List of collectors for the group.
-                type: array
-                items:
-                  type: string
-              owner:
-                type: string
-                description: >
-                  The name of the user to assign as the owner. Defaults to the user that created it
-            required:
-              - name
-      responses:
-        201:
-          description: >-
-            Created.
-          schema:
-            $ref: "#/definitions/CollectorGroupsResponse"
-        400:
-          $ref: "#/responses/400"
-        403:
-          $ref: "#/responses/403"
-        default:
-          $ref: "#/responses/genericError"
-
-    get:
-      security:
-        - jwt: []
-      tags: [ collectorGroups ]
-      summary: Find collectorGroups
-      description: >-
-        Find a collectorGroup or collectorGroups. You may query using field filters with
-        asterisk (*) wildcards. You may also optionally specify sort, limit,
-        offset, and a list of fields to include in the response. The global
-        default limit will apply if no limit param is specified.
-      operationId: findCollectorGroups
-      parameters:
-        -
-          $ref: "#/parameters/CollectorGroupsFieldsParam"
-        - name: sort
-          in: query
-          description: >
-            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
-            field name with a minus sign to specify descending order, e.g.
-            '...?sort=-name'.
-          required: false
-          type: array
-          collectionFormat: csv
-          items:
-            type: string
-            enum:
-              - name
-              - description
-              - -name
-              - -description
-        -
-          $ref: "#/parameters/limitParam"
-        -
-          $ref: "#/parameters/offsetParam"
-        -
-          name: name
-          in: query
-          description: >-
-            Filter by name; asterisk (*) wildcards ok.
-          required: false
-          type: string
-        -
-          name: description
-          in: query
-          description: >-
-            Filter by description; asterisk (*) wildcards ok.
-          required: false
-          type: string
-        - name: createdAt
-          in: query
-          description: >-
-            Filter by time period when CollectorGroups were created.
-          required: false
-          type: string
-          pattern: '^-\d+[smdh]$'
-        - name: updatedAt
-          in: query
-          description: >-
-            Filter by time period when CollectorGroups were updated.
-          required: false
-          type: string
-          pattern: '^-\d+[smdh]$'
-      responses:
-        200:
-          description: Success, returns an array of zero or more Refocus collectorGroups.
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/CollectorGroupsResponse"
-
-  /collectorGroups/{key}:
-    x-swagger-router-controller: collectorGroups
-    get:
-      security:
-        - jwt: []
-      tags: [ collectorGroups ]
-      summary: Get collectorGroups
-      description: >-
-        Retrieve the specified collectorGroup metadata by the collectorGroups's id or name.
-        You may also optionally specify a list of fields to include in the response.
-      operationId: getCollectorGroup
-      parameters:
-        -
-          name: key
-          in: path
-          description: The id or name of the collectorGroup to retrieve.
-          required: true
-          type: string
-        -
-          $ref: "#/parameters/CollectorGroupsFieldsParam"
-      responses:
-        200:
-          description: Success, returns the specified collectorGroup's metadata.
-          schema:
-            $ref: "#/definitions/CollectorGroupsResponse"
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "CollectorGroup not found"
-
-    delete:
-      security:
-        - jwt: []
-      summary: Delete collector group.
-      tags: [ collectorGroups ]
-      description: >-
-        Delete collector group if it isn't in use by a Sample Generator.
-      operationId: deleteCollectorGroup
-      parameters:
-        - name: key
-          in: path
-          description: >-
-            The name of the collector group.
-          required: true
-          type: string
-      responses:
-        200:
-          description: >-
-            Deleted.
-          schema:
-            $ref: "#/definitions/CollectorGroupsResponse"
-        400:
-          $ref: "#/responses/400"
-        401:
-          $ref: "#/responses/401"
-        403:
-          $ref: "#/responses/403"
-        404:
-          $ref: "#/responses/404"
-        default:
-          $ref: "#/responses/genericError"
-    patch:
-      security:
-        - jwt: []
-      summary: Update collector group (partial).
-      tags: [ collectorGroups ]
-      description: >-
-        Update the specified fields. If patching the list of collectors, it will replace the current list.
-        It will update if all collectors named in the array aren't already assigned to a different group.
-      operationId: patchCollectorGroup
-      parameters:
-        - name: key
-          in: path
-          description: The name of the collector group.
-          required: true
-          type: string
-        - name: queryBody
-          in: body
-          description: Request body.
-          required: true
-          schema:
-            type: object
-            description: >
-              A collector group.
-            properties:
-              description:
-                type: string
-                maxLength: 4096
-                description: >
-                  A description of the collector group.
-              name:
-                type: string
-                maxLength: 60
-                description: >
-                  A unique and descriptive name for the collector group.
-              collectors:
-                description: List of collectors for the group.
-                type: array
-                items:
-                  type: string
-              owner:
-                type: string
-                description: >
-                  The name of the user to assign as the owner. Defaults to the user that created it
-      responses:
-        200:
-          description: Success, returns the updated collector group.
-          schema:
-            $ref: "#/definitions/CollectorGroupsResponse"
-        400:
-          $ref: "#/responses/400"
-        401:
-          $ref: "#/responses/401"
-        403:
-          $ref: "#/responses/404"
-        404:
-          $ref: "#/responses/404"
-        default:
-          $ref: "#/responses/genericError"
-    put:
-      security:
-        - jwt: []
-      summary: Update collector group.
-      tags: [ collectorGroups ]
-      description: >-
-        Update all fields, replacing any existing values, and if a field is not provided, it resets to default
-        (e.g. empty array of collectors, empty description).
-      operationId: putCollectorGroup
-      parameters:
-        - name: key
-          in: path
-          description: The name of the collector group.
-          required: true
-          type: string
-        - name: queryBody
-          in: body
-          description: Request body.
-          required: true
-          schema:
-            type: object
-            description: >
-              A collector group.
-            properties:
-              description:
-                type: string
-                maxLength: 4096
-                description: >
-                  A description of the collector group.
-              name:
-                type: string
-                maxLength: 60
-                description: >
-                  A unique and descriptive name for the collector group.
-              collectors:
-                description: List of collectors for the group.
-                type: array
-                items:
-                  type: string
-              owner:
-                type: string
-                description: >
-                  The name of the user to assign as the owner. Defaults to the user that created it
-            required:
-              - name
-
-      responses:
-        200:
-          description: Success, returns the updated collector group.
-          schema:
-            $ref: "#/definitions/CollectorGroupsResponse"
-        400:
-          $ref: "#/responses/400"
-        401:
-          $ref: "#/responses/401"
-        403:
-          $ref: "#/responses/404"
-        404:
-          $ref: "#/responses/404"
-        default:
-          $ref: "#/responses/genericError"
-
-  /collectorGroups/{key}/collectors:
-    x-swagger-router-controller: collectorGroups
-    post:
-      security:
-        - jwt: []
-      summary: Add a collector to the group
-      tags: [ collectorGroups ]
-      description: >-
-        Add a collector to the group if any collector named in the array isn't already in the list or isn't already
-        assigned to a different group.
-      operationId: addCollectorsToGroup
-      parameters:
-        - name: key
-          in: path
-          description: >-
-            The name of the collector group.
-          required: true
-          type: string
-        - name: queryBody
-          description: Request body.
-          in: body
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-            minItems: 1
-            uniqueItems: true
-            description: >-
-              List of collector names
-      responses:
-        200:
-          description: >-
-            One or more collectors were added to the group.
-          schema:
-            $ref: "#/definitions/CollectorGroupsResponse"
-        400:
-          $ref: "#/responses/400"
-        401:
-          $ref: "#/responses/401"
-        403:
-          $ref: "#/responses/403"
-        404:
-          $ref: "#/responses/404"
-        default:
-          $ref: "#/responses/genericError"
-    delete:
-      security:
-        - jwt: []
-      summary: Delete named collector(s) from group.
-      tags: [ collectorGroups ]
-      description: >-
-        Delete named collector(s) from group. Reject if any named collector is not already associated with this group.
-      operationId: deleteCollectorsFromGroup
-      parameters:
-        - name: key
-          in: path
-          description: >-
-            The name of the collector group.
-          required: true
-          type: string
-        - name: queryBody
-          description: Request body.
-          in: body
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-            minItems: 1
-            uniqueItems: true
-            description: >-
-              List of collectors
-      responses:
-        200:
-          description: Success, returns the updated collector group.
-          schema:
-            $ref: "#/definitions/CollectorGroupsResponse"
-        400:
-          $ref: "#/responses/400"
-        401:
-          $ref: "#/responses/401"
-        403:
-          $ref: "#/responses/403"
         404:
           $ref: "#/responses/404"
         default:

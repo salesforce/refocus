@@ -111,6 +111,8 @@ const longTermToggles = {
   enableEventActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'event'),
 
+  enableApiCache: environmentVariableTrue(pe, 'ENABLE_API_CACHE'),
+
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
 

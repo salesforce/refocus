@@ -21,6 +21,8 @@ const featureToggles = require('feature-toggles');
 const helmet = require('helmet');
 const swaggerTools = require('swagger-tools');
 const errorHandler = require('./api/v1/errorHandler');
+const pathsToCache = require('./cache/api/paths');
+const cache = require('./cache/api/middleware');
 const path = require('path');
 const fs = require('fs');
 const yaml = require('js-yaml');
@@ -252,6 +254,12 @@ swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
 
   // Validate Swagger requests
   app.use(mw.swaggerValidator(conf.api.swagger.validator));
+
+  if (featureToggles.isFeatureEnabled('enableApiCache')) {
+    // Cache responses for GET requests
+    Object.keys(pathsToCache)
+      .forEach((path) => app.get(path, cache(pathsToCache[path])));
+  }
 
   /*
    * Route validated requests to appropriate controller. Since Swagger Router
