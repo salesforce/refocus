@@ -10,6 +10,7 @@
  * api/v1/controllers/perspectives.js
  */
 'use strict';
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/perspectives');
 const userProps = require('../helpers/nouns/users');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
@@ -48,8 +49,12 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deletePerspective(req, res, next) {
-    doDelete(req, res, next, helper);
-    clearCacheKey(perspectivesHash);
+    doDelete(req, res, next, helper)
+      .then(() => clearCacheKey(perspectivesHash))
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**

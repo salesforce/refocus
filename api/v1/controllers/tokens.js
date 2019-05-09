@@ -10,7 +10,7 @@
  * api/v1/controllers/tokens.js
  */
 'use strict'; // eslint-disable-line strict
-
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/tokens');
 const apiErrors = require('../apiErrors');
 const doDelete = require('../helpers/verbs/doDelete');
@@ -34,14 +34,22 @@ module.exports = {
    */
   deleteTokenById(req, res, next) {
     if (req.headers.IsAdmin) {
-      doDelete(req, res, next, helper);
+      doDelete(req, res, next, helper)
+        .then(() => {
+          apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+          res.status(httpStatus.OK).json(res.locals.retVal);
+        });
     } else {
       // also OK if user is NOT admin but is deleting own token
       const id = req.swagger.params.key.value;
       helper.model.findById(id)
       .then((token) => {
         if (token && token.createdBy === req.user.id) {
-          doDelete(req, res, next, helper);
+          doDelete(req, res, next, helper)
+            .then(() => {
+              apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+              res.status(httpStatus.OK).json(res.locals.retVal);
+            });
         } else {
           u.forbidden(next);
         }

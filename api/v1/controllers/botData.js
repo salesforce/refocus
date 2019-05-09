@@ -10,7 +10,7 @@
  * api/v1/controllers/botData.js
  */
 'use strict';
-
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/botData');
 const Bot = require('../../../db').Bot;
 const BotData = helper.model;
@@ -27,6 +27,7 @@ const u = require('../../../utils/common');
 const v = require('../helpers/verbs/utils');
 const bdUtils = require('../../../db/helpers/botDataUtils');
 const Op = require('sequelize').Op;
+const httpStatus = require('../constants').httpStatus;
 
 module.exports = {
 
@@ -40,7 +41,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteBotData(req, res, next) {
-    doDelete(req, res, next, helper);
+    doDelete(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
