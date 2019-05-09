@@ -151,8 +151,6 @@ module.exports = {
           o.dataValues.ui = uiObj;
           o.dataValues.token = jwtUtil.createToken(seqObj.name, req.headers.UserName,
             { IsBot: true });
-
-
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
           u.logAPI(req, resultObj, o.dataValues);
           return res.status(httpStatus.CREATED)
