@@ -319,7 +319,7 @@ module.exports = {
   kueShutdownTimeout,
   logEnvVars: {
     MASK_LIST: pe.LOG_ENV_VARS_MASK_LIST ?
-      pe.LOG_ENV_VARS_MASK_LIST.split(',') : [],
+      pe.LOG_ENV_VARS_MASK_LIST.split(',').map(trim) : [],
     MAX_LEN: +pe.LOG_ENV_VARS_MAX_LEN || 512,
   },
   kueStatsInactiveWarning: pe.KUESTATS_INACTIVE_WARNING,

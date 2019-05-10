@@ -149,13 +149,8 @@ module.exports = {
         .then((o) => o.reload())
         .then((o) => {
           o.dataValues.ui = uiObj;
-          if (featureToggles.isFeatureEnabled('addIsBotToToken')) {
-            o.dataValues.token = jwtUtil.createToken(seqObj.name, req.headers.UserName,
-             { IsBot: true });
-          } else {
-            o.dataValues.token = jwtUtil.createToken(seqObj.name, seqObj.name);
-          }
-
+          o.dataValues.token = jwtUtil.createToken(seqObj.name, req.headers.UserName,
+            { IsBot: true });
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
           u.logAPI(req, resultObj, o.dataValues);
           return res.status(httpStatus.CREATED)
@@ -203,14 +198,8 @@ module.exports = {
     .then((o) => o.reload())
     .then((o) => {
       o.dataValues.ui = uiObj;
-      if (featureToggles.isFeatureEnabled('addIsBotToToken')) {
-        o.dataValues.token = jwtUtil.createToken(
-          o.dataValues.name,
-          req.headers.UserName,
-          { IsBot: true }
-        );
-      }
-
+      o.dataValues.token = jwtUtil.createToken(o.dataValues.name,
+        req.headers.UserName, { IsBot: true });
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, o.dataValues);
       res.status(httpStatus.OK).json(u.responsify(o, helper, req.method));
