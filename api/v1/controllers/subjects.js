@@ -244,11 +244,11 @@ module.exports = {
       !common.looksLikeId(req.swagger.params.key.value)
     ) {
       res.locals.resultObj = { reqStartTime: req.timestamp };
-      redisSubjectModel.getSubject(req, res, resultObj)
+      redisSubjectModel.getSubject(req, res, res.locals.resultObj)
       .then((response) => {
-        res.local.retVal = response;
-        apiLogUtils.logAPI(req, res.locals.resultObj, res.local.retVal);
-        res.status(httpStatus.OK).json(res.local.retVal);
+        res.locals.retVal = response;
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
       })
       .catch((err) => u.handleError(next, err, helper.modelName));
     } else {
