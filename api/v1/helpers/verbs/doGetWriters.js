@@ -59,14 +59,15 @@ function getWriter(req, res, next, props) {
  *  resource type to delete.
  */
 function getWriters(req, res, next, props) {
-  const resultObj = { reqStartTime: req.timestamp };
+  res.locals.resultObj = { reqStartTime: req.timestamp };
   const params = req.swagger.params;
-  u.findAssociatedInstances(props, params, props.belongsToManyAssoc.users, {})
+  return u.findAssociatedInstances(props, params,
+    props.belongsToManyAssoc.users, {})
   .then((o) => {
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    const retval = u.responsify(o, props, req.method);
-    u.logAPI(req, resultObj, retval);
-    res.status(httpStatus.OK).json(retval);
+    res.locals.resultObj.dbTime = new Date() -
+      res.locals.resultObj.reqStartTime;
+    res.locals.retVal = u.responsify(o, props, req.method);
+    return true;
   })
   .catch((err) => u.handleError(next, err, props.modelName));
 } // getWriters
