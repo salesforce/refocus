@@ -40,10 +40,20 @@ function doGet(req, res, next, props) {
   // only cache requests with no params
   if (props.cacheEnabled && !fields) {
     const cacheKey = reqParams.key.value;
-    return redisCache.get(cacheKey, (cacheErr, reply) => {
-      if (cacheErr || !reply) {
-        // if err or no reply, get from db and set redis cache
-        return u.findByKey(props, req.swagger.params, scopes)
+    return redisCache.getAsync(cacheKey)
+      .then((reply) => {
+        // get from cache
+        if (reply) {
+          res.locals.resultObj.dbTime = new Date() -
+            res.locals.resultObj.reqStartTime;
+          res.locals.retVal = u.responsify(JSON.parse(reply), props, req.method);
+          return true;
+        }
+
+        throw new Error('no reply');
+      })
+      /* if err or no reply, get from db and set redis cache */
+      .catch((cacheErr) => u.findByKey(props, req.swagger.params, scopes)
         .then((o) => {
           res.locals.resultObj.dbTime = new Date() -
             res.locals.resultObj.reqStartTime;
@@ -55,16 +65,8 @@ function doGet(req, res, next, props) {
           redisCache.setex(cacheKey, cacheExpiry, strObj);
 
           return true;
-        })
-        .catch((err) => u.handleError(next, err, props.modelName));
-      } else {
-        // get from cache
-        res.locals.resultObj.dbTime = new Date() -
-          res.locals.resultObj.reqStartTime;
-        res.locals.retVal = u.responsify(JSON.parse(reply), props, req.method);
-        return true;
-      }
-    });
+        }))
+      .catch((err) => u.handleError(next, err, props.modelName));
   } else {
     let getPromise;
     if (props.modelName === 'Sample') {
@@ -81,7 +83,7 @@ function doGet(req, res, next, props) {
       res.locals.retVal = u.responsify(returnObj, props, req.method);
       return true;
     })
-    .catch((err) => u.handleError(next, err, props.modelName));
+      .catch((err) => u.handleError(next, err, props.modelName));
   }
 }
 
