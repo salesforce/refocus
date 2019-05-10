@@ -537,7 +537,11 @@ function postCollectorWriters(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function getCollectorWriter(req, res, next) {
-  doGetWriters.getWriter(req, res, next, helper);
+  doGetWriters.getWriter(req, res, next, helper)
+    .then(() => {
+      apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+      res.status(httpStatus.OK).json(res.locals.retVal);
+    });
 }
 
 /**
