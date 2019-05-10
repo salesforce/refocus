@@ -87,7 +87,11 @@ module.exports = {
    */
   getRoom(req, res, next) {
     convertKeyToNumber(req);
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**

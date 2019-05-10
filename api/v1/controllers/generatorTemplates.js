@@ -12,6 +12,8 @@
 'use strict'; // eslint-disable-line strict
 
 const helper = require('../helpers/nouns/generatorTemplates');
+const httpStatus = require('../constants').httpStatus;
+const apiLogUtils = require('../../../utils/apiLog');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doFind = require('../helpers/verbs/doFind');
 const doFindOne = require('../helpers/verbs/doFindOne');
@@ -47,7 +49,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getGeneratorTemplate(req, res, next) {
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**

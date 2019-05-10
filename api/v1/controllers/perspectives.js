@@ -119,7 +119,11 @@ module.exports = {
     res.cookie('userId', req.user.id, { maxAge: 1000 });
     helper.cacheEnabled =
       featureToggles.isFeatureEnabled('enableCachePerspective');
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**

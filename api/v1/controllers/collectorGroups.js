@@ -262,7 +262,11 @@ function findCollectorGroups(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function getCollectorGroup(req, res, next) {
-  doGet(req, res, next, helper);
+  doGet(req, res, next, helper)
+    .then(() => {
+      apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+      res.status(httpStatus.OK).json(res.locals.retVal);
+    });
 }
 
 module.exports = {

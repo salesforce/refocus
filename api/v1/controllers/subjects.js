@@ -243,15 +243,20 @@ module.exports = {
     if (featureToggles.isFeatureEnabled('getSubjectFromCache') &&
       !common.looksLikeId(req.swagger.params.key.value)
     ) {
-      const resultObj = { reqStartTime: req.timestamp }; // for logging
+      res.locals.resultObj = { reqStartTime: req.timestamp };
       redisSubjectModel.getSubject(req, res, resultObj)
       .then((response) => {
-        u.logAPI(req, resultObj, response); // audit log
-        res.status(httpStatus.OK).json(response);
+        res.local.retVal = response;
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.local.retVal);
+        res.status(httpStatus.OK).json(res.local.retVal);
       })
       .catch((err) => u.handleError(next, err, helper.modelName));
     } else {
-      doGet(req, res, next, helper);
+      doGet(req, res, next, helper)
+        .then(() => {
+          apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+          res.status(httpStatus.OK).json(res.locals.retVal);
+        });
     }
   },
 
