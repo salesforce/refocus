@@ -52,21 +52,19 @@ function doGet(req, res, next, props) {
 
         throw new Error('no reply');
       })
-      .catch((cacheErr) => {
-        // if err or no reply, get from db and set redis cache
-        return u.findByKey(props, req.swagger.params, scopes)
-          .then((o) => {
-            res.locals.resultObj.dbTime = new Date() -
-              res.locals.resultObj.reqStartTime;
-            res.locals.retVal = u.responsify(o, props, req.method);
+      /* if err or no reply, get from db and set redis cache */
+      .catch((cacheErr) => u.findByKey(props, req.swagger.params, scopes)
+        .then((o) => {
+          res.locals.resultObj.dbTime = new Date() -
+            res.locals.resultObj.reqStartTime;
+          res.locals.retVal = u.responsify(o, props, req.method);
 
-            // cache the object by cacheKey. Store the key-value pair in cache
-            // with an expiry of 1 minute (60s)
-            const strObj = JSON.stringify(o);
-            redisCache.setex(cacheKey, cacheExpiry, strObj);
-            return true;
-          });
-      })
+          // cache the object by cacheKey. Store the key-value pair in cache
+          // with an expiry of 1 minute (60s)
+          const strObj = JSON.stringify(o);
+          redisCache.setex(cacheKey, cacheExpiry, strObj);
+          return true;
+        }))
       .catch((err) => u.handleError(next, err, props.modelName));
   } else {
     let getPromise;
