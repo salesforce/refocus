@@ -40,31 +40,34 @@ function doGet(req, res, next, props) {
   // only cache requests with no params
   if (props.cacheEnabled && !fields) {
     const cacheKey = reqParams.key.value;
-    return redisCache.get(cacheKey, (cacheErr, reply) => {
-      if (cacheErr || !reply) {
-        // if err or no reply, get from db and set redis cache
-        return u.findByKey(props, req.swagger.params, scopes)
-        .then((o) => {
+    return redisCache.getAsync(cacheKey)
+      .then((reply) => {
+        // get from cache
+        if (reply) {
           res.locals.resultObj.dbTime = new Date() -
             res.locals.resultObj.reqStartTime;
-          res.locals.retVal = u.responsify(o, props, req.method);
+          res.locals.retVal = u.responsify(JSON.parse(reply), props, req.method);
+          return new Promise(resolve, reject).resolve(true);
+        }
 
-          // cache the object by cacheKey. Store the key-value pair in cache
-          // with an expiry of 1 minute (60s)
-          const strObj = JSON.stringify(o);
-          redisCache.setex(cacheKey, cacheExpiry, strObj);
+        throw new Error('no reply');
+      })
+      .catch((cacheErr) => {
+        // if err or no reply, get from db and set redis cache
+        return u.findByKey(props, req.swagger.params, scopes)
+          .then((o) => {
+            res.locals.resultObj.dbTime = new Date() -
+              res.locals.resultObj.reqStartTime;
+            res.locals.retVal = u.responsify(o, props, req.method);
 
-          return true;
-        })
-        .catch((err) => u.handleError(next, err, props.modelName));
-      } else {
-        // get from cache
-        res.locals.resultObj.dbTime = new Date() -
-          res.locals.resultObj.reqStartTime;
-        res.locals.retVal = u.responsify(JSON.parse(reply), props, req.method);
-        return true;
-      }
-    });
+            // cache the object by cacheKey. Store the key-value pair in cache
+            // with an expiry of 1 minute (60s)
+            const strObj = JSON.stringify(o);
+            redisCache.setex(cacheKey, cacheExpiry, strObj);
+            return true;
+          });
+      })
+      .catch((err) => u.handleError(next, err, props.modelName));
   } else {
     let getPromise;
     if (props.modelName === 'Sample') {
@@ -81,7 +84,7 @@ function doGet(req, res, next, props) {
       res.locals.retVal = u.responsify(returnObj, props, req.method);
       return true;
     })
-    .catch((err) => u.handleError(next, err, props.modelName));
+      .catch((err) => u.handleError(next, err, props.modelName));
   }
 }
 
