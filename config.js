@@ -177,7 +177,7 @@ Object.keys(clockJobConfig.intervals).forEach((jobName) => {
 });
 
 // When adding new environment, consider adding it to /config/migrationConfig
-// as well to enable database migraton in the environment.
+// as well to enable database migration in the environment.
 const environment = {
   build: {
     dbLogging: false, // console.log | false | ...
@@ -186,8 +186,7 @@ const environment = {
     host: '127.0.0.1',
     ipWhitelist: iplist.push('::ffff:127.0.0.1'),
     dialect: 'postgres',
-    tokenSecret:
-      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    tokenSecret: 'CHANGE_ME',
     defaultAdminPassword: defaultDevPassword,
   },
   development: {
@@ -201,8 +200,7 @@ const environment = {
     dialectOptions: {
       ssl: true,
     },
-    tokenSecret:
-      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    tokenSecret: 'CHANGE_ME',
     defaultAdminPassword: defaultDevPassword,
   },
   production: {
@@ -214,8 +212,7 @@ const environment = {
     dialectOptions: {
       ssl: true,
     },
-    tokenSecret: pe.SECRET_TOKEN ||
-      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    tokenSecret: pe.SECRET_TOKEN,
     defaultAdminPassword: pe.DEFAULT_ADMIN_PASSWORD,
   },
   testWhitelistLocalhost: {
@@ -224,8 +221,7 @@ const environment = {
     defaultNodePort: defaultPort,
     host: '127.0.0.1',
     ipWhitelist: iplist,
-    tokenSecret:
-      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    tokenSecret: 'CHANGE_ME',
     defaultAdminPassword: defaultDevPassword,
   },
   testBlockAllhosts: {
@@ -234,8 +230,7 @@ const environment = {
     defaultNodePort: defaultPort,
     host: '127.0.0.1',
     ipWhitelist: [''],
-    tokenSecret:
-      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    tokenSecret: 'CHANGE_ME',
     defaultAdminPassword: defaultDevPassword,
   },
 };
