@@ -13,6 +13,7 @@
 
 const featureToggles = require('feature-toggles');
 const apiErrors = require('../apiErrors');
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/samples');
 const subHelper = require('../helpers/nouns/subjects');
 const doDelete = require('../helpers/verbs/doDelete');
@@ -133,7 +134,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSample(req, res, next) {
-    doDelete(req, res, next, helper);
+    doDelete(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
