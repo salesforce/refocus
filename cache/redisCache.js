@@ -62,7 +62,7 @@ const subPerspectives = [];
 const pubPerspectives = [];
 rconf.instanceUrl.pubsubPerspectives.forEach((rp) => {
   // Only create subscribers here if we're doing real-time events from main app
-  if (!process.env.REALTIME_APPLICATION) {
+  if (!featureToggles.isFeatureEnabled('enableRealtimeApplication')) {
     const s = redis.createClient(rp, opts);
     s.subscribe(rconf.perspectiveChannelName);
     subPerspectives.push(s);
@@ -73,7 +73,7 @@ rconf.instanceUrl.pubsubPerspectives.forEach((rp) => {
 
 // Only create subscribers here if we're doing real-time events from main app
 let subBot;
-if (!process.env.REALTIME_APPLICATION) {
+if (!featureToggles.isFeatureEnabled('enableRealtimeApplication')) {
   subBot = redis.createClient(rconf.instanceUrl.pubsubBots, opts);
   subBot.subscribe(rconf.botChannelName);
 }
