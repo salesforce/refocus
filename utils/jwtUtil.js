@@ -14,7 +14,6 @@
 const jwt = require('jsonwebtoken');
 const apiErrors = require('../api/v1/apiErrors');
 const conf = require('../config');
-const secret = conf.environment[conf.nodeEnv].tokenSecret;
 const User = require('../db/index').User;
 const Token = require('../db/index').Token;
 const Collector = require('../db/index').Collector;
@@ -23,6 +22,13 @@ const Bot = require('../db/index').Bot;
 const Promise = require('bluebird');
 const jwtVerifyAsync = Promise.promisify(jwt.verify);
 const Profile = require('../db/index').Profile;
+
+const secret = conf.environment[conf.nodeEnv].tokenSecret;
+if (!secret) {
+  throw new Error(
+    'No token secret provided! Set the environment variable: "SECRET_TOKEN".'
+  );
+}
 
 // these headers will be assigned default values if not present in token.
 const headersWithDefaults = {

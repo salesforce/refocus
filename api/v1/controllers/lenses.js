@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/lenses');
 const doDelete = require('../helpers/verbs/doDelete');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
@@ -170,7 +171,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteLens(req, res, next) {
-    doDelete(req, res, next, helper);
+    doDelete(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
