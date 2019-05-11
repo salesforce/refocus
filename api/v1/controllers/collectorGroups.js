@@ -10,6 +10,7 @@
  * api/v1/controllers/collectorGroups.js
  */
 'use strict'; // eslint-disable-line strict
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/collectorGroups');
 const apiUtils = require('./utils');
 const u = require('../helpers/verbs/utils');
@@ -128,7 +129,11 @@ function deleteCollectorsFromGroup(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function deleteCollectorGroup(req, res, next) {
-  doDelete(req, res, next, helper);
+  doDelete(req, res, next, helper)
+    .then(() => {
+      apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+      res.status(httpStatus.OK).json(res.locals.retVal);
+    });
 } // deleteCollectorGroup
 
 /**

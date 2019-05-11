@@ -10,7 +10,9 @@
  * api/v1/controllers/bots.js
  */
 'use strict';
-
+const logger = require('winston');
+const featureToggles = require('feature-toggles');
+const apiLogUtils = require('../../../utils/apiLog');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const jwtUtil = require('../../../utils/jwtUtil');
@@ -23,8 +25,6 @@ const doPostWriters = require('../helpers/verbs/doPostWriters');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const redisCache = require('../../../cache/redisCache').client.cache;
-const logger = require('winston');
-const featureToggles = require('feature-toggles');
 
 module.exports = {
 
@@ -37,8 +37,12 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  deleteBots(req, res, next) {
-    doDelete(req, res, next, helper);
+  deleteBot(req, res, next) {
+    doDelete(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**

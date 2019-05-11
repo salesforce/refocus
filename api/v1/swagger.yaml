@@ -2637,7 +2637,7 @@ paths:
       tags: [ bots ]
       description: >-
         Delete a specific bot
-      operationId: deleteBots
+      operationId: deleteBot
       parameters:
         -
           name: key
@@ -7833,7 +7833,7 @@ paths:
       tags: [ rooms ]
       description: >-
         Delete a specific room
-      operationId: deleteRooms
+      operationId: deleteRoom
       parameters:
         -
           name: key
@@ -8361,7 +8361,7 @@ paths:
       tags: [ roomTypes ]
       description: >-
         Delete a specific roomType
-      operationId: deleteRoomTypes
+      operationId: deleteRoomType
       parameters:
         -
           name: key

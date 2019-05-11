@@ -10,7 +10,7 @@
  * api/v1/controllers/botActions.js
  */
 'use strict';
-
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/botActions');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
@@ -22,6 +22,7 @@ const doGetWriters = require('../helpers/verbs/doGetWriters');
 const doPostWriters = require('../helpers/verbs/doPostWriters');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
+const httpStatus = require('../constants').httpStatus;
 
 module.exports = {
 
@@ -35,7 +36,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteBotActions(req, res, next) {
-    doDelete(req, res, next, helper);
+    doDelete(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
