@@ -34,9 +34,8 @@ describe('tests/api/v1/lenses/put.js >', () => {
   });
   after(tu.forceDeleteUser);
 
-  describe('with returnUser toggle on, user object should be returned: ', () => {
+  describe('user object should be returned >', () => {
     before((done) => {
-      tu.toggleOverride('returnUser', true);
       u.createBasic({ installedBy: userId })
       .then((lens) => {
         expect(lens.installedBy).to.equal(userId);
@@ -46,7 +45,6 @@ describe('tests/api/v1/lenses/put.js >', () => {
       .catch(done);
     });
     after(u.forceDelete);
-    after(() => tu.toggleOverride('returnUser', false));
 
     it('update description', (done) => {
       api.put(`${path}/${lensId}`)
@@ -62,90 +60,6 @@ describe('tests/api/v1/lenses/put.js >', () => {
         expect(res.body.description).to.equal('changed description');
         expect(res.body.user).to.be.an('object');
         expect(res.body.user.id).to.equal(userId);
-        done();
-      });
-    });
-  });
-
-  describe('with returnUser toggle off, user should not be returned', () => {
-    before((done) => {
-      u.createBasic()
-      .then((lens) => {
-        lensId = lens.id;
-        done();
-      })
-      .catch(done);
-    });
-
-    after(u.forceDelete);
-
-    it('update name to different case', (done) => {
-      const newName = u.name.toLowerCase();
-      api.put(`${path}/${lensId}`)
-      .set('Authorization', token)
-      .field('name', newName)
-      .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.user).to.be.undefined;
-        expect(res.body.installedBy).to.be.undefined;
-        expect(res.body.name).to.equal(newName);
-        done();
-      });
-    });
-
-    it('update description', (done) => {
-      api.put(`${path}/${lensId}`)
-      .set('Authorization', token)
-      .field('description', 'changed description')
-      .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.user).to.be.undefined;
-        expect(res.body.installedBy).to.be.undefined;
-        expect(res.body.description).to.equal('changed description');
-        done();
-      });
-    });
-
-    it('isPublished set to default', (done) => {
-      api.put(`${path}/${lensId}`)
-      .set('Authorization', token)
-      .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.user).to.be.undefined;
-        expect(res.body.installedBy).to.be.undefined;
-        expect(res.body.isPublished).to.be.false;
-        done();
-      });
-    });
-
-    it('name overwritten by sourceName', (done) => {
-      api.put(`${path}/${lensId}`)
-      .set('Authorization', token)
-      .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.user).to.be.undefined;
-        expect(res.body.installedBy).to.be.undefined;
-        expect(res.body.name).to.equal(res.body.sourceName);
         done();
       });
     });

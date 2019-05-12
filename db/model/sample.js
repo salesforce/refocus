@@ -360,10 +360,8 @@ module.exports = function sample(seq, dataTypes) {
       .then((o) => {
         if (o === null) {
 
-          // New sample. Add provider and user object,
-          // if conditions are met
-          if (user &&
-            featureToggles.isFeatureEnabled('returnUser')) {
+          // New sample. Add provider and user object if present
+          if (user) {
             toUpsert.provider = user.id;
             toUpsert.user = { name: user.name, email: user.email };
           }
@@ -385,19 +383,14 @@ module.exports = function sample(seq, dataTypes) {
         o.changed('value', true);
         return o.update(toUpsert);
       })
-      .then((o) => {
-        if (featureToggles.isFeatureEnabled('returnUser')) {
-          return o.reload().then((o) => resolve(o));
-        }
-
-        return resolve(o);
-      })
+      .then((o) => o.reload())
+      .then((o) => resolve(o))
       .catch((err) => {
         if (isBulk) {
           /*
            * adding isFailed:true to differentiate failed results from
            * success results in bulk upsert
-          */
+           */
           resolve({ explanation: err, isFailed: true });
         } else {
           reject(err);
