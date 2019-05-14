@@ -110,6 +110,7 @@ function validateStatusRange(arr) {
  */
 function removeAspectRelatedSamples(aspect, seq) {
   debugRemoveAspectRelatedSamples(aspect.name, 'Start');
+  const now = new Date().toISOString();
   let samples = [];
   return redisOps.deleteSampleKeys(aspSubMapType, aspect.name)
   .tap((_samples) => {
@@ -150,6 +151,7 @@ function removeAspectRelatedSamples(aspect, seq) {
          */
         if (sample) {
           sample.aspect = aspect;
+          sample.updatedAt = now;
           promises.push(publishSample(sample, seq.models.Subject, sampleEvent.del,
             seq.models.Aspect));
         }
