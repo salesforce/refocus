@@ -39,4 +39,7 @@ module.exports = {
 
   fieldTypeFieldSeparator: '=',
 
+  socketOptions: {
+    transports: ['websocket'],
+  },
 };

@@ -50,14 +50,13 @@ import ReactDOM from 'react-dom';
 import PerspectiveController from './PerspectiveController';
 import { getValuesObject } from './utils';
 const u = require('../utils');
+const constants = require('../constants');
 const eventsQueue = require('./eventsQueue');
 const pcValues = {};
 const ZERO = 0;
 const ONE = 1;
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
   .includes('debug=REALTIME');
-const WEBSOCKET_ONLY = window.location.href.split(/[&\?]/)
-  .includes('protocol=websocket');
 const REQ_HEADERS = {
   'X-Requested-With': 'XMLHttpRequest',
   Expires: '-1',
@@ -77,8 +76,9 @@ const PERSPECTIVE_CONTAINER =
   document.getElementById('refocus_perspective_dropdown_container');
 const SPINNER_ID = 'lens_loading_spinner';
 
+let _realtimeApplication;
 let _realtimeEventThrottleMilliseconds;
-let _transProtocol;
+let _userSession;
 let _io;
 
 let minAspectTimeout;
@@ -154,50 +154,40 @@ function setupSocketIOClient(persBody) {
    * Add the perspective name as a query param so that it's available server-
    * side on connect.
    */
-  const namespace = u.getNamespaceString(persBody) +
-    `?p=${persBody.name}`;
+  const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
+    `?p=${persBody.name}&t=${_userSession}`;
+  const socket = _io.connect(namespace, constants.socketOptions);
+  socket.on('connect', () => {
+    socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SUBJ_DEL, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_DEL);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SUBJ_UPD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_UPD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_ADD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_ADD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_DEL, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_DEL);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
+    });
+    socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
+      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
+    });
 
-  /*
-   * If transProtocol is set, initialize the socket.io client with the
-   * transport protocol options. The "options" object is used to set the
-   * transport type. For example, to specify websockets as the only transport
-   * protocol, the options object will be { transports: ['websocket'] }.
-   * The regex is used to trim whitespace from around any commas in the
-   * clientProtocol string. Finally, we split the comma-seperated values into
-   * an array.
-   */
-  const options = {};
-  if (_transProtocol) {
-    options.transports = _transProtocol.replace(/\s*,\s*/g, ',').split(',');
-  }
-
-  let socket;
-  if (WEBSOCKET_ONLY) {
-    socket = _io(namespace, { transports: ['websocket'] });
-  } else {
-    socket = _io(namespace, options);
-  }
-
-  socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SUBJ_DEL, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_DEL);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SUBJ_UPD, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_UPD);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SMPL_ADD, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_ADD);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SMPL_DEL, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_DEL);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
-  });
-  socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
-    handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
+    /*
+     * TODO once we build new perspective page, we should have a way to tell
+     *      the user that they have been disconnected from the real-time event
+     *      stream. In the meantime, just log it in the browser.
+     */
+    socket.on('disconnect', (msg) => {
+      console.log('Disconnected from real-time event stream.');
+    });
   });
 } // setupSocketIOClient
 
@@ -218,9 +208,7 @@ function injectStyleTag(library, filename) {
   if (style.styleSheet) {
     style.styleSheet.cssText = library[filename];
   } else {
-    style.appendChild(
-      document.createTextNode(library[filename])
-    );
+    style.appendChild(document.createTextNode(library[filename]));
   }
 
   head.appendChild(style);
@@ -311,10 +299,10 @@ function setupAspectTimeout(rootSubject) {
         traverseHierarchy(child);
       });
     }
-  })(rootSubject)
+  })(rootSubject);
 
   if (minAspectTimeout < Infinity) {
-    setupTimeoutInterval()
+    setupTimeoutInterval();
   }
 }
 
@@ -464,8 +452,9 @@ function getPerspectiveUrl() {
 
 window.onload = () => {
   // Note: these are declared in perspective.pug:
+  _realtimeApplication = realtimeApplication;
   _realtimeEventThrottleMilliseconds = realtimeEventThrottleMilliseconds;
-  _transProtocol = transProtocol;
+  _userSession = userSession;
   _io = io;
 
   if (_realtimeEventThrottleMilliseconds !== ZERO) {
@@ -478,7 +467,7 @@ window.onload = () => {
     handleHierarchyEvent,
     handleLensDomEvent,
     customHandleError: (msg) => {
-        ERROR_INFO_DIV.innerHTML = msg;
+      ERROR_INFO_DIV.innerHTML = msg;
       u.removeSpinner(SPINNER_ID);
     },
     setupSocketIOClient,
@@ -498,33 +487,31 @@ window.onload = () => {
   });
 };
 
-
 /**
  * Passes data on to Controller to pass onto renderers.
  *
  * @param {Object} values Data returned from AJAX.
  */
 function loadController(values) {
-  ReactDOM.render(
-    <PerspectiveController
-      values={ values }
-    />,
-    PERSPECTIVE_CONTAINER
-  );
+  ReactDOM.render(<PerspectiveController values={ values } />,
+    PERSPECTIVE_CONTAINER);
 }
 
-//for testing
+// For Testing
 function getTimeoutValues() {
-  return { minAspectTimeout, minTimeoutCount, maxAspectTimeout,
-           lastUpdateTime, intervalId };
-};
+  return {
+    minAspectTimeout,
+    minTimeoutCount,
+    maxAspectTimeout,
+    lastUpdateTime,
+    intervalId,
+  };
+}
 
-
-//for testing
 module.exports = {
+  getTimeoutValues,
   handleEvent,
+  parseTimeout,
   setupAspectTimeout,
   setupTimeoutInterval,
-  parseTimeout,
-  getTimeoutValues,
-}
+};
