@@ -193,8 +193,8 @@ function loadView(app, passport) {
           userSession: req.session.token,
           trackingId: viewConfig.trackingId,
           user: JSON.stringify(copyOfUser).replace(/'/g,"apos;"),
+          realtimeApplication: viewConfig.realtimeApplication,
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
-          transportProtocol: viewConfig.socketIOtransportProtocol,
         };
 
         // This is temporary - remove when separate deployment has settled

@@ -7,10 +7,11 @@
  */
 
 /**
- * tests/realtime/pubsub.js
+ * tests/realtime/pubSub.js
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
+const featureToggles = require('feature-toggles');
 const tu = require('../testUtils');
 const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
@@ -67,6 +68,12 @@ describe('tests/realtime/pubsub.js >', () => {
     });
 
     it('subscribers receive all published messages', (done) => {
+      // No subscribers if running with separate real-time application
+      if (featureToggles.isFeatureEnabled('enableRealtimeApplication')) {
+        expect(subClients.length).to.equal(0);
+        return done();
+      }
+
       const receivedMsgs = [];
 
       // count messages received in each subscriber
