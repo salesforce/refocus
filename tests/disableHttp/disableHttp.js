@@ -12,15 +12,24 @@
 'use strict';
 
 const supertest = require('supertest');
-const api = supertest(require('../../express').app);
-const constants = require('../../api/v1/constants');
-const path = '/v1/users';
 const expect = require('chai').expect;
+const constants = require('../../api/v1/constants');
+const tu = require('../testUtils');
+const path = '/v1/users';
 
 describe('tests/disableHttp/disableHttp.js, http is disabled >', () => {
-  it('GET is redirected', (done) => {
+  let api;
+
+  before(() => {
+    tu.toggleOverride('requireHttps', true);
+    api = supertest(require('../../express').app)
+  });
+  after(() => tu.toggleOverride('requireHttps', false));
+
+  it('GET is rejected', (done) => {
     api.get(path)
-    .expect(constants.httpStatus.REDIRECT)
+    .expect(constants.httpStatus.FORBIDDEN)
+    .expect((res) => expect(res).to.have.property('text', 'HTTPS is required.'))
     .end((err /* , res */) => {
       if (err) {
         return done(err);
@@ -34,6 +43,7 @@ describe('tests/disableHttp/disableHttp.js, http is disabled >', () => {
     api.post(path)
     .send({ name: 'abc@def.ghi', email: 'abc@def.ghi', password: 'abcdefghi' })
     .expect(constants.httpStatus.FORBIDDEN)
+    .expect((res) => expect(res).to.have.property('text', 'HTTPS is required.'))
     .end((err /* , res */) => {
       if (err) {
         return done(err);

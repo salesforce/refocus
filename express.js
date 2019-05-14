@@ -38,7 +38,6 @@ const ipWhitelistUtils = require('./utils/ipWhitelistUtils');
 
 // set up server side socket.io and redis publisher
 const express = require('express');
-const enforcesSSL = require('express-enforces-ssl');
 
 const app = express();
 
@@ -76,14 +75,17 @@ const isDevelopment = (process.env.NODE_ENV === 'development');
 const PORT = process.env.PORT || conf.port;
 app.set('port', PORT);
 
-/*
- * If http is disabled, if a GET request comes in over http, automatically
- * attempt to do a redirect 301 to https. Reject all other requests (DELETE,
- * PATCH, POST, PUT, etc.) with a 403.
- */
 if (featureToggles.isFeatureEnabled('requireHttps')) {
   app.enable('trust proxy');
-  app.use(enforcesSSL());
+
+  /* Reject non-SSL API requests with 403 */
+  app.use('/v1/*', (req, res, next) => {
+    if (req.secure) { // equivalent to 'https' == req.protocol
+      next();
+    } else {
+      res.status(403).send('HTTPS is required.');
+    }
+  });
 }
 
 /*
