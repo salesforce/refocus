@@ -47,7 +47,7 @@ function doGet(req, res, next, props) {
           res.locals.resultObj.dbTime = new Date() -
             res.locals.resultObj.reqStartTime;
           res.locals.retVal = u.responsify(JSON.parse(reply), props, req.method);
-          return true;
+          return Promise.resolve(true);
         }
 
         throw new Error('no reply');
