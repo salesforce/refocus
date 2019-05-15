@@ -27,10 +27,9 @@ html(lang = 'en')
 
   script(src='/static/scripts/socket.io.js')
   script.
+    var realtimeApplication = '#{realtimeApplication}';
     var realtimeEventThrottleMilliseconds = #{eventThrottle};
-  script.
-    var transProtocol = '#{transportProtocol}';
-  script(src='/static/perspective/app.js')
-  script.
     var trackingId = '#{trackingId}';
+    var userSession = '#{userSession}';
+  script(src='/static/perspective/app.js')
   script(src='../static/analytics/app.js')

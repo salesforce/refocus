@@ -117,6 +117,13 @@ const longTermToggles = {
   // Hide routes
   hideRoutes: environmentVariableTrue(pe, 'HIDE_ROUTES'),
 
+  /*
+   * Use separate realtime application if the env var exists and is not equal
+   * to "/".
+   */
+  enableRealtimeApplication: pe.hasOwnProperty('REALTIME_APPLICATION') &&
+    pe.REALTIME_APPLICATION !== '/',
+
   // Enable redis client connection logging.
   enableRedisConnectionLogging: environmentVariableTrue(pe,
     'ENABLE_REDIS_CONNECTION_LOGGING'),

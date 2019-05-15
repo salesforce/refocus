@@ -119,7 +119,11 @@ module.exports = {
     res.cookie('userId', req.user.id, { maxAge: 1000 });
     helper.cacheEnabled =
       featureToggles.isFeatureEnabled('enableCachePerspective');
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -132,7 +136,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getPerspectiveWriters(req, res, next) {
-    doGetWriters.getWriters(req, res, next, helper);
+    doGetWriters.getWriters(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getPerspectiveWriters
 
   /**
@@ -146,7 +154,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getPerspectiveWriter(req, res, next) {
-    doGetWriters.getWriter(req, res, next, helper);
+    doGetWriters.getWriter(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getPerspectivesWriter
 
   /**

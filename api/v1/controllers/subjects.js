@@ -243,15 +243,20 @@ module.exports = {
     if (featureToggles.isFeatureEnabled('getSubjectFromCache') &&
       !common.looksLikeId(req.swagger.params.key.value)
     ) {
-      const resultObj = { reqStartTime: req.timestamp }; // for logging
-      redisSubjectModel.getSubject(req, res, resultObj)
+      res.locals.resultObj = { reqStartTime: req.timestamp };
+      redisSubjectModel.getSubject(req, res, res.locals.resultObj)
       .then((response) => {
-        u.logAPI(req, resultObj, response); // audit log
-        res.status(httpStatus.OK).json(response);
+        res.locals.retVal = response;
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
       })
       .catch((err) => u.handleError(next, err, helper.modelName));
     } else {
-      doGet(req, res, next, helper);
+      doGet(req, res, next, helper)
+        .then(() => {
+          apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+          res.status(httpStatus.OK).json(res.locals.retVal);
+        });
     }
   },
 
@@ -350,7 +355,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectWriters(req, res, next) {
-    doGetWriters.getWriters(req, res, next, helper);
+    doGetWriters.getWriters(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getSubjectWriters
 
   /**
@@ -364,7 +373,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectWriter(req, res, next) {
-    doGetWriters.getWriter(req, res, next, helper);
+    doGetWriters.getWriter(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getSubjectWriter
 
   /**
