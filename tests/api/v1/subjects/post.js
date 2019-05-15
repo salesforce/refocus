@@ -142,6 +142,8 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         const result = JSON.parse(res.text);
         expect(Object.keys(result)).to.contain('parentAbsolutePath');
         expect(result.parentAbsolutePath).to.equal.null;
+        expect(result).to.have.property('user');
+        expect(result.user).to.have.property('name', '___testUser');
         done();
       });
     });

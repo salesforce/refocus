@@ -132,6 +132,9 @@ describe('tests/api/v1/samples/post.js >', () => {
       if (res.body.status !== constants.statuses.Critical) {
         throw new Error('Incorrect Status Value');
       }
+
+      expect(res.body).to.have.property('user');
+      expect(res.body.user).to.have.property('name', '___testUser');
     })
     .end(done);
   });

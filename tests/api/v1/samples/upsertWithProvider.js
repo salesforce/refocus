@@ -32,7 +32,6 @@ describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
   const expectedValue = '100';
 
   before((done) => {
-    tu.toggleOverride('returnUser', true);
     tu.createUserAndToken()
     .then((obj) => {
       token = obj.token;
@@ -58,7 +57,6 @@ describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
   beforeEach(u.populateRedis);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('returnUser', false));
 
   describe('new sample >', () => {
     it('return provider and user fields', (done) => {
@@ -98,7 +96,6 @@ describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
     beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
-    after(() => tu.toggleOverride('returnUser', false));
 
     it('upsert with token of another user, return original provider and user',
     (done) => {

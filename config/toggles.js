@@ -199,8 +199,6 @@ const shortTermToggles = {
   instrumentCompleteSubjectHierarchy: environmentVariableTrue(pe,
     'INSTRUMENT_COMPLETE_SUBJECT_HIERARCHY'),
 
-  returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
-
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
   requireHelpEmailOrHelpUrl: environmentVariableTrue(pe,
     'REQUIRE_HELP_EMAIL_OR_HELP_URL'),

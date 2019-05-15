@@ -27,14 +27,13 @@ const ZERO = 0;
 const u = require('./utils');
 
 describe('tests/cache/models/samples/postWithProvider.js, ' +
-`api: redisStore: POST ${path} with provider, returnUser toggle on`, () => {
+`api: redisStore: POST ${path} with provider >`, () => {
   let sampleToPost;
   let token;
   const sampleName = `${tu.namePrefix}TEST_SUBJECT` + '.' +
   `${tu.namePrefix}CHILD_SUBJECT` + '|' + `${tu.namePrefix}TEST_ASPECT`;
 
   before((done) => {
-    tu.toggleOverride('returnUser', true);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
@@ -75,7 +74,6 @@ describe('tests/cache/models/samples/postWithProvider.js, ' +
   afterEach(rtu.forceDelete);
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
-  after(() => tu.toggleOverride('returnUser', false));
 
   it('provider and user object returned and fields also in cache', (done) => {
     api.post(path)

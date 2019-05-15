@@ -37,9 +37,8 @@ describe('tests/api/v1/lenses/get.js >', () => {
   });
   after(tu.forceDeleteUser);
 
-  describe('with returnUser toggle on, user object should be returned: ', () => {
+  describe('user object should be returned >', () => {
     before((done) => {
-      tu.toggleOverride('returnUser', true);
       u.createBasic({ installedBy: userId })
       .then((lens) => {
         expect(lens.installedBy).to.equal(userId);
@@ -50,7 +49,6 @@ describe('tests/api/v1/lenses/get.js >', () => {
       .catch(done);
     });
     after(u.forceDelete);
-    after(() => tu.toggleOverride('returnUser', false));
 
     it('get all', (done) => {
       api.get(path)
@@ -88,117 +86,6 @@ describe('tests/api/v1/lenses/get.js >', () => {
         expect(obj.user).to.be.an('object');
         expect(obj.user.id).to.equal(userId);
         done();
-      });
-    });
-  });
-
-  describe('returnUser toggle off, user object should NOT be returned: ', () => {
-    before((done) => {
-      u.createBasic()
-      .then((lens) => {
-        lensId = lens.id;
-        lensName = lens.name;
-        done();
-      })
-      .catch(done);
-    });
-    after(u.forceDelete);
-
-    it('basic get', (done) => {
-      api.get(path)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body).to.have.length(ONE);
-        expect(res.body[0].id).to.be.an('string');
-        expect(res.body[0].name).to.equal(`${tu.namePrefix}testLensName`);
-        expect(res.body[0].library).to.be.defined;
-        expect(res.body[0].user).to.not.be.defined;
-        expect(res.body[0].installedBy).to.not.be.defined;
-        done();
-      });
-    });
-
-    it('basic get by id', (done) => {
-      api.get(`${path}/${lensId}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.user).to.be.undefined;
-        expect(res.body.name).to.equal(`${tu.namePrefix}testLensName`);
-        expect(res.body.sourceName).to.equal('testSourceLensName');
-        expect(res.body.library['lens.js']).to.exist;
-        expect(res.body.library['lens.json']).to.exist;
-        expect(res.body.user).to.not.be.defined;
-        expect(res.body.installedBy).to.not.be.defined;
-        done();
-      });
-    });
-
-    it('basic get by name', (done) => {
-      api.get(`${path}/${lensName}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.user).to.be.undefined;
-        expect(res.body.sourceName).to.equal('testSourceLensName');
-        expect(res.body.user).to.not.be.defined;
-        expect(res.body.installedBy).to.not.be.defined;
-        done();
-      });
-    });
-
-    it('basic get by name with different case', (done) => {
-      api.get(`${path}/${lensName.toLowerCase()}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.sourceName).to.equal('testSourceLensName');
-        expect(res.body.user).to.not.be.defined;
-        expect(res.body.installedBy).to.not.be.defined;
-        done();
-      });
-    });
-
-    it('Error if lens is not published', (done) => {
-      api.patch(`${path}/${lensName}`)
-      .set('Authorization', token)
-      .send({ isPublished: false })
-      .end((_err) => {
-        if (_err) {
-          done(_err);
-        }
-
-        api.get(`${path}/${lensName}`)
-        .set('Authorization', token)
-        .expect(constants.httpStatus.NOT_FOUND)
-        .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-
-          expect(res.body.errors[ZERO].description)
-            .to.equal('Lens is not published. Please contact Refocus admin.');
-          expect(res.body.user).to.not.be.defined;
-          expect(res.body.installedBy).to.not.be.defined;
-          done();
-        });
       });
     });
   });

@@ -281,9 +281,6 @@ describe('tests/api/v1/collectors/start.js >', () => {
   });
 
   describe('if collector not found >', () => {
-    before(() => tu.toggleOverride('returnUser', true));
-    after(() => tu.toggleOverride('returnUser', false));
-
     const _collector = u.getCollectorToCreate();
     _collector.name = 'newCollector';
 
