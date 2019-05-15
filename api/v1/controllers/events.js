@@ -12,6 +12,7 @@
 'use strict';
 
 const featureToggles = require('feature-toggles');
+const apiLogUtils = require('../../../utils/apiLog');
 const apiErrors = require('../apiErrors');
 const config = require('../../../config.js');
 const helper = require('../helpers/nouns/events');
@@ -68,7 +69,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getEvent(req, res, next) {
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**

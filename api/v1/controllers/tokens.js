@@ -69,7 +69,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getTokenByKey(req, res, next) {
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**

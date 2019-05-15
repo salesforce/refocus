@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/auditEvents');
 const u = require('../helpers/verbs/utils');
 const constants = require('../constants');
@@ -88,7 +89,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getAuditEvent(req, res, next) {
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**

@@ -13,6 +13,7 @@
 const featureToggles = require('feature-toggles');
 const Promise = require('bluebird');
 const get = require('just-safe-get');
+const apiLogUtils = require('../../../utils/apiLog');
 const activityLogUtils = require('../../../utils/activityLog');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
@@ -113,7 +114,11 @@ function findCollectors(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function getCollector(req, res, next) {
-  doGet(req, res, next, helper);
+  doGet(req, res, next, helper)
+    .then(() => {
+      apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+      res.status(httpStatus.OK).json(res.locals.retVal);
+    });
 } // getCollector
 
 /**
