@@ -63,7 +63,6 @@ function doGet(req, res, next, props) {
           // with an expiry of 1 minute (60s)
           const strObj = JSON.stringify(o);
           redisCache.setex(cacheKey, cacheExpiry, strObj);
-
           return true;
         }))
       .catch((err) => u.handleError(next, err, props.modelName));
