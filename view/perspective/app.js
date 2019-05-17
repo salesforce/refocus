@@ -164,8 +164,8 @@ function setupSocketIOClient(persBody) {
       ...constants.socketOptions,
     };
 
-    socket = _io('/perspectives', options);
-    socket = _io.connect('/perspectives', options);
+    const namespace = _realtimeApplication.endsWith('/') ? 'perspectives' : '/perspectives';
+    socket = _io.connect(`${_realtimeApplication}${namespace}`, options);
   } else {
     const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
       `?p=${persBody.name}&t=${_userSession}`;

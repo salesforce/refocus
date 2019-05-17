@@ -695,9 +695,8 @@ function setupSocketIOClient(realtimeApp, bots, roomId) {
       ...constants.socketOptions,
     };
 
-    const realtimeEndpoint = (realtimeApp.endsWith('/') ? realtimeApp :
-      (realtimeApp + '/bots')) + `?t=${_userSession}`;
-    socket = _io('/rooms', options);
+    const namespace = realtimeApp.endsWith('/') ? 'rooms' : '/rooms';
+    socket = _io(`${realtimeApp}${namespace}`, options);
   } else {
     const realtimeEndpoint = (realtimeApp.endsWith('/') ? realtimeApp :
       (realtimeApp + '/')) + `?t=${_userSession}`;
