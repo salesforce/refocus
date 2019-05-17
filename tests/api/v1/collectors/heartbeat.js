@@ -960,11 +960,6 @@ describe('tests/api/v1/collectors/heartbeat.js >', () => {
     });
 
     describe('added generator >', () => {
-      const initialFeatureState = featureToggles
-        .isFeatureEnabled('returnUser');
-      before(() => tu.toggleOverride('returnUser', true));
-      after(() => tu.toggleOverride('returnUser', initialFeatureState));
-
       // setup and create a new generator with the createdBy field
       it('contains the user', (done) => {
         const gtPath = '/v1/generatorTemplates';

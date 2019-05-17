@@ -117,6 +117,13 @@ const longTermToggles = {
   // Hide routes
   hideRoutes: environmentVariableTrue(pe, 'HIDE_ROUTES'),
 
+  /*
+   * Use separate realtime application if the env var exists and is not equal
+   * to "/".
+   */
+  enableRealtimeApplication: pe.hasOwnProperty('REALTIME_APPLICATION') &&
+    pe.REALTIME_APPLICATION !== '/',
+
   // Enable redis client connection logging.
   enableRedisConnectionLogging: environmentVariableTrue(pe,
     'ENABLE_REDIS_CONNECTION_LOGGING'),
@@ -192,15 +199,9 @@ const shortTermToggles = {
   instrumentCompleteSubjectHierarchy: environmentVariableTrue(pe,
     'INSTRUMENT_COMPLETE_SUBJECT_HIERARCHY'),
 
-  returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
-
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
-  requireHelpEmailOrHelpUrl: environmentVariableTrue(
-    pe, 'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
-
-  // adds isBot to token and returns token on patches not just posts
-  addIsBotToToken: environmentVariableTrue(
-    pe, 'ADD_ISBOT_TO_TOKEN'),
+  requireHelpEmailOrHelpUrl: environmentVariableTrue(pe,
+    'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
 
   // use old socket.io namespace format
   useOldNamespaceFormat: environmentVariableTrue(pe, 'USE_OLD_NAMESPACE_FORMAT'),

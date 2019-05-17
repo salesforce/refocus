@@ -72,7 +72,7 @@ function track(src, evt, obj) {
     console.trace('Where is updatedAt? ' + JSON.stringify(obj));
   }
 
-  if (elapsed > 1000) {
+  if (elapsed > 2000) {
     debug(`/realtime/pubSubStats.js|track|src=${src}|evt=${evt}|` +
       `now=${now}|name=${nameFromObj}|updatedAt=${updatedAtFromObj}|` +
       `updatedAtAsDate=${new Date(updatedAtFromObj)}|elapsed=${elapsed}|`);

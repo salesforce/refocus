@@ -10,7 +10,7 @@
  * api/v1/controllers/roomTypes.js
  */
 'use strict';
-
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/roomTypes');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
@@ -22,6 +22,7 @@ const doGetWriters = require('../helpers/verbs/doGetWriters');
 const doPostWriters = require('../helpers/verbs/doPostWriters');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
+const httpStatus = require('../constants').httpStatus;
 
 module.exports = {
 
@@ -34,8 +35,12 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  deleteRoomTypes(req, res, next) {
-    doDelete(req, res, next, helper);
+  deleteRoomType(req, res, next) {
+    doDelete(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -61,7 +66,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getRoomType(req, res, next) {
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -100,7 +109,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getRoomTypeWriters(req, res, next) {
-    doGetWriters.getWriters(req, res, next, helper);
+    doGetWriters.getWriters(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getRoomTypeWriters
 
   /**
@@ -114,7 +127,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getRoomTypeWriter(req, res, next) {
-    doGetWriters.getWriter(req, res, next, helper);
+    doGetWriters.getWriter(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getRoomTypeWriter
 
   /**

@@ -35,7 +35,7 @@ function getSize(obj) {
  * default recordCount. optional
  */
 function mapApiResultsToLogObject(resultObj, logObject, retval,
-  recordCountOverride) {
+                                  recordCountOverride) {
   const { reqStartTime, dbTime } = resultObj;
 
   // set the totalTime: duration in ms between start time and now
@@ -94,12 +94,13 @@ function combineAndLog(resultObj, logObject, retval, recordCountOverride) {
  * default recordCount. optional
  */
 function logAPI(req, resultObj, retval, recordCountOverride) {
-  if (req && featureToggles.isFeatureEnabled('enableApiActivityLogs')) {
+  if (req && retval &&
+    featureToggles.isFeatureEnabled('enableApiActivityLogs')) {
     const obj = retval.get ? retval.get({ plain: true }) : retval;
 
     // create api activity log object
     const logObject = {
-      ipAddress: activityLogUtil.getIPAddrFromReq(req),
+      ipAddress: req.locals.ipAddress,
       method: req.method,
       process: req.process,
       requestBytes: getSize(req.body),
@@ -107,12 +108,11 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
     };
 
     // Add "request_id" if header is available
-    if (req.request_id) logObject.request_id = req.request_id;
+    if (req.request_id) {
+      logObject.request_id = req.request_id;
+    }
 
-    /**
-     * we already set UserName and TokenName in req headers when verifying
-     * token
-     */
+    // get user/token from headers
     logObject.user = req.headers.UserName;
     logObject.token = req.headers.TokenName;
 
@@ -123,7 +123,7 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
 
     combineAndLog(resultObj, logObject, obj, recordCountOverride);
   }
-}
+} // logAPI
 
 module.exports = {
   mapApiResultsToLogObject,

@@ -61,6 +61,9 @@ describe('tests/api/v1/generators/post.js >', () => {
       expect(res.body).to.have.property('intervalSecs', 60);
       expect(res.body.id).to.not.equal(undefined);
       expect(res.body).to.have.any.keys(Object.keys(generator));
+      expect(res.body.user.id).to.not.be.undefined;
+      expect(res.body.user.name).to.equal('___testUser');
+      expect(res.body.user.email).to.equal('___testUser@refocus.com');
 
       // aspect names are saved lowercase
       expect(res.body.aspects).to.be.an('array').with.lengthOf(2);

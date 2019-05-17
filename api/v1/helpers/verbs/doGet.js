@@ -32,7 +32,7 @@ const redisModelSample = require('../../../../cache/models/samples');
  *  resource type to retrieve.
  */
 function doGet(req, res, next, props) {
-  const resultObj = { reqStartTime: req.timestamp };
+  res.locals.resultObj = { reqStartTime: req.timestamp };
   const reqParams = req.swagger.params;
   const fields = reqParams.fields ? reqParams.fields.value : null;
   const scopes = props.getScopes ? props.getScopes : [];
@@ -40,32 +40,32 @@ function doGet(req, res, next, props) {
   // only cache requests with no params
   if (props.cacheEnabled && !fields) {
     const cacheKey = reqParams.key.value;
+    return redisCache.getAsync(cacheKey)
+      .then((reply) => {
+        // get from cache
+        if (reply) {
+          res.locals.resultObj.dbTime = new Date() -
+            res.locals.resultObj.reqStartTime;
+          res.locals.retVal = u.responsify(JSON.parse(reply), props, req.method);
+          return Promise.resolve(true);
+        }
 
-    redisCache.get(cacheKey, (cacheErr, reply) => {
-      if (cacheErr || !reply) {
-        // if err or no reply, get from db and set redis cache
-        u.findByKey(props, req.swagger.params, scopes)
+        throw new Error('no reply');
+      })
+      /* if err or no reply, get from db and set redis cache */
+      .catch((cacheErr) => u.findByKey(props, req.swagger.params, scopes)
         .then((o) => {
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          u.logAPI(req, resultObj, o);
-          res.status(httpStatus.OK).json(u.responsify(o, props, req.method));
+          res.locals.resultObj.dbTime = new Date() -
+            res.locals.resultObj.reqStartTime;
+          res.locals.retVal = u.responsify(o, props, req.method);
 
           // cache the object by cacheKey. Store the key-value pair in cache
           // with an expiry of 1 minute (60s)
           const strObj = JSON.stringify(o);
           redisCache.setex(cacheKey, cacheExpiry, strObj);
-        })
-        .catch((err) => u.handleError(next, err, props.modelName));
-      } else {
-        // get from cache
-        resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        const dbObj = JSON.parse(reply);
-
-        // dbObj is a sequelize obj
-        u.logAPI(req, resultObj, dbObj);
-        res.status(httpStatus.OK).json(u.responsify(dbObj, props, req.method));
-      }
-    });
+          return true;
+        }))
+      .catch((err) => u.handleError(next, err, props.modelName));
   } else {
     let getPromise;
     if (props.modelName === 'Sample') {
@@ -74,14 +74,15 @@ function doGet(req, res, next, props) {
       getPromise = u.findByKey(props, req.swagger.params, scopes);
     }
 
-    getPromise.then((o) => {
+    return getPromise.then((o) => {
       const returnObj = o.get ? o.get() : o;
       u.sortArrayObjectsByField(props, returnObj);
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      u.logAPI(req, resultObj, returnObj);
-      res.status(httpStatus.OK).json(u.responsify(returnObj, props, req.method));
+      res.locals.resultObj.dbTime = new Date() -
+        res.locals.resultObj.reqStartTime;
+      res.locals.retVal = u.responsify(returnObj, props, req.method);
+      return true;
     })
-    .catch((err) => u.handleError(next, err, props.modelName));
+      .catch((err) => u.handleError(next, err, props.modelName));
   }
 }
 

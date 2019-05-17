@@ -22,7 +22,6 @@ describe('tests/api/v1/aspects/postWithCreatedBy.js, ' + path + ' >', () => {
   let token;
   let user;
   before((done) => {
-    tu.toggleOverride('returnUser', true);
     tu.createUserAndToken()
     .then((obj) => {
       token = obj.token;
@@ -33,7 +32,6 @@ describe('tests/api/v1/aspects/postWithCreatedBy.js, ' + path + ' >', () => {
   });
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('returnUser', false));
 
   it('user field is returned', (done) => {
     api.post(path)

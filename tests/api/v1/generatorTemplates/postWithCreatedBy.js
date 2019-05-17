@@ -23,7 +23,6 @@ describe('tests/api/v1/generatorTemplates/postWithCreatedBy.js > ', () => {
   let user;
   const generatorTemplateToCreate = u.getGeneratorTemplate();
   before((done) => {
-    tu.toggleOverride('returnUser', true);
     tu.createUserAndToken()
     .then((obj) => {
       token = obj.token;
@@ -34,9 +33,8 @@ describe('tests/api/v1/generatorTemplates/postWithCreatedBy.js > ', () => {
   });
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('returnUser', false));
 
-  it('toggle returnUser on, user field returned', (done) => {
+  it('user field returned', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send(generatorTemplateToCreate)

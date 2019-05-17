@@ -79,6 +79,7 @@ describe('tests/logging/jobWrapperLogFuncs.js, jobWrapper functions >', () => {
       connection: {
         remoteAddress: '1.2.3.4',
       },
+      locals: {},
     };
     const jobType = 'myTestJob';
     const testData = { foo: 'bar' };

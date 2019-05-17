@@ -14,13 +14,12 @@
 const u = require('./utils');
 const publisher = u.publisher;
 const event = u.realtimeEvents;
-const httpStatus = require('../../constants').httpStatus;
 const redisModelSample = require('../../../../cache/models/samples');
 const redisCache = require('../../../../cache/redisCache').client.cache;
 
 /**
- * Deletes a record and sends the deleted record back in the json response
- * with status code 200.
+ * Deletes a record and sets res.local so the controller can send back the
+ * response with status code 200.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
@@ -29,7 +28,7 @@ const redisCache = require('../../../../cache/redisCache').client.cache;
  *  resource type to delete.
  */
 function doDelete(req, res, next, props) {
-  const resultObj = { reqStartTime: req.timestamp }; // for logging
+  res.locals.resultObj = { reqStartTime: req.timestamp }; // for logging
   let delPromise;
   let obj;
   if (props.modelName === 'Sample') {
@@ -51,10 +50,11 @@ function doDelete(req, res, next, props) {
     });
   }
 
-  delPromise
+  return delPromise
   .then((o) => {
-    const retVal = o === undefined || o.length === 0 ? obj : o;
-    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    res.locals.retVal = o === undefined || o.length === 0 ? obj : o;
+    res.locals.resultObj.dbTime = new Date() -
+      res.locals.resultObj.reqStartTime;
     const assocNames = [];
 
     /*
@@ -68,7 +68,7 @@ function doDelete(req, res, next, props) {
 
     // publish the delete event to the redis channel
     if (props.publishEvents) {
-      publisher.publishSample(retVal, props.associatedModels.subject,
+      publisher.publishSample(res.locals.retVal, props.associatedModels.subject,
         event.sample.del);
     }
 
@@ -81,10 +81,9 @@ function doDelete(req, res, next, props) {
     }
 
     // when a resource is deleted, delete all its associations too
-    u.deleteAllAssociations(retVal, assocNames);
-    u.logAPI(req, resultObj, retVal);
-    return res.status(httpStatus.OK)
-    .json(u.responsify(retVal, props, req.method));
+    u.deleteAllAssociations(res.locals.retVal, assocNames);
+    res.locals.retVal = u.responsify(res.locals.retVal, props, req.method);
+    return true;
   })
   .catch((err) => u.handleError(next, err, props.modelName));
 }

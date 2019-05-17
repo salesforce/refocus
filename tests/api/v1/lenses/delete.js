@@ -35,9 +35,8 @@ describe('tests/api/v1/lenses/delete.js >', () => {
   });
   after(tu.forceDeleteUser);
 
-  describe('with returnUser toggle on, user object should be returned: ', () => {
+  describe('user object should be returned >', () => {
     before((done) => {
-      tu.toggleOverride('returnUser', true);
       u.createBasic({ installedBy: userId })
       .then((lens) => {
         expect(lens.installedBy).to.equal(userId);
@@ -47,7 +46,6 @@ describe('tests/api/v1/lenses/delete.js >', () => {
       .catch(done);
     });
     after(u.forceDelete);
-    after(() => tu.toggleOverride('returnUser', false));
 
     it('with same name and different case succeeds', (done) => {
       api.delete(`${path}/${u.name.toLowerCase()}`)
@@ -65,50 +63,4 @@ describe('tests/api/v1/lenses/delete.js >', () => {
       });
     });
   });
-
-  describe('with returnUser toggle off, user object should not  ' +
-    'be returned: ', () => {
-    beforeEach((done) => {
-      u.createBasic()
-      .then((lens) => {
-        lensId = lens.id;
-        done();
-      })
-      .catch(done);
-    });
-    afterEach(u.forceDelete);
-
-    it('with same name and different case succeeds', (done) => {
-      api.delete(`${path}/${u.name.toLowerCase()}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.name).to.equal(u.name);
-        expect(res.body.user).to.not.be.defined;
-        expect(res.body.installedBy).to.not.be.defined;
-        done();
-      });
-    });
-
-    it('delete ok', (done) => {
-      api.delete(`${path}/${lensId}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.isDeleted).to.not.equal(ZERO);
-        expect(res.body.user).to.not.be.defined;
-        expect(res.body.installedBy).to.not.be.defined;
-        done();
-      });
-    });
-  });
 });
-

@@ -84,6 +84,10 @@ describe('tests/api/v1/lenses/post.js >', () => {
     .field('description', 'test description')
     .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
     .expect(constants.httpStatus.CREATED)
+    .expect((res) => {
+      expect(res.body).to.have.property('user');
+      expect(res.body.user).to.have.property('name', '___testUser');
+    })
     .end(done);
   });
 

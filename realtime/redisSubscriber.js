@@ -26,7 +26,8 @@ const ONE = 1;
  * @param {Socket.io} io - Socket.io's Server API
  * @param {String} processName - Process name
  */
-const allSubscribers = subPerspectives.concat(subBot);
+const allSubscribers =
+  subBot ? subPerspectives.concat(subBot) : subPerspectives;
 module.exports = (io) => {
   allSubscribers.forEach((s) => {
     s.on('message', (channel, messageAsString) => {

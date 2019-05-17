@@ -10,7 +10,7 @@
  * api/v1/controllers/rooms.js
  */
 'use strict';
-
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/rooms');
 const RoomType = require('../../../db').RoomType;
 const doDelete = require('../helpers/verbs/doDelete');
@@ -25,6 +25,7 @@ const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const u = require('../../../utils/common');
 const Op = require('sequelize').Op;
+const httpStatus = require('../constants').httpStatus;
 
 module.exports = {
 
@@ -37,9 +38,13 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  deleteRooms(req, res, next) {
+  deleteRoom(req, res, next) {
     convertKeyToNumber(req);
-    doDelete(req, res, next, helper);
+    doDelete(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -82,7 +87,11 @@ module.exports = {
    */
   getRoom(req, res, next) {
     convertKeyToNumber(req);
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -122,7 +131,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getRoomWriters(req, res, next) {
-    doGetWriters.getWriters(req, res, next, helper);
+    doGetWriters.getWriters(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getRoomWriters
 
   /**
@@ -136,7 +149,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getRoomWriter(req, res, next) {
-    doGetWriters.getWriter(req, res, next, helper);
+    doGetWriters.getWriter(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getRoomWriter
 
   /**

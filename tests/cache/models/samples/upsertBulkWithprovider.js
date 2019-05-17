@@ -34,7 +34,6 @@ describe('tests/cache/models/samples/upsertBulkWithprovider.js, ' +
   let token;
 
   before((done) => {
-    tu.toggleOverride('returnUser', true);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
@@ -72,7 +71,6 @@ describe('tests/cache/models/samples/upsertBulkWithprovider.js, ' +
   afterEach(rtu.forceDelete);
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
-  after(() => tu.toggleOverride('returnUser', false));
 
   it('succesful bulk upsert should contain provider and user fields',
   (done) => {

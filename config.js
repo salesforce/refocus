@@ -89,6 +89,8 @@ const DEFAULT_JOB_REMOVAL_BATCH_SIZE = 1000;
 const JOB_REMOVAL_BATCH_SIZE = pe.KUE_JOBS_REMOVAL_BATCH_SIZE ||
   DEFAULT_JOB_REMOVAL_BATCH_SIZE;
 
+const ipWhitelistService = pe.IP_WHITELIST_SERVICE || false;
+
 /*
  * If you're using worker dynos, you can set env vars PRIORITIZE_JOBS_FROM
  * and/or DEPRIORITIZE_JOBS_FROM to comma-separated lists of user names, token
@@ -175,7 +177,7 @@ Object.keys(clockJobConfig.intervals).forEach((jobName) => {
 });
 
 // When adding new environment, consider adding it to /config/migrationConfig
-// as well to enable database migraton in the environment.
+// as well to enable database migration in the environment.
 const environment = {
   build: {
     dbLogging: false, // console.log | false | ...
@@ -184,8 +186,7 @@ const environment = {
     host: '127.0.0.1',
     ipWhitelist: iplist.push('::ffff:127.0.0.1'),
     dialect: 'postgres',
-    tokenSecret:
-      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    tokenSecret: 'CHANGE_ME',
     defaultAdminPassword: defaultDevPassword,
   },
   development: {
@@ -199,8 +200,7 @@ const environment = {
     dialectOptions: {
       ssl: true,
     },
-    tokenSecret:
-      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    tokenSecret: 'CHANGE_ME',
     defaultAdminPassword: defaultDevPassword,
   },
   production: {
@@ -212,8 +212,7 @@ const environment = {
     dialectOptions: {
       ssl: true,
     },
-    tokenSecret: pe.SECRET_TOKEN ||
-      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    tokenSecret: pe.SECRET_TOKEN,
     defaultAdminPassword: pe.DEFAULT_ADMIN_PASSWORD,
   },
   testWhitelistLocalhost: {
@@ -222,8 +221,7 @@ const environment = {
     defaultNodePort: defaultPort,
     host: '127.0.0.1',
     ipWhitelist: iplist,
-    tokenSecret:
-      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    tokenSecret: 'CHANGE_ME',
     defaultAdminPassword: defaultDevPassword,
   },
   testBlockAllhosts: {
@@ -232,8 +230,7 @@ const environment = {
     defaultNodePort: defaultPort,
     host: '127.0.0.1',
     ipWhitelist: [''],
-    tokenSecret:
-      '7265666f637573726f636b7377697468677265656e6f776c7373616e6672616e',
+    tokenSecret: 'CHANGE_ME',
     defaultAdminPassword: defaultDevPassword,
   },
 };
@@ -316,12 +313,13 @@ module.exports = {
   expressLimiterExpire2,
   botEventLimit,
   hiddenRoutes,
+  ipWhitelistService,
   jobConcurrency,
   jobType,
   kueShutdownTimeout,
   logEnvVars: {
     MASK_LIST: pe.LOG_ENV_VARS_MASK_LIST ?
-      pe.LOG_ENV_VARS_MASK_LIST.split(',') : [],
+      pe.LOG_ENV_VARS_MASK_LIST.split(',').map((s) => s.trim()) : [],
     MAX_LEN: +pe.LOG_ENV_VARS_MAX_LEN || 512,
   },
   kueStatsInactiveWarning: pe.KUESTATS_INACTIVE_WARNING,

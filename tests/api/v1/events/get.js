@@ -41,12 +41,23 @@ describe('tests/api/v1/events/get.js >', () => {
   testEvent3.log = 'Sample Event 3';
   let token;
 
+  // Figured out events being made elsewhere and not getting deleted.
+  // This gets a count of any events before the tests are run.
+  // We can then check our gets + this amount to get amount of events.
+  // That will be returned.
+  let OLD_EVENTS;
+
   before((done) => {
     u.forceDelete(null, new Date());
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
-      done();
+    }).then(() => {
+      api.get(`${path}`)
+      .set('Authorization', token)
+      .then((res) => {
+        OLD_EVENTS = res.body.length;
+      }).then(() => done());
     })
     .catch(done);
   });
@@ -89,7 +100,7 @@ describe('tests/api/v1/events/get.js >', () => {
         return done(err);
       }
 
-      expect(res.body.length).to.equal(THREE);
+      expect(res.body.length).to.equal(OLD_EVENTS + THREE);
       done();
     });
   });
@@ -134,7 +145,8 @@ describe('tests/api/v1/events/get.js >', () => {
           return done(err);
         }
 
-        expect(res.body.length).to.equal(TOTAL_EVENTS - DEFAULT_LIMIT);
+        expect(res.body.length).to.equal(OLD_EVENTS +
+         TOTAL_EVENTS - DEFAULT_LIMIT);
         done();
       });
     });

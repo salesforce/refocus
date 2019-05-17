@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
 const utils = require('./utils');
+const apiLogUtils = require('../../../utils/apiLog');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/aspects');
 const userProps = require('../helpers/nouns/users');
@@ -72,7 +73,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteAspect(req, res, next) {
-    doDelete(req, res, next, helper);
+    doDelete(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -99,7 +104,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getAspect(req, res, next) {
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -112,7 +121,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getAspectWriters(req, res, next) {
-    doGetWriters.getWriters(req, res, next, helper);
+    doGetWriters.getWriters(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getAspectWriters
 
   /**
@@ -126,7 +139,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getAspectWriter(req, res, next) {
-    doGetWriters.getWriter(req, res, next, helper);
+    doGetWriters.getWriter(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getAspectWriter
 
   /**

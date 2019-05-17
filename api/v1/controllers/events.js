@@ -12,6 +12,7 @@
 'use strict';
 
 const featureToggles = require('feature-toggles');
+const apiLogUtils = require('../../../utils/apiLog');
 const apiErrors = require('../apiErrors');
 const config = require('../../../config.js');
 const helper = require('../helpers/nouns/events');
@@ -68,7 +69,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getEvent(req, res, next) {
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -94,7 +99,7 @@ module.exports = {
           resultObj.user = req.headers.UserName;
           resultObj.token = req.headers.TokenName;
           resultObj.actionId = o.botActionId || 'None';
-          resultObj.ipAddress = activityLogUtil.getIPAddrFromReq(req);
+          resultObj.ipAddress = req.locals.ipAddress;
           resultObj.method = req.method;
           resultObj.process = req.process;
           resultObj.uri = req.url;

@@ -192,8 +192,8 @@ function loadView(app, passport) {
           userSession: req.session.token,
           trackingId: viewConfig.trackingId,
           user: JSON.stringify(copyOfUser).replace(/'/g,"apos;"),
+          realtimeApplication: viewConfig.realtimeApplication,
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
-          transportProtocol: viewConfig.socketIOtransportProtocol,
           useNewNamespaceFormat: ft.isFeatureEnabled('useNewNamespaceFormat'),
         };
 

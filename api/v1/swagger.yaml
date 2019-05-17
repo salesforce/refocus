@@ -2637,7 +2637,7 @@ paths:
       tags: [ bots ]
       description: >-
         Delete a specific bot
-      operationId: deleteBots
+      operationId: deleteBot
       parameters:
         -
           name: key
@@ -7715,6 +7715,13 @@ paths:
           required: false
           type: string
         -
+          name: origin
+          description: Filter rooms by origin
+          in: query
+          pattern: ^[0-9A-Za-z_\\-]{0,60}$
+          required: false
+          type: string
+        -
           name: createdAt
           in: query
           description: >-
@@ -7787,7 +7794,13 @@ paths:
               type:
                 type: string
                 maxLength: 254
-                description: Name of the room
+                description: RoomType of the room
+              origin:
+                type: string
+                maxLength: 60
+                default: other
+                pattern: ^[0-9A-Za-z_\\-]{0,60}$
+                description: Tracks where refocus room was created from
               owner:
                 type: string
                 description: >
@@ -7820,7 +7833,7 @@ paths:
       tags: [ rooms ]
       description: >-
         Delete a specific room
-      operationId: deleteRooms
+      operationId: deleteRoom
       parameters:
         -
           name: key
@@ -8348,7 +8361,7 @@ paths:
       tags: [ roomTypes ]
       description: >-
         Delete a specific roomType
-      operationId: deleteRoomTypes
+      operationId: deleteRoomType
       parameters:
         -
           name: key
@@ -14117,6 +14130,9 @@ definitions:
         readOnly: true
         description: >
           Id of the User who created this room.
+      origin:
+        type: string
+        description: Tracks where refocus room was created from
 
   RoomTypeResponse:
     type: object

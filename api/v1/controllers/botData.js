@@ -10,7 +10,7 @@
  * api/v1/controllers/botData.js
  */
 'use strict';
-
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/botData');
 const Bot = require('../../../db').Bot;
 const BotData = helper.model;
@@ -27,6 +27,7 @@ const u = require('../../../utils/common');
 const v = require('../helpers/verbs/utils');
 const bdUtils = require('../../../db/helpers/botDataUtils');
 const Op = require('sequelize').Op;
+const httpStatus = require('../constants').httpStatus;
 
 module.exports = {
 
@@ -40,7 +41,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteBotData(req, res, next) {
-    doDelete(req, res, next, helper);
+    doDelete(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -162,7 +167,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getBotData(req, res, next) {
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
   /**
    * GET /botData/{key}/writers
@@ -174,7 +183,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getBotDataWriters(req, res, next) {
-    doGetWriters.getWriters(req, res, next, helper);
+    doGetWriters.getWriters(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getBotDataWriters
 
   /**
@@ -188,7 +201,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getBotDataWriter(req, res, next) {
-    doGetWriters.getWriter(req, res, next, helper);
+    doGetWriters.getWriter(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getBotDataWriter
 
   /**

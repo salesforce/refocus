@@ -26,9 +26,13 @@ describe('tests/realtime/setupSocketIO.js, socket.io setup >', () => {
     (done) => {
       const token = 'abcd-token-abcd';
       const options = {
-        transports: ['websocket'],
-        extraHeaders: {
-          authorization: token,
+        transports: ['polling', 'websocket'],
+        transportOptions: {
+          polling: {
+            extraHeaders: {
+              authorization: token,
+            },
+          },
         },
       };
 

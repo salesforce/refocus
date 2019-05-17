@@ -10,7 +10,7 @@
  * api/v1/controllers/profiles.js
  */
 'use strict'; // eslint-disable-line strict
-
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/profiles');
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
@@ -19,6 +19,7 @@ const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
+const httpStatus = require('../constants').httpStatus;
 
 module.exports = {
 
@@ -34,7 +35,11 @@ module.exports = {
    */
   deleteProfile(req, res, next) {
     if (req.headers.IsAdmin) {
-      doDelete(req, res, next, helper);
+      doDelete(req, res, next, helper)
+        .then(() => {
+          apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+          res.status(httpStatus.OK).json(res.locals.retVal);
+        });
     } else {
       u.forbidden(next);
     }
@@ -63,7 +68,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getProfile(req, res, next) {
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
