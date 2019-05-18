@@ -165,7 +165,10 @@ function setupSocketIOClient(persBody) {
     };
 
     const namespace = _realtimeApplication.endsWith('/') ? 'perspectives' : '/perspectives';
-    socket = _io.connect(`${_realtimeApplication}${namespace}`, options);
+    socket = _io.connect(`${_realtimeApplication}${namespace}`, options)
+             .on('connect', function() {
+               this.emit('auth', _userSession);
+             });
   } else {
     const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
       `?p=${persBody.name}&t=${_userSession}`;
