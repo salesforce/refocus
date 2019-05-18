@@ -203,9 +203,6 @@ const shortTermToggles = {
   requireHelpEmailOrHelpUrl: environmentVariableTrue(pe,
     'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
 
-  // use old socket.io namespace format
-  useOldNamespaceFormat: environmentVariableTrue(pe, 'USE_OLD_NAMESPACE_FORMAT'),
-
   // use new socket.io namespace/room format
   useNewNamespaceFormat: environmentVariableTrue(pe, 'USE_NEW_NAMESPACE_FORMAT'),
 }; // shortTermToggles

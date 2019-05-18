@@ -330,48 +330,6 @@ function initializeBotNamespace(inst, io) {
   return io;
 }
 
-// NEW
-/**
- * Initialize a socketIO namespace with a connect event adding sockets to the
- * appropriate room.
- * @param {String} namespace - The namespace to initialize
- * @param {Socket.io} io - The socketio's server side object
- */
-function initializeNamespace(namespace, io) {
-  io.of(namespace).on('connect', (socket) => {
-    const q = socket.handshake.query;
-    const roomName = q.id;
-    socket.join(roomName);
-  });
-}
-
-// NEW
-/**
- * Set up connect/disconnect events to keep track of which rooms are active for
- * the namespace
- * @param {String} namespace - The namespace to initialize
- * @param {Socket.io} io - The socketio's server side object
- */
-const connectedPerspectives = new Set();
-function trackConnectedRooms(namespace, io) {
-  io.of(namespace).on('connect', (socket) => {
-    const q = socket.handshake.query;
-    const roomName = q.id;
-    connectedPerspectives.add(roomName);
-
-    socket.on('disconnect', () => {
-      const allSockets = Object.values(io.of(namespace).connected);
-      const roomIsActive = allSockets.some((socket) =>
-        Object.keys(socket.rooms).includes(room)
-      );
-
-      if (!roomIsActive) {
-        connectedPerspectives.removeRoom(room);
-      }
-    });
-  });
-}
-
 /**
  * Utility function checks an ip address against a whitelist.
  *
@@ -520,12 +478,7 @@ module.exports = {
   getPerspectiveNamespaceString,
   initializeBotNamespace,
   initializePerspectiveNamespace,
-  initializeNamespace,
-  trackConnectedRooms,
-  connectedPerspectives,
   isIpWhitelisted,
   parseObject,
   shouldIEmitThisObj,
-  perspectiveEmit,
-  botEmit,
 }; // exports
