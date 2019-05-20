@@ -19,7 +19,7 @@
 const Promise = require('bluebird');
 const db = require('../db/index');
 
-function findAndDestroy() {
+function destroySoftDeleted() {
   const destroyOpts = {
     where: {
       isDeleted: { [db.Sequelize.Op.gt]: 0 },
@@ -284,7 +284,7 @@ function createNewIndices(qi, Seq) {
 } // createNewIndices
 
 module.exports = {
-  up: (qi, Seq) => findAndDestroy()
+  up: (qi, Seq) => destroySoftDeleted()
     .then(() => removeOldIndices(qi))
     .then(() => createNewIndices(qi, Seq))
     .catch((err) => console.trace),
