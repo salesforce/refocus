@@ -69,11 +69,6 @@ module.exports = function collector(seq, dataTypes) {
       defaultValue: collectorStatus.Stopped,
       allowNull: false,
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     osInfo: {
       type: dataTypes.JSONB,
       allowNull: true,
@@ -99,10 +94,6 @@ module.exports = function collector(seq, dataTypes) {
     },
   }, {
     hooks: {
-      beforeDestroy(inst /* , opts */) {
-        return common.setIsDeleted(seq.Promise, inst);
-      }, // beforeDestroy
-
       afterCreate(inst /* , opts*/) {
         return Promise.all([
           Promise.resolve()
@@ -152,12 +143,9 @@ module.exports = function collector(seq, dataTypes) {
     }, // hooks
     indexes: [
       {
-        name: 'CollectorUniqueLowercaseNameIsDeleted',
+        name: 'CollectorUniqueLowercaseName',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('name')),
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('name'))],
       },
     ],
 
@@ -168,8 +156,6 @@ module.exports = function collector(seq, dataTypes) {
         order: ['name'],
       },
     },
-
-    paranoid: true,
   });
 
   /**

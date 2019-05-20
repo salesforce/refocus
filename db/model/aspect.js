@@ -47,11 +47,6 @@ module.exports = function aspect(seq, dataTypes) {
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     imageUrl: {
       type: dataTypes.STRING(constants.fieldlen.url),
       validate: { isUrl: true },
@@ -162,9 +157,9 @@ module.exports = function aspect(seq, dataTypes) {
       }, // hooks.afterCreate
 
       /**
-       * Check Generator references and set the isDeleted timestamp.
-       * If aspect is deleted then send realtime "del" event to delete all
-       * samples associated with that aspect for perspectives.
+       * Check Generator references. If aspect is deleted then send realtime
+       * "del" event to delete all samples associated with that aspect for
+       * perspectives.
        *
        * @param {Aspect} inst - The instance being destroyed
        * @returns {Promise}
@@ -183,9 +178,7 @@ module.exports = function aspect(seq, dataTypes) {
           })
         );
 
-        promiseArr.push(inst.checkGeneratorReferences('delete')
-        .then(() => common.setIsDeleted(seq.Promise, inst)));
-
+        promiseArr.push(inst.checkGeneratorReferences('delete'));
         return seq.Promise.all(promiseArr);
       }, // hooks.beforeDestroy
 
@@ -390,15 +383,11 @@ module.exports = function aspect(seq, dataTypes) {
     }, // hooks
     indexes: [
       {
-        name: 'AspectUniqueLowercaseNameIsDeleted',
+        name: 'AspectUniqueLowercaseName',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('name')),
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('name'))],
       },
     ],
-    paranoid: true,
   });
 
   /**

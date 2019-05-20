@@ -189,26 +189,6 @@ describe('tests/api/v1/aspects/put.js >', () => {
     });
   });
 
-  it('put with readOnly field isDeleted should fail', (done) => {
-    api.put(`${path}/${aspectId}`)
-    .set('Authorization', token)
-    .send({
-      name: `${tu.namePrefix}newName`,
-      timeout: '220s',
-      isDeleted: 0,
-    })
-    .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.errors[0].description)
-      .to.contain('You cannot modify the read-only field: isDeleted');
-      return done();
-    });
-  });
-
   describe('with tags >', () => {
     it('update to add tags', (done) => {
       const toPut = {

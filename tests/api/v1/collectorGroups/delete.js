@@ -84,7 +84,6 @@ describe('tests/api/v1/collectorGroups/delete.js >', () => {
           return done(err);
         }
 
-        expect(res.body.isDeleted).to.be.greaterThan(0);
         return done();
       });
   });

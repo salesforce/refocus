@@ -51,13 +51,9 @@ describe('tests/db/model/collectorGroup/delete.js >', () => {
   it('ok, an instance delete', (done) => {
     CollectorGroup.findById(collectorGroupDb.id)
     .then((c) => c.destroy())
-    .then((o) => {
-      if (o.deletedAt && (o.isDeleted !== 0)) {
-        done();
-      } else {
-        done(new Error('expecting it to be soft-deleted'));
-      }
-    })
+    .then(() => CollectorGroup.findById(collectorGroupDb.id))
+    .then((o) => expect(o).to.be.null)
+    .then(() => done())
     .catch(done);
   });
 

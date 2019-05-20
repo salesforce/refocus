@@ -35,15 +35,6 @@ describe('tests/api/v1/aspects/delete.js >', () => {
     let token;
 
     /**
-     * Throws error if response object's
-     * isDeleted value <= 0
-     * @param {Object} res THe response object
-     */
-    function bodyCheckIfDeleted(res) {
-      expect(res.body.isDeleted).to.be.above(ZERO);
-    }
-
-    /**
      * Throws error if aspect created for test
      * was returned.
      */
@@ -79,7 +70,6 @@ describe('tests/api/v1/aspects/delete.js >', () => {
       api.delete(`${path}/${u.toCreate.name.toLowerCase()}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .expect(bodyCheckIfDeleted)
       .expect(notFound)
       .end((err, res) => {
         if (err) {
@@ -95,7 +85,6 @@ describe('tests/api/v1/aspects/delete.js >', () => {
       api.delete(`${path}/${aspectId}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .expect(bodyCheckIfDeleted)
       .expect(notFound)
       .end(done);
     });
@@ -104,7 +93,6 @@ describe('tests/api/v1/aspects/delete.js >', () => {
       api.delete(`${path}/${u.toCreate.name}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .expect(bodyCheckIfDeleted)
       .expect(notFound)
       .end(done);
     });

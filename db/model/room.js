@@ -125,9 +125,8 @@ module.exports = function room(seq, dataTypes) {
        */
       afterCreate: (instance) => {
         const changedKeys = Object.keys(instance._changed);
-        const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(), roomEventNames.add,
-          changedKeys, ignoreAttributes, pubOpts);
+          changedKeys, [], pubOpts);
       },
 
       afterUpdate(instance /* , opts */) {

@@ -52,7 +52,6 @@ module.exports = function auditevent(seq, dataTypes) {
         ],
       },
     ],
-    paranoid: true,
   });
   return AuditEvent;
 };

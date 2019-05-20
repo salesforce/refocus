@@ -80,22 +80,23 @@ module.exports = {
       return u.forbidden(next);
     }
 
+    let found;
     return helper.model.findOne()
     .then((o) => {
       if (o) {
-        o.destroy()
-          .then((destroyedObj) => {
-            resultObj.dbTime = new Date() - resultObj.reqStartTime;
-            u.logAPI(req, resultObj, destroyedObj);
-            res.status(httpStatus.OK)
-              .json(responsify(destroyedObj, helper, req.method));
-          })
-          .catch((err) => u.handleError(next, err, helper.modelName));
-      } else {
-        const err = new apiErrors.ResourceNotFoundError();
-        err.info = 'There is no sso config to delete.';
-        u.handleError(next, err, helper.modelName);
+        found = o;
+        return o.destroy();
       }
+
+      const err = new apiErrors.ResourceNotFoundError();
+      err.info = 'There is no sso config to delete.';
+      u.handleError(next, err, helper.modelName);
+    })
+    .then((destroyedObj) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      u.logAPI(req, resultObj, found);
+      res.status(httpStatus.OK)
+        .json(responsify(found, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },

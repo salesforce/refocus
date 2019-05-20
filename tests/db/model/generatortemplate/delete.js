@@ -23,11 +23,14 @@ describe('tests/db/model/generatortemplate/delete.js >', () => {
   it('ok, soft delete successful', (done) => {
     GeneratorTemplate.create(gt)
     .then((o) => o.destroy())
-    .then((o) => {
-      expect(o.deletedAt).to.not.equal(null);
-      expect(o.isDeleted).to.not.equal(null);
-      done();
-    })
+    .then(() => GeneratorTemplate.findOne({
+      where: {
+        name: gt.name,
+        version: gt.version,
+      },
+    }))
+    .then((found) => expect(found).to.be.null)
+    .then(() => done())
     .catch(done);
   });
 
@@ -47,10 +50,8 @@ describe('tests/db/model/generatortemplate/delete.js >', () => {
     GeneratorTemplate.create(gt)
     .then((o) => o.destroy())
     .then(() => GeneratorTemplate.create(gt))
-    .then((o) => {
-      expect(o.isDeleted).to.equal('0');
-      done();
-    })
+    .then((created) => expect(created).to.have.property('id'))
+    .then(() => done())
     .catch(done);
   });
 });

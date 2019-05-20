@@ -111,7 +111,6 @@ describe('tests/api/v1/userTokens/delete.js, ' +
       }
 
       expect(res.body).to.have.property('name', tname1);
-      expect(res.body.isDeleted).to.not.equal(0);
       done();
     });
   });
@@ -133,7 +132,6 @@ describe('tests/api/v1/userTokens/delete.js, ' +
       }
 
       expect(res.body).to.have.property('name', tname2);
-      expect(res.body.isDeleted).to.not.equal(0);
       done();
     });
   });

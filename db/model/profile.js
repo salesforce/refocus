@@ -54,11 +54,6 @@ module.exports = function profile(seq, dataTypes) {
       type: dataTypes.ENUM('r', 'rw'),
       defaultValue: 'r',
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     lensAccess: {
       type: dataTypes.ENUM('r', 'rw'),
       defaultValue: 'rw',
@@ -103,9 +98,8 @@ module.exports = function profile(seq, dataTypes) {
     hooks: {
 
       /**
-       * Set the isDeleted timestamp and prevent destroying a profile if it
-       * still has users. No one is allowed to delete the out-of-the box admin
-       * profile.
+       * Prevent destroying a profile if it still has users. No one is allowed
+       * to delete the out-of-the box admin profile.
        *
        * @param {Aspect} inst - The instance.
        * @returns {Promise}
@@ -132,7 +126,7 @@ module.exports = function profile(seq, dataTypes) {
                 throw err;
               }
 
-              return common.setIsDeleted(seq.Promise, inst);
+              return true;
             })
             .then(() => resolve(inst))
             .catch((err) => reject(err))
@@ -161,15 +155,11 @@ module.exports = function profile(seq, dataTypes) {
     },
     indexes: [
       {
-        name: 'ProfileUniqueLowercaseNameIsDeleted',
+        name: 'ProfileUniqueLowercaseName',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('name')),
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('name'))],
       },
     ],
-    paranoid: true,
   });
 
   /**

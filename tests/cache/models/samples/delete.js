@@ -109,20 +109,6 @@ describe('tests/cache/models/samples/delete.js >', () => {
       });
     });
 
-    it('does not return isDeleted field', (done) => {
-      api.delete(`${path}/${sampleName}`)
-      .set('Authorization', token)
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.isDeleted).to.equal(undefined);
-        done();
-      });
-    });
-
     it('createdAt and updatedAt fields have the expected format', (done) => {
       api.delete(`${path}/${sampleName}`)
       .set('Authorization', token)

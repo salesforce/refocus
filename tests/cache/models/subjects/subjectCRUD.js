@@ -297,13 +297,17 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
 
   it('once a subject is destroyed no entry should be found in the master ' +
   'subject index', (done) => {
+    let found;
     Subject.findById(ipar)
-    .then((s) => s.destroy())
+    .then((s) => {
+      found = s;
+      return s.destroy();
+    })
     .then((subj) => {
-      const key = redisStore.toKey('subject', subj.absolutePath);
+      const key = redisStore.toKey('subject', found.absolutePath);
       const cmds = [];
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        subj.absolutePath));
+        found.absolutePath));
       cmds.push(['hgetall', key]);
       return redisOps.executeBatchCmds(cmds);
     })
@@ -599,10 +603,10 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
     })
     .then(() => subInst.destroy())
     .then((subj) => {
-      const key = redisStore.toKey('subject', subj.absolutePath);
+      const key = redisStore.toKey('subject', subInst.absolutePath);
       const cmds = [];
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        subj.absolutePath));
+        subInst.absolutePath));
       cmds.push(['hgetall', key]);
       return redisOps.executeBatchCmds(cmds);
     })

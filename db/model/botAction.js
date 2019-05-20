@@ -140,9 +140,8 @@ module.exports = function botAction(seq, dataTypes) {
 
       afterCreate: (instance) => {
         const changedKeys = Object.keys(instance._changed);
-        const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
-          botActionEventNames.add, changedKeys, ignoreAttributes, pubOpts);
+          botActionEventNames.add, changedKeys, [], pubOpts);
       },
 
       afterUpdate(instance /* , opts */) {

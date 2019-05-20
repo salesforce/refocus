@@ -482,25 +482,6 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
         });
       });
 
-      it('isDeleted', (done) => {
-        api.post(path)
-        .set('Authorization', token)
-        .send({
-          name: `${subject.absolutePath}|${aspect.name}`,
-          isDeleted: 0,
-        })
-        .expect(constants.httpStatus.BAD_REQUEST)
-        .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-
-          expect(res.body.errors[0].description)
-          .to.contain('You cannot modify the read-only field: isDeleted');
-          return done();
-        });
-      });
-
       it('createdAt', (done) => {
         api.post(path)
         .set('Authorization', token)

@@ -40,17 +40,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
       const n = { name: `${tu.namePrefix}NorthAmerica` };
       let i = 0;
 
-      function bodyCheckIfDeleted(res) {
-        const errors = [];
-        if (res.body.isDeleted === 0) {
-          errors.push(new Error('isDeleted should be > 0'));
-        }
-
-        if (errors.length) {
-          throw new Error(errors);
-        }
-      }
-
       function notFound() {
         const errors = [];
         Subject.findById(i)
@@ -81,7 +70,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         api.delete(`${path}/${i}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
-        .expect(bodyCheckIfDeleted)
         .expect(notFound)
         .end(done);
       });
@@ -91,7 +79,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         api.delete(`${path}/${n.name.toLowerCase()}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
-        .expect(bodyCheckIfDeleted)
         .expect(notFound)
         .end((err, res) => {
           if (err) {
@@ -107,7 +94,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         api.delete(`${path}/${n.name}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
-        .expect(bodyCheckIfDeleted)
         .expect(notFound)
         .end(done);
       });
@@ -150,10 +136,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
           errors.push(new Error(`absolutePath should be ${par.name}`));
         }
 
-        if (res.body.isDeleted === 0) {
-          errors.push(new Error('isDeleted should be > 0'));
-        }
-
         if (errors.length) {
           throw new Error(errors);
         }
@@ -170,21 +152,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
           errors.push(new Error(msg));
         }
 
-        if (res.body.isDeleted === 0) {
-          errors.push(new Error('isDeleted should be > 0'));
-        }
-
-        if (errors.length) {
-          throw new Error(errors);
-        }
-      }
-
-      function grandchildBodyCheckIfDeleted(res) {
-        const errors = [];
-        if (res.body.isDeleted === 0) {
-          errors.push(new Error('isDeleted should be > 0'));
-        }
-
         if (errors.length) {
           throw new Error(errors);
         }
@@ -194,7 +161,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         Subject.findById({
           where: {
             id: ipar,
-            isDeleted: 0,
           },
         })
         .then((subj) => {
@@ -208,7 +174,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         Subject.findOne({
           where: {
             id: ichi,
-            isDeleted: 0,
           },
         })
         .then((subj) => {
@@ -222,7 +187,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         Subject.findOne({
           where: {
             id: igrn,
-            isDeleted: 0,
           },
         })
         .then((subj) => {
@@ -275,7 +239,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         api.delete(`${path}/${igrn}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
-        .expect(grandchildBodyCheckIfDeleted)
         .expect(grandchildNotFound)
         .end((err /* , res */) => {
           if (err) {
@@ -307,7 +270,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         api.delete(`${path}/${par.name}.${chi.name}.${grn.name}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
-        .expect(grandchildBodyCheckIfDeleted)
         .expect(grandchildNotFound)
         .end((err /* , res */) => {
           if (err) {

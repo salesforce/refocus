@@ -50,11 +50,6 @@ module.exports = function lens(seq, dataTypes) {
       type: dataTypes.BOOLEAN,
       defaultValue: true,
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     isPublished: {
       type: dataTypes.BOOLEAN,
       allowNull: false,
@@ -105,9 +100,9 @@ module.exports = function lens(seq, dataTypes) {
                 `Cannot delete ${inst.name} because it is still in use by the ` +
                 'following perspectives: ' + perspectives.map((p) => p.name),
             });
-          } else {
-            return common.setIsDeleted(seq.Promise, inst);
           }
+
+          return seq.Promise.resolve();
         });
       }, // beforeDestroy
 
@@ -202,15 +197,11 @@ module.exports = function lens(seq, dataTypes) {
     },
     indexes: [
       {
-        name: 'LensUniqueLowercaseNameIsDeleted',
+        name: 'LensUniqueLowercaseName',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('name')),
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('name'))],
       },
     ],
-    paranoid: true,
     tableName: 'Lenses',
   });
 

@@ -55,10 +55,6 @@ describe('tests/api/v1/subjects/put.js >', () => {
         errors.push(new Error('isPublished should be true'));
       }
 
-      if (res.body.isDeleted > ZERO) {
-        errors.push(new Error('isDeleted should be zero'));
-      }
-
       if (errors.length) {
         throw new Error(errors);
       }
@@ -76,10 +72,6 @@ describe('tests/api/v1/subjects/put.js >', () => {
 
       if (res.body.absolutePath !== p0.name) {
         errors.push(new Error(`absolutePath should be ${p0.name}`));
-      }
-
-      if (res.body.isDeleted > ZERO) {
-        errors.push(new Error('isDeleted should be zero'));
       }
 
       if (errors.length) {
@@ -305,27 +297,6 @@ describe('tests/api/v1/subjects/put.js >', () => {
 
         expect(res.body.errors[0].description)
         .to.contain('You cannot modify the read-only field: id');
-        done();
-      });
-    });
-
-    it('put subject with a read-only field isDeleted', (done) => {
-      const toPut = {
-        name: `${tu.namePrefix}newName`,
-        isPublished: true,
-        isDeleted: 0,
-      };
-      api.put(`${path}/${i1}`)
-      .set('Authorization', token)
-      .send(toPut)
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.errors[0].description)
-        .to.contain('You cannot modify the read-only field: isDeleted');
         done();
       });
     });

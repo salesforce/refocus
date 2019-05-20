@@ -224,15 +224,6 @@ describe('tests/db/model/subject/find.js >', () => {
       .catch(done);
     });
 
-    it('ok, found all, including soft-deleted ones', (done) => {
-      Subject.findAll({ paranoid: false })
-      .then((found) => {
-        expect(found).to.have.length(3);
-        done();
-      })
-      .catch(done);
-    });
-
     it('test out lots of different { where: ... $between} options', (done) => {
       Subject.findAll({ order: ['name'] })
       .then((found) => {

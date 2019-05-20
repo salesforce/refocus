@@ -32,7 +32,7 @@ const collectorToCreate = {
 const expectedProps = [
   'aspects', 'collectorId', 'collectorGroup', 'collectorGroupId', 'context', 'createdAt',
   'createdBy', 'currentCollector', 'description', 'generatorTemplate',
-  'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'isDeleted', 'name',
+  'helpEmail', 'helpUrl', 'id', 'intervalSecs', 'isActive', 'name',
   'subjectQuery', 'tags', 'token', 'updatedAt', 'user',
 ];
 
@@ -42,7 +42,7 @@ const expectedCtxProps = ['password', 'secretInformation',
 const expectedSGTProps = [
   'author', 'connection', 'contextDefinition',
   'createdAt', 'description', 'helpEmail', 'helpUrl',
-  'id', 'isDeleted', 'isPublished', 'name', 'repository', 'tags', 'transform',
+  'id', 'isPublished', 'name', 'repository', 'tags', 'transform',
   'updatedAt', 'version',
 ];
 

@@ -73,7 +73,7 @@ module.exports = {
    * defines the field that will be used for comparision
    */
   sortArrayObjects: {},
-  readOnlyFields: ['id', 'isDeleted', 'currentCollector'],
+  readOnlyFields: ['id', 'currentCollector'],
   timePeriodFilters: ['createdAt', 'updatedAt'],
 
 }; // exports

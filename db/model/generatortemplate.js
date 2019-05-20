@@ -83,11 +83,6 @@ module.exports = function user(seq, dataTypes) {
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     name: {
       type: dataTypes.STRING(constants.fieldlen.normalName),
       allowNull: false,
@@ -160,10 +155,6 @@ module.exports = function user(seq, dataTypes) {
   }, {
 
     hooks: {
-      beforeDestroy(inst /* , opts */) {
-        return common.setIsDeleted(seq.Promise, inst);
-      }, // beforeDestroy
-
       afterCreate(inst /* , opts*/) {
         if (inst.createdBy) {
           return new seq.Promise((resolve, reject) =>
@@ -233,16 +224,11 @@ module.exports = function user(seq, dataTypes) {
     },
     indexes: [
       {
-        name: 'GTUniqueLowercaseNameVersionIsDeleted',
+        name: 'GTUniqueLowercaseNameVersion',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('name')),
-          'version',
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('name')), 'version'],
       },
     ],
-    paranoid: true,
   });
 
   /**

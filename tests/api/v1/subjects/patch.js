@@ -46,10 +46,6 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
       errors.push(new Error(`absolutePath should be ${p0.name}`));
     }
 
-    if (res.body.isDeleted > 0) {
-      errors.push(new Error('isDeleted should be zero'));
-    }
-
     if (errors.length) {
       throw new Error(errors);
     }
@@ -650,29 +646,6 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
         'You cannot modify the read-only field: id'
       );
       return err ? done(err) : done();
-    });
-  });
-
-  it('patching readOnly field isDeleted should fail', (done) => {
-    const toPatch = {
-      isPublished: p1.isPublished,
-      name: p1.name,
-      isDeleted: 0,
-    };
-    api.patch(`${path}/${i1}`)
-    .set('Authorization', token)
-    .send(toPatch)
-    .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.errors[0].description).to.be.equal(
-        'You cannot modify the read-only field: isDeleted'
-      );
-
-      done();
     });
   });
 });

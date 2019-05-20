@@ -36,11 +36,6 @@ module.exports = function user(seq, dataTypes) {
       type: dataTypes.STRING(constants.fieldlen.url),
       validate: { isUrl: true },
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     lastLogin: {
       type: dataTypes.DATE,
       defaultValue: Date.now(),
@@ -101,7 +96,6 @@ module.exports = function user(seq, dataTypes) {
           .then((p) => p.decrement('userCount'))
           .then(() => inst.getTokens())
           .each((token) => token.destroy())
-          .then(() => common.setIsDeleted(seq.Promise, inst))
           .then(() => resolve(inst))
           .catch((err) => reject(err))
         );
@@ -166,12 +160,9 @@ module.exports = function user(seq, dataTypes) {
     },
     indexes: [
       {
-        name: 'UserUniqueLowercaseNameIsDeleted',
+        name: 'UserUniqueLowercaseName',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('name')),
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('name'))],
       },
       {
         name: 'UserLowercaseEmail',
@@ -180,7 +171,6 @@ module.exports = function user(seq, dataTypes) {
         ],
       },
     ],
-    paranoid: true,
     validate: {
 
       /**
@@ -198,12 +188,7 @@ module.exports = function user(seq, dataTypes) {
             seq.models.Profile.findById(_this.profileId)
             .then((p) => {
               if (p) {
-                if (Number(p.isDeleted) === 0) {
-                  resolve();
-                } else {
-                  reject(new Error(
-                    `Profile ${_this.profileId} has been soft-deleted`));
-                }
+                resolve();
               } else {
                 reject(new Error(`Profile ${_this.profileId} not found`));
               }

@@ -70,6 +70,7 @@ module.exports = {
     const user = req.swagger.params.key.value;
     const tokenName = req.swagger.params.tokenName.value;
     const whr = whereClauseForUserAndTokenName(user, tokenName);
+    let deletedToken;
 
     // get user token
     helper.model.findOne(whr)
@@ -80,6 +81,8 @@ module.exports = {
         err.key = user + ', ' + tokenName;
         throw err;
       }
+
+      deletedToken = token;
 
       if (token.name === token.user.name) { // Default token cannot be deleted!
         throw new apiErrors.ForbiddenError({
@@ -103,8 +106,9 @@ module.exports = {
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (o) { // object deleted successfully
-        u.logAPI(req, resultObj, o.dataValues);
-        res.status(httpStatus.OK).json(u.responsify(o, helper, req.method));
+        u.logAPI(req, resultObj, deletedToken.dataValues);
+        const retval = u.responsify(deletedToken, helper, req.method);
+        res.status(httpStatus.OK).json(retval);
       } else if (o instanceof Error) {
         throw o; // forbidden err
       }

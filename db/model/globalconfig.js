@@ -21,11 +21,6 @@ module.exports = function user(seq, dataTypes) {
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     key: {
       type: dataTypes.STRING(256),
       allowNull: false,
@@ -38,32 +33,13 @@ module.exports = function user(seq, dataTypes) {
       allowNull: true,
     },
   }, {
-    hooks: {
-      /**
-       * Set the isDeleted timestamp.
-       *
-       * @param {Aspect} inst - The instance being destroyed
-       * @returns {Promise}
-       */
-      beforeDestroy(inst /* , opts */) {
-        return new seq.Promise((resolve, reject) =>
-          common.setIsDeleted(seq.Promise, inst)
-          .then(() => resolve(inst))
-          .catch((err) => reject(err))
-        );
-      }, // hooks.beforeDestroy
-    }, // hooks
     indexes: [
       {
-        name: 'GlobalConfigUniqueLowercaseKeyIsDeleted',
+        name: 'GlobalConfigUniqueLowercaseKey',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('key')),
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('key'))],
       },
     ],
-    paranoid: true,
   });
 
   /**

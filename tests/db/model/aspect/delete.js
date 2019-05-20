@@ -31,13 +31,9 @@ describe('tests/db/model/aspect/delete.js', () => {
     it('simple', (done) => {
       Aspect.findOne({ where: { name: u.name } })
       .then((o) => o.destroy())
-      .then((o) => {
-        if (o.deletedAt && o.isDeleted) {
-          done();
-        } else {
-          done(new Error('expecting it to be soft-deleted'));
-        }
-      })
+      .then((o) => Aspect.findOne({ where: { name: u.name } }))
+      .then((o) => expect(o).to.be.null)
+      .then(() => done())
       .catch(done);
     });
 
@@ -49,13 +45,10 @@ describe('tests/db/model/aspect/delete.js', () => {
       })
       .then(() => Aspect.findOne({ where: { name: u.name } }))
       .then((o) => o.destroy())
-      .then((o) => {
-        if (o.deletedAt && o.isDeleted) {
-          done();
-        } else {
-          done(new Error('expecting it to be soft-deleted'));
-        }
-      })
+      .then((o) => Aspect.findOne({ where: { name: u.name } }))
+      .then((o) => Aspect.findOne({ where: { name: u.name } }))
+      .then((o) => expect(o).to.be.null)
+      .then(() => done())
       .catch(done);
     });
 
@@ -69,19 +62,9 @@ describe('tests/db/model/aspect/delete.js', () => {
       })
       .then(() => Aspect.findOne({ where: { name: u.name } }))
       .then((o) => o.destroy())
-      .then((o) => {
-        if (o.deletedAt && o.isDeleted) {
-          expect(o.dataValues.relatedLinks[0]).to.have.property('name')
-          .to.equal('destroyRelatedLink');
-          expect(o.dataValues.relatedLinks[0]).to.have.property('url')
-          .to.equal('https://fakelink.com');
-          expect(o.dataValues).to.have.property('isDeleted').to.not.equal(0);
-          expect(o.dataValues).to.have.property('deletedAt').to.not.equal(null);
-          done();
-        } else {
-          done(new Error('expecting it to be soft-deleted'));
-        }
-      })
+      .then((o) => Aspect.findOne({ where: { name: u.name } }))
+      .then((o) => expect(o).to.be.null)
+      .then(() => done())
       .catch(done);
     });
   });
