@@ -7,7 +7,7 @@
  */
 
 /**
- * migrations/20190516222603-no-paranoid.js
+ * migrations/20190520221710-no-paranoid.js
  *
  * This database migration permanently deletes all the soft-deleted records
  * from tables which had "paranoid" set to true.
@@ -115,171 +115,171 @@ function removeOldIndices(qi) {
  */
 function restoreOldIndices(qi, Seq) {
   return qi.sequelize.transaction(() => Promise.all([
-    qi.addIndex('Aspects',
-      [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-      {
-        name: 'AspectUniqueLowercaseNameIsDeleted',
-        unique: true,
-      })
-      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-    qi.addIndex('Collectors',
-      [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-      {
-        name: 'CollectorUniqueLowercaseNameIsDeleted',
-        unique: true,
-      })
-      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-    qi.addIndex('CollectorGroups',
-      [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-      {
-        name: 'CollectorGroupUniqueLowercaseNameIsDeleted',
-        unique: true,
-      })
-      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-    qi.addIndex('Generators',
-      [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-      {
-        name: 'GeneratorUniqueLowercaseNameIsDeleted',
-        unique: true,
-      })
-      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-    qi.addIndex('GeneratorTemplates',
-      [Seq.fn('lower', Seq.col('name')), 'version', 'isDeleted'],
-      {
-        name: 'GTUniqueLowercaseNameVersionIsDeleted',
-        unique: true,
-      })
-      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-    qi.addIndex('GlobalConfigs',
-      [Seq.fn('lower', Seq.col('key')), 'isDeleted'],
-      {
-        name: 'GlobalConfigUniqueLowercaseKeyIsDeleted',
-        unique: true,
-      })
-      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-    qi.addIndex('Lenses',
-      [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-      {
-        name: 'LensUniqueLowercaseNameIsDeleted',
-        unique: true,
-      })
-      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-    qi.addIndex('Perspectives',
-      [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-      {
-        name: 'PerspectiveUniqueLowercaseNameIsDeleted',
-        unique: true,
-      })
-      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-    qi.addIndex('Profiles',
-      [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-      {
-        name: 'ProfileUniqueLowercaseNameIsDeleted',
-        unique: true,
-      })
-      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-    qi.addIndex('Subjects',
-      [Seq.fn('lower', Seq.col('absolutePath')), 'isDeleted'],
-      {
-        name: 'SubjectUniqueLowercaseAbsolutePathIsDeleted',
-        unique: true,
-      })
-      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-    qi.addIndex('Tokens',
-      [Seq.fn('lower', Seq.col('name')), 'createdBy', 'isDeleted'],
-      {
-        name: 'TokenUniqueLowercaseNameCreatedByIsDeleted',
-        unique: true,
-      })
-      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-    qi.addIndex('Users',
-      [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-      {
-        name: 'UserUniqueLowercaseNameIsDeleted',
-        unique: true,
-      })
-      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-  ])
-    .then(() => qi.addIndex('Subjects',
-      [Seq.fn('lower', Seq.col('absolutePath')), 'deletedAt', 'isPublished'],
-      { name: 'SubjectAbsolutePathDeletedAtIsPublished' })
-    )
-    .catch((err) => console.log('ignoring restoreOldIndices error:', err.message))
+      qi.addIndex('Aspects',
+        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
+        {
+          name: 'AspectUniqueLowercaseNameIsDeleted',
+          unique: true,
+        })
+        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
+      qi.addIndex('Collectors',
+        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
+        {
+          name: 'CollectorUniqueLowercaseNameIsDeleted',
+          unique: true,
+        })
+        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
+      qi.addIndex('CollectorGroups',
+        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
+        {
+          name: 'CollectorGroupUniqueLowercaseNameIsDeleted',
+          unique: true,
+        })
+        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
+      qi.addIndex('Generators',
+        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
+        {
+          name: 'GeneratorUniqueLowercaseNameIsDeleted',
+          unique: true,
+        })
+        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
+      qi.addIndex('GeneratorTemplates',
+        [Seq.fn('lower', Seq.col('name')), 'version', 'isDeleted'],
+        {
+          name: 'GTUniqueLowercaseNameVersionIsDeleted',
+          unique: true,
+        })
+        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
+      qi.addIndex('GlobalConfigs',
+        [Seq.fn('lower', Seq.col('key')), 'isDeleted'],
+        {
+          name: 'GlobalConfigUniqueLowercaseKeyIsDeleted',
+          unique: true,
+        })
+        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
+      qi.addIndex('Lenses',
+        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
+        {
+          name: 'LensUniqueLowercaseNameIsDeleted',
+          unique: true,
+        })
+        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
+      qi.addIndex('Perspectives',
+        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
+        {
+          name: 'PerspectiveUniqueLowercaseNameIsDeleted',
+          unique: true,
+        })
+        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
+      qi.addIndex('Profiles',
+        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
+        {
+          name: 'ProfileUniqueLowercaseNameIsDeleted',
+          unique: true,
+        })
+        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
+      qi.addIndex('Subjects',
+        [Seq.fn('lower', Seq.col('absolutePath')), 'isDeleted'],
+        {
+          name: 'SubjectUniqueLowercaseAbsolutePathIsDeleted',
+          unique: true,
+        })
+        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
+      qi.addIndex('Tokens',
+        [Seq.fn('lower', Seq.col('name')), 'createdBy', 'isDeleted'],
+        {
+          name: 'TokenUniqueLowercaseNameCreatedByIsDeleted',
+          unique: true,
+        })
+        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
+      qi.addIndex('Users',
+        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
+        {
+          name: 'UserUniqueLowercaseNameIsDeleted',
+          unique: true,
+        })
+        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
+    ])
+      .then(() => qi.addIndex('Subjects',
+        [Seq.fn('lower', Seq.col('absolutePath')), 'deletedAt', 'isPublished'],
+        { name: 'SubjectAbsolutePathDeletedAtIsPublished' })
+      )
+      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message))
   )
     .then(() => console.log('[OK] restoreOldIndices'));
 } // restoreOldIndices
 
 function createNewIndices(qi, Seq) {
   return qi.sequelize.transaction(() => Promise.all([
-    qi.addIndex('Aspects', [Seq.fn('lower', Seq.col('name'))], {
-      name: 'AspectUniqueLowercaseName',
-      unique: true,
-    })
-      .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-    qi.addIndex('Collectors', [Seq.fn('lower', Seq.col('name'))], {
-      name: 'CollectorUniqueLowercaseName',
-      unique: true,
-    })
-      .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-    qi.addIndex('CollectorGroups', [Seq.fn('lower', Seq.col('name'))], {
-      name: 'CollectorGroupUniqueLowercaseName',
-      unique: true,
-    })
-      .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-    qi.addIndex('Generators', [Seq.fn('lower', Seq.col('name'))], {
-      name: 'GeneratorUniqueLowercaseName',
-      unique: true,
-    })
-      .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-    qi.addIndex('GeneratorTemplates',
-      [Seq.fn('lower', Seq.col('name')), 'version'],
-      {
-        name: 'GTUniqueLowercaseNameVersion',
+      qi.addIndex('Aspects', [Seq.fn('lower', Seq.col('name'))], {
+        name: 'AspectUniqueLowercaseName',
         unique: true,
       })
-      .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-    qi.addIndex('GlobalConfigs', [Seq.fn('lower', Seq.col('key'))], {
-      name: 'GlobalConfigUniqueLowercaseKey',
-      unique: true,
-    })
-      .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-    qi.addIndex('Lenses', [Seq.fn('lower', Seq.col('name'))], {
-      name: 'LensUniqueLowercaseName',
-      unique: true,
-    })
-      .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-    qi.addIndex('Perspectives', [Seq.fn('lower', Seq.col('name'))], {
-      name: 'PerspectiveUniqueLowercaseName',
-      unique: true,
-    })
-      .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-    qi.addIndex('Profiles', [Seq.fn('lower', Seq.col('name'))], {
-      name: 'ProfileUniqueLowercaseName',
-      unique: true,
-    })
-      .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-    qi.addIndex('Subjects', [Seq.fn('lower', Seq.col('absolutePath'))], {
-      name: 'SubjectUniqueLowercaseAbsolutePath',
-      unique: true,
-    })
-      .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-    qi.addIndex('Tokens', [Seq.fn('lower', Seq.col('name')), 'createdBy'], {
-      name: 'TokenUniqueLowercaseNameCreatedBy',
-      unique: true,
-    })
-      .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-    qi.addIndex('Users', [Seq.fn('lower', Seq.col('name'))], {
-      name: 'UserUniqueLowercaseName',
-      unique: true,
-    })
-      .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-  ])
-    .then(() => qi.addIndex('Subjects',
-      [Seq.fn('lower', Seq.col('absolutePath')), 'isPublished'],
-      { name: 'SubjectAbsolutePathDeletedAtIsPublished' })
-    )
-    .catch((err) => console.log('ignoring createNewIndices error:', err.message))
-    .then(() => console.log('[OK] createNewIndices'))
+        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
+      qi.addIndex('Collectors', [Seq.fn('lower', Seq.col('name'))], {
+        name: 'CollectorUniqueLowercaseName',
+        unique: true,
+      })
+        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
+      qi.addIndex('CollectorGroups', [Seq.fn('lower', Seq.col('name'))], {
+        name: 'CollectorGroupUniqueLowercaseName',
+        unique: true,
+      })
+        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
+      qi.addIndex('Generators', [Seq.fn('lower', Seq.col('name'))], {
+        name: 'GeneratorUniqueLowercaseName',
+        unique: true,
+      })
+        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
+      qi.addIndex('GeneratorTemplates',
+        [Seq.fn('lower', Seq.col('name')), 'version'],
+        {
+          name: 'GTUniqueLowercaseNameVersion',
+          unique: true,
+        })
+        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
+      qi.addIndex('GlobalConfigs', [Seq.fn('lower', Seq.col('key'))], {
+        name: 'GlobalConfigUniqueLowercaseKey',
+        unique: true,
+      })
+        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
+      qi.addIndex('Lenses', [Seq.fn('lower', Seq.col('name'))], {
+        name: 'LensUniqueLowercaseName',
+        unique: true,
+      })
+        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
+      qi.addIndex('Perspectives', [Seq.fn('lower', Seq.col('name'))], {
+        name: 'PerspectiveUniqueLowercaseName',
+        unique: true,
+      })
+        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
+      qi.addIndex('Profiles', [Seq.fn('lower', Seq.col('name'))], {
+        name: 'ProfileUniqueLowercaseName',
+        unique: true,
+      })
+        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
+      qi.addIndex('Subjects', [Seq.fn('lower', Seq.col('absolutePath'))], {
+        name: 'SubjectUniqueLowercaseAbsolutePath',
+        unique: true,
+      })
+        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
+      qi.addIndex('Tokens', [Seq.fn('lower', Seq.col('name')), 'createdBy'], {
+        name: 'TokenUniqueLowercaseNameCreatedBy',
+        unique: true,
+      })
+        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
+      qi.addIndex('Users', [Seq.fn('lower', Seq.col('name'))], {
+        name: 'UserUniqueLowercaseName',
+        unique: true,
+      })
+        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
+    ])
+      .then(() => qi.addIndex('Subjects',
+        [Seq.fn('lower', Seq.col('absolutePath')), 'isPublished'],
+        { name: 'SubjectAbsolutePathDeletedAtIsPublished' })
+      )
+      .catch((err) => console.log('ignoring createNewIndices error:', err.message))
+      .then(() => console.log('[OK] createNewIndices'))
   );
 } // createNewIndices
 
