@@ -22,7 +22,7 @@ const db = require('../db/index');
 function findAndDestroy() {
   const destroyOpts = {
     where: {
-      isDeleted: { [db.Sequelize.Op.gt]: 0 }
+      isDeleted: { [db.Sequelize.Op.gt]: 0 },
     },
     force: true,
   };
