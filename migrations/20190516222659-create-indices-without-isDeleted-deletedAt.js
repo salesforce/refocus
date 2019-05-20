@@ -87,7 +87,7 @@ module.exports = {
       name: 'UserUniqueLowercaseName',
       unique: true,
     })
-      .catch(console.error)
+      .catch(console.error),
   ])
     .then(() => qi.addIndex('Subjects',
       [Seq.fn('lower', Seq.col('absolutePath')), 'isPublished'],

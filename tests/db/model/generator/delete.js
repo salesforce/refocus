@@ -33,7 +33,7 @@ describe('tests/db/model/generator/delete.js >', () => {
   it('ok, delete successful', (done) => {
     Generator.create(generator)
     .then((o) => o.destroy())
-    .then(() => Generator.find({ where: { name: generator.name }})
+    .then(() => Generator.find({ where: { name: generator.name } })
     .then((found) => expect(found).to.be.null)
     .then(() => done()))
     .catch(done);

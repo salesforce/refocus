@@ -63,6 +63,7 @@ function findAndDestroyModel(model) {
           .then((destroyed) =>
             console.log(`[${model}] Destroyed ${destroyed}`));
       };
+
       return arr.reduce((previousPromise, iterationNumber) => {
         console.log(`[${model}] In reduce iteration #${iterationNumber}`);
         return previousPromise.then(() => destroySome(iterationNumber));
