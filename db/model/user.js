@@ -36,6 +36,11 @@ module.exports = function user(seq, dataTypes) {
       type: dataTypes.STRING(constants.fieldlen.url),
       validate: { isUrl: true },
     },
+    isDeleted: {
+      type: dataTypes.BIGINT,
+      defaultValue: 0,
+      allowNull: false,
+    },
     lastLogin: {
       type: dataTypes.DATE,
       defaultValue: Date.now(),
@@ -96,6 +101,7 @@ module.exports = function user(seq, dataTypes) {
           .then((p) => p.decrement('userCount'))
           .then(() => inst.getTokens())
           .each((token) => token.destroy())
+          .then(() => common.setIsDeleted(seq.Promise, inst))
           .then(() => resolve(inst))
           .catch((err) => reject(err))
         );
@@ -160,9 +166,9 @@ module.exports = function user(seq, dataTypes) {
     },
     indexes: [
       {
-        name: 'UserUniqueLowercaseName',
+        name: 'UserUniqueLowercaseNameIsDeleted',
         unique: true,
-        fields: [seq.fn('lower', seq.col('name'))],
+        fields: [seq.fn('lower', seq.col('name')), 'isDeleted'],
       },
       {
         name: 'UserLowercaseEmail',
@@ -171,6 +177,7 @@ module.exports = function user(seq, dataTypes) {
         ],
       },
     ],
+    paranoid: true,
     validate: {
 
       /**
@@ -197,7 +204,6 @@ module.exports = function user(seq, dataTypes) {
           );
         }
       }, // validate.profileExists
-
     },
   });
 

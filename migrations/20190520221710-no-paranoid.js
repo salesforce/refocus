@@ -65,10 +65,7 @@ function destroySoftDeleted() {
     .catch((err) => console.error('[ERROR] findAndDestroy Subjects', err.message))
     .then(() => db.Token.destroy(destroyOpts))
     .then((n) => console.log(`[OK] findAndDestroy ${n} Tokens`))
-    .catch((err) => console.error('[ERROR] findAndDestroy Tokens', err.message))
-    .then(() => db.User.destroy(destroyOpts))
-    .then((n) => console.log(`[OK] findAndDestroy ${n} Users`))
-    .catch((err) => console.error('[ERROR] findAndDestroy Users', err.message));
+    .catch((err) => console.error('[ERROR] findAndDestroy Tokens', err.message));
 } // findAndDestroy
 
 /**
@@ -99,8 +96,6 @@ function removeOldIndices(qi) {
     .then(() => qi.removeIndex('Subjects', 'SubjectAbsolutePathDeletedAtIsPublished'))
     .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
     .then(() => qi.removeIndex('Tokens', 'TokenUniqueLowercaseNameCreatedByIsDeleted'))
-    .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
-    .then(() => qi.removeIndex('Users', 'UserUniqueLowercaseNameIsDeleted'))
     .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
     .then(() => console.log('[OK] removeOldIndices'))
     .catch((err) => console.log('[ERROR]', err.message));
@@ -192,13 +187,6 @@ function restoreOldIndices(qi, Seq) {
           unique: true,
         })
         .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-      qi.addIndex('Users',
-        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-        {
-          name: 'UserUniqueLowercaseNameIsDeleted',
-          unique: true,
-        })
-        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
     ])
       .then(() => qi.addIndex('Subjects',
         [Seq.fn('lower', Seq.col('absolutePath')), 'deletedAt', 'isPublished'],
@@ -265,11 +253,6 @@ function createNewIndices(qi, Seq) {
         .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
       qi.addIndex('Tokens', [Seq.fn('lower', Seq.col('name')), 'createdBy'], {
         name: 'TokenUniqueLowercaseNameCreatedBy',
-        unique: true,
-      })
-        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-      qi.addIndex('Users', [Seq.fn('lower', Seq.col('name'))], {
-        name: 'UserUniqueLowercaseName',
         unique: true,
       })
         .catch((err) => console.log('ignoring createNewIndices error:', err.message)),

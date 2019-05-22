@@ -124,6 +124,21 @@ function validateJsonSchema(value) {
 }
 
 /**
+ * Sets the instance's isDeleted field.
+ *
+ * @param {Promise} Promise -The Sequelize Promise class
+ * @param {Instance} inst - The instance being deleted
+ * @returns {Promise} which resolves undefined if OK or rejects if an error
+ *  was encountered trying to update the instance's isDeleted field
+ */
+function setIsDeleted(Promise, inst) {
+  return new Promise((resolve, reject) =>
+    inst.update({ isDeleted: Date.now() })
+      .then(() => resolve())
+      .catch((err) => reject(err)));
+} // setIsDeleted
+
+/**
  * Validates a function against a schema. It throws an error if the object
  * does not match the schema. The revalidator library is used for this purpose
  * @param  {Object} object - The input object to be instered into the database
@@ -182,6 +197,7 @@ module.exports = {
   validateJsonSchema,
   createDBLog,
   changeType,
+  setIsDeleted,
   validateObject,
   validateContextDef,
   tagsChanged,

@@ -150,6 +150,7 @@ describe(`tests/api/v1/users/delete.js >`, () => {
       .end((err, res) => {
         if (err) return done(err);
         expect(res.body).to.have.property('name', userOne);
+        expect(res.body.isDeleted).to.be.greaterThan(ZERO);
         return done();
       });
     });
@@ -161,6 +162,7 @@ describe(`tests/api/v1/users/delete.js >`, () => {
       .end((err, res) => {
         if (err) return done(err);
         expect(res.body).to.have.property('name', userTwo);
+        expect(res.body.isDeleted).to.be.greaterThan(ZERO);
         return done();
       });
     });
@@ -174,6 +176,7 @@ describe(`tests/api/v1/users/delete.js >`, () => {
       .end((err, res) => {
         if (err) return done(err);
         expect(res.body).to.have.property('name', userThree);
+        expect(res.body.isDeleted).to.be.greaterThan(ZERO);
         return done();
       });
     });
@@ -185,6 +188,7 @@ describe(`tests/api/v1/users/delete.js >`, () => {
       .end((err, res) => {
         if (err) return done(err);
         expect(res.body).to.have.property('name', userFour);
+        expect(res.body.isDeleted).to.be.greaterThan(ZERO);
         return done();
       });
     });

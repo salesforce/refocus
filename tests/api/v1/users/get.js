@@ -89,6 +89,7 @@ describe('tests/api/v1/users/get.js >', () => {
       expect(res.body).to.have.property('name', uname);
       expect(res.body).to.have.property('fullName', ufullName);
       expect(res.body).to.not.have.property('password');
+      expect(res.body.isDeleted).to.not.equal(0);
       done();
     });
   });
