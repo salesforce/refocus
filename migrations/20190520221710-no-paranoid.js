@@ -18,88 +18,195 @@
 'use strict';
 const Promise = require('bluebird');
 const db = require('../db/index');
+const IS = 'isDeleted';
+const AT = 'deletedAt';
 
-function destroySoftDeleted() {
-  const destroyOpts = {
-    where: {
-      isDeleted: { [db.Sequelize.Op.gt]: 0 },
-    },
+function destroySoftDeleted(Seq) {
+  const optsIs = {
+    where: { isDeleted: { [Seq.Op.gt]: 0 } },
     force: true,
   };
+  const optsAt = {
+    where: { deletedAt: { [Seq.Op.ne]: null } },
+    force: true,
+  };
+  const exec = (modelName, opts) => db[modelName].destroy(opts)
+    .then((n) => console.log(` [OK] destroySoftDeleted ${modelName}: ${n}`))
+    .catch((err) =>
+      console.log(` [ERR] destroySoftDeleted ${modelName}: ${err.message}`));
 
-  return db.Aspect.destroy(destroyOpts)
-    .then((n) => console.log(`[OK] findAndDestroy ${n} Aspects`))
-    .catch((err) => console.error('[ERROR] findAndDestroy Aspects', err.message))
-    .then(() => db.AuditEvent.destroy(destroyOpts))
-    .then((n) => console.log(`[OK] findAndDestroy ${n} AuditEvents`))
-    .catch((err) => console.error('[ERROR] findAndDestroy AuditEvents', err.message))
-    .then(() => db.Collector.destroy(destroyOpts))
-    .then((n) => console.log(`[OK] findAndDestroy ${n} Collectors`))
-    .catch((err) => console.error('[ERROR] findAndDestroy Collectors', err.message))
-    .then(() => db.CollectorGroup.destroy(destroyOpts))
-    .then((n) => console.log(`[OK] findAndDestroy ${n} CollectorGroups`))
-    .catch((err) => console.error('[ERROR] findAndDestroy CollectorGroups', err.message))
-    .then(() => db.Generator.destroy(destroyOpts))
-    .then((n) => console.log(`[OK] findAndDestroy ${n} Generators`))
-    .catch((err) => console.error('[ERROR] findAndDestroy Generators', err.message))
-    .then(() => db.GeneratorTemplate.destroy(destroyOpts))
-    .then((n) => console.log(`[OK] findAndDestroy ${n} GeneratorTemplates`))
-    .catch((err) => console.error('[ERROR] findAndDestroy GeneratorTemplates', err.message))
-    .then(() => db.GlobalConfig.destroy(destroyOpts))
-    .then((n) => console.log(`[OK] findAndDestroy ${n} GlobalConfigs`))
-    .catch((err) => console.error('[ERROR] findAndDestroy GlobalConfigs', err.message))
-    .then(() => db.Lens.destroy(destroyOpts))
-    .then((n) => console.log(`[OK] findAndDestroy ${n} Lenses`))
-    .catch((err) => console.error('[ERROR] findAndDestroy Lenses', err.message))
-    .then(() => db.Perspective.destroy(destroyOpts))
-    .then((n) => console.log(`[OK] findAndDestroy ${n} Perspectives`))
-    .catch((err) => console.error('[ERROR] findAndDestroy Perspectives', err.message))
-    .then(() => db.Profile.destroy(destroyOpts))
-    .then((n) => console.log(`[OK] findAndDestroy ${n} Profiles`))
-    .catch((err) => console.error('[ERROR] findAndDestroy Profiles', err.message))
-    .then(() => db.SSOConfig.destroy(destroyOpts))
-    .then((n) => console.log(`[OK] findAndDestroy ${n} SSOConfigs`))
-    .catch((err) => console.error('[ERROR] findAndDestroy SSOConfigs', err.message))
-    .then(() => db.Subject.destroy(destroyOpts))
-    .then((n) => console.log(`[OK] findAndDestroy ${n} Subjects`))
-    .catch((err) => console.error('[ERROR] findAndDestroy Subjects', err.message))
-    .then(() => db.Token.destroy(destroyOpts))
-    .then((n) => console.log(`[OK] findAndDestroy ${n} Tokens`))
-    .catch((err) => console.error('[ERROR] findAndDestroy Tokens', err.message));
-} // findAndDestroy
+  console.log('destroySoftDeleted...');
+  return Promise.all([
+    exec('Aspect', optsIs),
+    exec('AuditEvent', optsAt),
+    exec('Collector', optsIs),
+    exec('CollectorGroup', optsIs),
+    exec('Generator', optsIs),
+    exec('GeneratorTemplate', optsIs),
+    exec('GlobalConfig', optsIs),
+    exec('Lens', optsIs),
+    exec('Perspective', optsIs),
+    exec('Profile', optsIs),
+    exec('SSOConfig', optsAt),
+    exec('Token', optsIs),
+    exec('Subject', optsIs),
+  ])
+    .then(() => console.log('destroySoftDeleted... done!\n'));
+} // destroySoftDeleted
 
 /**
  * Remove all the indices which include "isDeleted" or "deletedAt" in their
  * list of fields.
  */
 function removeOldIndices(qi) {
-  return qi.removeIndex('Aspects', 'AspectUniqueLowercaseNameIsDeleted')
-    .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
-    .then(() => qi.removeIndex('Collectors', 'CollectorUniqueLowercaseNameIsDeleted'))
-    .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
-    .then(() => qi.removeIndex('CollectorGroups', 'CollectorGroupUniqueLowercaseNameIsDeleted'))
-    .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
-    .then(() => qi.removeIndex('Generators', 'GeneratorUniqueLowercaseNameIsDeleted'))
-    .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
-    .then(() => qi.removeIndex('GeneratorTemplates', 'GTUniqueLowercaseNameVersionIsDeleted'))
-    .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
-    .then(() => qi.removeIndex('GlobalConfig', 'GlobalConfigUniqueLowercaseKeyIsDeleted'))
-    .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
-    .then(() => qi.removeIndex('Lenses', 'LensUniqueLowercaseNameIsDeleted'))
-    .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
-    .then(() => qi.removeIndex('Perspectives', 'PerspectiveUniqueLowercaseNameIsDeleted'))
-    .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
-    .then(() => qi.removeIndex('Profiles', 'ProfileUniqueLowercaseNameIsDeleted'))
-    .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
-    .then(() => qi.removeIndex('Subjects', 'SubjectUniqueLowercaseAbsolutePathIsDeleted'))
-    .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
-    .then(() => qi.removeIndex('Subjects', 'SubjectAbsolutePathDeletedAtIsPublished'))
-    .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
-    .then(() => qi.removeIndex('Tokens', 'TokenUniqueLowercaseNameCreatedByIsDeleted'))
-    .catch((err) => console.log('ignoring removeOldIndices error:', err.message))
-    .then(() => console.log('[OK] removeOldIndices'))
-    .catch((err) => console.log('[ERROR]', err.message));
+  const exec = (tbl, idx) => qi.removeIndex(tbl, idx)
+    .then(() => console.log(` [OK] removeOldIndices ${tbl} ${idx}`))
+    .catch((err) =>
+      console.log(` [ERR] removeOldIndices ${tbl} ${idx}: ${err.message}`));
+
+  console.log('removeOldIndices...');
+  return Promise.all([
+    exec('Aspects', 'AspectUniqueLowercaseNameIsDeleted'),
+    exec('Collectors', 'CollectorUniqueLowercaseNameIsDeleted'),
+    exec('CollectorGroups', 'CollectorGroupUniqueLowercaseNameIsDeleted'),
+    exec('Generators', 'GeneratorUniqueLowercaseNameIsDeleted'),
+    exec('GeneratorTemplates', 'GTUniqueLowercaseNameVersionIsDeleted'),
+    exec('GlobalConfigs', 'GlobalConfigUniqueLowercaseKeyIsDeleted'),
+    exec('Lenses', 'LensUniqueLowercaseNameIsDeleted'),
+    exec('Perspectives', 'PerspectiveUniqueLowercaseNameIsDeleted'),
+    exec('Profiles', 'ProfileUniqueLowercaseNameIsDeleted'),
+    exec('Subjects', 'SubjectUniqueLowercaseAbsolutePathIsDeleted'),
+    exec('Subjects', 'SubjectAbsolutePathDeletedAtIsPublished'),
+    exec('Tokens', 'TokenUniqueLowercaseNameCreatedByIsDeleted'),
+  ])
+    .then(() => console.log('removeOldIndices... done!\n'));
 } // removeOldIndices
+
+function removeFields(qi) {
+  const exec = (tbl, col) => qi.removeColumn(tbl, col)
+    .then(() => console.log(` [OK] removeFields ${tbl} ${col}`))
+    .catch((err) =>
+      console.log(` [ERR] removeFields ${tbl} ${col}: ${err.message}`));
+
+  console.log('removeFields...');
+  return Promise.all([
+    exec('Aspects', IS),
+    exec('Collectors', IS),
+    exec('CollectorGroups', IS),
+    exec('Generators', IS),
+    exec('GeneratorTemplates', IS),
+    exec('GlobalConfigs', IS),
+    exec('Lenses', IS),
+    exec('Perspectives', IS),
+    exec('Profiles', IS),
+    exec('Subjects', IS),
+    exec('Tokens', IS),
+  ])
+    .then(() => Promise.all([
+      exec('AuditEvents', AT),
+      exec('Aspects', AT),
+      exec('Collectors', AT),
+      exec('CollectorGroups', AT),
+      exec('Generators', AT),
+      exec('GeneratorTemplates', AT),
+      exec('GlobalConfigs', AT),
+      exec('Lenses', AT),
+      exec('Perspectives', AT),
+      exec('Profiles', AT),
+      exec('SSOConfigs', AT),
+      exec('Subjects', AT),
+      exec('Tokens', AT),
+    ]))
+    .then(() => console.log('removeFields... done!\n'));
+} // removeFields
+
+function createNewIndices(qi, Seq) {
+  const lowerName = Seq.fn('lower', Seq.col('name'));
+  const lowerAbsPath = Seq.fn('lower', Seq.col('absolutePath'));
+  const lowerKey = Seq.fn('lower', Seq.col('key'));
+  const unique = true;
+  const exec = (tbl, fields, opts) => qi.addIndex(tbl, fields, opts)
+    .then(() => console.log(` [OK] createNewIndices ${tbl} ${opts.name}`))
+    .catch((err) =>
+      console.log(` [ERR] createNewIndices ${tbl} ${opts.name}: ${err.message}`));
+
+  console.log('createNewIndices...');
+  return Promise.all([
+    exec('Aspects', [lowerName],
+      { name: 'AspectUniqueLowercaseName', unique }),
+    exec('Collectors', [lowerName],
+      { name: 'CollectorUniqueLowercaseName', unique }),
+    exec('CollectorGroups', [lowerName],
+      { name: 'CollectorGroupUniqueLowercaseName', unique }),
+    exec('Generators', [lowerName],
+      { name: 'GeneratorUniqueLowercaseName', unique }),
+    exec('GeneratorTemplates', [lowerName, 'version'],
+      { name: 'GTUniqueLowercaseNameVersion', unique }),
+    exec('GlobalConfigs', [lowerKey],
+      { name: 'GlobalConfigUniqueLowercaseKey', unique }),
+    exec('Lenses', [lowerName],
+      { name: 'LensUniqueLowercaseName', unique }),
+    exec('Perspectives', [lowerName],
+      { name: 'PerspectiveUniqueLowercaseName', unique }),
+    exec('Profiles', [lowerName],
+      { name: 'ProfileUniqueLowercaseName', unique }),
+    exec('Subjects', [lowerAbsPath],
+      { name: 'SubjectUniqueLowercaseAbsolutePath', unique }),
+    exec('Tokens', [lowerName, 'createdBy'],
+      { name: 'TokenUniqueLowercaseNameCreatedBy', unique }),
+  ])
+    .then(() => exec('Subjects', [lowerAbsPath, 'isPublished'],
+      { name: 'SubjectAbsolutePathIsPublished' }))
+    .then(() => console.log('createNewIndices... done!\n'));
+} // createNewIndices
+
+function recreateOldFields(qi, Seq) {
+  const isDeleted = {
+    type: Seq.BIGINT,
+    defaultValue: 0,
+    allowNull: false,
+  };
+  const deletedAt = {
+    type: Seq.DATE,
+    allowNull: true,
+  };
+  const exec = (tbl, col) =>
+    qi.addColumn(tbl, col, (col === 'isDeleted' ? isDeleted : deletedAt))
+      .then(() => console.log(` [OK] recreateOldFields ${tbl} ${col}`))
+      .catch((err) =>
+        console.log(` [ERR] recreateOldFields ${tbl} ${col} ${err.message}`));
+
+  console.log('recreateOldFields...');
+  return Promise.all([
+    exec('Aspects', IS),
+    exec('Collectors', IS),
+    exec('CollectorGroups', IS),
+    exec('Generators', IS),
+    exec('GeneratorTemplates', IS),
+    exec('GlobalConfigs', IS),
+    exec('Lenses', IS),
+    exec('Perspectives', IS),
+    exec('Profiles', IS),
+    exec('Subjects', IS),
+    exec('Tokens', IS),
+  ])
+    .then(() => Promise.all([
+      exec('AuditEvents', AT),
+      exec('Aspects', AT),
+      exec('Collectors', AT),
+      exec('CollectorGroups', AT),
+      exec('Generators', AT),
+      exec('GeneratorTemplates', AT),
+      exec('GlobalConfigs', AT),
+      exec('Lenses', AT),
+      exec('Perspectives', AT),
+      exec('Profiles', AT),
+      exec('SSOConfigs', AT),
+      exec('Subjects', AT),
+      exec('Tokens', AT),
+    ]))
+    .then(() => console.log('recreateOldFields... done!\n'));
+} // recreateOldFields
 
 /**
  * For the "down" operation... restores old indices with the "isDeleted" or
@@ -108,168 +215,76 @@ function removeOldIndices(qi) {
  * we necessarily want the migration to be creating two indexes on the Subjects
  * table at the same time in case that might slow things down.
  */
-function restoreOldIndices(qi, Seq) {
-  return qi.sequelize.transaction(() => Promise.all([
-      qi.addIndex('Aspects',
-        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-        {
-          name: 'AspectUniqueLowercaseNameIsDeleted',
-          unique: true,
-        })
-        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-      qi.addIndex('Collectors',
-        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-        {
-          name: 'CollectorUniqueLowercaseNameIsDeleted',
-          unique: true,
-        })
-        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-      qi.addIndex('CollectorGroups',
-        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-        {
-          name: 'CollectorGroupUniqueLowercaseNameIsDeleted',
-          unique: true,
-        })
-        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-      qi.addIndex('Generators',
-        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-        {
-          name: 'GeneratorUniqueLowercaseNameIsDeleted',
-          unique: true,
-        })
-        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-      qi.addIndex('GeneratorTemplates',
-        [Seq.fn('lower', Seq.col('name')), 'version', 'isDeleted'],
-        {
-          name: 'GTUniqueLowercaseNameVersionIsDeleted',
-          unique: true,
-        })
-        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-      qi.addIndex('GlobalConfigs',
-        [Seq.fn('lower', Seq.col('key')), 'isDeleted'],
-        {
-          name: 'GlobalConfigUniqueLowercaseKeyIsDeleted',
-          unique: true,
-        })
-        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-      qi.addIndex('Lenses',
-        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-        {
-          name: 'LensUniqueLowercaseNameIsDeleted',
-          unique: true,
-        })
-        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-      qi.addIndex('Perspectives',
-        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-        {
-          name: 'PerspectiveUniqueLowercaseNameIsDeleted',
-          unique: true,
-        })
-        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-      qi.addIndex('Profiles',
-        [Seq.fn('lower', Seq.col('name')), 'isDeleted'],
-        {
-          name: 'ProfileUniqueLowercaseNameIsDeleted',
-          unique: true,
-        })
-        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-      qi.addIndex('Subjects',
-        [Seq.fn('lower', Seq.col('absolutePath')), 'isDeleted'],
-        {
-          name: 'SubjectUniqueLowercaseAbsolutePathIsDeleted',
-          unique: true,
-        })
-        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-      qi.addIndex('Tokens',
-        [Seq.fn('lower', Seq.col('name')), 'createdBy', 'isDeleted'],
-        {
-          name: 'TokenUniqueLowercaseNameCreatedByIsDeleted',
-          unique: true,
-        })
-        .catch((err) => console.log('ignoring restoreOldIndices error:', err.message)),
-    ])
-      .then(() => qi.addIndex('Subjects',
-        [Seq.fn('lower', Seq.col('absolutePath')), 'deletedAt', 'isPublished'],
-        { name: 'SubjectAbsolutePathDeletedAtIsPublished' })
-      )
-      .catch((err) => console.log('ignoring restoreOldIndices error:', err.message))
-  )
-    .then(() => console.log('[OK] restoreOldIndices'));
-} // restoreOldIndices
+function recreateOldIndices(qi, Seq) {
+  const lowerName = Seq.fn('lower', Seq.col('name'));
+  const lowerAbsPath = Seq.fn('lower', Seq.col('absolutePath'));
+  const lowerKey = Seq.fn('lower', Seq.col('key'));
+  const unique = true;
+  const exec = (tbl, fields, opts) => qi.addIndex(tbl, fields, opts)
+    .then(() => console.log(` [OK] recreateOldIndices ${tbl} ${opts.name}`))
+    .catch((err) =>
+      console.log(` [ERR] recreateOldIndices ${tbl} ${opts.name}: ${err.message}`));
 
-function createNewIndices(qi, Seq) {
-  return qi.sequelize.transaction(() => Promise.all([
-      qi.addIndex('Aspects', [Seq.fn('lower', Seq.col('name'))], {
-        name: 'AspectUniqueLowercaseName',
-        unique: true,
-      })
-        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-      qi.addIndex('Collectors', [Seq.fn('lower', Seq.col('name'))], {
-        name: 'CollectorUniqueLowercaseName',
-        unique: true,
-      })
-        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-      qi.addIndex('CollectorGroups', [Seq.fn('lower', Seq.col('name'))], {
-        name: 'CollectorGroupUniqueLowercaseName',
-        unique: true,
-      })
-        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-      qi.addIndex('Generators', [Seq.fn('lower', Seq.col('name'))], {
-        name: 'GeneratorUniqueLowercaseName',
-        unique: true,
-      })
-        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-      qi.addIndex('GeneratorTemplates',
-        [Seq.fn('lower', Seq.col('name')), 'version'],
-        {
-          name: 'GTUniqueLowercaseNameVersion',
-          unique: true,
-        })
-        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-      qi.addIndex('GlobalConfigs', [Seq.fn('lower', Seq.col('key'))], {
-        name: 'GlobalConfigUniqueLowercaseKey',
-        unique: true,
-      })
-        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-      qi.addIndex('Lenses', [Seq.fn('lower', Seq.col('name'))], {
-        name: 'LensUniqueLowercaseName',
-        unique: true,
-      })
-        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-      qi.addIndex('Perspectives', [Seq.fn('lower', Seq.col('name'))], {
-        name: 'PerspectiveUniqueLowercaseName',
-        unique: true,
-      })
-        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-      qi.addIndex('Profiles', [Seq.fn('lower', Seq.col('name'))], {
-        name: 'ProfileUniqueLowercaseName',
-        unique: true,
-      })
-        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-      qi.addIndex('Subjects', [Seq.fn('lower', Seq.col('absolutePath'))], {
-        name: 'SubjectUniqueLowercaseAbsolutePath',
-        unique: true,
-      })
-        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-      qi.addIndex('Tokens', [Seq.fn('lower', Seq.col('name')), 'createdBy'], {
-        name: 'TokenUniqueLowercaseNameCreatedBy',
-        unique: true,
-      })
-        .catch((err) => console.log('ignoring createNewIndices error:', err.message)),
-    ])
-      .then(() => qi.addIndex('Subjects',
-        [Seq.fn('lower', Seq.col('absolutePath')), 'isPublished'],
-        { name: 'SubjectAbsolutePathDeletedAtIsPublished' })
-      )
-      .catch((err) => console.log('ignoring createNewIndices error:', err.message))
-      .then(() => console.log('[OK] createNewIndices'))
-  );
-} // createNewIndices
+  console.log('recreateOldIndices...');
+  return Promise.all([
+    exec('Aspects', [lowerName, IS],
+      { name: 'AspectUniqueLowercaseNameIsDeleted', unique }),
+    exec('Collectors', [lowerName, IS],
+      { name: 'CollectorUniqueLowercaseNameIsDeleted', unique }),
+    exec('CollectorGroups', [lowerName, IS],
+      { name: 'CollectorGroupUniqueLowercaseNameIsDeleted', unique }),
+    exec('Generators', [lowerName, IS],
+      { name: 'GeneratorUniqueLowercaseNameIsDeleted', unique }),
+    exec('GeneratorTemplates', [lowerName, 'version', IS],
+      { name: 'GTUniqueLowercaseNameVersionIsDeleted', unique }),
+    exec('GlobalConfigs', [lowerKey, IS],
+      { name: 'GlobalConfigUniqueLowercaseKeyIsDeleted', unique }),
+    exec('Lenses', [lowerName, IS],
+      { name: 'LensUniqueLowercaseNameIsDeleted', unique }),
+    exec('Perspectives', [lowerName, IS],
+      { name: 'PerspectiveUniqueLowercaseNameIsDeleted', unique }),
+    exec('Profiles', [lowerName, IS],
+      { name: 'ProfileUniqueLowercaseNameIsDeleted', unique }),
+    exec('Subjects', [lowerAbsPath, IS],
+      { name: 'SubjectUniqueLowercaseAbsolutePathIsDeleted', unique }),
+    exec('Tokens', [lowerName, 'createdBy', IS],
+      { name: 'TokenUniqueLowercaseNameCreatedByIsDeleted', unique }),
+  ])
+    .then(() => exec('Subjects', [lowerAbsPath, AT, 'isPublished'],
+      { name: 'SubjectAbsolutePathDeletedAtIsPublished' }))
+    .then(() => console.log('recreateOldIndices... done!\n'));
+} // recreateOldIndices
+
+function removeNewIndices(qi) {
+  const exec = (tbl, idx) => qi.removeIndex(tbl, idx)
+    .then(() => console.log(` [OK] removeNewIndices ${tbl} ${idx}`))
+    .catch((err) =>
+      console.log(` [ERR] removeNewIndices ${tbl} ${idx}: ${err.message}`));
+
+  console.log('removeNewIndices...');
+  return Promise.all([
+    exec('Aspects', 'AspectUniqueLowercaseName'),
+    exec('Collectors', 'CollectorUniqueLowercaseName'),
+    exec('CollectorGroups', 'CollectorGroupUniqueLowercaseName'),
+    exec('Generators', 'GeneratorUniqueLowercaseName'),
+    exec('GeneratorTemplates', 'GTUniqueLowercaseNameVersion'),
+    exec('GlobalConfig', 'GlobalConfigUniqueLowercaseKey'),
+    exec('Lenses', 'LensUniqueLowercaseName'),
+    exec('Perspectives', 'PerspectiveUniqueLowercaseName'),
+    exec('Profiles', 'ProfileUniqueLowercaseName'),
+    exec('Subjects', 'SubjectUniqueLowercaseAbsolutePath'),
+    exec('Subjects', 'SubjectAbsolutePathIsPublished'),
+    exec('Tokens', 'TokenUniqueLowercaseNameCreatedBy'),
+  ])
+    .then(() => console.log('removeNewIndices... done!\n'));
+} // removeNewIndices
 
 module.exports = {
-  up: (qi, Seq) => destroySoftDeleted()
+  up: (qi, Seq) => destroySoftDeleted(Seq)
     .then(() => removeOldIndices(qi))
-    .then(() => createNewIndices(qi, Seq))
-    .catch((err) => console.trace),
-  down: restoreOldIndices,
+    .then(() => removeFields(qi))
+    .then(() => createNewIndices(qi, Seq)),
+  down: (qi, Seq) => recreateOldFields(qi, Seq)
+    .then(() => removeNewIndices(qi))
+    .then(() => recreateOldIndices(qi, Seq)),
 };
