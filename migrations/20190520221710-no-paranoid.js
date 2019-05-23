@@ -33,8 +33,8 @@ function fixReferences(qi) {
     `WHERE "collectorGroupId" IN ` +
     `  (SELECT id FROM "CollectorGroups" WHERE "isDeleted" > 0)`
   )
-    .then((n) =>
-      console.log(` [OK] fixReferences cleared soft-deleted collectorGroupId from Collectors records: ${JSON.stringify(n)}`))
+    .then((n) => console.log(` [OK] fixReferences cleared soft-deleted ` +
+      `collectorGroupId from Collectors records: ${JSON.stringify(n)}`))
     .catch((err) => console.log(` [ERR] fixReferences: ${err.message}`))
     .then(() => console.log('fixReferences... done!\n'));;
 } // fixReferences
