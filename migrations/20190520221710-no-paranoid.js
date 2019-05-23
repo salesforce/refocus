@@ -156,11 +156,13 @@ function dropAndAddUniqueIndices(qi, Seq) {
   const exec = (tbl, fields, opts) =>
     qi.sequelize.query(
       `ALTER TABLE "${tbl}" DROP CONSTRAINT IF EXISTS ${opts.name};`)
+    .catch((err) => console.log(` [ERR] dropAndAddUniqueIndices DROP ` +
+      `CONSTRAINT ${tbl} ${opts.name}: ${err.message}`));
     .then(() => qi.addIndex(tbl, fields, opts))
     .then(() =>
       console.log(` [OK] dropAndAddUniqueIndices ${tbl} ${opts.name}`))
-    .catch((err) =>
-      console.log(` [ERR] dropAndAddUniqueIndices ${tbl} ${opts.name}: ${err.message}`));
+    .catch((err) => console.log(` [ERR] dropAndAddUniqueIndices ADD INDEX ` +
+      `${tbl} ${opts.name}: ${err.message}`));
 
   console.log('dropAndAddUniqueIndices...');
   return Promise.all([
