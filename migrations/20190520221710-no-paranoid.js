@@ -19,6 +19,26 @@ const db = require('../db/index');
 const IS = 'isDeleted';
 const AT = 'deletedAt';
 
+/**
+ * In case there are collectors which reference a soft-deleted collector group
+ *
+ * @param qi
+ * @param Seq
+ * @returns {*}
+ */
+function fixReferences(qi) {
+  console.log('fixReferences...');
+  return qi.sequelize.query(
+    `UPDATE "Collectors" SET "collectorGroupId" = NULL ` +
+    `WHERE "collectorGroupId" IN ` +
+    `  (SELECT id FROM "CollectorGroups" WHERE "isDeleted" > 0)`
+  )
+    .then((n) =>
+      console.log(` [OK] fixReferences cleared soft-deleted collectorGroupId from Collectors records: ${JSON.stringify(n)}`))
+    .catch((err) => console.log(` [ERR] fixReferences: ${err.message}`))
+    .then(() => console.log('fixReferences... done!\n'));;
+} // fixReferences
+
 function destroySoftDeleted(qi, Seq) {
   const optsIs = {
     where: { isDeleted: { [Seq.Op.gt]: 0 } },
@@ -136,11 +156,11 @@ function dropAndAddUniqueIndices(qi, Seq) {
   const exec = (tbl, fields, opts) =>
     qi.sequelize.query(
       `ALTER TABLE "${tbl}" DROP CONSTRAINT IF EXISTS ${opts.name};`)
-      .then(() => qi.addIndex(tbl, fields, opts))
-      .then(() =>
-        console.log(` [OK] dropAndAddUniqueIndices ${tbl} ${opts.name}`))
-      .catch((err) =>
-        console.log(` [ERR] dropAndAddUniqueIndices ${tbl} ${opts.name}: ${err.message}`));
+    .then(() => qi.addIndex(tbl, fields, opts))
+    .then(() =>
+      console.log(` [OK] dropAndAddUniqueIndices ${tbl} ${opts.name}`))
+    .catch((err) =>
+      console.log(` [ERR] dropAndAddUniqueIndices ${tbl} ${opts.name}: ${err.message}`));
 
   console.log('dropAndAddUniqueIndices...');
   return Promise.all([
@@ -292,7 +312,8 @@ function removeNewIndices(qi) {
 } // removeNewIndices
 
 module.exports = {
-  up: (qi, Seq) => destroySoftDeleted(qi, Seq)
+  up: (qi, Seq) => fixReferences(qi)
+    .then(() => destroySoftDeleted(qi, Seq))
     .then(() => removeOldIndices(qi))
     .then(() => removeFields(qi))
     .then(() => dropAndAddUniqueIndices(qi, Seq)),
