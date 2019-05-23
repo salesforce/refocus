@@ -153,13 +153,13 @@ module.exports = function room(seq, dataTypes) {
         return seq.Promise.resolve();
       }, // hooks.afterUpdate
 
-      afterDelete(instance /* , opts */) {
+      afterDestroy(instance /* , opts */) {
         if (instance.getDataValue('active')) {
           instance.attachBotsAndPublish();
         }
 
         return seq.Promise.resolve();
-      }, // hooks.afterDelete
+      }, // hooks.afterDestroy
     },
   });
 

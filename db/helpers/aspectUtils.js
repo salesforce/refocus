@@ -146,7 +146,7 @@ function removeAspectRelatedSamples(aspect, seq) {
         /*
          * publishSample attaches the subject and the aspect by fetching it
          * either from the database or redis. Deleted aspect will not be found
-         * when called from the afterDelete and afterUpdate hookes. So, attach
+         * when called from the afterDestroy and afterUpdate hookes. So, attach
          * the aspect here before publishing the sample.
          */
         if (sample) {

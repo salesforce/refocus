@@ -353,12 +353,12 @@ module.exports = function aspect(seq, dataTypes) {
        * @param {Aspect} inst - The deleted instance
        * @returns {Promise}
        */
-      afterDelete(inst /* , opts */) {
+      afterDestroy(inst /* , opts */) {
         return Promise.join(
           redisOps.deleteKey(aspectType, inst.name),
           u.removeAspectRelatedSamples(inst.dataValues, seq)
         );
-      }, // hooks.afterDelete
+      }, // hooks.afterDestroy
 
       /**
        * Makes sure isUrl/isEmail validations will handle empty strings

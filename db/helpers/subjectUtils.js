@@ -150,7 +150,7 @@ function removeRelatedSamples(subject, seq) {
         /*
          * publishSample attaches the subject and the aspect by fetching it
          * either from the database or redis. Deleted subject will not be found
-         * when called from the afterDelete and afterUpdate hookes. So, attach
+         * when called from the afterDestroy and afterUpdate hookes. So, attach
          * the subject here before publishing the sample.
          */
         if (sample) {
