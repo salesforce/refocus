@@ -45,6 +45,10 @@ module.exports = function subject(seq, dataTypes) {
       allowNull: true,
       validate: {
         validateGeolocation(value) {
+          if (value === null || value === undefined) {
+            return;
+          }
+
           if (value && value.length !== 2) {
             throw new dbErrors.InvalidRangeSizeError();
           }

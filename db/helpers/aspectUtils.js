@@ -91,6 +91,13 @@ function arrayValuesAscend(arr) {
  * @throws {InvalidRangeValuesError}
  */
 function validateStatusRange(arr) {
+  /* seq v5: Custom validators defined per attribute now run when the
+  attribute's value is null and allowNull is true */
+
+  if (arr === null || arr === undefined) {
+    return;
+  }
+
   arrayHasTwoElements(arr);
   noNestedArrays(arr);
   valuesAreNumeric(arr);
