@@ -85,7 +85,7 @@ describe('tests/db/model/collector/find.js >', () => {
   after(u.forceDelete);
 
   it('Find by Id', (done) => {
-    Collector.findById(collectorInst1.id)
+    Collector.findByPk(collectorInst1.id)
     .then((obj) => {
       expect(obj.name).to.be.equal('___Collector');
       expect(obj.registered).to.be.equal(true);

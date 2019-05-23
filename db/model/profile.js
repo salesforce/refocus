@@ -202,7 +202,7 @@ module.exports = function profile(seq, dataTypes) {
 
   Profile.isAdmin = function (profileId) {
     return new Promise((resolve, reject) => {
-      Profile.findById(profileId)
+      Profile.findByPk(profileId)
       .then((p) => resolve(p &&
         p.name.toLowerCase() === adminProfileName.toLowerCase()))
       .catch((err) => reject(err));
@@ -212,7 +212,7 @@ module.exports = function profile(seq, dataTypes) {
   Profile.hasWriteAccess = function (profileId, model) {
     const accessModel = model.getAccessField();
     return new Promise((resolve, reject) => {
-      Profile.findById(profileId)
+      Profile.findByPk(profileId)
       .then((p) => resolve(p &&
         p[accessModel] === 'rw'.toLowerCase()))
       .catch(reject);

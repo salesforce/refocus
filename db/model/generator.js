@@ -596,7 +596,7 @@ module.exports = function generator(seq, dataTypes) {
       } else {
 
         // If current generators info not in obj, get the info from db
-        promise = dbUtils.seq.models.Collector.findById(ithCollector.id)
+        promise = dbUtils.seq.models.Collector.findByPk(ithCollector.id)
         .then((c) => {
           let numCurrGen = 0;
 

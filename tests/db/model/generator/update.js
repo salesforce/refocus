@@ -86,7 +86,7 @@ describe('tests/db/model/generator/update.js >', () => {
 
   it('ok, simple update should be fine', (done) => {
     generatorDBInstance.update({ name: 'New_Name' })
-    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => Generator.findByPk(generatorDBInstance.id))
     .then((o) => {
       expect(o.name).to.equal('New_Name');
       done();
@@ -97,7 +97,7 @@ describe('tests/db/model/generator/update.js >', () => {
   it('ok, context should not be encrypted when global config is not ' +
     'found', (done) => {
     generatorDBInstance.update({ context: { password: 'newPassword' } })
-    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => Generator.findByPk(generatorDBInstance.id))
     .then((o) => {
       expect(o.context.password).to.equal('newPassword');
       done();
@@ -114,7 +114,7 @@ describe('tests/db/model/generator/update.js >', () => {
         version: '^1.0.0',
       },
     }))
-    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => Generator.findByPk(generatorDBInstance.id))
     .then((o) => {
       expect(o.generatorTemplate.version).to.equal('^1.0.0');
       expect(o.generatorTemplate.name).to.equal('newName');
@@ -131,7 +131,7 @@ describe('tests/db/model/generator/update.js >', () => {
         version: '1.0.0',
       },
     })
-    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => Generator.findByPk(generatorDBInstance.id))
     .then(() => {
       done('Expecting GeneratorTemplate not found error');
     })
@@ -151,7 +151,7 @@ describe('tests/db/model/generator/update.js >', () => {
         version: '^99.0.0',
       },
     })
-    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => Generator.findByPk(generatorDBInstance.id))
     .then(() => {
       done('Expecting GeneratorTemplate not found error');
     })
@@ -172,7 +172,7 @@ describe('tests/db/model/generator/update.js >', () => {
         version: '>=1.1.0',
       },
     }))
-    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => Generator.findByPk(generatorDBInstance.id))
     .then((o) => {
       expect(o.generatorTemplate.version).to.equal('>=1.1.0');
       expect(o.generatorTemplate.name).to.equal('newName');
@@ -190,7 +190,7 @@ describe('tests/db/model/generator/update.js >', () => {
         version: '^1.2.3-alpha.10.beta',
       },
     }))
-    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => Generator.findByPk(generatorDBInstance.id))
     .then((o) => {
       expect(o.generatorTemplate.version).to.equal('^1.2.3-alpha.10.beta');
       expect(o.generatorTemplate.name).to.equal('newName');
@@ -200,7 +200,7 @@ describe('tests/db/model/generator/update.js >', () => {
   });
 
   it('ok, generators should have the associated collectors', (done) => {
-    Generator.findById(generatorDBInstance.id)
+    Generator.findByPk(generatorDBInstance.id)
     .then((o) => {
       const collectors = o.collectorGroup.collectors;
       expect(collectors.length).to.equal(2);
@@ -343,11 +343,11 @@ describe('tests/db/model/generator/update.js >', () => {
       };
 
       return Promise.resolve()
-      .then(() => Generator.findById(generatorDBInstance.id))
+      .then(() => Generator.findByPk(generatorDBInstance.id))
       .then((gen) => gen.update(initialIsActiveValue, { validate: false }))
-      .then(() => Generator.findById(generatorDBInstance.id))
+      .then(() => Generator.findByPk(generatorDBInstance.id))
       .then((gen) => gen.collectorGroup.setCollectors(initialCollectorsValue))
-      .then(() => Generator.findById(generatorDBInstance.id))
+      .then(() => Generator.findByPk(generatorDBInstance.id))
       .then((gen) => {
         if (updateValues.isActive !== undefined) {
           return gen.update({ isActive: updateValues.isActive });
@@ -451,7 +451,7 @@ describe('tests/db/model/generator/update.js >', () => {
           token: 'newToken',
         },
       }))
-      .then(() => Generator.findById(generatorDBInstance.id))
+      .then(() => Generator.findByPk(generatorDBInstance.id))
       .then((o) => {
         expect(o.generatorTemplate.version).to.equal('1.0.0');
         expect(o.generatorTemplate.name).to.equal(gtWithEncryption.name);

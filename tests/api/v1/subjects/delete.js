@@ -53,7 +53,7 @@ describe('tests/api/v1/subjects/delete.js >', () => {
 
       function notFound() {
         const errors = [];
-        Subject.findById(i)
+        Subject.findByPk(i)
         .then((subj) => {
           if (subj) {
             errors.push(new Error('should not have found a record with this id'));
@@ -191,7 +191,7 @@ describe('tests/api/v1/subjects/delete.js >', () => {
       }
 
       function parentNotFound() {
-        Subject.findById({
+        Subject.findByPk({
           where: {
             id: ipar,
             isDeleted: 0,

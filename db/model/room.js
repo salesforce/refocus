@@ -105,7 +105,7 @@ module.exports = function room(seq, dataTypes) {
        */
       beforeCreate: (instance) => {
         const RoomType = seq.models.RoomType;
-        return RoomType.findById(instance.type)
+        return RoomType.findByPk(instance.type)
         .then((roomType) => {
           if (!instance.settings) {
             instance.settings = roomType.settings;

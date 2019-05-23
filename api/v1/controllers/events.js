@@ -108,8 +108,8 @@ module.exports = {
           resultObj.botName = o.botId;
           resultObj.roomId = o.roomId;
 
-          u.findByIdThenName(roomModel, o.roomId, {})
-            .then((r) => u.findByIdThenName(roomTypeModel, r.type, {}))
+          u.findByPkThenName(roomModel, o.roomId, {})
+            .then((r) => u.findByPkThenName(roomTypeModel, r.type, {}))
             .then((rt) => {
               resultObj.roomType = rt.name;
               activityLogUtil.printActivityLogString(resultObj, 'event');

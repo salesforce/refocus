@@ -75,7 +75,7 @@ module.exports = function user(seq, dataTypes) {
         return new seq.Promise((resolve, reject) =>
           u.hashPassword(seq, inst.get('password'))
           .then((hash) => inst.set('password', hash))
-          .then(() => seq.models.Profile.findById(inst.profileId))
+          .then(() => seq.models.Profile.findByPk(inst.profileId))
           .then((p) => p.increment('userCount'))
           .then(() => resolve(inst))
           .catch((err) => reject(err))
@@ -135,7 +135,7 @@ module.exports = function user(seq, dataTypes) {
             inst.getProfile()
             .then((p) => p.increment('userCount'))
             .then(() => inst.previous('profileId'))
-            .then((v) => seq.models.Profile.findById(v))
+            .then((v) => seq.models.Profile.findByPk(v))
             .then((prev) => prev.decrement('userCount'))
             .then(() => resolve(inst))
             .catch((err) => reject(err))
@@ -195,7 +195,7 @@ module.exports = function user(seq, dataTypes) {
         } else {
           const _this = this;
           return new seq.Promise((resolve, reject) =>
-            seq.models.Profile.findById(_this.profileId)
+            seq.models.Profile.findByPk(_this.profileId)
             .then((p) => {
               if (p) {
                 if (Number(p.isDeleted) === 0) {

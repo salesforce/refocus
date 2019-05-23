@@ -105,7 +105,7 @@ module.exports = {
     const { name, userId } = overrideProps;
 
     if (overrideProps.botId && overrideProps.roomId) {
-      return tu.db.Bot.findById(overrideProps.botId)
+      return tu.db.Bot.findByPk(overrideProps.botId)
         .then((bot) => {
           const botActions = bot.actions;
           botActions.push({ name, parameters: standard.parameters });

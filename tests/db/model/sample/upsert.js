@@ -152,7 +152,7 @@ describe('tests/db/model/sample/upsert.js >', () => {
 
   describe('unpublished tests:', () => {
     it('unpublished subject cannot be used to CREATE sample', (done) => {
-      Subject.findById(publishedSubjectId)
+      Subject.findByPk(publishedSubjectId)
       .then((s) => s.update({ isPublished: false }))
       .then(() => Sample.upsertByName({
         name: subjectName + `|` + aspectName,
