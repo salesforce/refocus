@@ -224,13 +224,13 @@ function recreateOldFields(qi, Seq) {
     .then(() => console.log('recreateOldFields... done!\n'));
 } // recreateOldFields
 
-/**
- * For the "down" operation... restores old indices with the "isDeleted" or
- * "deletedAt" fields in them. Note: Separating the second subject index
- * rebuild out from the big Promises.all(...) execution because I don't think
- * we necessarily want the migration to be creating two indexes on the Subjects
- * table at the same time in case that might slow things down.
- */
+// /**
+//  * For the "down" operation... restores old indices with the "isDeleted" or
+//  * "deletedAt" fields in them. Note: Separating the second subject index
+//  * rebuild out from the big Promises.all(...) execution because I don't think
+//  * we necessarily want the migration to be creating two indexes on the Subjects
+//  * table at the same time in case that might slow things down.
+//  */
 // function recreateOldIndices(qi, Seq) {
 //   const lowerName = Seq.fn('lower', Seq.col('name'));
 //   const lowerAbsPath = Seq.fn('lower', Seq.col('absolutePath'));
