@@ -156,7 +156,7 @@ describe('tests/api/v1/collectors/stop.js >', () => {
         }
 
         expect(res.body.status).to.equal('Stopped');
-        return Generator.find({ where: { name: generator1.name } })
+        return Generator.findOne(){ where: { name: generator1.name } })
         .then((gen) => {
           expect(gen.currentCollector.name).to.be.equal(collector2.name);
           return done();

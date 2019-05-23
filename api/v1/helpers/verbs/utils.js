@@ -274,11 +274,11 @@ function multipleAssociations(helperModule, requestedAttributes) {
         // filter all associations with respective fk in the model attributes
 
         const foreignKey = model.associations[association].foreignKey;
-        return model.attributes[foreignKey] !== undefined;
+        return model.rawAttributes[foreignKey] !== undefined;
       })
       .map((association) => {
         const foreignKey = model.associations[association].foreignKey;
-        return model.attributes[foreignKey].fieldName;
+        return model.rawAttributes[foreignKey].fieldName;
       });
 
     if (extraForeignKeys.length > 0) {

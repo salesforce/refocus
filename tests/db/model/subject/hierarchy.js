@@ -189,7 +189,7 @@ describe('tests/db/model/subject/hierarchy.js >', () => {
   });
 
   it('explicitly include descendents', (done) => {
-    Subject.find({
+    Subject.findOne({
       where: { id: ipar },
       include: [
         {

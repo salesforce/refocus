@@ -693,7 +693,7 @@ module.exports = function subject(seq, dataTypes) {
         value = this.getDataValue('parentAbsolutePath');
       }
 
-      return Subject.scope({ method: [key, value] }).find()
+      return Subject.scope({ method: [key, value] }).findOne()
         .then((parent) => {
           if (parent) {
             if (parent.getDataValue('isPublished') === false &&

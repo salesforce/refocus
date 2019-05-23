@@ -103,7 +103,7 @@ describe('tests/db/model/sample/upsert.js >', () => {
       })
       .then(() => Subject.scope({
         method: ['absolutePath', subjectName],
-      }).find())
+      }).findOne())
       .then((subject) => subject.update({ name: updatedSubjectName }))
       .then(() => {
         // use delay for getting updated version of sample because it
