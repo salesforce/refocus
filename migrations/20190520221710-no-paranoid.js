@@ -9,11 +9,9 @@
 /**
  * migrations/20190520221710-no-paranoid.js
  *
- * This database migration permanently deletes all the soft-deleted records
- * from tables which had "paranoid" set to true.
- *
- * Note that the "down" function is a no-op -- we do not attempt to add the
- * soft-deleted records back in the event of migration failure.
+ * Note: the *new* indices will get created on db startup *without* any
+ * migration code, which means they cannot be created as *unique* until
+ * *after* the "destroySoftDeleted" step has completed!
  */
 'use strict';
 const Promise = require('bluebird');
@@ -36,21 +34,35 @@ function destroySoftDeleted(Seq) {
       console.log(` [ERR] destroySoftDeleted ${modelName}: ${err.message}`));
 
   console.log('destroySoftDeleted...');
+
+  /*
+   * Why this order?
+   * - Generator THEN Collector THEN CollectorGroup so we don't try to delete
+   *   a CollectorGroup which is referenced by a Collector or Generator
+   * - Generator THEN GeneratorTemplate so we don't try to delete a
+   *   GeneratorTemplate which is referenced by a Generator
+   * - Perpsective THEN Lens/Subject so we don't try to delete a Lens or
+   *   Subject which is referenced by a Perspective
+   */
   return Promise.all([
     exec('Aspect', optsIs),
     exec('AuditEvent', optsAt),
-    exec('Collector', optsIs),
-    exec('CollectorGroup', optsIs),
     exec('Generator', optsIs),
-    exec('GeneratorTemplate', optsIs),
     exec('GlobalConfig', optsIs),
-    exec('Lens', optsIs),
     exec('Perspective', optsIs),
     exec('Profile', optsIs),
     exec('SSOConfig', optsAt),
     exec('Token', optsIs),
-    exec('Subject', optsIs),
   ])
+    .then(() => Promise.all([
+      exec('Collector', optsIs),
+      exec('GeneratorTemplate', optsIs),
+      exec('Lens', optsIs),
+      exec('Subject', optsIs),
+    ]))
+    .then(() => Promise.all([
+      exec('CollectorGroup', optsIs),
+    ]))
     .then(() => console.log('destroySoftDeleted... done!\n'));
 } // destroySoftDeleted
 
@@ -120,15 +132,19 @@ function removeFields(qi) {
     .then(() => console.log('removeFields... done!\n'));
 } // removeFields
 
-function createNewIndices(qi, Seq) {
+function dropAndAddUniqueIndices(qi, Seq) {
   const lowerName = Seq.fn('lower', Seq.col('name'));
   const lowerAbsPath = Seq.fn('lower', Seq.col('absolutePath'));
   const lowerKey = Seq.fn('lower', Seq.col('key'));
   const unique = true;
-  const exec = (tbl, fields, opts) => qi.addIndex(tbl, fields, opts)
-    .then(() => console.log(` [OK] createNewIndices ${tbl} ${opts.name}`))
+  const exec = (tbl, fields, opts) =>
+    qi.sequelize.query(
+      `ALTER TABLE "${tbl}" DROP CONSTRAINT IF EXISTS ${opts.name};`)
+    .then(() => qi.addIndex(tbl, fields, opts))
+    .then(() =>
+      console.log(` [OK] dropAndAddUniqueIndices ${tbl} ${opts.name}`))
     .catch((err) =>
-      console.log(` [ERR] createNewIndices ${tbl} ${opts.name}: ${err.message}`));
+      console.log(` [ERR] dropAndAddUniqueIndices ${tbl} ${opts.name}: ${err.message}`));
 
   console.log('createNewIndices...');
   return Promise.all([
@@ -157,8 +173,8 @@ function createNewIndices(qi, Seq) {
   ])
     .then(() => exec('Subjects', [lowerAbsPath, 'isPublished'],
       { name: 'SubjectAbsolutePathIsPublished' }))
-    .then(() => console.log('createNewIndices... done!\n'));
-} // createNewIndices
+    .then(() => console.log('dropAndAddUniqueIndices... done!\n'));
+} // dropAndAddUniqueIndices
 
 function recreateOldFields(qi, Seq) {
   const isDeleted = {
@@ -215,45 +231,45 @@ function recreateOldFields(qi, Seq) {
  * we necessarily want the migration to be creating two indexes on the Subjects
  * table at the same time in case that might slow things down.
  */
-function recreateOldIndices(qi, Seq) {
-  const lowerName = Seq.fn('lower', Seq.col('name'));
-  const lowerAbsPath = Seq.fn('lower', Seq.col('absolutePath'));
-  const lowerKey = Seq.fn('lower', Seq.col('key'));
-  const unique = true;
-  const exec = (tbl, fields, opts) => qi.addIndex(tbl, fields, opts)
-    .then(() => console.log(` [OK] recreateOldIndices ${tbl} ${opts.name}`))
-    .catch((err) =>
-      console.log(` [ERR] recreateOldIndices ${tbl} ${opts.name}: ${err.message}`));
-
-  console.log('recreateOldIndices...');
-  return Promise.all([
-    exec('Aspects', [lowerName, IS],
-      { name: 'AspectUniqueLowercaseNameIsDeleted', unique }),
-    exec('Collectors', [lowerName, IS],
-      { name: 'CollectorUniqueLowercaseNameIsDeleted', unique }),
-    exec('CollectorGroups', [lowerName, IS],
-      { name: 'CollectorGroupUniqueLowercaseNameIsDeleted', unique }),
-    exec('Generators', [lowerName, IS],
-      { name: 'GeneratorUniqueLowercaseNameIsDeleted', unique }),
-    exec('GeneratorTemplates', [lowerName, 'version', IS],
-      { name: 'GTUniqueLowercaseNameVersionIsDeleted', unique }),
-    exec('GlobalConfigs', [lowerKey, IS],
-      { name: 'GlobalConfigUniqueLowercaseKeyIsDeleted', unique }),
-    exec('Lenses', [lowerName, IS],
-      { name: 'LensUniqueLowercaseNameIsDeleted', unique }),
-    exec('Perspectives', [lowerName, IS],
-      { name: 'PerspectiveUniqueLowercaseNameIsDeleted', unique }),
-    exec('Profiles', [lowerName, IS],
-      { name: 'ProfileUniqueLowercaseNameIsDeleted', unique }),
-    exec('Subjects', [lowerAbsPath, IS],
-      { name: 'SubjectUniqueLowercaseAbsolutePathIsDeleted', unique }),
-    exec('Tokens', [lowerName, 'createdBy', IS],
-      { name: 'TokenUniqueLowercaseNameCreatedByIsDeleted', unique }),
-  ])
-    .then(() => exec('Subjects', [lowerAbsPath, AT, 'isPublished'],
-      { name: 'SubjectAbsolutePathDeletedAtIsPublished' }))
-    .then(() => console.log('recreateOldIndices... done!\n'));
-} // recreateOldIndices
+// function recreateOldIndices(qi, Seq) {
+//   const lowerName = Seq.fn('lower', Seq.col('name'));
+//   const lowerAbsPath = Seq.fn('lower', Seq.col('absolutePath'));
+//   const lowerKey = Seq.fn('lower', Seq.col('key'));
+//   const unique = true;
+//   const exec = (tbl, fields, opts) => qi.addIndex(tbl, fields, opts)
+//     .then(() => console.log(` [OK] recreateOldIndices ${tbl} ${opts.name}`))
+//     .catch((err) =>
+//       console.log(` [ERR] recreateOldIndices ${tbl} ${opts.name}: ${err.message}`));
+//
+//   console.log('recreateOldIndices...');
+//   return Promise.all([
+//     exec('Aspects', [lowerName, IS],
+//       { name: 'AspectUniqueLowercaseNameIsDeleted', unique }),
+//     exec('Collectors', [lowerName, IS],
+//       { name: 'CollectorUniqueLowercaseNameIsDeleted', unique }),
+//     exec('CollectorGroups', [lowerName, IS],
+//       { name: 'CollectorGroupUniqueLowercaseNameIsDeleted', unique }),
+//     exec('Generators', [lowerName, IS],
+//       { name: 'GeneratorUniqueLowercaseNameIsDeleted', unique }),
+//     exec('GeneratorTemplates', [lowerName, 'version', IS],
+//       { name: 'GTUniqueLowercaseNameVersionIsDeleted', unique }),
+//     exec('GlobalConfigs', [lowerKey, IS],
+//       { name: 'GlobalConfigUniqueLowercaseKeyIsDeleted', unique }),
+//     exec('Lenses', [lowerName, IS],
+//       { name: 'LensUniqueLowercaseNameIsDeleted', unique }),
+//     exec('Perspectives', [lowerName, IS],
+//       { name: 'PerspectiveUniqueLowercaseNameIsDeleted', unique }),
+//     exec('Profiles', [lowerName, IS],
+//       { name: 'ProfileUniqueLowercaseNameIsDeleted', unique }),
+//     exec('Subjects', [lowerAbsPath, IS],
+//       { name: 'SubjectUniqueLowercaseAbsolutePathIsDeleted', unique }),
+//     exec('Tokens', [lowerName, 'createdBy', IS],
+//       { name: 'TokenUniqueLowercaseNameCreatedByIsDeleted', unique }),
+//   ])
+//     .then(() => exec('Subjects', [lowerAbsPath, AT, 'isPublished'],
+//       { name: 'SubjectAbsolutePathDeletedAtIsPublished' }))
+//     .then(() => console.log('recreateOldIndices... done!\n'));
+// } // recreateOldIndices
 
 function removeNewIndices(qi) {
   const exec = (tbl, idx) => qi.removeIndex(tbl, idx)
@@ -283,8 +299,7 @@ module.exports = {
   up: (qi, Seq) => destroySoftDeleted(Seq)
     .then(() => removeOldIndices(qi))
     .then(() => removeFields(qi))
-    .then(() => createNewIndices(qi, Seq)),
+    .then(() => dropAndAddUniqueIndices(qi, Seq)),
   down: (qi, Seq) => recreateOldFields(qi, Seq)
-    .then(() => removeNewIndices(qi))
-    .then(() => recreateOldIndices(qi, Seq)),
+    .then(() => removeNewIndices(qi)),
 };

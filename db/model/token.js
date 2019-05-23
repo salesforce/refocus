@@ -39,7 +39,7 @@ module.exports = function token(seq, dataTypes) {
     indexes: [
       {
         name: 'TokenUniqueLowercaseNameCreatedBy',
-        unique: true,
+        unique: false,
         fields: [seq.fn('lower', seq.col('name')), 'createdBy'],
       },
     ],

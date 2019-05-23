@@ -225,7 +225,7 @@ module.exports = function user(seq, dataTypes) {
     indexes: [
       {
         name: 'GTUniqueLowercaseNameVersion',
-        unique: true,
+        unique: false,
         fields: [seq.fn('lower', seq.col('name')), 'version'],
       },
     ],

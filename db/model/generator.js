@@ -243,7 +243,7 @@ module.exports = function generator(seq, dataTypes) {
     indexes: [
       {
         name: 'GeneratorUniqueLowercaseName',
-        unique: true,
+        unique: false,
         fields: [seq.fn('lower', seq.col('name'))],
       },
     ],
