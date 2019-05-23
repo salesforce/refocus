@@ -19,7 +19,7 @@ const db = require('../db/index');
 const IS = 'isDeleted';
 const AT = 'deletedAt';
 
-function destroySoftDeleted(Seq) {
+function destroySoftDeleted(qi, Seq) {
   const optsIs = {
     where: { isDeleted: { [Seq.Op.gt]: 0 } },
     force: true,
@@ -44,7 +44,7 @@ function destroySoftDeleted(Seq) {
    * - Perpsective THEN Lens/Subject so we don't try to delete a Lens or
    *   Subject which is referenced by a Perspective
    */
-  return Promise.all([
+  return qi.sequelize.transaction(() => Promise.all([
     exec('Aspect', optsIs),
     exec('AuditEvent', optsAt),
     exec('Generator', optsIs),
@@ -53,16 +53,12 @@ function destroySoftDeleted(Seq) {
     exec('Profile', optsIs),
     exec('SSOConfig', optsAt),
     exec('Token', optsIs),
-  ])
-    .then(() => Promise.all([
-      exec('Collector', optsIs),
-      exec('GeneratorTemplate', optsIs),
-      exec('Lens', optsIs),
-      exec('Subject', optsIs),
-    ]))
-    .then(() => Promise.all([
-      exec('CollectorGroup', optsIs),
-    ]))
+    exec('Collector', optsIs),
+    exec('GeneratorTemplate', optsIs),
+    exec('Lens', optsIs),
+    exec('Subject', optsIs),
+    exec('CollectorGroup', optsIs),
+  ]))
     .then(() => console.log('destroySoftDeleted... done!\n'));
 } // destroySoftDeleted
 
@@ -140,13 +136,13 @@ function dropAndAddUniqueIndices(qi, Seq) {
   const exec = (tbl, fields, opts) =>
     qi.sequelize.query(
       `ALTER TABLE "${tbl}" DROP CONSTRAINT IF EXISTS ${opts.name};`)
-    .then(() => qi.addIndex(tbl, fields, opts))
-    .then(() =>
-      console.log(` [OK] dropAndAddUniqueIndices ${tbl} ${opts.name}`))
-    .catch((err) =>
-      console.log(` [ERR] dropAndAddUniqueIndices ${tbl} ${opts.name}: ${err.message}`));
+      .then(() => qi.addIndex(tbl, fields, opts))
+      .then(() =>
+        console.log(` [OK] dropAndAddUniqueIndices ${tbl} ${opts.name}`))
+      .catch((err) =>
+        console.log(` [ERR] dropAndAddUniqueIndices ${tbl} ${opts.name}: ${err.message}`));
 
-  console.log('createNewIndices...');
+  console.log('dropAndAddUniqueIndices...');
   return Promise.all([
     exec('Aspects', [lowerName],
       { name: 'AspectUniqueLowercaseName', unique }),
@@ -296,7 +292,7 @@ function removeNewIndices(qi) {
 } // removeNewIndices
 
 module.exports = {
-  up: (qi, Seq) => destroySoftDeleted(Seq)
+  up: (qi, Seq) => destroySoftDeleted(qi, Seq)
     .then(() => removeOldIndices(qi))
     .then(() => removeFields(qi))
     .then(() => dropAndAddUniqueIndices(qi, Seq)),
