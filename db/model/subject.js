@@ -520,7 +520,7 @@ module.exports = function subject(seq, dataTypes) {
     indexes: [
       {
         name: 'SubjectUniqueLowercaseAbsolutePath',
-        unique: false,
+        unique: true,
         fields: [seq.fn('lower', seq.col('absolutePath'))],
       },
       {

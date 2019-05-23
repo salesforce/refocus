@@ -36,7 +36,7 @@ module.exports = function user(seq, dataTypes) {
     indexes: [
       {
         name: 'GlobalConfigUniqueLowercaseKey',
-        unique: false,
+        unique: true,
         fields: [seq.fn('lower', seq.col('key'))],
       },
     ],

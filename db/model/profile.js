@@ -156,7 +156,7 @@ module.exports = function profile(seq, dataTypes) {
     indexes: [
       {
         name: 'ProfileUniqueLowercaseName',
-        unique: false,
+        unique: true,
         fields: [seq.fn('lower', seq.col('name'))],
       },
     ],

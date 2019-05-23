@@ -198,7 +198,7 @@ module.exports = function lens(seq, dataTypes) {
     indexes: [
       {
         name: 'LensUniqueLowercaseName',
-        unique: false,
+        unique: true,
         fields: [seq.fn('lower', seq.col('name'))],
       },
     ],

@@ -80,7 +80,7 @@ module.exports = function collectorgroup(seq, dataTypes) {
     indexes: [
       {
         name: 'CollectorGroupUniqueLowercaseName',
-        unique: false,
+        unique: true,
         fields: [seq.fn('lower', seq.col('name'))],
       },
     ],

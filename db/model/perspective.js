@@ -108,7 +108,7 @@ module.exports = function perspective(seq, dataTypes) {
     indexes: [
       {
         name: 'PerspectiveUniqueLowercaseName',
-        unique: false,
+        unique: true,
         fields: [seq.fn('lower', seq.col('name'))],
       },
     ],

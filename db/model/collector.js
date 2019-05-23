@@ -144,7 +144,7 @@ module.exports = function collector(seq, dataTypes) {
     indexes: [
       {
         name: 'CollectorUniqueLowercaseName',
-        unique: false,
+        unique: true,
         fields: [seq.fn('lower', seq.col('name'))],
       },
     ],
