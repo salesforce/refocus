@@ -195,6 +195,7 @@ function loadView(app, passport) {
           realtimeApplication: viewConfig.realtimeApplication,
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
           useNewNamespaceFormat: ft.isFeatureEnabled('useNewNamespaceFormat'),
+          useNewNamespaceFormatImc: ft.isFeatureEnabled('useNewNamespaceFormatImc'),
         };
 
         // This is temporary - remove when separate deployment has settled
