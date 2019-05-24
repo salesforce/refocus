@@ -171,10 +171,10 @@ describe('tests/db/model/collector/methods.js >', () => {
          As a result, generator2 is reassigned to collector3. */
         return Collector.checkMissedHeartbeat()
         .then(() => Promise.join(
-          Generator.find({ where: { name: generator1.name } }),
-          Generator.find({ where: { name: generator2.name } }),
-          Generator.find({ where: { name: generator3.name } }),
-          Collector.find({ where: { name: collector2.name } }),
+          Generator.findOne({ where: { name: generator1.name } }),
+          Generator.findOne({ where: { name: generator2.name } }),
+          Generator.findOne({ where: { name: generator3.name } }),
+          Collector.findOne({ where: { name: collector2.name } }),
         ))
         .spread((gen1, gen2, gen3, coll2) => {
           expect(gen1.currentCollector.name).to.equal(collector1.name);
@@ -276,7 +276,7 @@ describe('tests/db/model/collector/methods.js >', () => {
         collectorConfig.heartbeatLatencyToleranceMillis = tolerance;
 
         return Promise.resolve()
-        .then(() => Collector.find({ where: { name: collector1.name } }))
+        .then(() => Collector.findOne({ where: { name: collector1.name } }))
         .then((c1) => c1.update({ status: collectorStatuses.Stopped }))
         .then((c1) => c1.reassignGenerators())
 

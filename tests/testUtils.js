@@ -256,7 +256,7 @@ module.exports = {
       email: usrName + '@' + usrName + '.com',
       password: usrName,
     }))
-    .then((user) => user.reload());
+    .then((user) => user.reload(user._modelOptions.defaultScope));
   },
 
   // create user and corresponding token to be used in api tests.

@@ -106,7 +106,7 @@ describe('tests/db/model/collector/find.js >', () => {
   });
 
   it('Collector Instance with related generators', (done) => {
-    collectorInst1.reload()
+    collectorInst1.reload(collectorInst1._modelOptions.defaultScope)
     .then((coll) => coll.collectorGroup.getGenerators())
     .then((generators) => {
       expect(generators).to.have.lengthOf(2);

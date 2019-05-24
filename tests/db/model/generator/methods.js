@@ -198,7 +198,7 @@ describe('tests/db/model/generator/methods.js >', () => {
 
     it('collectors not specified (unassigned)', () =>
       generator1.update({ collectorId: collector3.id })
-      .then(() => generator1.reload())
+      .then(() => generator1.reload(generator1._modelOptions.defaultScope))
       .then(() => {
         expect(generator1.currentCollector.name).to.equal(collector3.name);
         expect(generator1.currentCollector.id).to.equal(collector3.id);
@@ -272,7 +272,7 @@ describe('tests/db/model/generator/methods.js >', () => {
 
       it('collectors not specified (unassigned)', () =>
         generator1.update({ collectorId: collector3.id })
-        .then(() => generator1.reload())
+        .then(() => generator1.reload(generator1._modelOptions.defaultScope))
         .then(() => {
           expect(generator1.currentCollector.name).to.equal(collector3.name);
           expect(generator1.currentCollector.id).to.equal(collector3.id);

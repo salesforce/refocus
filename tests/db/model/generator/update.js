@@ -312,7 +312,7 @@ describe('tests/db/model/generator/update.js >', () => {
 
     it('turning on isActive assigns to a collector', () => {
       const gen = generatorDBInstance;
-      return gen.reload()
+      return gen.reload(gen._modelOptions.defaultScope)
       .then(() => gen.update({ isActive: false }, { validate: false, hooks: false }))
       .then(() => expect(gen.currentCollector).to.equal(null))
       .then(() => gen.update({ isActive: true }))
@@ -322,7 +322,7 @@ describe('tests/db/model/generator/update.js >', () => {
 
     it('turning off isActive unassigns the generator', () => {
       const gen = generatorDBInstance;
-      return gen.reload()
+      return gen.reload(gen._modelOptions.defaultScope)
       .then(() => gen.update({ isActive: true }, { validate: false, hooks: false }))
       .then(() => expect(gen.currentCollector.name).to.equal(collectorObj1.name))
       .then(() => expect(gen.currentCollector.id).to.equal(collectorObj1.id))

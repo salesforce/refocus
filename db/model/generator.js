@@ -419,7 +419,7 @@ module.exports = function generator(seq, dataTypes) {
       return gen.save();
     })
     .then((gen) => gen.setCollectorGroup(collectorGroup))
-    .then((gen) => gen.reload());
+    .then((gen) => gen.reload(Generator.options.defaultScope));
   };
 
   Generator.findForHeartbeat = function (findOpts) {
@@ -485,7 +485,7 @@ module.exports = function generator(seq, dataTypes) {
       }
     })
     .then(() => this.update(requestBody))
-    .then(() => this.reload());
+    .then(() => this.reload(Generator.options.defaultScope));
   };
 
   /**
