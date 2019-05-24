@@ -20,7 +20,11 @@ const IS = 'isDeleted';
 const AT = 'deletedAt';
 
 /**
- * In case there are collectors which reference a soft-deleted collector group
+ * If a collector references a soft-deleted collector group, clear that
+ * collector group from the collector.
+ *
+ * If a perspective references a soft-deleted lens, delete the perspective
+ * (since it obviously has not been used).
  *
  * @param qi
  * @param Seq
@@ -36,6 +40,11 @@ function fixReferences(qi) {
     .catch((err) => console.log(` [ERR] fixReferences: ${err.message}`))
     .then((n) => console.log(` [OK] fixReferences cleared soft-deleted ` +
       `collectorGroupId from Collectors records: ${JSON.stringify(n)}`))
+    .then(() => qi.sequelize.query(`DELETE FROM "Perspectives" ` +
+      `WHERE "lensId" IN (SELECT id FROM "Lenses" WHERE "isDeleted" > 0)`))
+    .catch((err) => console.log(` [ERR] fixReferences: ${err.message}`))
+    .then((n) => console.log(` [OK] fixReferences deleted Perspectives ` +
+      `which have soft-deleted lensId: ${JSON.stringify(n)}`))
     .then(() => console.log('fixReferences... done!\n'));
 } // fixReferences
 
