@@ -73,7 +73,7 @@ rconf.instanceUrl.pubsubPerspectives.forEach((rp) => {
 
 // Only create subscribers here if we're doing real-time events from main app
 let subBot;
-if (!featureToggles.isFeatureEnabled('enableRealtimeApplication')) {
+if (!featureToggles.isFeatureEnabled('enableRealtimeApplicationImc')) {
   subBot = redis.createClient(rconf.instanceUrl.pubsubBots, opts);
   subBot.subscribe(rconf.botChannelName);
 }

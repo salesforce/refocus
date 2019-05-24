@@ -32,6 +32,7 @@ const realtimeEventThrottleMilliseconds =
  * via the main Refocus application itself.
  */
 const realtimeApplication = pe.REALTIME_APPLICATION || '/';
+const realtimeApplicationImc = pe.REALTIME_APPLICATION_IMC || '/';
 
 module.exports = {
   // Password stored in the db for SSO users (never used for authentication).
@@ -40,8 +41,11 @@ module.exports = {
   // Make the Google Analytics trackingId available in /view.
   trackingId: pe.GOOGLE_ANALYTICS_ID || 'N/A',
 
-  // Make the real-time app endpoint available in /view
+  // Make the real-time app endpoint available in /view for perspectives
   realtimeApplication,
+
+  // Make the real-time app endpoint available in /view for Imc rooms
+  realtimeApplicationImc,
 
   // Make the throttle time available in /view.
   realtimeEventThrottleMilliseconds,
