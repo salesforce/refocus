@@ -193,6 +193,7 @@ function loadView(app, passport) {
           trackingId: viewConfig.trackingId,
           user: JSON.stringify(copyOfUser).replace(/'/g,"apos;"),
           realtimeApplication: viewConfig.realtimeApplication,
+          realtimeApplicationImc: viewConfig.realtimeApplicationImc,
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
           useNewNamespaceFormat: ft.isFeatureEnabled('useNewNamespaceFormat'),
           useNewNamespaceFormatImc: ft.isFeatureEnabled('useNewNamespaceFormatImc'),
