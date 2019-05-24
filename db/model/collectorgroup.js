@@ -203,7 +203,8 @@ module.exports = function collectorgroup(seq, dataTypes) {
       .then((collectorGroup) =>
         (collectors.length ? collectorGroup.setCollectors(collectors) :
           collectorGroup))
-      .then((collectorGroup) => collectorGroup.reload())
+      .then((collectorGroup) =>
+        collectorGroup.reload(CollectorGroup.options.defaultScope))
       .then((collectorGroup) => collectorGroup.handleCollectorUpdates());
   }; // createCollectorGroup
 

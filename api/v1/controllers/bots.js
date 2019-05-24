@@ -150,7 +150,7 @@ module.exports = {
       seqObj.installedBy = user.id;
       u.setOwner(seqObj, req)
         .then(() => helper.model.create(seqObj))
-        .then((o) => o.reload())
+        .then((o) => o.reload(o._modelOptions.defaultScope))
         .then((o) => {
           o.dataValues.ui = uiObj;
           o.dataValues.token = jwtUtil.createToken(seqObj.name, req.headers.UserName,

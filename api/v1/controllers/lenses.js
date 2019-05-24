@@ -363,7 +363,7 @@ module.exports = {
       return u.setOwner(requestBody, req, o);
     })
     .then((o) => o.update(requestBody))
-    .then((o) => o.reload())
+    .then((o) => o.reload(o._modelOptions.defaultScope))
     .then((o) => u.handleAssociations(requestBody, o, helper, req.method))
     .then((retVal) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -405,7 +405,7 @@ module.exports = {
       seqObj.installedBy = user.id;
       u.setOwner(seqObj, req)
       .then(() => helper.model.create(seqObj, assocToCreate))
-      .then((o) => o.reload()) // to get associations
+      .then((o) => o.reload(o._modelOptions.defaultScope)) // to get associations
       .then((o) => {
         delete o.dataValues.library;
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -468,7 +468,7 @@ module.exports = {
       return u.setOwner(seqObj, req, o);
     })
     .then((o) => o.update(seqObj))
-    .then((o) => o.reload())
+    .then((o) => o.reload(o._modelOptions.defaultScope))
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       delete o.dataValues.library;

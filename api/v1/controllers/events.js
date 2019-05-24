@@ -91,7 +91,7 @@ module.exports = {
 
     u.setOwner(reqObj, req)
       .then(() => helper.model.create(reqObj))
-      .then((o) => o.reload())
+      .then((o) => o.reload(o._modelOptions.defaultScope))
       .then((o) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime + 'ms';
         u.logAPI(req, resultObj, o.dataValues);

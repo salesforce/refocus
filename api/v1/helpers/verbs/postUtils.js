@@ -39,7 +39,7 @@ function handlePostResult(o, resultObj, props, res, req) {
 
   // if response directly from sequelize, reload to attach associations
   if (o.get) {
-    o.reload()
+    o.reload(o._modelOptions.defaultScope)
     .then((o) => {
       logAPI(req, resultObj, o);
       res.status(constants.httpStatus.CREATED)

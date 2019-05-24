@@ -332,7 +332,7 @@ describe('tests/api/v1/collectorGroups/patch.js >', () => {
       'currentCollector if currentCollector exists in updated collector list',
       (done) => {
         generatorInst.update({ collectorId: collectorAlive1.id })
-        .then((gen) => gen.reload())
+        .then((gen) => gen.reload(gen._modelOptions.defaultScope))
         .then((updatedGenInst) => {
           expect(updatedGenInst.currentCollector.name).to.be.equal(collectorAlive1.name);
           api.patch(`/v1/collectorGroups/${cg.name}`)
@@ -373,7 +373,7 @@ describe('tests/api/v1/collectorGroups/patch.js >', () => {
       'currentCollector to null if currentCollector does not exist in ' +
       'updated collector list', (done) => {
       generatorInst.update({ collectorId: collectorAlive1.id })
-      .then((gen) => gen.reload())
+      .then((gen) => gen.reload(gen._modelOptions.defaultScope))
       .then((updatedGenInst) => {
         expect(updatedGenInst.currentCollector.name).to.be.equal(collectorAlive1.name);
         api.patch(`/v1/collectorGroups/${cg.name}`)
@@ -414,7 +414,7 @@ describe('tests/api/v1/collectorGroups/patch.js >', () => {
       'currentCollector to another alive collector if currentCollector ' +
       'does not exist in updated collector list', (done) => {
       generatorInst.update({ collectorId: collectorAlive1.id })
-      .then((gen) => gen.reload())
+      .then((gen) => gen.reload(gen._modelOptions.defaultScope))
       .then((updatedGenInst) => {
         expect(updatedGenInst.currentCollector.name).to.be.equal(collectorAlive1.name);
         api.patch(`/v1/collectorGroups/${cg.name}`)

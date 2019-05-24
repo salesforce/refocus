@@ -115,7 +115,7 @@ describe('tests/api/v1/collectors/stop.js >', () => {
       // add collector1 to generator1 possible list of collectors
       .then(() => collectorGroup1.addCollectors([collector1]))
       .then(() => collectorGroup1.addGenerators([generator1]))
-      .then(() => generator1.reload())
+      .then(() => generator1.reload(generator1._modelOptions.defaultScope))
 
       // this should set currentCollector to collector1
       .then(() => generator1.update({ isActive: true }))

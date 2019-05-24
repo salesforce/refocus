@@ -172,7 +172,7 @@ function patchCollectorGroup(req, res, next) {
     })
     .then((patched) => (cg = patched))
     .then(() => cg.update(requestBody))
-    .then((o) => o.reload())
+    .then((o) => o.reload(o._modelOptions.defaultScope))
     .then(() => {
       const recordCountOverride = null;
       resultObj.dbTime = new Date() - resultObj.reqStartTime;

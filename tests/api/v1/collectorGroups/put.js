@@ -364,7 +364,7 @@ describe('tests/api/v1/collectorGroups/put.js >', () => {
       'currentCollector if currentCollector exists in updated collector list',
       (done) => {
         generatorInst.update({ collectorId: collectorAlive1.id })
-        .then((gen) => gen.reload())
+        .then((gen) => gen.reload(gen._modelOptions.defaultScope))
         .then((updatedGenInst) => {
           expect(updatedGenInst.currentCollector.name).to.be.equal(collectorAlive1.name);
           api.put(`/v1/collectorGroups/${cg.name}`)
@@ -406,7 +406,7 @@ describe('tests/api/v1/collectorGroups/put.js >', () => {
       'currentCollector to null if currentCollector does not exist in ' +
       'updated collector list', (done) => {
       generatorInst.update({ collectorId: collectorAlive1.id })
-      .then((gen) => gen.reload())
+      .then((gen) => gen.reload(gen._modelOptions.defaultScope))
       .then((updatedGenInst) => {
         expect(updatedGenInst.currentCollector.name).to.be.equal(collectorAlive1.name);
         api.put(`/v1/collectorGroups/${cg.name}`)
@@ -447,7 +447,7 @@ describe('tests/api/v1/collectorGroups/put.js >', () => {
     it('already assigned generator, put collectorGroup should set ' +
       'currentCollector to null if no collectors specified', (done) => {
       generatorInst.update({ collectorId: collectorAlive1.id })
-      .then((gen) => gen.reload())
+      .then((gen) => gen.reload(gen._modelOptions.defaultScope))
       .then((updatedGenInst) => {
         expect(updatedGenInst.currentCollector.name).to.be.equal(collectorAlive1.name);
         api.put(`/v1/collectorGroups/${cg.name}`)
@@ -484,7 +484,7 @@ describe('tests/api/v1/collectorGroups/put.js >', () => {
       'currentCollector to another alive collector if currentCollector ' +
       'does not exist in updated collector list', (done) => {
       generatorInst.update({ collectorId: collectorAlive1.id })
-      .then((gen) => gen.reload())
+      .then((gen) => gen.reload(gen._modelOptions.defaultScope))
       .then((updatedGenInst) => {
         expect(updatedGenInst.currentCollector.name).to.be.equal(collectorAlive1.name);
         api.put(`/v1/collectorGroups/${cg.name}`)
