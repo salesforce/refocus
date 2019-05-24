@@ -33,10 +33,10 @@ function fixReferences(qi) {
     `WHERE "collectorGroupId" IN ` +
     `  (SELECT id FROM "CollectorGroups" WHERE "isDeleted" > 0)`
   )
+    .catch((err) => console.log(` [ERR] fixReferences: ${err.message}`))
     .then((n) => console.log(` [OK] fixReferences cleared soft-deleted ` +
       `collectorGroupId from Collectors records: ${JSON.stringify(n)}`))
-    .catch((err) => console.log(` [ERR] fixReferences: ${err.message}`))
-    .then(() => console.log('fixReferences... done!\n'));;
+    .then(() => console.log('fixReferences... done!\n'));
 } // fixReferences
 
 function destroySoftDeleted(qi, Seq) {
@@ -79,6 +79,7 @@ function destroySoftDeleted(qi, Seq) {
     exec('Subject', optsIs),
     exec('CollectorGroup', optsIs),
   ]))
+    .catch((err) => console.log(` [ERR] destroySoftDeleted: ${err.message}`))
     .then(() => console.log('destroySoftDeleted... done!\n'));
 } // destroySoftDeleted
 
@@ -107,6 +108,7 @@ function removeOldIndices(qi) {
     exec('Subjects', 'SubjectAbsolutePathDeletedAtIsPublished'),
     exec('Tokens', 'TokenUniqueLowercaseNameCreatedByIsDeleted'),
   ])
+    .catch((err) => console.log(` [ERR] removeOldIndices: ${err.message}`))
     .then(() => console.log('removeOldIndices... done!\n'));
 } // removeOldIndices
 
@@ -130,6 +132,7 @@ function removeFields(qi) {
     exec('Subjects', IS),
     exec('Tokens', IS),
   ])
+    .catch((err) => console.log(` [ERR] removeFields: ${err.message}`))
     .then(() => Promise.all([
       exec('AuditEvents', AT),
       exec('Aspects', AT),
@@ -145,6 +148,7 @@ function removeFields(qi) {
       exec('Subjects', AT),
       exec('Tokens', AT),
     ]))
+    .catch((err) => console.log(` [ERR] removeFields: ${err.message}`))
     .then(() => console.log('removeFields... done!\n'));
 } // removeFields
 
@@ -189,8 +193,12 @@ function dropAndAddUniqueIndices(qi, Seq) {
     exec('Tokens', [lowerName, 'createdBy'],
       { name: 'TokenUniqueLowercaseNameCreatedBy', unique }),
   ])
+    .catch((err) =>
+      console.log(` [ERR] dropAndAddUniqueIndices ${err.message}`))
     .then(() => exec('Subjects', [lowerAbsPath, 'isPublished'],
       { name: 'SubjectAbsolutePathIsPublished' }))
+    .catch((err) =>
+      console.log(` [ERR] dropAndAddUniqueIndices ${err.message}`))
     .then(() => console.log('dropAndAddUniqueIndices... done!\n'));
 } // dropAndAddUniqueIndices
 
@@ -224,6 +232,7 @@ function recreateOldFields(qi, Seq) {
     exec('Subjects', IS),
     exec('Tokens', IS),
   ])
+    .catch((err) => console.log(` [ERR] recreateOldFields ${err.message}`))
     .then(() => Promise.all([
       exec('AuditEvents', AT),
       exec('Aspects', AT),
@@ -239,55 +248,9 @@ function recreateOldFields(qi, Seq) {
       exec('Subjects', AT),
       exec('Tokens', AT),
     ]))
+    .catch((err) => console.log(` [ERR] recreateOldFields ${err.message}`))
     .then(() => console.log('recreateOldFields... done!\n'));
 } // recreateOldFields
-
-// /**
-//  * For the "down" operation... restores old indices with the "isDeleted" or
-//  * "deletedAt" fields in them. Note: Separating the second subject index
-//  * rebuild out from the big Promises.all(...) execution because I don't think
-//  * we necessarily want the migration to be creating two indexes on the Subjects
-//  * table at the same time in case that might slow things down.
-//  */
-// function recreateOldIndices(qi, Seq) {
-//   const lowerName = Seq.fn('lower', Seq.col('name'));
-//   const lowerAbsPath = Seq.fn('lower', Seq.col('absolutePath'));
-//   const lowerKey = Seq.fn('lower', Seq.col('key'));
-//   const unique = true;
-//   const exec = (tbl, fields, opts) => qi.addIndex(tbl, fields, opts)
-//     .then(() => console.log(` [OK] recreateOldIndices ${tbl} ${opts.name}`))
-//     .catch((err) =>
-//       console.log(` [ERR] recreateOldIndices ${tbl} ${opts.name}: ${err.message}`));
-//
-//   console.log('recreateOldIndices...');
-//   return Promise.all([
-//     exec('Aspects', [lowerName, IS],
-//       { name: 'AspectUniqueLowercaseNameIsDeleted', unique }),
-//     exec('Collectors', [lowerName, IS],
-//       { name: 'CollectorUniqueLowercaseNameIsDeleted', unique }),
-//     exec('CollectorGroups', [lowerName, IS],
-//       { name: 'CollectorGroupUniqueLowercaseNameIsDeleted', unique }),
-//     exec('Generators', [lowerName, IS],
-//       { name: 'GeneratorUniqueLowercaseNameIsDeleted', unique }),
-//     exec('GeneratorTemplates', [lowerName, 'version', IS],
-//       { name: 'GTUniqueLowercaseNameVersionIsDeleted', unique }),
-//     exec('GlobalConfigs', [lowerKey, IS],
-//       { name: 'GlobalConfigUniqueLowercaseKeyIsDeleted', unique }),
-//     exec('Lenses', [lowerName, IS],
-//       { name: 'LensUniqueLowercaseNameIsDeleted', unique }),
-//     exec('Perspectives', [lowerName, IS],
-//       { name: 'PerspectiveUniqueLowercaseNameIsDeleted', unique }),
-//     exec('Profiles', [lowerName, IS],
-//       { name: 'ProfileUniqueLowercaseNameIsDeleted', unique }),
-//     exec('Subjects', [lowerAbsPath, IS],
-//       { name: 'SubjectUniqueLowercaseAbsolutePathIsDeleted', unique }),
-//     exec('Tokens', [lowerName, 'createdBy', IS],
-//       { name: 'TokenUniqueLowercaseNameCreatedByIsDeleted', unique }),
-//   ])
-//     .then(() => exec('Subjects', [lowerAbsPath, AT, 'isPublished'],
-//       { name: 'SubjectAbsolutePathDeletedAtIsPublished' }))
-//     .then(() => console.log('recreateOldIndices... done!\n'));
-// } // recreateOldIndices
 
 function removeNewIndices(qi) {
   const exec = (tbl, idx) => qi.removeIndex(tbl, idx)
@@ -310,6 +273,7 @@ function removeNewIndices(qi) {
     exec('Subjects', 'SubjectAbsolutePathIsPublished'),
     exec('Tokens', 'TokenUniqueLowercaseNameCreatedBy'),
   ])
+    .catch((err) => console.log(` [ERR] removeNewIndices ${err.message}`))
     .then(() => console.log('removeNewIndices... done!\n'));
 } // removeNewIndices
 
