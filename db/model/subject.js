@@ -581,7 +581,7 @@ module.exports = function subject(seq, dataTypes) {
     });
 
     Subject.addScope('baseScope', {
-      order: ['absolutePath'],
+      order: seq.col('absolutePath'),
     });
 
     Subject.addScope('defaultScope', {
@@ -595,7 +595,7 @@ module.exports = function subject(seq, dataTypes) {
           attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
-      order: ['absolutePath'],
+      order: seq.col('absolutePath'),
     }, {
       override: true,
     });

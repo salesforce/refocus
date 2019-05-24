@@ -98,7 +98,7 @@ module.exports = function profile(seq, dataTypes) {
     },
   }, {
     defaultScope: {
-      order: ['name'],
+      order: seq.col('name'),
     },
     hooks: {
 

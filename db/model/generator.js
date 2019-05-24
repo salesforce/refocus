@@ -264,7 +264,7 @@ module.exports = function generator(seq, dataTypes) {
     scopes: {
       embed: {
         attributes: ['id', 'name', 'description', 'isActive'],
-        order: ['name'],
+        order: seq.col('name'),
         include: [
           {
             model: seq.models.Collector.scope('embed'),
@@ -323,7 +323,7 @@ module.exports = function generator(seq, dataTypes) {
     });
 
     Generator.addScope('baseScope', {
-      order: ['name'],
+      order: seq.col('name'),
     });
 
     Generator.addScope('user', {

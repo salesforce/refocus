@@ -434,7 +434,7 @@ module.exports = function aspect(seq, dataTypes) {
     });
 
     Aspect.addScope('baseScope', {
-      order: ['name'],
+      order: seq.col('name'),
     });
 
     Aspect.addScope('defaultScope', {
@@ -448,7 +448,7 @@ module.exports = function aspect(seq, dataTypes) {
           attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
-      order: ['name'],
+      order: seq.col('name'),
     }, {
       override: true,
     });

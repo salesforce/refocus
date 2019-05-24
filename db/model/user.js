@@ -313,7 +313,7 @@ module.exports = function user(seq, dataTypes) {
       attributes: {
         exclude: ['password'],
       },
-      order: ['name'],
+      order: seq.col('name'),
     });
 
     User.addScope('defaultScope', {
@@ -326,7 +326,7 @@ module.exports = function user(seq, dataTypes) {
           attributes: ['id', 'name'],
         },
       ],
-      order: ['name'],
+      order: seq.col('name'),
     }, {
       override: true,
     });
@@ -346,7 +346,7 @@ module.exports = function user(seq, dataTypes) {
           attributes: ['id', 'name'],
         },
       ],
-      order: ['name'],
+      order: seq.col('name'),
     });
   };
 

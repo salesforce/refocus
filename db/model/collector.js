@@ -165,7 +165,7 @@ module.exports = function collector(seq, dataTypes) {
     scopes: {
       embed: {
         attributes: ['id', 'name', 'status', 'lastHeartbeat'],
-        order: ['name'],
+        order: seq.col('name'),
       },
     },
 
@@ -247,7 +247,7 @@ module.exports = function collector(seq, dataTypes) {
     });
 
     Collector.addScope('baseScope', {
-      order: ['name'],
+      order: seq.col('name'),
     });
 
     Collector.addScope('owner', {

@@ -97,7 +97,7 @@ module.exports = function collectorgroup(seq, dataTypes) {
     scopes: {
       embed: {
         attributes: ['id', 'name', 'description'],
-        order: ['name'],
+        order: seq.col('name'),
         include: [
           {
             model: seq.models.Collector.scope('embed'),
@@ -141,7 +141,7 @@ module.exports = function collectorgroup(seq, dataTypes) {
     });
 
     CollectorGroup.addScope('baseScope', {
-      order: ['name'],
+      order: seq.col('name'),
     });
 
     CollectorGroup.addScope('owner', {

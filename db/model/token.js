@@ -75,7 +75,7 @@ module.exports = function token(seq, dataTypes) {
     });
 
     Token.addScope('baseScope', {
-      order: ['name'],
+      order: seq.col('name'),
     });
 
     Token.addScope('defaultScope', {
@@ -85,7 +85,7 @@ module.exports = function token(seq, dataTypes) {
           attributes: ['id', 'name', 'email'],
         },
       ],
-      order: ['name'],
+      order: seq.col('name'),
     }, {
       override: true,
     });
