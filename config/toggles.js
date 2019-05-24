@@ -118,11 +118,18 @@ const longTermToggles = {
   hideRoutes: environmentVariableTrue(pe, 'HIDE_ROUTES'),
 
   /*
-   * Use separate realtime application if the env var exists and is not equal
+   * Use separate realtime application for perspectives if the env var exists and is not equal
    * to "/".
    */
-  enableRealtimeApplication: pe.hasOwnProperty('REALTIME_APPLICATION') &&
-    pe.REALTIME_APPLICATION !== '/',
+  enableRealtimeApplication: pe.hasOwnProperty('REALTIME_APPLICATION')
+    && pe.REALTIME_APPLICATION !== '/',
+
+  /*
+   * Use separate realtime application for Imc rooms if the env var exists and is not equal
+   * to "/".
+   */
+  enableRealtimeApplicationImc: pe.hasOwnProperty('REALTIME_APPLICATION_IMC')
+    && pe.REALTIME_APPLICATION_IMC !== '/',
 
   // Enable redis client connection logging.
   enableRedisConnectionLogging: environmentVariableTrue(pe,
