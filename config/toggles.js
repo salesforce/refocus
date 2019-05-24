@@ -121,8 +121,9 @@ const longTermToggles = {
    * Use separate realtime application if the env var exists and is not equal
    * to "/".
    */
-  enableRealtimeApplication: pe.hasOwnProperty('REALTIME_APPLICATION') &&
-    pe.REALTIME_APPLICATION !== '/',
+  enableRealtimeApplication:
+    (pe.hasOwnProperty('REALTIME_APPLICATION') && pe.REALTIME_APPLICATION !== '/')
+    || (pe.hasOwnProperty('REALTIME_APPLICATION_IMC') && pe.REALTIME_APPLICATION_IMC !== '/'),
 
   // Enable redis client connection logging.
   enableRedisConnectionLogging: environmentVariableTrue(pe,
