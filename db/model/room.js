@@ -133,23 +133,20 @@ module.exports = function room(seq, dataTypes) {
       afterUpdate(instance /* , opts */) {
         if (instance.changed('settings')) {
           if (instance.active) {
-            return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
-              null, null, pubOpts);
+            instance.attachBotsAndPublish();
           }
         }
 
         // Note: We should delete the socket.io namespace for the old room name
         if (instance.changed('name')) {
           if (instance.active) {
-            return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
-              null, null, pubOpts);
+            instance.attachBotsAndPublish();
           }
         }
 
         if (instance.changed('active')) {
           if (instance.active) {
-            return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
-              null, null, pubOpts);
+            instance.attachBotsAndPublish();
           }
         }
 
@@ -158,8 +155,7 @@ module.exports = function room(seq, dataTypes) {
 
       afterDelete(instance /* , opts */) {
         if (instance.getDataValue('active')) {
-          return realTime.publishObject(instance.toJSON(), roomEventNames.upd,
-              null, null, pubOpts);
+          instance.attachBotsAndPublish();
         }
 
         return seq.Promise.resolve();
@@ -240,6 +236,32 @@ module.exports = function room(seq, dataTypes) {
         resolve(found.length === 1);
       }));
   }; // isWritableBy
+
+  Room.prototype.attachBotsAndPublish = function () {
+    return this.reload({
+      attributes: ['id', 'name'],
+      include: [
+        {
+          model: seq.models.RoomType,
+          as: 'type',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: seq.models.Bot,
+              as: 'bots',
+              attributes: ['id', 'name'],
+              through: { attributes: [] },
+            },
+          ],
+        },
+      ],
+    })
+    .then((inst) =>
+      realTime.publishObject(
+        inst.toJSON(), roomEventNames.upd, null, null, pubOpts
+      )
+    );
+  };
 
   return Room;
 };

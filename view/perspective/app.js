@@ -154,9 +154,26 @@ function setupSocketIOClient(persBody) {
    * Add the perspective name as a query param so that it's available server-
    * side on connect.
    */
-  const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
-    `?p=${persBody.name}&t=${_userSession}`;
-  const socket = _io.connect(namespace, constants.socketOptions);
+  let socket;
+  if (useNewNamespaceFormat) {
+    const options = {
+      query: {
+        p: persBody.name,
+        id: u.getNamespaceString(persBody),
+      },
+      ...constants.socketOptions,
+    };
+
+    const namespace = _realtimeApplication.endsWith('/') ? 'perspectives' : '/perspectives';
+    socket = _io.connect(`${_realtimeApplication}${namespace}`, options)
+             .on('connect', function() {
+               this.emit('auth', _userSession);
+             });
+  } else {
+    const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
+      `?p=${persBody.name}&t=${_userSession}`;
+    socket = _io.connect(namespace, constants.socketOptions);
+  }
   socket.on('connect', () => {
     socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
       handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);

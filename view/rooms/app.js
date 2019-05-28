@@ -678,16 +678,33 @@ function confirmUserExit() {
  *
  * @param {String} realtimeApp - the real-time application endpoint
  * @param  {Array} bots - Array of Bots
+ * @param  {String} roomId - The room id
  */
-function setupSocketIOClient(realtimeApp, bots) {
+function setupSocketIOClient(realtimeApp, bots, roomId) {
   // Map Bot Ids to Bot Names
   bots.forEach((bot) => {
     botInfo[bot.body.id] = bot.body.name;
   });
 
-  const realtimeEndpoint = (realtimeApp.endsWith('/') ? realtimeApp :
-    (realtimeApp + '/')) + `?t=${_userSession}`;
-  const socket = _io(realtimeEndpoint, constants.socketOptions);
+  let socket;
+  if (useNewNamespaceFormat) {
+    const options = {
+      query: {
+        id: roomId,
+      },
+      ...constants.socketOptions,
+    };
+
+    const namespace = realtimeApp.endsWith('/') ? 'rooms' : '/rooms';
+    socket = _io(`${realtimeApp}${namespace}`, options)
+             .on('connect', function() {
+               this.emit('auth', _userSession);
+             });
+  } else {
+    const realtimeEndpoint = (realtimeApp.endsWith('/') ? realtimeApp :
+      (realtimeApp + '/')) + `?t=${_userSession}`;
+    const socket = _io(realtimeEndpoint, constants.socketOptions);
+  }
 
   // Socket Event Names
   const settingsChangedEventName =
@@ -1080,7 +1097,7 @@ window.onload = () => {
     }
   })
   .then((res) => {
-    res && setupSocketIOClient(_realtimeApplication, res);
+    res && setupSocketIOClient(_realtimeApplication, res, room.id);
     uPage.removeSpinner();
   });
 };
