@@ -650,6 +650,100 @@ function upsertOneParsedSample(sampleQueryBodyObj, parsedSample, isBulk, user) {
   });
 } // upsertOneParsedSample
 
+/**
+ * Check if sample name is valid. Apply attributes filter to samples.
+ * Then clean and attach aspect to sample. Add links and return.
+ * @param samples - Samples array
+ * @param opts - Filter options
+ * @param sampAspectMap - map of sample name -> aspect object
+ * @param reqMethod - Request method
+ * @returns {Array} - Filtered samples
+ */
+function applyAttributesFilter(samples, opts, sampAspectMap, reqMethod) {
+  return samples.map((sample) => {
+    parseName(sample.name); // throw if invalid name
+    const aspect = sampAspectMap[sample.name];
+
+    if (opts.attributes) { // delete sample fields, hence no return obj
+      modelUtils.applyFieldListFilter(sample, opts.attributes);
+    }
+
+    const s = cleanAddAspectToSample(sample, aspect);
+    s.apiLinks = u.getApiLinks(s.name, helper, reqMethod);
+    return s;
+  });
+}
+
+/**
+ * @param sampleKeys - Sample keys array
+ * @returns {Array} - Samples and aspects array
+ */
+function getSamplesAndAspects(sampleKeys) {
+  const commands = [];
+  sampleKeys.forEach((sKey) => {
+    const aName = sKey.split('|')[ONE];
+    const aKey = sampleStore.toKey(constants.objectType.aspect, aName);
+    commands.push(['hgetall', sKey.toLowerCase()]);
+    commands.push(['hgetall', aKey.toLowerCase()]);
+  });
+
+  return redisClient.batch(commands).execAsync();
+}
+
+/**
+ * Create samples array and sample name -> aspect map from an array of samples
+ * and aspects
+ * @param samplesAndAspects - Sample and aspects array
+ * @returns {{sampAspectMap, samples: Array}}
+ */
+function assembleSampleAspects(samplesAndAspects) {
+  const samples = [];
+
+  // e.g { samplename: asp object }, so that we can attach aspect later
+  const sampAspectMap = {};
+  for (let num = 0; num < samplesAndAspects.length; num += TWO) {
+    samples.push(samplesAndAspects[num]);
+    sampAspectMap[samplesAndAspects[num].name] = samplesAndAspects[num + ONE];
+  }
+
+  return { samples, sampAspectMap };
+}
+
+/**
+ * Get filtered sample keys in batches using redis sscan operation.
+ * @param cursor - starting position of batch
+ * @param filteredSamples - Array object to be updated in each batch
+ * @param opts - Filter options
+ * @returns {Array} - An Array of filtered samples
+ */
+function sscanAndFilterSampleKeys(cursor, filteredSamples, opts) {
+  return redisClient.sscanAsync(constants.indexKey.sample, cursor)
+    .then((reply) => {
+      const newCursor = reply[0];
+      const sampleKeys = reply[1];
+
+      return Promise.resolve()
+        .then(() => {
+          if (opts.filter && opts.filter.name) {
+            return modelUtils.filterSampleKeysByName(sampleKeys, opts);
+          }
+
+          return sampleKeys;
+        })
+        .then((keys) => {
+          keys.forEach((key) => {
+            filteredSamples.add(key);
+          });
+
+          if (newCursor === '0') {
+            return Array.from(filteredSamples);
+          }
+
+          return sscanAndFilterSampleKeys(newCursor, filteredSamples);
+        });
+    });
+}
+
 module.exports = {
 
   /**
@@ -1126,14 +1220,23 @@ module.exports = {
   }, // getSample
 
   /**
-   * Finds samples with filter options if provided. We get sample keys from
-   * redis using default alphabetical order. Then we apply limit/offset and
-   * wildcard expr on sample names. Using filtered keys we get samples and
-   * corresponding aspects from redis in an array. We create samples array and
-   * { sampleName: aspect object} map from response. Then, we apply wildcard
-   * expr (other than name) to samples array, then we sort, then apply
-   * limit/offset and finally field list filters. Then, attach aspect to sample
-   * using map we created and add to response array.
+   * Finds samples with filter options if provided.
+   * We handle three use cases:
+   * 1. No filter: eg /samples
+   * 2. Filter by name without wildcards: eg /samples?name=s1,s2
+   * 3. Filter by other attributes: eg /samples?status=Critical
+   *
+   * Example options:
+   * { attributes: [ 'name', 'status', 'value', 'id' ],
+   *   order: [ '-value', 'status' ],
+   *   limit: 5,
+   *   offset: 1,
+   *   filter: { name: '___Subject1.___Subject2*' }
+   * }
+   *
+   * Note: Comma separated values will be considered as one value for:
+   * - Wildcard values
+   * - Non wildcard values other than name
    *
    * @param  {Object} req - Request object
    * @param  {Object} res - Result object
@@ -1148,78 +1251,157 @@ module.exports = {
       next: fu.getNextUrl(req.originalUrl, opts.limit, opts.offset),
     });
 
-    /*
-     * Send a batch of redis commands to get all the samples sorted
-     * lexicographically by key (i.e. sample name). If there are no filters,
-     * pass the limit and offset through as part of the initial redis command.
-     * If there are filters, we need to load more records so we can return the
-     * right number of records in case some get filtered out later.
+    const filterKeys = Object.keys(opts.filter);
+    const hasFilter = filterKeys.length > 0;
+    const hasOrder = opts.order && opts.order.length > 0;
+    const hasNameFilterOnly = filterKeys.length === 1 && opts.filter.name;
+    const sortByName = opts.order &&
+      (opts.order === ['name'] || opts.order === ['-name']);
+
+    const defaultSortByName = !hasOrder || opts.order === ['name'];
+
+    /**
+     * Sort and get samplesKeys from sample set alphabetically when:
+     * No filter and No sort order (asc by default), or
+     * No filter and ?sort=name (asc by default), or
+     * No filter and ?sort=-name (add desc parameter to sort args)
+     *
+     * Get sample hashes, apply attributes filter, cleanup and
+     * return all samples.
      */
-    const sortArgs = [constants.indexKey.sample, 'alpha'];
-    const hasFilters = Object.keys(opts.filter).length > 0;
-    if (!hasFilters) {
-      sortArgs.push('LIMIT', opts.offset, opts.limit);
+    if (!hasFilter) {
+      let sortArgs;
+      if (defaultSortByName) {
+        sortArgs = [constants.indexKey.sample, 'alpha'];
+      } else if (opts.order === ['-name']) {
+        sortArgs = [constants.indexKey.sample, 'alpha', 'desc'];
+      }
+
+      if (sortArgs) {
+        sortArgs.push('LIMIT', opts.offset, opts.limit);
+        return redisClient.sortAsync(sortArgs)
+          .then((sampleKeys) => getSamplesAndAspects(sampleKeys))
+          .then((samplesAndAspects) => {
+            const { samples, sampAspectMap } =
+              assembleSampleAspects(samplesAndAspects);
+            return applyAttributesFilter(samples, opts,
+              sampAspectMap, req.method);
+          });
+      }
     }
 
-    return Promise.resolve()
-    .then(() => {
-      // If there is a name param with no wildcards, get the sample directly.
-      const nameFilter = opts.filter.name;
-      if (nameFilter && !nameFilter.includes('*')) {
-        return getOneSample(nameFilter)
-        .then(([samp, asp]) =>
-          samp && asp ? [samp, asp] : []
-        );
-      }
+    /**
+     * Name filter and no wildcards:
+     * If {filter: { name: 's1|a1'}}
+     *  get one sample
+     *
+     * If { filter: { name: 's1|a1, s2|a2'}}
+     *  get the samples with comma separated names
+     *  If default name order, sort the array of sample names
+     *  Apply limit and offset
+     *  Get samples
+     *
+     * Then,
+     * If order other than name, then sort and apply limit/offset
+     * apply attributes filter, cleanup and return
+     *
+     */
+    if (hasNameFilterOnly && !opts.filter.name.includes('*')) {
+      let nameFilterArr = opts.filter.name.split(',').map((item) =>
+        item.trim());
+      return Promise.resolve()
+        .then(() => {
+          if (nameFilterArr.length === 1) { // one sample
+            return getOneSample(nameFilterArr[0])
+              .then(([samp, asp]) => samp && asp ? [samp, asp] : []);
+          }
 
-      /*
-       * Otherwise, get all sample keys, then prefilter based on sample name,
-       * if specified. Then, for each of the
-       * remaining sample keys, derive the aspect name and key from the sample
-       * name, then add the commands to get the sample details and aspect details
-       * from their respective objects in the sample store and execute that
-       * batch of commands.
-       */
-      else {
-        return redisClient.sortAsync(sortArgs)
-        .then((allSampKeys) => {
-          const filteredSampKeys = hasFilters ?
-            modelUtils.prefilterKeys(allSampKeys, opts) : allSampKeys;
-          const commands = [];
-          filteredSampKeys.forEach((sKey) => {
-            const aName = sKey.split('|')[ONE];
-            const aKey = sampleStore.toKey(constants.objectType.aspect, aName);
-            commands.push(['hgetall', sKey]);
-            commands.push(['hgetall', aKey]);
-          });
+          if (defaultSortByName) {
+            nameFilterArr.sort();
+            nameFilterArr = modelUtils.applyLimitAndOffset(
+              opts, nameFilterArr);
+          }
 
-          return redisClient.batch(commands).execAsync();
+          // multiple samples
+          const sampleKeys = nameFilterArr.map((name) =>
+            sampleStore.toKey(constants.objectType.sample, name));
+          return getSamplesAndAspects(sampleKeys);
+        })
+        .then((samplesAndAspects) => {
+          const { samples, sampAspectMap } =
+            assembleSampleAspects(samplesAndAspects);
+
+          if (samples.length > 1 && hasOrder && opts.order !== ['name']) {
+            let filteredSamples = modelUtils.sortByOrder(samples, opts.order);
+            filteredSamples = modelUtils.applyLimitAndOffset(
+              opts, filteredSamples);
+            return applyAttributesFilter(filteredSamples, opts,
+              sampAspectMap, req.method);
+          }
+
+          return applyAttributesFilter(samples, opts,
+            sampAspectMap, req.method);
         });
-      }
-    })
-    .then((redisResponses) => { // samples and aspects
-      const samples = [];
+    }
 
-      // e.g { samplename: asp object }, so that we can attach aspect later
-      const sampAspectMap = {};
-      for (let num = 0; num < redisResponses.length; num += TWO) {
-        samples.push(redisResponses[num]);
-        sampAspectMap[redisResponses[num].name] = redisResponses[num + ONE];
-      }
-
-      const filteredSamples = modelUtils.applyFiltersOnResourceObjs(samples,
-        opts);
-      return filteredSamples.map((sample) => {
-        if (opts.attributes) { // delete sample fields, hence no return obj
-          modelUtils.applyFieldListFilter(sample, opts.attributes);
+    /**
+     * Filters other than name and possibly with wildcards.
+     *  If sample wilcard has either subject or aspect name, use aspect subject
+     *  maps to filter samples keys
+     *  Else, use sscan to get sample keys in batches.
+     *    Apply wildcard filter to the key batches and return consolidated list
+     *    of filtered sample keys
+     * If we need to sort by name only,
+     *    Sort the list of filtered sample keys.
+     *    Apply limit and offset if we need to filter by name only
+     * Get the samples from cache
+     *    Apply filters on sample objects (sort and apply limit only if not already sorted
+     *    by name before)
+     *    Apply attributes filter, clean samples, attach aspects and return
+     *    samples
+     */
+    return Promise.resolve()
+      .then(() => {
+        const filterVal = opts.filter.name;
+        if (opts.filter && filterVal) {
+          const subjAsp = filterVal.split('|');
+          if (subjAsp.length === 2) {
+            const isSubjWildCard = subjAsp[0].includes('*');
+            const isAspWildCard = subjAsp[1].includes('*');
+            if (isSubjWildCard && !isAspWildCard) {
+              return modelUtils.getSampleKeysUsingMaps(subjAsp, false);
+            } else if (!isSubjWildCard && isAspWildCard) {
+              return modelUtils.getSampleKeysUsingMaps(subjAsp, true);
+            }
+          }
         }
 
-        const s = cleanAddAspectToSample(sample, sampAspectMap[sample.name]);
-        parseName(s.name); // throw if invalid name
-        s.apiLinks = u.getApiLinks(s.name, helper, req.method);
-        return s;
+        const filteredSampleKeys = new Set();
+        return sscanAndFilterSampleKeys('0', filteredSampleKeys, opts);
+      })
+      .then((filteredKeys) => {
+        let keys = filteredKeys;
+
+        if (sortByName) {
+          if (defaultSortByName) {
+            filteredKeys.sort();
+          } else {
+            filteredKeys.sort().reverse();
+          }
+
+          keys = modelUtils.applyLimitAndOffset(opts, filteredKeys);
+        }
+
+        return getSamplesAndAspects(keys);
+      })
+      .then((redisResponses) => {
+        const { samples, sampAspectMap } = assembleSampleAspects(
+          redisResponses);
+        const fSamples = modelUtils.applyFiltersOnSampleObjs(samples,
+          opts, sortByName);
+        return applyAttributesFilter(fSamples, opts,
+          sampAspectMap, req.method);
       });
-    });
   }, // findSamples
 
   /**

@@ -15,6 +15,8 @@ const apiConstants = require('../../api/v1/constants');
 const defaults = require('../../config').api.defaults;
 const sampleStore = require('../sampleStore');
 const u = require('../../api/v1/helpers/verbs/utils');
+const redisOps = require('../redisOps');
+const Promise = require('bluebird');
 const MINUS_ONE = -1;
 const ONE = 1;
 const ZERO = 0;
@@ -53,8 +55,8 @@ function applyLimitAndOffsetInPrefilter(opts) {
  * @returns {Array} - Sliced array
  */
 function applyLimitAndOffset(opts, arr) {
-  let startIndex = opts.offset || 0;
-  let endIndex = startIndex + opts.limit || arr.length;
+  const startIndex = opts.offset || 0;
+  const endIndex = startIndex + opts.limit || arr.length;
 
   // Short circuit: avoid calling array slice if we don't have to!
   if (startIndex === 0 && endIndex >= arr.length) {
@@ -63,6 +65,36 @@ function applyLimitAndOffset(opts, arr) {
 
   return arr.slice(startIndex, endIndex);
 }
+
+/**
+ * Apply filters on sample objects.
+ *
+ * @param  {Array} sampleArray - Sample array
+ * @param  {Object} opts - Filter options
+ * * @param  {boolean} hasNameFilterOnly - True if opts has name filter only
+ * @returns {Array} - Filtered sample array
+ */
+function applyFiltersOnSampleObjs(sampleArray, opts, sortByName) {
+  let filtered = sampleArray;
+
+  if (opts.filter) {
+    const filterOptions = opts.filter;
+    Object.keys(filterOptions).forEach((field) => {
+      const value = filterOptions[field];
+      if (field !== 'name' && typeof field === 'string') {
+        filtered = filterByFieldWildCardExpr(filtered, field, value);
+      }
+    });
+  }
+
+  // If sorting was not applied on keys, sort and apply limit/offset
+  if (opts.order && !sortByName) {
+    filtered = sortByOrder(filtered, opts.order);
+    filtered = applyLimitAndOffset(opts, filtered);
+  }
+
+  return filtered;
+} // applyFiltersOnSampleObjs
 
 /**
  * Apply filters on resource array list.
@@ -102,6 +134,71 @@ function applyFiltersOnResourceObjs(resourceObjArray, opts) {
 
   return filtered;
 } // applyFiltersOnResourceObjs
+
+/**
+ * Get sample keys using subaspmap and aspsubmap
+ * @param {string} subjectAspExpr - sample name string with wildcard
+ * @param {boolean} hasSubjectName - boolean
+ * @returns {Promise} Resulting in matching sample keys
+ */
+function getSampleKeysUsingMaps(subjectAspExpr, hasSubjectName) {
+  const subjStr = subjectAspExpr[0];
+  const aspStr = subjectAspExpr[1];
+  const sampleKeysArr = [];
+
+  // assume get from aspSubMap
+  let wildCardExpr = subjStr;
+  let getMapMembers = redisOps.getAspSubjMapMembers(aspStr);
+
+  if (hasSubjectName) {
+    wildCardExpr = aspStr;
+    getMapMembers = redisOps.getSubjAspMapMembers(subjStr);
+  }
+
+  return redisOps.executeCommand(getMapMembers)
+    .then((items) => {
+      const re = regexToMatchWildcards(wildCardExpr);
+      items.forEach((item) => {
+        if (re.test(item)) {
+          let sampName;
+          if (hasSubjectName) {
+            sampName = `samsto:sample:${subjStr}|${item}`;
+          } else {
+            sampName = `samsto:sample:${item}|${aspStr}`;
+          }
+
+          sampleKeysArr.push(sampName);
+        }
+      });
+
+      return sampleKeysArr;
+    });
+}
+
+/**
+ * Filter sample keys by name
+ * If there is a wildcard in sample name, for either the subject or aspect part
+ * of the sample name, we use subaspmap and/or aspsubmap to get the list of
+ * sample.
+ * @param  {Array} sampleKeys - Sample names array
+ * @param  {Object} opts - Filter options
+ * @returns {Array} - Filtered sample keys array
+ */
+function filterSampleKeysByName(sampleKeys, opts) {
+  const namefilterValues = opts.filter.name.split(',').map((n) => n.trim());
+
+  return Promise.all(namefilterValues.map((filterVal) => {
+    const sampArr = filterByFieldWildCardExpr(sampleKeys, 'name', filterVal);
+    return sampArr;
+  })).then((sampleArr) => {
+    const resSampleKeys = [];
+    sampleArr.forEach((samples) => {
+      resSampleKeys.push(...samples);
+    });
+
+    return resSampleKeys;
+  });
+} // filterSampleKeysByName
 
 /**
  * Do any prefiltering based on the keys.
@@ -195,6 +292,20 @@ function filterByTags(arr, tags) {
 }
 
 /**
+ * Regex to match wildcard expression with *
+ * @param {String} propExpr - Wildcard expression
+ * @returns {RegExp} - Regex
+ */
+function regexToMatchWildcards(propExpr) {
+  // regex to match wildcard expr, i option means case insensitive
+  const escapedExp = propExpr.split('_').join('\\_')
+    .split('|').join('\\|').split('.').join('\\.');
+
+  const re = new RegExp('^' + escapedExp.split('*').join('.*') + '$', 'i');
+  return re;
+}
+
+/**
  * Apply wildcard filter on resource array of keys or objects. For each entry,
  * if given property exists for resource, apply regex to the property value,
  * else if, the property is 'name', then the function was called before getting
@@ -207,11 +318,7 @@ function filterByTags(arr, tags) {
  * @returns {Array} - Filtered array
  */
 function filterByFieldWildCardExpr(arr, prop, propExpr, getNameFunc) {
-  // regex to match wildcard expr, i option means case insensitive
-  const escapedExp = propExpr.split('_').join('\\_')
-                      .split('|').join('\\|').split('.').join('\\.');
-
-  const re = new RegExp('^' + escapedExp.split('*').join('.*') + '$', 'i');
+  const re = regexToMatchWildcards(propExpr);
   return arr.filter((entry) => {
     if (entry[prop]) { // resource object
       return re.test(entry[prop]);
@@ -311,11 +418,14 @@ function getOptionsFromReq(params, helper) {
 
 module.exports = {
   applyFieldListFilter,
-  applyFiltersOnResourceObjs,
+  applyFiltersOnSampleObjs,
   applyLimitAndOffset,
   filterByFieldWildCardExpr,
   getOptionsFromReq,
-  prefilterKeys,
+  filterSampleKeysByName,
   removeExtraAttributes,
   sortByOrder,
+  prefilterKeys,
+  applyFiltersOnResourceObjs,
+  getSampleKeysUsingMaps,
 };
