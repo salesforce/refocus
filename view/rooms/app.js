@@ -703,7 +703,7 @@ function setupSocketIOClient(realtimeApp, bots, roomId) {
   } else {
     const realtimeEndpoint = (realtimeApp.endsWith('/') ? realtimeApp :
       (realtimeApp + '/')) + `?t=${_userSession}`;
-    const socket = _io(realtimeEndpoint, constants.socketOptions);
+    socket = _io(realtimeEndpoint, constants.socketOptions);
   }
 
   // Socket Event Names
