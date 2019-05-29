@@ -148,7 +148,9 @@ module.exports = function subject(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         const promiseArr = [];
-        publishObject(inst, eventName.add);
+        if (inst.getDataValue('isPublished') === true) {
+          publishObject(inst, eventName.add);
+        }
 
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
@@ -199,11 +201,11 @@ module.exports = function subject(seq, dataTypes) {
 
         // change from published to unpublished
         const isSubjectUnpublished = inst.changed('isPublished') &&
-          !inst.isPublished;
+          inst._previousDataValues.isPublished && !inst.isPublished;
 
         // change from unpublished to published
         const isSubjectPublished = inst.changed('isPublished') &&
-          inst.isPublished;
+          !inst._previousDataValues.isPublished && inst.isPublished;
 
         if (isSubjectUnpublished) {
           promiseArr.push(
@@ -303,11 +305,11 @@ module.exports = function subject(seq, dataTypes) {
                * If subject tags or parent were not updated, just send the usual
                * "update" event.
                */
-              publishObject(inst, eventName.del, changedKeys,
-                ignoreAttributes);
+              publishObject(inst._previousDataValues, eventName.del,
+                changedKeys, ignoreAttributes);
               publishObject(inst, eventName.add, changedKeys,
                 ignoreAttributes);
-            } else if (inst.published) {
+            } else if (inst.getDataValue('isPublished')) {
               publishObject(inst, eventName.upd, changedKeys,
                 ignoreAttributes);
             }
