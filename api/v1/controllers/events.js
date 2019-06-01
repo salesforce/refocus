@@ -90,8 +90,9 @@ module.exports = {
     const reqObj = req.swagger.params.queryBody.value;
 
     u.setOwner(reqObj, req)
-      .then(() => helper.model.create(reqObj))
-      .then((o) => o.reload(o._modelOptions.defaultScope))
+      .then(() => helper.model.create(
+        reqObj, helper.model.options.defaultScope))
+      .then((o) => o.reload())
       .then((o) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime + 'ms';
         u.logAPI(req, resultObj, o.dataValues);

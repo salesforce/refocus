@@ -255,8 +255,8 @@ module.exports = {
       name: `${pfx}` + usrName,
       email: usrName + '@' + usrName + '.com',
       password: usrName,
-    }))
-    .then((user) => user.reload(user._modelOptions.defaultScope));
+    }, db.User.options.defaultScope))
+    .then((user) => user.reload());
   },
 
   // create user and corresponding token to be used in api tests.

@@ -63,7 +63,7 @@ describe('tests/db/model/generator/methods.js >', () => {
     GeneratorTemplate.create(gt1)
     .then((_gt1) => (gt1.id = _gt1.id))
     .then(() => Promise.join(
-      Generator.create(gen1),
+      Generator.create(gen1, Generator.options.defaultScope),
       Collector.create(coll1),
       Collector.create(coll2),
       Collector.create(coll3),
@@ -198,7 +198,7 @@ describe('tests/db/model/generator/methods.js >', () => {
 
     it('collectors not specified (unassigned)', () =>
       generator1.update({ collectorId: collector3.id })
-      .then(() => generator1.reload(generator1._modelOptions.defaultScope))
+      .then(() => generator1.reload())
       .then(() => {
         expect(generator1.currentCollector.name).to.equal(collector3.name);
         expect(generator1.currentCollector.id).to.equal(collector3.id);
@@ -272,7 +272,7 @@ describe('tests/db/model/generator/methods.js >', () => {
 
       it('collectors not specified (unassigned)', () =>
         generator1.update({ collectorId: collector3.id })
-        .then(() => generator1.reload(generator1._modelOptions.defaultScope))
+        .then(() => generator1.reload())
         .then(() => {
           expect(generator1.currentCollector.name).to.equal(collector3.name);
           expect(generator1.currentCollector.id).to.equal(collector3.id);
