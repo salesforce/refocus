@@ -900,7 +900,7 @@ module.exports = {
     let sampleName;
     let aspectObj;
 
-    return db.Subject.findById(reqBody.subjectId)
+    return db.Subject.findByPk(reqBody.subjectId)
     .then((subjFromDb) => {
       if (!subjFromDb || !subjFromDb.isPublished) {
         throw new redisErrors.ResourceNotFoundError({
@@ -909,7 +909,7 @@ module.exports = {
       }
 
       subject = subjFromDb;
-      return db.Aspect.findById(reqBody.aspectId);
+      return db.Aspect.findByPk(reqBody.aspectId);
     })
     .then((aspFromDb) => {
       if (!aspFromDb || !aspFromDb.isPublished) {

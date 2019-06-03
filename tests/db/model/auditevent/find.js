@@ -42,7 +42,7 @@ describe('tests/db/model/auditevent/find', () => {
   });
 
   it('Find by Id', (done) => {
-    AuditEvent.findById(auditEventDb.id)
+    AuditEvent.findByPk(auditEventDb.id)
     .then((ae) => {
       expect(ae.loggedAt).to.eql(new Date(auditEventObj.loggedAt));
       expect(ae.isError).to.be.equal(auditEventObj.isError);

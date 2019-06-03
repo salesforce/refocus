@@ -150,10 +150,10 @@ module.exports = function botAction(seq, dataTypes) {
           botActionEventNames.upd, null, null, pubOpts);
       }, // hooks.afterUpdate
 
-      afterDelete(instance /* , opts */) {
+      afterDestroy(instance /* , opts */) {
         return realTime.publishObject(instance.toJSON(),
           botActionEventNames.del, null, null, pubOpts);
-      }, // hooks.afterDelete
+      }, // hooks.afterDestroy
     }, // hooks
     indexes: [
       {

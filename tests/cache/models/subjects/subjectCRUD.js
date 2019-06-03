@@ -80,7 +80,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
   it('on unpublish, a subject should still be found', (done) => {
     const subjectKey = redisStore.toKey('subject', parentName);
 
-    Subject.findById(ipar)
+    Subject.findByPk(ipar)
     .then((pubishedSubject) => pubishedSubject.update({ isPublished: false }))
     .then(() =>
       rcli.sismemberAsync(redisStore.constants.indexKey.subject, subjectKey))
@@ -100,7 +100,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
   it('created subject should be found', (done) => {
     let absolutePath;
 
-    Subject.findById(ipar)
+    Subject.findByPk(ipar)
     .then((subj) => {
       absolutePath = subj.absolutePath;
       const key = redisStore.toKey('subject', absolutePath);
@@ -122,7 +122,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     let subj;
     let key;
 
-    Subject.findById(iparUnPub)
+    Subject.findByPk(iparUnPub)
     .then((sub) => {
       subj = sub;
       key = redisStore.toKey('subject', subj.absolutePath);
@@ -151,7 +151,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     let oldAbsPath;
     let newAbsPath;
 
-    Subject.findById(ipar)
+    Subject.findByPk(ipar)
     .then((subj) => {
       oldAbsPath = subj.absolutePath;
       return subj.update({ name: newName });
@@ -199,7 +199,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     let newAbsPath;
     const ARRAY = 'hello'.split('');
 
-    Subject.findById(ipar)
+    Subject.findByPk(ipar)
     .then((subj) => {
       oldAbsPath = subj.absolutePath;
       return subj.update({ name: subj.name + '_newName', tags: ARRAY });
@@ -297,7 +297,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
 
   it('once a subject is destroyed no entry should be found in the master ' +
   'subject index', (done) => {
-    Subject.findById(ipar)
+    Subject.findByPk(ipar)
     .then((s) => s.destroy())
     .then((subj) => {
       const key = redisStore.toKey('subject', subj.absolutePath);
@@ -345,7 +345,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
   'removed from the samplestore', (done) => {
     // of the form samsto:samples:
     let subjectWithPrefix;
-    Subject.findById(ipar)
+    Subject.findByPk(ipar)
     .then((s) => s.destroy())
     .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
@@ -378,7 +378,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
   'removed from the samplestore', (done) => {
     // of the form samsto:samples:
     let subjectWithPrefix;
-    Subject.findById(ipar)
+    Subject.findByPk(ipar)
     .then((s) => s.update({ isPublished: false }))
     .then((subj) => {
       subjectWithPrefix = redisStore.toKey('sample', subj.absolutePath);

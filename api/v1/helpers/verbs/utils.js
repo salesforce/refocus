@@ -274,11 +274,11 @@ function multipleAssociations(helperModule, requestedAttributes) {
         // filter all associations with respective fk in the model attributes
 
         const foreignKey = model.associations[association].foreignKey;
-        return model.attributes[foreignKey] !== undefined;
+        return model.rawAttributes[foreignKey] !== undefined;
       })
       .map((association) => {
         const foreignKey = model.associations[association].foreignKey;
-        return model.attributes[foreignKey].fieldName;
+        return model.rawAttributes[foreignKey].fieldName;
       });
 
     if (extraForeignKeys.length > 0) {
@@ -452,7 +452,7 @@ function findByName(model, key, opts) {
 } // findByName
 
 /**
- * Tries calling findById but falls back to findByName (or
+ * Tries calling findByPk but falls back to findByName (or
  * subject.absolutePath) if no record is found by id.
  *
  * @param {Model} model - The DB model being searched
@@ -463,11 +463,11 @@ function findByName(model, key, opts) {
  * @returns {Promise} which resolves to the record found, or rejects with
  *  ResourceNotFoundError if record not found
  */
-function findByIdThenName(model, key, opts, props) {
+function findByPkThenName(model, key, opts, props) {
   return new Promise((resolve, reject) => {
     const wh = opts.where;
     delete opts.where;
-    model.findById(key, opts)
+    model.findByPk(key, opts)
     .then((found) => found)
     .catch((err) => {
 
@@ -495,7 +495,7 @@ function findByIdThenName(model, key, opts, props) {
     })
     .catch((err) => reject(err));
   });
-} // findByIdThenName
+} // findByPkThenName
 
 /**
  * Duplicate elements in an Array of strings are removed and the request object
@@ -693,7 +693,7 @@ function cleanAndStripNulls(obj) {
 }
 
 /**
- * If the key looks like a postgres uuid, tries calling findById first, but
+ * If the key looks like a postgres uuid, tries calling findByPk first, but
  * falls back to find by name (or subject.absolutePath) if none found. If
  * the key does not look like a postgres uuid, just tries to find by name
  * (or subject.absolutePath).
@@ -728,9 +728,9 @@ function findByKey(props, params, extraAttributes) {
   // If the models key auto-increments then the key will be an
   // integer and still should find records by ID.
   if (common.looksLikeId(key)) {
-    return findByIdThenName(scopedModel, key, opts, props);
+    return findByPkThenName(scopedModel, key, opts, props);
   } else if ((typeof key === 'number') && (key % 1 === 0)) {
-    return findByIdThenName(scopedModel, key, opts, props);
+    return findByPkThenName(scopedModel, key, opts, props);
   }
 
   /* The resource has non-unique name and hence GET /{resource}/$name is
@@ -1009,6 +1009,6 @@ module.exports = {
 
   setOwner,
 
-  findByIdThenName,
+  findByPkThenName,
 
 }; // exports

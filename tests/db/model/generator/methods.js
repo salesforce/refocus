@@ -63,7 +63,7 @@ describe('tests/db/model/generator/methods.js >', () => {
     GeneratorTemplate.create(gt1)
     .then((_gt1) => (gt1.id = _gt1.id))
     .then(() => Promise.join(
-      Generator.create(gen1),
+      Generator.create(gen1, Generator.options.defaultScope),
       Collector.create(coll1),
       Collector.create(coll2),
       Collector.create(coll3),

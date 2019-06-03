@@ -149,11 +149,13 @@ module.exports = {
       const user = req.user;
       seqObj.installedBy = user.id;
       u.setOwner(seqObj, req)
-        .then(() => helper.model.create(seqObj))
+        .then(() => helper.model.create(
+          seqObj, helper.model.options.defaultScope))
         .then((o) => o.reload())
         .then((o) => {
           o.dataValues.ui = uiObj;
-          o.dataValues.token = jwtUtil.createToken(seqObj.name, req.headers.UserName,
+          o.dataValues.token = jwtUtil.createToken(
+            seqObj.name, req.headers.UserName,
             { IsBot: true });
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
           u.logAPI(req, resultObj, o.dataValues);

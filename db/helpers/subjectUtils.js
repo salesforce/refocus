@@ -42,7 +42,7 @@ const Op = require('sequelize').Op;
  * @returns {Promise} contains parent subject
  */
 function validateParentField(Subject, parentFieldVal, fieldVal, fieldName) {
-  return Subject.scope({ method: [fieldName, parentFieldVal] }).find()
+  return Subject.scope({ method: [fieldName, parentFieldVal] }).findOne()
   .then((parent) => {
     if (!parent) {
       throw new ParentSubjectNotFound({
@@ -77,7 +77,7 @@ function updateParentFields(Subject, parentId, parentAbsolutePath, inst) {
   let newAbsolutePath;
   return Subject.scope({ method:
     ['id', inst.previous('parentId')],
-  }).find()
+  }).findOne()
   .then((oldParent) => {
     if (oldParent) {
       oldParent.decrement('childCount');
@@ -86,7 +86,7 @@ function updateParentFields(Subject, parentId, parentAbsolutePath, inst) {
     newAbsolutePath = parentAbsolutePath ?
       parentAbsolutePath + '.' + inst.name : inst.name;
     const whereObj = { where: { absolutePath: { [Op.iLike]: newAbsolutePath } } };
-    return Subject.find(whereObj);
+    return Subject.findOne(whereObj);
   })
   .then((subj) => {
     if (subj && subj.id !== inst.id) {
@@ -150,7 +150,7 @@ function removeRelatedSamples(subject, seq) {
         /*
          * publishSample attaches the subject and the aspect by fetching it
          * either from the database or redis. Deleted subject will not be found
-         * when called from the afterDelete and afterUpdate hookes. So, attach
+         * when called from the afterDestroy and afterUpdate hookes. So, attach
          * the subject here before publishing the sample.
          */
         if (sample) {

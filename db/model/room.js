@@ -105,7 +105,7 @@ module.exports = function room(seq, dataTypes) {
        */
       beforeCreate: (instance) => {
         const RoomType = seq.models.RoomType;
-        return RoomType.findById(instance.type)
+        return RoomType.findByPk(instance.type)
         .then((roomType) => {
           if (!instance.settings) {
             instance.settings = roomType.settings;
@@ -153,13 +153,13 @@ module.exports = function room(seq, dataTypes) {
         return seq.Promise.resolve();
       }, // hooks.afterUpdate
 
-      afterDelete(instance /* , opts */) {
+      afterDestroy(instance /* , opts */) {
         if (instance.getDataValue('active')) {
           instance.attachBotsAndPublish();
         }
 
         return seq.Promise.resolve();
-      }, // hooks.afterDelete
+      }, // hooks.afterDestroy
     },
   });
 

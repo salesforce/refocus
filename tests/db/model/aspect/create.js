@@ -366,7 +366,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           x = `z${x}`;
         }
 
-        const url = `http://www.${x}.com`;
+        const url = `http://abc.com/${x}`;
         if (url.length !== ln) {
           throw new Error('must be 2082 characters');
         }
@@ -664,7 +664,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           x = `z${x}`;
         }
 
-        const url = `http://www.${x}.com`;
+        const url = `http://abc.com/${x}`;
         if (url.length !== ln) {
           throw new Error('must be 2082 characters');
         }
@@ -2208,8 +2208,8 @@ describe('tests/db/model/aspect/create.js >', () => {
         .then(() => done(tu.valError))
         .catch((err) => {
           if (err.name === tu.dbErrorName &&
-            err.message === 'column "valueType" is of type ' +
-              '"enum_Aspects_valueType" but expression is of type text[]') {
+            err.message === 'invalid input value for enum ' +
+            '"enum_Aspects_valueType": "{"BOOLEAN","PERCENT"}"') {
             done();
           } else {
             done(tu.valError);

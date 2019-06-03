@@ -264,7 +264,7 @@ module.exports = function generator(seq, dataTypes) {
     scopes: {
       embed: {
         attributes: ['id', 'name', 'description', 'isActive'],
-        order: ['name'],
+        order: seq.col('name'),
         include: [
           {
             model: seq.models.Collector.scope('embed'),
@@ -323,7 +323,7 @@ module.exports = function generator(seq, dataTypes) {
     });
 
     Generator.addScope('baseScope', {
-      order: ['name'],
+      order: seq.col('name'),
     });
 
     Generator.addScope('user', {
@@ -419,7 +419,7 @@ module.exports = function generator(seq, dataTypes) {
       return gen.save();
     })
     .then((gen) => gen.setCollectorGroup(collectorGroup))
-    .then((gen) => gen.reload());
+    .then((gen) => gen.reload(Generator.options.defaultScope));
   };
 
   Generator.findForHeartbeat = function (findOpts) {
@@ -485,7 +485,7 @@ module.exports = function generator(seq, dataTypes) {
       }
     })
     .then(() => this.update(requestBody))
-    .then(() => this.reload());
+    .then(() => this.reload(Generator.options.defaultScope));
   };
 
   /**
@@ -596,7 +596,7 @@ module.exports = function generator(seq, dataTypes) {
       } else {
 
         // If current generators info not in obj, get the info from db
-        promise = dbUtils.seq.models.Collector.findById(ithCollector.id)
+        promise = dbUtils.seq.models.Collector.findByPk(ithCollector.id)
         .then((c) => {
           let numCurrGen = 0;
 

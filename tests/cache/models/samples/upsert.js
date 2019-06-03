@@ -174,7 +174,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
 
     // unpublish the subject
     beforeEach((done) => {
-      Subject.findById(subject.id)
+      Subject.findByPk(subject.id)
       .then((subjectOne) => subjectOne.update({
         isPublished: false,
       }))
@@ -208,7 +208,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
 
     // unpublish the aspects
     beforeEach((done) => {
-      Aspect.findById(aspect.id)
+      Aspect.findByPk(aspect.id)
       .then((aspectOne) => aspectOne.update({
         isPublished: false,
       }))

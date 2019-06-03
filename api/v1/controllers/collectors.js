@@ -393,7 +393,8 @@ function startCollector(req, res, next) {
 
   /* Update or create. Generators will be assigned in db hooks */
   .then((coll) => u.setOwner(body, req, coll))
-  .then((coll) => coll ? coll.update(body) : helper.model.create(body))
+  .then((coll) => coll ? coll.update(body) :
+    helper.model.create(body, helper.model.options.defaultScope))
   .then((coll) => coll.reload())
 
   /* Format assigned generators to send back to collector */

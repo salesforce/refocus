@@ -90,7 +90,8 @@ module.exports = {
     const reqObj = req.swagger.params.queryBody.value;
 
     u.setOwner(reqObj, req)
-      .then(() => helper.model.create(reqObj))
+      .then(() => helper.model.create(
+        reqObj, helper.model.options.defaultScope))
       .then((o) => o.reload())
       .then((o) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime + 'ms';
@@ -108,8 +109,8 @@ module.exports = {
           resultObj.botName = o.botId;
           resultObj.roomId = o.roomId;
 
-          u.findByIdThenName(roomModel, o.roomId, {})
-            .then((r) => u.findByIdThenName(roomTypeModel, r.type, {}))
+          u.findByPkThenName(roomModel, o.roomId, {})
+            .then((r) => u.findByPkThenName(roomTypeModel, r.type, {}))
             .then((rt) => {
               resultObj.roomType = rt.name;
               activityLogUtil.printActivityLogString(resultObj, 'event');

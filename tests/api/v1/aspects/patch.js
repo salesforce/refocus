@@ -490,7 +490,7 @@ describe('tests/api/v1/aspects/patch.js >', () => {
     }
 
     function expectInDB(props) {
-      return Aspect.findById(i)
+      return Aspect.findByPk(i)
       .then((asp) => {
         expect(asp).to.include(props);
       });

@@ -165,7 +165,7 @@ describe('tests/api/v1/botData/get.js >', () => {
     .then((newBot) => {
       testBotData2.name = 'TestData2';
       testBotData2.botId = newBot.id;
-      testBotData2.roomId = testBotData.id;
+      testBotData2.roomId = testBotData.roomId;
       return BotData.create(testBotData2);
     })
     .then(() => {
@@ -195,7 +195,7 @@ describe('tests/api/v1/botData/get.js >', () => {
     .then((newBot) => {
       testBotData2.name = 'TestData2';
       testBotData2.botId = newBot.id;
-      testBotData2.roomId = testBotData.id;
+      testBotData2.roomId = testBotData.roomId;
       return BotData.create(testBotData2);
     })
     .then(() => {
@@ -311,7 +311,7 @@ describe('tests/api/v1/botData/get.js >', () => {
     .then((newBot) => {
       testBotData2.name = 'TestData2';
       testBotData2.botId = newBot.id;
-      testBotData2.roomId = testBotData.id;
+      testBotData2.roomId = testBotData.roomId;
       return BotData.create(testBotData2);
     })
     .then(() => {
@@ -331,7 +331,7 @@ describe('tests/api/v1/botData/get.js >', () => {
     .then((newBot) => {
       testBotData2.name = 'TestData2';
       testBotData2.botId = newBot.id;
-      testBotData2.roomId = testBotData.id;
+      testBotData2.roomId = testBotData.roomId;
       return BotData.create(testBotData2);
     })
     .then(() => {

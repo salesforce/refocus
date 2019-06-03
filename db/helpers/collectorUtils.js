@@ -50,6 +50,10 @@ const processInfoSchema = Joi.object().keys({
  * @throws {ValidationError} If osInfo does not contain valid attributes
  */
 function validateOsInfo(osInfo) {
+  if (osInfo === null || osInfo === undefined) {
+    return;
+  }
+
   const result = Joi.validate(osInfo, osInfoSchema);
 
   if (result.error !== null) {
@@ -65,6 +69,10 @@ function validateOsInfo(osInfo) {
  * @throws {ValidationError} If processInfo does not contain valid attributes
  */
 function validateProcessInfo(processInfo) {
+  if (processInfo === null || processInfo === undefined) {
+    return;
+  }
+
   const result = Joi.validate(processInfo, processInfoSchema);
   if (result.error !== null) {
     throw new ValidationError({

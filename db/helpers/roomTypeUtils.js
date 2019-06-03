@@ -131,6 +131,10 @@ function validateSettingsArray(arr) {
  * @throws {validationError} - Invalid data array
  */
 function validateRulesArray(arr) {
+  if (arr === null || arr === undefined) {
+    return;
+  }
+
   if (Array.isArray(arr)) {
     for (let i = 0; i < arr.length; i++) {
       if ((arr[i].hasOwnProperty('rule')) &&

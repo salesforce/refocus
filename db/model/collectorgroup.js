@@ -97,7 +97,7 @@ module.exports = function collectorgroup(seq, dataTypes) {
     scopes: {
       embed: {
         attributes: ['id', 'name', 'description'],
-        order: ['name'],
+        order: seq.col('name'),
         include: [
           {
             model: seq.models.Collector.scope('embed'),
@@ -141,7 +141,7 @@ module.exports = function collectorgroup(seq, dataTypes) {
     });
 
     CollectorGroup.addScope('baseScope', {
-      order: ['name'],
+      order: seq.col('name'),
     });
 
     CollectorGroup.addScope('owner', {
@@ -203,7 +203,8 @@ module.exports = function collectorgroup(seq, dataTypes) {
       .then((collectorGroup) =>
         (collectors.length ? collectorGroup.setCollectors(collectors) :
           collectorGroup))
-      .then((collectorGroup) => collectorGroup.reload())
+      .then((collectorGroup) =>
+        collectorGroup.reload(CollectorGroup.options.defaultScope))
       .then((collectorGroup) => collectorGroup.handleCollectorUpdates());
   }; // createCollectorGroup
 
@@ -235,7 +236,7 @@ module.exports = function collectorgroup(seq, dataTypes) {
     return collectorUtils.validate(seq, arr)
       .then(collectorUtils.alreadyAssigned)
       .then((collectors) => this.addCollectors(collectors))
-      .then(() => this.reload())
+      .then(() => this.reload(CollectorGroup.options.defaultScope))
       .then(() => this.handleCollectorUpdates());
   }; // addCollectorsToGroup
 
@@ -250,7 +251,7 @@ module.exports = function collectorgroup(seq, dataTypes) {
     return collectorUtils.validate(seq, arr)
       .then((colls) => collectorUtils.alreadyAssignedToOtherGroup(colls, this))
       .then((collectors) => this.setCollectors(collectors))
-      .then(() => this.reload())
+      .then(() => this.reload(CollectorGroup.options.defaultScope))
       .then(() => this.handleCollectorUpdates());
   }; // patchCollectors
 

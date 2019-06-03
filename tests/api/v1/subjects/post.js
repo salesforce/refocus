@@ -65,7 +65,7 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
 
     function parentFound() {
       const errors = [];
-      Subject.findById(i0)
+      Subject.findByPk(i0)
       .then((subj) => {
         if (subj && subj.name !== n0.name) {
           errors.push(new Error('uh oh'));
@@ -370,7 +370,7 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
 
     function childFound() {
       const errors = [];
-      Subject.findById(i1)
+      Subject.findByPk(i1)
       .then((subj) => {
         if (subj && subj.name !== n1.name) {
           errors.push(new Error('uh oh'));
