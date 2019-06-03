@@ -17,6 +17,8 @@ const MissingRequiredFieldError = require('../dbErrors')
   .MissingRequiredFieldError;
 const constants = require('../constants');
 const assoc = {};
+
+// OLD - remove along with namespace toggles
 const eventName = 'refocus.internal.realtime.perspective.namespace.initialize';
 
 module.exports = function perspective(seq, dataTypes) {
@@ -88,6 +90,7 @@ module.exports = function perspective(seq, dataTypes) {
         return publishObject(inst, eventName, changedKeys, []);
       },
 
+      // OLD - remove along with namespace toggles
       /**
        * Publishes the updated prespective to the redis channel, to initialize
        * a socketio namespace if required
@@ -98,12 +101,6 @@ module.exports = function perspective(seq, dataTypes) {
         const changedKeys = Object.keys(inst._changed);
         return publishObject(inst, eventName, changedKeys, []);
       },
-
-      /*
-       * TODO: socketio namespace object is garbage collected when there are
-       * no references to it. We still have to check, if deleting the namespace
-       * object manually in the afterDelete hook will help.
-       */
     },
     indexes: [
       {

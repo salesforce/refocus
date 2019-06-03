@@ -204,6 +204,7 @@ function perspectiveEmit(nspComponents, obj) {
     applyFilter(statusFilter, obj.status);
 } // perspectiveEmit
 
+// OLD - remove along with namespace toggles
 /**
  * Returns true if this object should be emitted as a real-time event to a
  * namespace (representing a room) given the various filters passed in here
@@ -246,6 +247,7 @@ function shouldIEmitThisObj(nspString, obj, pubOpts) {
     return perspectiveEmit(nspComponents, obj);
   }
 
+  // OLD - remove along with namespace toggles
   if (absPathNsp === botAbsolutePath) {
     return botEmit(nspComponents, obj, pubOpts);
   }
@@ -253,6 +255,7 @@ function shouldIEmitThisObj(nspString, obj, pubOpts) {
   return false;
 }
 
+// OLD - remove along with namespace toggles
 /**
  * When passed a perspective object, it returns a namespace string based on the
  * fields set in the prespective object. A namespace string is of the format
@@ -283,6 +286,7 @@ function getPerspectiveNamespaceString(inst) {
   return namespace;
 }
 
+// OLD - remove along with namespace toggles
 /**
  * When passed a room object, it returns a namespace string based on the
  * fields set in the room object.
@@ -298,6 +302,7 @@ function getBotsNamespaceString(inst) {
   return namespace;
 }
 
+// OLD - remove along with namespace toggles
 /**
  * Initializes a socketIO namespace based on the perspective object.
  * @param {Instance} inst - The perspective instance.
@@ -311,6 +316,7 @@ function initializePerspectiveNamespace(inst, io) {
   return io;
 }
 
+// OLD - remove along with namespace toggles
 /**
  * Initializes a socketIO namespace based on the bot object.
  * @param {Instance} inst - The perspective instance.

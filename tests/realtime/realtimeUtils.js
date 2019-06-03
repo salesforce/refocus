@@ -326,23 +326,6 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
             filterField: 'id',
           },
         },
-        'refocus.internal.realtime.bot.namespace.initialize': {
-          id: 66,
-          name: '___TestRoom',
-          active: true,
-          type: '7ddb30e3-b5da-4d7c-b095-f44a2eb0d510',
-          updatedAt: '2018-07-13T23:27:31.105Z',
-          createdAt: '2018-07-13T23:27:31.105Z',
-          settings: { Key1: 'Value1', Key2: 'Value2' },
-          bots: null,
-          externalId: null,
-          pubOpts: {
-            client: 'pubBot',
-            channel: 'botChannelName',
-            filterIndex: 0,
-            filterField: 'name',
-          },
-        },
         'refocus.internal.realtime.sample.add': {
           value: '10',
           subjectId: 'c8fb7723-4319-4b22-98b2-70ecd140e7b0',
@@ -532,27 +515,9 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
         expect(obj[key]).to.deep.equal(testEvents[key]);
       });
 
-      it('getNewObjAsString for perspective.namespace.initialize', () => {
-        const key =
-          'refocus.internal.realtime.perspective.namespace.initialize';
-        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
-        expect(str).to.be.a('string');
-        const obj = JSON.parse(str);
-        expect(obj[key]).to.deep.equal(testEvents[key]);
-      });
-
       it('getNewObjAsString for bot.event.add', () => {
         const key =
           'refocus.internal.realtime.bot.event.add';
-        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
-        expect(str).to.be.a('string');
-        const obj = JSON.parse(str);
-        expect(obj[key]).to.deep.equal(testEvents[key]);
-      });
-
-      it('getNewObjAsString for bot.namespace.initialize', () => {
-        const key =
-          'refocus.internal.realtime.bot.namespace.initialize';
         const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
         expect(str).to.be.a('string');
         const obj = JSON.parse(str);

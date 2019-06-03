@@ -209,6 +209,12 @@ const shortTermToggles = {
   // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
   requireHelpEmailOrHelpUrl: environmentVariableTrue(pe,
     'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
+
+  // use new socket.io namespace/room format
+  useNewNamespaceFormat: environmentVariableTrue(pe, 'USE_NEW_NAMESPACE_FORMAT'),
+
+  // use new socket.io namespace/room format for Imc rooms
+  useNewNamespaceFormatImc: environmentVariableTrue(pe, 'USE_NEW_NAMESPACE_FORMAT_IMC'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
