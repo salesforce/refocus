@@ -31,7 +31,7 @@ describe('tests/db/model/token/update.js >', () => {
   afterEach(u.forceDelete);
 
   it('Update token object name', (done) => {
-    Token.findById(tokenObj.id)
+    Token.findByPk(tokenObj.id)
     .then((returnedToken) => returnedToken.update({ name: 'newTokenName' }))
     .then((updatedToken) => {
       expect(updatedToken.name).to.be.equal('newTokenName');
@@ -42,7 +42,7 @@ describe('tests/db/model/token/update.js >', () => {
 
   it('Revoke a token', (done) => {
     const date = Date.now();
-    Token.findById(tokenObj.id)
+    Token.findByPk(tokenObj.id)
     .then((returnedToken) => returnedToken.update({ isRevoked: date }))
     .then((updatedToken) => {
       expect(updatedToken.isRevoked).to.be.eql(date);
@@ -54,12 +54,12 @@ describe('tests/db/model/token/update.js >', () => {
   it('setLastUsed', (done) => {
     let orig;
     let ts = new Date();
-    Token.findById(tokenObj.id)
+    Token.findByPk(tokenObj.id)
     .then((returnedToken) => {
       orig = returnedToken.lastUsed;
       return returnedToken.setLastUsed(ts);
     })
-    .then(() => Token.findById(tokenObj.id))
+    .then(() => Token.findByPk(tokenObj.id))
     .then((returnedToken) => {
       expect(returnedToken.lastUsed).to.be.greaterThan(orig);
       expect(returnedToken.lastUsed).to.be.instanceof(Date);

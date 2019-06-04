@@ -59,7 +59,7 @@ describe('tests/db/model/sample/delete.js >', () => {
 
   after(u.forceDelete);
   it('no isDeleted and deletedAt fields in Sample Model', (done) => {
-    Sample.findById(sample.id)
+    Sample.findByPk(sample.id)
     .then((samp) => {
       expect(samp.dataValues).to.not.have.any.keys('isDeleted', 'deletedAt');
       done();
@@ -67,11 +67,11 @@ describe('tests/db/model/sample/delete.js >', () => {
     .catch(done);
   });
   it('samples should not be found after destory is called', (done) => {
-    Sample.findById(sample.id)
+    Sample.findByPk(sample.id)
     .then((samp) => samp.destroy())
     .then((o) => {
       expect(o).to.have.length(0);
-      return Sample.findById(sample.id);
+      return Sample.findByPk(sample.id);
     })
     .then((o) => {
       expect(o).to.equal(null);

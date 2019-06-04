@@ -58,7 +58,7 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
   function childrenAbsPathUpdated() {
     const errors = [];
     const msg = 'Child absolutePath should have been updated';
-    Subject.findById(i0, {
+    Subject.findByPk(i0, {
       include: [
         {
           model: Subject,
@@ -92,7 +92,7 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
       errors.push(new Error(`absolutePath should be ${n0a.name}.${n0.name}`));
     }
 
-    Subject.findById(i0, {
+    Subject.findByPk(i0, {
       include: [
         {
           model: Subject,
@@ -347,7 +347,7 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
           done(err);
         }
 
-        Subject.findById(i1)
+        Subject.findByPk(i1)
           .then((subj) => {
             expect(subj.tags).to.eql([]);
             expect(subj.relatedLinks).to.eql([]);

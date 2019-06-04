@@ -203,7 +203,7 @@ describe('tests/api/v1/collectors/start.js >', () => {
           }
 
           expect(res.body.status).to.equal('Running');
-          return Generator.find({ where: { name: gen3.name } })
+          return Generator.findOne({ where: { name: gen3.name } })
           .then((gen) => {
             // gen3 currentCollector set to defaultCollector
             expect(gen.currentCollector.name).to.be.equal(defaultCollector.name);

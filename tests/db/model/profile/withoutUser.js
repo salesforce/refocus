@@ -69,7 +69,7 @@ describe('tests/db/model/profile/withoutUser.js >', () => {
 
   it('Get deleted profile by id, should return null', (done) => {
     p.destroy()
-    .then(() => Profile.findById(p.id))
+    .then(() => Profile.findByPk(p.id))
     .then((foundProfile) => {
       expect(foundProfile).to.equal(null);
       done();

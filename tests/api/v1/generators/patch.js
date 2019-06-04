@@ -140,7 +140,7 @@ describe('tests/api/v1/generators/patch.js >', () => {
   });
 
   it('tags set to empty array if not provided', (done) => {
-    Generator.findById(i)
+    Generator.findByPk(i)
     .then((gen) => gen.update({ tags: [] }))
     .then(() => {
       api.patch(`${path}/${i}`)

@@ -66,7 +66,7 @@ describe('tests/db/model/user/update.js, db: user: update >', () => {
   it('setLastLogin', (done) => {
     let orig = user.lastLogin;
     user.setLastLogin()
-    .then(() => User.findById(user.id))
+    .then(() => User.findByPk(user.id))
     .then((found) => {
       expect(found.lastLogin).to.be.greaterThan(orig);
       done();

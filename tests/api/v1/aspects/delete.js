@@ -48,7 +48,7 @@ describe('tests/api/v1/aspects/delete.js >', () => {
      * was returned.
      */
     function notFound() {
-      Aspect.findById(aspectId)
+      Aspect.findByPk(aspectId)
       .then((aspect) => {
         expect(aspect).to.equal(null);
       });

@@ -38,7 +38,7 @@ describe('tests/db/model/collectorGroup/find.js >', () => {
   afterEach(u.forceDelete);
 
   it('Find by Id', (done) => {
-    CollectorGroup.findById(collectorGroupDb.id)
+    CollectorGroup.findByPk(collectorGroupDb.id)
     .then((cg) => {
       expect(cg).to.have.property('name');
       expect(cg).to.have.property('description');

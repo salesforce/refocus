@@ -42,7 +42,7 @@ module.exports = function auditevent(seq, dataTypes) {
     },
   }, {
     defaultScope: {
-      order: ['loggedAt'],
+      order: seq.col('loggedAt'),
     },
     indexes: [
       {

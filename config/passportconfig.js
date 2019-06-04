@@ -73,7 +73,7 @@ module.exports = (passportModule) => {
 
     /**
      * if non-sso register, create new user and token object.
-     * Note: Used User.findById after creation so that we can get profile
+     * Note: Used User.findByPk after creation so that we can get profile
      * attached to user object.
      */
       User.create({
@@ -83,7 +83,7 @@ module.exports = (passportModule) => {
         password: userPassword,
       })
     )
-    .then((userCreated) => User.findById(userCreated.id))
+    .then((userCreated) => User.findByPk(userCreated.id))
     .then((foundUser) => done(null, foundUser))
     .catch((err) => done(err));
   }

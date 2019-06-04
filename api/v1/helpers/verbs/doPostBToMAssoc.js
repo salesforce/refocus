@@ -41,14 +41,7 @@ function doPostBToMAssoc(req, res, next, // eslint-disable-line max-params
   })
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-
-    /*
-     * The resolved object is either an array of arrays (when
-     * writers are added) or just an empty array when no writers are added.
-     * The popping is done to get the array from the array of arrays
-     */
-    let retval = o.length ? o.pop() : o;
-    retval = u.responsify(retval, props, req.method);
+    const retval = u.responsify(o, props, req.method);
     u.logAPI(req, resultObj, retval);
     res.status(httpStatus.CREATED).json(retval);
   })

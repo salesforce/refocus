@@ -89,7 +89,7 @@ describe('tests/api/v1/subjects/put.js >', () => {
 
     function childrenAbsPathUpdated() {
       const errors = [];
-      Subject.findById(i0, {
+      Subject.findByPk(i0, {
         include: [
           {
             model: Subject,
@@ -121,7 +121,7 @@ describe('tests/api/v1/subjects/put.js >', () => {
         errors.push(new Error(`absolutePath should be ${n0a.name}.${n0.name}`));
       }
 
-      Subject.findById(i0, {
+      Subject.findByPk(i0, {
         include: [
           {
             model: Subject,
@@ -656,7 +656,7 @@ describe('tests/api/v1/subjects/put.js >', () => {
               done(err);
             }
 
-            Subject.findById(subjectId)
+            Subject.findByPk(subjectId)
             .then((subj) => {
               expect(subj.tags).to.eql([]);
               expect(subj.relatedLinks).to.eql([]);

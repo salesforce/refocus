@@ -333,7 +333,7 @@ module.exports = function user(seq, dataTypes) {
     });
 
     GeneratorTemplate.addScope('baseScope', {
-      order: ['name', 'version'],
+      order: seq.literal('name, version'),
     });
 
     GeneratorTemplate.addScope('defaultScope', {
@@ -347,7 +347,7 @@ module.exports = function user(seq, dataTypes) {
           attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
-      order: ['name', 'version'],
+      order: seq.literal('name, version'),
     }, {
       override: true,
     });

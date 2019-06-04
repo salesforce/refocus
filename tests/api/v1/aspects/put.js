@@ -501,7 +501,7 @@ describe('tests/api/v1/aspects/put.js >', () => {
     }
 
     function expectInDB(props) {
-      return Aspect.findById(aspectId)
+      return Aspect.findByPk(aspectId)
       .then((asp) => {
         expect(asp).to.include(props);
       });

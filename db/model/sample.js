@@ -236,7 +236,7 @@ module.exports = function sample(seq, dataTypes) {
           ],
         },
       ],
-      order: ['name'],
+      order: seq.col('name'),
     }, {
       override: true,
     });

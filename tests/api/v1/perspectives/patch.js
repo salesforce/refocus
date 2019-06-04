@@ -76,7 +76,7 @@ describe('tests/api/v1/perspectives/patch.js >', () => {
       expect(res.body.aspectTagFilterType).to.equal('INCLUDE');
       expect(res.body.subjectTagFilterType).to.equal('INCLUDE');
       expect(res.body.statusFilterType).to.equal('INCLUDE');
-      Perspective.findById(perspectiveId)
+      Perspective.findByPk(perspectiveId)
       .then((p) => {
         expect(p.aspectFilterType).to.equal('INCLUDE');
         expect(p.aspectTagFilterType).to.equal('INCLUDE');
@@ -99,7 +99,7 @@ describe('tests/api/v1/perspectives/patch.js >', () => {
       }
 
       expect(res.body.rootSubject).to.equal('changedMainSubject');
-      Perspective.findById(perspectiveId)
+      Perspective.findByPk(perspectiveId)
       .then((p) => {
         expect(p.rootSubject).to.be.equal('changedMainSubject');
         done();
@@ -119,7 +119,7 @@ describe('tests/api/v1/perspectives/patch.js >', () => {
       }
 
       expect(res.body.aspectTagFilter).to.eql(['ctemp', 'chum']);
-      Perspective.findById(perspectiveId)
+      Perspective.findByPk(perspectiveId)
       .then((p) => {
         expect(p.aspectTagFilter).to.eql(['ctemp', 'chum']);
         done();
@@ -187,7 +187,7 @@ describe('tests/api/v1/perspectives/patch.js >', () => {
   });
 
   it('filters set to empty array if not provided', (done) => {
-    Perspective.findById(perspectiveId)
+    Perspective.findByPk(perspectiveId)
       .then((p) => p.update({
         subjectTagFilter: [],
         aspectFilter: [],

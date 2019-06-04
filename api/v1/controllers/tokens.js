@@ -42,7 +42,7 @@ module.exports = {
     } else {
       // also OK if user is NOT admin but is deleting own token
       const id = req.swagger.params.key.value;
-      helper.model.findById(id)
+      helper.model.findByPk(id)
       .then((token) => {
         if (token && token.createdBy === req.user.id) {
           doDelete(req, res, next, helper)
@@ -130,7 +130,7 @@ module.exports = {
     const resultObj = { reqStartTime: req.timestamp };
     if (req.headers.IsAdmin) {
       const id = req.swagger.params.key.value;
-      helper.model.findById(id)
+      helper.model.findByPk(id)
       .then((o) => {
         if (o.isRevoked === '0') {
           throw new apiErrors.InvalidTokenActionError();
@@ -163,7 +163,7 @@ module.exports = {
     const resultObj = { reqStartTime: req.timestamp };
     if (req.headers.IsAdmin) {
       const id = req.swagger.params.key.value;
-      helper.model.findById(id)
+      helper.model.findByPk(id)
       .then((o) => {
         if (o.isRevoked > '0') {
           throw new apiErrors.InvalidTokenActionError();

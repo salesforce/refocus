@@ -41,7 +41,7 @@ describe('tests/db/model/ssoconfig/create.js >', () => {
 
   it('Get deleted ssoconfig by id, should return null', (done) => {
     ssoconfig.destroy()
-    .then(() => SSOConfig.findById(ssoconfig.id))
+    .then(() => SSOConfig.findByPk(ssoconfig.id))
     .then((foundSSOConfig) => {
       expect(foundSSOConfig).to.equal(null);
       done();

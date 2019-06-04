@@ -47,9 +47,9 @@ describe('tests/db/model/subject/find.js >', () => {
     .catch(done);
   });
 
-  describe('findById >', () => {
+  describe('findByPk >', () => {
     it('should be found', (done) => {
-      Subject.findById(id1)
+      Subject.findByPk(id1)
       .then((found) => {
         expect(found).to.have.property('id');
         done();
@@ -58,7 +58,7 @@ describe('tests/db/model/subject/find.js >', () => {
     });
 
     it('find a profile id, should not be found', (done) => {
-      Subject.findById(pid)
+      Subject.findByPk(pid)
       .then((shouldBeNull) => {
         if (shouldBeNull) {
           throw new Error('should be null');
@@ -70,7 +70,7 @@ describe('tests/db/model/subject/find.js >', () => {
     });
 
     it('find a deleted subject, should not be found', (done) => {
-      Subject.findById(idDel)
+      Subject.findByPk(idDel)
       .then((shouldBeNull) => {
         if (shouldBeNull) {
           throw new Error('should be null');

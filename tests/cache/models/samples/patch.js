@@ -69,7 +69,7 @@ describe(`tests/cache/models/samples/patch.js, api: redisStore: PATCH ${path}`,
 
   describe('unpublished subject/aspect fails >', () => {
     it('on unpublish aspect, sample is removed from cache', (done) => {
-      tu.db.Aspect.findById(aspectId).then((aspect) =>
+      tu.db.Aspect.findByPk(aspectId).then((aspect) =>
         aspect.update({ isPublished: false }))
       .then(() => redisOps.getHashPromise(redisOps.sampleType, sampleName))
       .then((sample) => {
@@ -80,7 +80,7 @@ describe(`tests/cache/models/samples/patch.js, api: redisStore: PATCH ${path}`,
     });
 
     it('update to unpublished aspect fails', (done) => {
-      tu.db.Aspect.findById(aspectId).then((aspect) =>
+      tu.db.Aspect.findByPk(aspectId).then((aspect) =>
         aspect.update({ isPublished: false }))
       .then(() => {
         api.patch(`${path}/${sampleName}`)

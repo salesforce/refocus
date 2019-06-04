@@ -34,7 +34,7 @@ describe('tests/db/model/generatortemplate/delete.js >', () => {
   it('ok, should not be able to find a template once deleted', (done) => {
     GeneratorTemplate.create(gt)
     .then((o) => o.destroy())
-    .then((o) => GeneratorTemplate.findById(o.id))
+    .then((o) => GeneratorTemplate.findByPk(o.id))
     .then((o) => {
       expect(o).to.equal(null);
       done();
