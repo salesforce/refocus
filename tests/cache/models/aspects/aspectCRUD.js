@@ -85,7 +85,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
 
   it('time fields should have the expected format', (done) => {
     let aspKey;
-    Aspect.findById(aspHumdId)
+    Aspect.findByPk(aspHumdId)
     .then((asp) => {
       aspKey = redisStore.toKey('aspect', asp.name);
       return rcli.sismemberAsync(aspectIndexName, aspKey);
@@ -102,7 +102,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
   it('published aspects created should have an entry in aspectStore and ' +
   'the aspect hash should also be created', (done) => {
     let aspKey;
-    Aspect.findById(aspHumdId)
+    Aspect.findByPk(aspHumdId)
     .then((asp) => {
       aspKey = redisStore.toKey('aspect', asp.name);
       return rcli.sismemberAsync(aspectIndexName, aspKey);
@@ -124,7 +124,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
   it('unpublished aspect should be found', (done) => {
     let aspect;
     let aspectKey;
-    Aspect.findById(aspWCId)
+    Aspect.findByPk(aspWCId)
     .then((asp) => {
       aspect = asp;
       aspectKey = redisStore.toKey('aspect', asp.name);
@@ -151,7 +151,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
 
   it('when aspect is updated, the aspect hash should reflect this',
   (done) => {
-    Aspect.findById(aspTempId)
+    Aspect.findByPk(aspTempId)
     .then((asp) => asp.update({
       tags: ['cold', 'verycold'],
       rank: 10,
@@ -180,7 +180,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     'reflect this change', (done) => {
     let oldName;
     let newName;
-    Aspect.findById(aspTempId)
+    Aspect.findByPk(aspTempId)
     .then((asp) => {
       oldName = asp.name;
       return asp.update({ name: asp.name + '_newName' });
@@ -218,10 +218,10 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     let subjectAbsPath;
 
     samstoinit.populate()
-    .then(() => Subject.findById(ipar))
+    .then(() => Subject.findByPk(ipar))
     .then((s) => {
       subjectAbsPath = s.absolutePath;
-      return Aspect.findById(aspHumdId);
+      return Aspect.findByPk(aspHumdId);
     })
     .then((asp) => {
       oldName = asp.name;
@@ -295,7 +295,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
   it('once an aspect is destroyed no entry should be found in the ' +
   'aspectStore and the corresponding hash set should not be found', (done) => {
     let aspectKey;
-    Aspect.findById(aspHumdId)
+    Aspect.findByPk(aspHumdId)
     .then((a) => a.destroy())
     .then((asp) => {
       aspectKey = redisStore.toKey('aspect', asp.name);
@@ -318,7 +318,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     let aspectName;
     let subjectAbsPath;
     samstoinit.populate()
-    .then(() => Subject.findById(ipar))
+    .then(() => Subject.findByPk(ipar))
     .then((s) => {
       subjectAbsPath = s.absolutePath;
       return redisOps.executeCommand(
@@ -327,7 +327,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .then((res) => {
       expect(res.length).to.be.equal(2);
       expect(res).to.include.members(['humidity', 'temperature']);
-      return Aspect.findById(aspTempId);
+      return Aspect.findByPk(aspTempId);
     }) // temperature aspect deleted
     .then((a) => a.destroy())
     .then((a) => {
@@ -366,7 +366,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     // of the form samsto:samples:
     const aspectKey = redisStore.toKey('aspect', aspectHumid.name);
     samstoinit.populate()
-    .then(() => Aspect.findById(aspHumdId))
+    .then(() => Aspect.findByPk(aspHumdId))
     .then((a) => a.update({ isPublished: false }))
     .then((a) => rcli.sismemberAsync(aspectIndexName, aspectKey))
     .then((ok) => {
@@ -388,7 +388,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     // of the form samsto:samples:
     let aspectName;
     samstoinit.populate()
-    .then(() => Aspect.findById(aspHumdId))
+    .then(() => Aspect.findByPk(aspHumdId))
     .then((a) => {
       aspectName = a.name;
       return a.update({ isPublished: true });
@@ -412,7 +412,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     let subjectAbsPath;
     let aspectName;
     samstoinit.populate()
-    .then(() => Subject.findById(ipar))
+    .then(() => Subject.findByPk(ipar))
     .then((s) => {
       subjectAbsPath = s.absolutePath;
       return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subjectAbsPath));
@@ -420,7 +420,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .then((res) => {
       expect(res.length).to.be.equal(2);
       expect(res).to.include.members(['humidity', 'temperature']);
-      return Aspect.findById(aspTempId);
+      return Aspect.findByPk(aspTempId);
     }) // temperature aspect deleted
     .then((a) => {
       aspectName = a.name;
@@ -459,7 +459,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     let subjectAbsPath;
     let aspectName;
     samstoinit.populate()
-    .then(() => Subject.findById(ipar))
+    .then(() => Subject.findByPk(ipar))
     .then((s) => {
       subjectAbsPath = s.absolutePath;
       return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subjectAbsPath));
@@ -467,7 +467,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .then((res) => {
       expect(res.length).to.be.equal(2);
       expect(res).to.include.members(['humidity', 'temperature']);
-      return Aspect.findById(aspTempId);
+      return Aspect.findByPk(aspTempId);
     }) // temperature aspect deleted
     .then((a) => {
       aspectName = a.name;
@@ -603,7 +603,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     let aspectName;
     let subjectAbsPath;
     samstoinit.populate()
-    .then(() => Subject.findById(ipar))
+    .then(() => Subject.findByPk(ipar))
     .then((s) => {
       subjectAbsPath = s.absolutePath;
       return redisOps.executeCommand(
@@ -612,7 +612,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .then((res) => {
       expect(res.length).to.be.equal(2);
       expect(res).to.include.members(['humidity', 'temperature']);
-      return Aspect.findById(aspTempId);
+      return Aspect.findByPk(aspTempId);
     })
     .then((asp) => {
       aspectName = asp.name;

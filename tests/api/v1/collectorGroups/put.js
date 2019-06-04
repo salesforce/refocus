@@ -273,7 +273,8 @@ describe('tests/api/v1/collectorGroups/put.js >', () => {
         collectorAlive2 = collectors[1];
         return GeneratorTemplate.create(generatorTemplate);
       })
-      .then(() => Generator.create(generator, { validate: false }))
+      .then(() => Generator.create(generator,
+        { validate: false, include: Generator.options.defaultScope.include }))
       .then((gen) => {
         generatorInst = gen;
         return generatorInst.setCollectorGroup(cg);
@@ -484,7 +485,7 @@ describe('tests/api/v1/collectorGroups/put.js >', () => {
       'currentCollector to another alive collector if currentCollector ' +
       'does not exist in updated collector list', (done) => {
       generatorInst.update({ collectorId: collectorAlive1.id })
-      .then((gen) => gen.reload())
+      .then((gen) => gen.reload(gen._modelOptions.defaultScope))
       .then((updatedGenInst) => {
         expect(updatedGenInst.currentCollector.name).to.be.equal(collectorAlive1.name);
         api.put(`/v1/collectorGroups/${cg.name}`)

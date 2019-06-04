@@ -44,7 +44,7 @@ describe('tests/db/model/generator/delete.js >', () => {
   it('ok, should not be able to find a generator once deleted', (done) => {
     Generator.create(generator)
     .then((o) => o.destroy())
-    .then((o) => Generator.findById(o.id))
+    .then((o) => Generator.findByPk(o.id))
     .then((o) => {
       expect(o).to.equal(null);
       done();

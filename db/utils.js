@@ -145,6 +145,8 @@ if (conf.readReplicas) {
   seq = new Sequelize(env.dbUrl, opts);
 }
 
+seq.Promise = Sequelize.Promise; // seq v5
+
 /**
  * A console logging wrapper for stuff running from the command line.
  *
@@ -226,7 +228,7 @@ function initializeAdminUserAndProfile() {
  */
 function setMigrations() {
   const migrationPath = path.resolve('migrations');
-  return new seq.Promise((resolve, reject) => {
+  return new Sequelize.Promise((resolve, reject) => {
     fs.readdir(migrationPath, (err, items) => {
       if (err) {
         reject(err);
@@ -280,14 +282,14 @@ function doImport() {
     clog('utils', 'doImport', `Import ${modelNames.length} models... OK`);
     const promises = modelNames.filter((m) => seq.models[m].postImport)
       .map((m) => seq.models[m].postImport(seq.models));
-    return seq.Promise.all(promises)
+    return Sequelize.Promise.all(promises)
     .then(() => {
       clog('utils', 'doImport', 'Post-import... OK');
       return 'Import complete... OK';
     });
   }
 
-  return new seq.Promise((resolve) => {
+  return new Sequelize.Promise((resolve) => {
     resolve('No models found');
   });
 } // doImport

@@ -103,7 +103,7 @@ describe('tests/db/model/sample/upsert.js >', () => {
       })
       .then(() => Subject.scope({
         method: ['absolutePath', subjectName],
-      }).find())
+      }).findOne())
       .then((subject) => subject.update({ name: updatedSubjectName }))
       .then(() => {
         // use delay for getting updated version of sample because it
@@ -152,7 +152,7 @@ describe('tests/db/model/sample/upsert.js >', () => {
 
   describe('unpublished tests:', () => {
     it('unpublished subject cannot be used to CREATE sample', (done) => {
-      Subject.findById(publishedSubjectId)
+      Subject.findByPk(publishedSubjectId)
       .then((s) => s.update({ isPublished: false }))
       .then(() => Sample.upsertByName({
         name: subjectName + `|` + aspectName,

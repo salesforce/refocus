@@ -45,6 +45,10 @@ module.exports = function subject(seq, dataTypes) {
       allowNull: true,
       validate: {
         validateGeolocation(value) {
+          if (value === null || value === undefined) {
+            return;
+          }
+
           if (value && value.length !== 2) {
             throw new dbErrors.InvalidRangeSizeError();
           }
@@ -324,7 +328,7 @@ module.exports = function subject(seq, dataTypes) {
        * @returns {Promise} which resolves to the deleted Subject or rejects
        *  if an error was encountered
        */
-      afterDelete(inst /* , opts */) {
+      afterDestroy(inst /* , opts */) {
         return new seq.Promise((resolve, reject) =>
           inst.getParent()
             .then((par) => {
@@ -346,7 +350,7 @@ module.exports = function subject(seq, dataTypes) {
             .then(() => resolve(inst))
             .catch((err) => reject(err))
         );
-      }, // hooks.afterDelete
+      }, // hooks.afterDestroy
 
       /**
        * Prevents from deleting a subject which has children.
@@ -579,7 +583,7 @@ module.exports = function subject(seq, dataTypes) {
     });
 
     Subject.addScope('baseScope', {
-      order: ['absolutePath'],
+      order: seq.col('absolutePath'),
     });
 
     Subject.addScope('defaultScope', {
@@ -593,7 +597,7 @@ module.exports = function subject(seq, dataTypes) {
           attributes: ['id', 'name', 'email', 'fullName'],
         },
       ],
-      order: ['absolutePath'],
+      order: seq.col('absolutePath'),
     }, {
       override: true,
     });
@@ -695,7 +699,7 @@ module.exports = function subject(seq, dataTypes) {
         value = this.getDataValue('parentAbsolutePath');
       }
 
-      return Subject.scope({ method: [key, value] }).find()
+      return Subject.scope({ method: [key, value] }).findOne()
         .then((parent) => {
           if (parent) {
             if (parent.getDataValue('isPublished') === false &&

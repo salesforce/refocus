@@ -73,9 +73,9 @@ describe('db/model/subject/hierarchyPublish.js >', () => {
   describe('isPublished >', () => {
     it('Subject should not be found once isPublished is ' +
     'set to false', (done) => {
-      Subject.scope('hierarchy').findById(igrn)
+      Subject.scope('hierarchy').findByPk(igrn)
       .then((sub) => sub.update({ isPublished: false }))
-      .then(() => Subject.scope('hierarchy').findById(igrn))
+      .then(() => Subject.scope('hierarchy').findByPk(igrn))
       .then((sub) => {
         expect(sub).to.equal(null);
         done();
@@ -85,9 +85,9 @@ describe('db/model/subject/hierarchyPublish.js >', () => {
 
     it('setting grand child to isPublished = false should not break' +
     'the hierarchy from parent', (done) => {
-      Subject.findById(igrn)
+      Subject.findByPk(igrn)
       .then((sub) => sub.update({ isPublished: false }))
-      .then(() => Subject.scope('hierarchy').findById(ipar))
+      .then(() => Subject.scope('hierarchy').findByPk(ipar))
       .then((o) => {
         expect(o).to.not.equal(null);
         const parSub = o.get({ plain: true });
@@ -101,11 +101,11 @@ describe('db/model/subject/hierarchyPublish.js >', () => {
 
     it('setting child and grandChild to isPublished = false should not ' +
     'break the hierarchy from parent', (done) => {
-      Subject.findById(igrn)
+      Subject.findByPk(igrn)
       .then((sub) => sub.update({ isPublished: false }))
-      .then(() => Subject.findById(ichi))
+      .then(() => Subject.findByPk(ichi))
       .then((sub) => sub.update({ isPublished: false }))
-      .then(() => Subject.scope('hierarchy').findById(ipar))
+      .then(() => Subject.scope('hierarchy').findByPk(ipar))
       .then((sub) => {
         expect(sub).to.not.equal(null);
         expect(sub.children).to.have.length(1);
@@ -116,13 +116,13 @@ describe('db/model/subject/hierarchyPublish.js >', () => {
 
     it('setting otherGrn to isPublished = false should not break ' +
     'the enitre hierarchy from parent', (done) => {
-      Subject.scope('hierarchy').findById(ipar)
+      Subject.scope('hierarchy').findByPk(ipar)
       .then((sub) => {
         expect(sub.children).to.have.length(2);
-        return Subject.findById(otherChildId);
+        return Subject.findByPk(otherChildId);
       })
       .then((sub) => sub.update({ isPublished: false }))
-      .then(() => Subject.scope('hierarchy').findById(ipar))
+      .then(() => Subject.scope('hierarchy').findByPk(ipar))
       .then((sub) => {
         expect(sub).to.not.equal(null);
         expect(sub.children).to.have.length(1);

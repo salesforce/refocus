@@ -44,7 +44,7 @@ describe('tests/db/model/collector/delete.js >', () => {
   });
 
   it('ok, an instance delete', (done) => {
-    Collector.findById(collectorDb.id)
+    Collector.findByPk(collectorDb.id)
     .then((c) => c.destroy())
     .then((o) => {
       if (o.deletedAt && (o.isDeleted !== 0)) {
@@ -57,9 +57,9 @@ describe('tests/db/model/collector/delete.js >', () => {
   });
 
   it('ok, should not be able to find a collector once deleted', (done) => {
-    Collector.findById(collectorDb.id)
+    Collector.findByPk(collectorDb.id)
     .then((c) => c.destroy())
-    .then((o) => Collector.findById(o.id))
+    .then((o) => Collector.findByPk(o.id))
     .then((o) => {
       expect(o).to.equal(null);
       done();

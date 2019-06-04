@@ -36,7 +36,7 @@ module.exports = {
   deleteUser(req, res, next) {
     const userToDelete = req.swagger.params.key.value;
     const getNamePromise = u.looksLikeId(userToDelete) ?
-      helper.model.findById(userToDelete, { attributes: ['name'] }) :
+      helper.model.findByPk(userToDelete, { attributes: ['name'] }) :
       Promise.resolve(userToDelete);
     getNamePromise.then((n) => {
       const deletingMyself = n &&

@@ -62,12 +62,12 @@ module.exports = function event(seq, dataTypes) {
           botEventNames.upd, changedKeys, ignoreAttributes, pubOpts);
       }, // hooks.afterUpdate
 
-      afterDelete(instance /* , opts */) {
+      afterDestroy(instance /* , opts */) {
         const changedKeys = Object.keys(instance._changed);
         const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
           botEventNames.del, changedKeys, ignoreAttributes, pubOpts);
-      }, // hooks.afterDelete
+      }, // hooks.afterDestroy
     }, // hooks
     indexes: [
       {

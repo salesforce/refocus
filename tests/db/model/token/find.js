@@ -31,7 +31,7 @@ describe('tests/db/model/token/find.js >', () => {
   afterEach(u.forceDelete);
 
   it('Find by Id', (done) => {
-    Token.findById(tokenObj.id)
+    Token.findByPk(tokenObj.id)
     .then((returnedToken) => {
       expect(returnedToken.name).to.be.equal(tokenObj.name);
       expect(returnedToken.id).to.be.equal(tokenObj.id);

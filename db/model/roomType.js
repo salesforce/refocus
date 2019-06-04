@@ -149,7 +149,7 @@ module.exports = function roomType(seq, dataTypes) {
        *
        * @param {RoomType} inst - The newly-created instance
        */
-      beforeDelete(inst /* , opts */) {
+      beforeDestroy(inst /* , opts */) {
         const bots = inst.dataValues.bots;
 
         return new seq.Promise((resolve, reject) => {
@@ -172,7 +172,7 @@ module.exports = function roomType(seq, dataTypes) {
           });
           resolve(inst);
         });
-      }, // hooks.beforeDelete
+      }, // hooks.beforeDestroy
 
       /**
        * Creates relationship between roomType & bots

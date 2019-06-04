@@ -161,7 +161,7 @@ describe('tests/api/v1/collectors/pause.js >', () => {
         }
 
         expect(res.body.status).to.equal('Paused');
-        return Generator.find({ where: { name: generator1.name } })
+        return Generator.findOne({ where: { name: generator1.name } })
         .then((gen) => {
           expect(gen.currentCollector.name).to.be.equal(collector2.name);
           return done();

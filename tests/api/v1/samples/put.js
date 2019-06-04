@@ -193,7 +193,7 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
 
   describe('subject isPublished false >', () => {
     beforeEach((done) => {
-      tu.db.Subject.findById(subjectId1)
+      tu.db.Subject.findByPk(subjectId1)
       .then((sub) => {
         sub.update({ isPublished: false });
         done();
@@ -212,7 +212,7 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
 
   describe('aspect isPublished false >', () => {
     beforeEach((done) => {
-      tu.db.Aspect.findById(aspectId1)
+      tu.db.Aspect.findByPk(aspectId1)
       .then((asp) => asp.update({ isPublished: false }))
       .then(() => done())
       .catch(done);

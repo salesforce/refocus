@@ -281,7 +281,7 @@ describe('tests/api/v1/samples/post.js > subject isPublished false >', () => {
     u.doSetup()
     .then(({ aspectId, subjectId }) => {
       sampleToPost = u.getBasic({ aspectId, subjectId });
-      return tu.db.Subject.findById(sampleToPost.subjectId);
+      return tu.db.Subject.findByPk(sampleToPost.subjectId);
     })
     .then((sub) => {
       sub.update({ isPublished: false });

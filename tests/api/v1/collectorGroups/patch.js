@@ -243,7 +243,8 @@ describe('tests/api/v1/collectorGroups/patch.js >', () => {
         collectorAlive2 = collectors[1];
         return GeneratorTemplate.create(generatorTemplate);
       })
-      .then(() => Generator.create(generator, { validate: false }))
+      .then(() => Generator.create(generator,
+        { validate: false, include: Generator.options.defaultScope.include }))
       .then((gen) => {
         generatorInst = gen;
         return generatorInst.setCollectorGroup(cg);

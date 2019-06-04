@@ -111,7 +111,7 @@ function samlAuthentication(userProfile, done) {
         });
       })
       .then((createdUser) =>
-        User.findById(createdUser.id) // to get profile name with user object
+        User.findByPk(createdUser.id) // to get profile name with user object
       )
       .then((newUser) => {
         done(null, newUser);

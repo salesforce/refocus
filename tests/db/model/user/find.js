@@ -33,7 +33,7 @@ describe('tests/db/model/user/find.js, db: user: find >', () => {
   afterEach(u.forceDelete);
 
   it('default scope no password', (done) => {
-    User.find({ name: `${tu.namePrefix}1` })
+    User.findOne({ name: `${tu.namePrefix}1` })
     .then((found) => {
       expect(found.dataValues).to.not.have.property('password');
       expect(found.lastLogin).to.be.instanceof(Date);
@@ -43,7 +43,7 @@ describe('tests/db/model/user/find.js, db: user: find >', () => {
   });
 
   it('withSensitiveInfo scope', (done) => {
-    User.scope('withSensitiveInfo').find({ name: `${tu.namePrefix}1` })
+    User.scope('withSensitiveInfo').findOne({ name: `${tu.namePrefix}1` })
     .then((found) => {
       expect(found.dataValues).to.have.property('password');
       expect(found.lastLogin).to.be.instanceof(Date);
