@@ -190,7 +190,7 @@ describe('tests/db/model/sample/timeout.js >', () => {
     .catch(done);
   });
 
-  it('simulate 10 seconds in the past', (done) => {
+  it('simulate 1tests/db/model/subject/delete.js0 seconds in the past', (done) => {
     const mockUpdatedAt = updatedAt;
     mockUpdatedAt.setSeconds(updatedAt.getSeconds() - tenSeconds);
     Sample.doTimeout(mockUpdatedAt)
@@ -248,7 +248,6 @@ describe('tests/db/model/sample/timeout.js >', () => {
       expect(samp.messageCode).to.equal(undefined);
       expect(samp.status).to.equal(undefined);
       expect(samp.createdAt).to.equal(undefined);
-      expect(samp.deletedAt).to.equal(undefined);
     })
     .then(() => done())
     .catch(done);

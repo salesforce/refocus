@@ -73,7 +73,6 @@ describe('tests/api/v1/perspectives/delete.js >', () => {
         return done(err);
       }
 
-      expect(res.body.isDeleted).to.not.equal(ZERO);
       done();
     });
   });

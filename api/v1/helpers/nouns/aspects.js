@@ -42,7 +42,7 @@ module.exports = {
   },
   fieldsToExclude: ['createdBy', 'ownerId'],
   tagFilterName: 'tags',
-  readOnlyFields: ['id', 'isDeleted'],
+  readOnlyFields: ['id'],
   requireAtLeastOneFields: ['helpEmail', 'helpUrl'],
   timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

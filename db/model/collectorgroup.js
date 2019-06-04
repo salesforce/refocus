@@ -36,11 +36,6 @@ module.exports = function collectorgroup(seq, dataTypes) {
       type: dataTypes.STRING(constants.fieldlen.longish),
       allowNull: false,
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
   }, {
     hooks: {
       /**
@@ -64,7 +59,7 @@ module.exports = function collectorgroup(seq, dataTypes) {
               });
             }
 
-            return common.setIsDeleted(seq.Promise, inst);
+            return Promise.resolve();
           });
       }, // beforeDestroy
 
@@ -84,12 +79,9 @@ module.exports = function collectorgroup(seq, dataTypes) {
     }, // hooks
     indexes: [
       {
-        name: 'CollectorGroupUniqueLowercaseNameIsDeleted',
+        name: 'CollectorGroupUniqueLowercaseName',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('name')),
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('name'))],
       },
     ],
 
@@ -107,8 +99,6 @@ module.exports = function collectorgroup(seq, dataTypes) {
         ],
       },
     },
-
-    paranoid: true,
   });
 
   // Class Methods

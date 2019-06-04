@@ -145,7 +145,7 @@ const interceptConfig = {
     expectedInterval: null,
     expectedRequestKeys: ['name', 'version'],
     expectedResponseKeys: [
-      'id', 'name', 'lastHeartbeat', 'registered', 'status', 'isDeleted',
+      'id', 'name', 'lastHeartbeat', 'registered', 'status',
       'version', 'createdAt', 'updatedAt', 'generatorsAdded', 'token',
       'collectorConfig', 'apiLinks',
     ],

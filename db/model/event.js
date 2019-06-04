@@ -50,23 +50,20 @@ module.exports = function event(seq, dataTypes) {
 
       afterCreate: (instance) => {
         const changedKeys = Object.keys(instance._changed);
-        const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
-          botEventNames.add, changedKeys, ignoreAttributes, pubOpts);
+          botEventNames.add, changedKeys, [], pubOpts);
       },
 
       afterUpdate(instance /* , opts */) {
         const changedKeys = Object.keys(instance._changed);
-        const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
-          botEventNames.upd, changedKeys, ignoreAttributes, pubOpts);
+          botEventNames.upd, changedKeys, [], pubOpts);
       }, // hooks.afterUpdate
 
       afterDestroy(instance /* , opts */) {
         const changedKeys = Object.keys(instance._changed);
-        const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
-          botEventNames.del, changedKeys, ignoreAttributes, pubOpts);
+          botEventNames.del, changedKeys, [], pubOpts);
       }, // hooks.afterDestroy
     }, // hooks
     indexes: [
