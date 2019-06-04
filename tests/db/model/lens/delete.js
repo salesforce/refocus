@@ -49,7 +49,7 @@ describe('tests/db/model/lens/delete.js >', () => {
       library: lensLibrary,
     })
     .then((l) => l.destroy())
-    .then(() => Lens.findOne({ where: { name: `${tu.namePrefix}noPersp`} }))
+    .then(() => Lens.findOne({ where: { name: `${tu.namePrefix}noPersp` } }))
     .then((found) => expect(found).to.be.null)
     .then(() => done())
     .catch(done);
