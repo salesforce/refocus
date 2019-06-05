@@ -120,7 +120,7 @@ describe('tests/db/model/collectorGroup/create.js >', () => {
       .then((cgColl) => { // getCollectors on collectorGroup gives collector
         expect(cgColl).to.have.length(1);
         expect(cgColl[0].name).to.be.equal('___Collector');
-        return Collector.findById(collectorCreated.id);
+        return Collector.findByPk(collectorCreated.id);
       })
       .then((coll) => coll.getCollectorGroup())
       .then((cg) => { // getCollectorGroup on collector gives collector group
@@ -147,7 +147,7 @@ describe('tests/db/model/collectorGroup/create.js >', () => {
         expect(cgColl).to.have.length(2);
         expect(cgColl[0].name).to.be.equal('___Collector');
         expect(cgColl[1].name).to.be.equal('___CollectorSecond');
-        return Collector.findById(collectorCreated.id);
+        return Collector.findByPk(collectorCreated.id);
       })
       .then((coll) => coll.getCollectorGroup())
       .then((cg) => { // getCollectorGroup on collector gives collector group

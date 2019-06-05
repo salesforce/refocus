@@ -91,6 +91,13 @@ function arrayValuesAscend(arr) {
  * @throws {InvalidRangeValuesError}
  */
 function validateStatusRange(arr) {
+  /* seq v5: Custom validators defined per attribute now run when the
+  attribute's value is null and allowNull is true */
+
+  if (arr === null || arr === undefined) {
+    return;
+  }
+
   arrayHasTwoElements(arr);
   noNestedArrays(arr);
   valuesAreNumeric(arr);
@@ -146,7 +153,7 @@ function removeAspectRelatedSamples(aspect, seq) {
         /*
          * publishSample attaches the subject and the aspect by fetching it
          * either from the database or redis. Deleted aspect will not be found
-         * when called from the afterDelete and afterUpdate hookes. So, attach
+         * when called from the afterDestroy and afterUpdate hookes. So, attach
          * the aspect here before publishing the sample.
          */
         if (sample) {

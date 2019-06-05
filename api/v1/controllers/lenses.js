@@ -405,7 +405,7 @@ module.exports = {
       seqObj.installedBy = user.id;
       u.setOwner(seqObj, req)
       .then(() => helper.model.create(seqObj, assocToCreate))
-      .then((o) => o.reload()) // to get associations
+      .then((o) => o.reload(helper.model.options.defaultScope))
       .then((o) => {
         delete o.dataValues.library;
         resultObj.dbTime = new Date() - resultObj.reqStartTime;

@@ -29,11 +29,11 @@ describe('tests/db/model/token/delete.js >', () => {
   afterEach(u.forceDelete);
 
   it('Delete token object', (done) => {
-    Token.findById(tokenObj.id)
+    Token.findByPk(tokenObj.id)
     .then((returnedToken) => returnedToken.destroy())
     .then((delToken) => {
       expect(delToken.isDeleted).to.not.equal('0');
-      return Token.findById(tokenObj.id);
+      return Token.findByPk(tokenObj.id);
     })
     .then((rToken) => {
       expect(rToken).to.be.equal(null);

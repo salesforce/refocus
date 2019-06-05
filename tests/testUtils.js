@@ -255,7 +255,7 @@ module.exports = {
       name: `${pfx}` + usrName,
       email: usrName + '@' + usrName + '.com',
       password: usrName,
-    }))
+    }, db.User.options.defaultScope))
     .then((user) => user.reload());
   },
 

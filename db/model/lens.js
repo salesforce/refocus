@@ -173,7 +173,7 @@ module.exports = function lens(seq, dataTypes) {
       afterCreate(inst /* , opts */) {
         if (inst.installedBy) {
           const library = inst.library; // reload removes the library
-          inst.reload()
+          inst.reload(Lens.options.defaultScope)
           .then((reloadedInstance) => {
             reloadedInstance.library = library;
             setLensObjectInCache(reloadedInstance);
@@ -255,7 +255,7 @@ module.exports = function lens(seq, dataTypes) {
 
     Lens.addScope('baseScope', {
       attributes: { exclude: ['library'] },
-      order: ['name'],
+      order: seq.col('name'),
     });
 
     Lens.addScope('defaultScope', {
@@ -270,7 +270,7 @@ module.exports = function lens(seq, dataTypes) {
         },
       ],
       attributes: { exclude: ['library'] },
-      order: ['name'],
+      order: seq.col('name'),
     }, {
       override: true,
     });

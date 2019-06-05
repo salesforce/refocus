@@ -302,11 +302,11 @@ describe(`tests/api/v1/samples/upsertBulk.js, POST ${path} >`, () => {
   describe('aspect isPublished false >', () => {
     // unpublish the aspects
     before((done) => {
-      Aspect.findById(aspectIdOne)
+      Aspect.findByPk(aspectIdOne)
       .then((aspectOne) => aspectOne.update({
         isPublished: false,
       }))
-      .then(() => Aspect.findById(aspectIdTwo))
+      .then(() => Aspect.findByPk(aspectIdTwo))
       .then((aspectOne) => aspectOne.update({
         isPublished: false,
       }))

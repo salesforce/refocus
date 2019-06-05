@@ -147,6 +147,10 @@ function setIsDeleted(Promise, inst) {
  * @throws {ValidationError} If the object does not conform to the schema
  */
 function validateObject(object, schema) {
+  if (object === null || object === undefined) {
+    return;
+  }
+
   const result = joi.validate(object, schema);
   if (result.error) {
     throw new ValidationError(result.error.message);
@@ -160,6 +164,10 @@ function validateObject(object, schema) {
  * @throws {ValidationError} If the object does not pass the validation.
  */
 function validateContextDef(contextDef, requiredProps) {
+  if (contextDef === null || contextDef === undefined) {
+    return;
+  }
+
   const message = requiredProps.join(' and ');
   const keys = Object.keys(contextDef);
   for (let i = 0; i < keys.length; i++) {

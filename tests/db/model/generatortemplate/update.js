@@ -32,7 +32,7 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
 
   it('ok, simple update should be fine', (done) => {
     gtDBInstance.update({ name: 'New_Name', version: '2.0.0' })
-    .then(() => GeneratorTemplate.findById(gtDBInstance.id))
+    .then(() => GeneratorTemplate.findByPk(gtDBInstance.id))
     .then((o) => {
       expect(o.name).to.equal('New_Name');
       expect(o.version).to.equal('2.0.0');
@@ -191,7 +191,7 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
         gtid = gtscreated[0].id;
         return Generator.create(g, { validate: false });
       })
-      .then(() => GeneratorTemplate.findById(gtid))
+      .then(() => GeneratorTemplate.findByPk(gtid))
       .then((gt) => gt.update({ isPublished: false }))
       .then((updated) => {
         expect(updated).to.have.property('isPublished', false);
@@ -221,7 +221,7 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
         gtid = gtscreated[0].id;
         return Generator.create(g, { validate: false });
       })
-      .then(() => GeneratorTemplate.findById(gtid))
+      .then(() => GeneratorTemplate.findByPk(gtid))
       .then((gt) => gt.update({ isPublished: false }))
       .then(() => done('uh oh... should have failed'))
       .catch((err) => {
@@ -251,7 +251,7 @@ describe('tests/db/model/generatortemplate/update.js >', () => {
         gtid = gtscreated[0].id;
         return Generator.create(g, { validate: false });
       })
-      .then(() => GeneratorTemplate.findById(gtid))
+      .then(() => GeneratorTemplate.findByPk(gtid))
       .then((gt) => gt.update({ isPublished: false }))
       .then(() => done('uh oh... should have failed'))
       .catch((err) => {

@@ -151,9 +151,9 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
       }
 
       let promise = Promise.resolve()
-      .then(() => Generator.findById(generatorDBInstance.id))
+      .then(() => Generator.findByPk(generatorDBInstance.id))
       .then((gen) => gen.update(initialValues, { validate: false }))
-      .then(() => Generator.findById(generatorDBInstance.id))
+      .then(() => Generator.findByPk(generatorDBInstance.id))
       .then((gen) => gen.collectorGroup.setCollectors(initialValues.collectors))
       .then(() => {
         if (updates.collectors) {
@@ -161,7 +161,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
           return collectorGroup2.setCollectors(updates.collectors);
         }
       })
-      .then(() => Generator.findById(generatorDBInstance.id))
+      .then(() => Generator.findByPk(generatorDBInstance.id))
       .then((gen) => gen.updateWithCollectors(updates));
 
       if (changes.expectSuccess) {
@@ -173,7 +173,7 @@ describe('tests/db/model/generator/updateWithCollectors.js >', () => {
         );
       }
 
-      return promise.then(() => Generator.findById(generatorDBInstance.id))
+      return promise.then(() => Generator.findByPk(generatorDBInstance.id))
       .then((gen) => {
         expect(gen.collectorGroup.collectors).to.have.lengthOf(expectedCollectors.length);
         expect(gen.isActive).to.equal(expectedIsActive);

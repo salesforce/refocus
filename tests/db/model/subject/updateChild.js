@@ -57,13 +57,13 @@ describe('tests/db/model/subject/updateChild.js >', () => {
     describe('update sortBy >', () => {
       it('update parent sort By, should not change child sort By',
       (done) => {
-        Subject.findById(subjId1)
+        Subject.findByPk(subjId1)
         .then((parent) => {
           expect(parent.get('sortBy')).to.equal(null);
           parent.update({ sortBy: 'xyz' });
           expect(parent.get('sortBy')).to.equal('xyz');
         })
-        .then(() => Subject.findById(childId1))
+        .then(() => Subject.findByPk(childId1))
         .then((child) => {
           expect(child.get('sortBy')).to.equal(null);
           done();
@@ -73,7 +73,7 @@ describe('tests/db/model/subject/updateChild.js >', () => {
 
       it('update sort By field to a non empty string from null and it should be accepted',
       (done) => {
-        Subject.findById(subjId1)
+        Subject.findByPk(subjId1)
          .then((parent) => {
           expect(parent.get('sortBy')).to.equal(null);
           parent.update({ sortBy: 'xyz' });
@@ -85,7 +85,7 @@ describe('tests/db/model/subject/updateChild.js >', () => {
 
       it('update sort By field to null from non empty string and it should be accepted',
       (done) => {
-        Subject.findById(subjId1)
+        Subject.findByPk(subjId1)
          .then((parent) => {
           parent.sortBy = 'abc';
           expect(parent.get('sortBy')).to.equal('abc');
@@ -98,7 +98,7 @@ describe('tests/db/model/subject/updateChild.js >', () => {
 
       it('update sort By field to empty string from non empty string and it should be accepted',
       (done) => {
-        Subject.findById(subjId1)
+        Subject.findByPk(subjId1)
          .then((parent) => {
           parent.sortBy = 'abc';
           expect(parent.get('sortBy')).to.equal('abc');
@@ -113,13 +113,13 @@ describe('tests/db/model/subject/updateChild.js >', () => {
     describe('update child >', ()=> {
       it('update child helpEmail, should not change parent subject',
       (done) => {
-        Subject.findById(childId1)
+        Subject.findByPk(childId1)
         .then((child) => {
           expect(child.get('helpEmail')).to.equal('foo@bar.com');
           child.update({ helpEmail: 'foobaz@bar.com' });
           expect(child.get('helpEmail')).to.equal('foobaz@bar.com');
         })
-        .then(() => Subject.findById(subjId1))
+        .then(() => Subject.findByPk(subjId1))
         .then((parent) => {
           expect(parent.get('helpEmail')).to.equal('foo@bar.com');
           done();
@@ -129,13 +129,13 @@ describe('tests/db/model/subject/updateChild.js >', () => {
 
       it('update child helpUrl, should not change parent subject',
       (done) => {
-        Subject.findById(childId1)
+        Subject.findByPk(childId1)
         .then((child) => {
           expect(child.get('helpUrl')).to.equal('http://www.bar.com');
           child.update({ helpUrl: 'http://www.foobar.com' });
           expect(child.get('helpUrl')).to.equal('http://www.foobar.com');
         })
-        .then(() => Subject.findById(subjId1))
+        .then(() => Subject.findByPk(subjId1))
         .then((parent) => {
           expect(parent.get('helpUrl')).to.equal('http://www.bar.com');
           done();
@@ -145,7 +145,7 @@ describe('tests/db/model/subject/updateChild.js >', () => {
 
       it('update child imageUrl, should not change parent subject',
       (done) => {
-        Subject.findById(childId1)
+        Subject.findByPk(childId1)
         .then((child) => {
           expect(child.get('imageUrl'))
           .to.equal('http://www.bar.com/foo.jpg');
@@ -153,7 +153,7 @@ describe('tests/db/model/subject/updateChild.js >', () => {
           expect(child.get('imageUrl'))
           .to.equal('http://www.zoobar.com/foo.jpg');
         })
-        .then(() => Subject.findById(subjId1))
+        .then(() => Subject.findByPk(subjId1))
         .then((parent) => {
           expect(parent.get('imageUrl'))
             .to.equal('http://www.bar.com/foo.jpg');
@@ -164,13 +164,13 @@ describe('tests/db/model/subject/updateChild.js >', () => {
 
       it('update child isPublished, should not change parent subject',
       (done) => {
-        Subject.findById(childId2)
+        Subject.findByPk(childId2)
         .then((child) => {
           expect(child.get('isPublished')).to.equal(true);
           child.update({ isPublished: false });
           expect(child.get('isPublished')).to.equal(false);
         })
-        .then(() => Subject.findById(childId1))
+        .then(() => Subject.findByPk(childId1))
         .then((parent) => {
           expect(parent.get('isPublished')).to.equal(true);
           done();
@@ -180,13 +180,13 @@ describe('tests/db/model/subject/updateChild.js >', () => {
 
       it('update child sort By, should not change parent sort By',
       (done) => {
-        Subject.findById(childId2)
+        Subject.findByPk(childId2)
         .then((child) => {
           expect(child.get('sortBy')).to.equal(null);
           child.update({ sortBy: 'xyz' });
           expect(child.get('sortBy')).to.equal('xyz');
         })
-        .then(() => Subject.findById(childId1))
+        .then(() => Subject.findByPk(childId1))
         .then((parent) => {
           expect(parent.get('sortBy')).to.equal(null);
           done();

@@ -49,7 +49,7 @@ describe('tests/db/model/collectorGroup/delete.js >', () => {
   });
 
   it('ok, an instance delete', (done) => {
-    CollectorGroup.findById(collectorGroupDb.id)
+    CollectorGroup.findByPk(collectorGroupDb.id)
     .then((c) => c.destroy())
     .then((o) => {
       if (o.deletedAt && (o.isDeleted !== 0)) {
@@ -76,10 +76,10 @@ describe('tests/db/model/collectorGroup/delete.js >', () => {
       .then((created) => (collector1 = created))
       .then(() => Generator.create(generator))
       .then((g) => (generator = g))
-      .then(() => CollectorGroup.findById(collectorGroupDb.id))
+      .then(() => CollectorGroup.findByPk(collectorGroupDb.id))
       .then((found) => (cg = found))
       .then(() => generator.update({ collectorGroupId: cg.id }))
-      .then(() => CollectorGroup.findById(collectorGroupDb.id))
+      .then(() => CollectorGroup.findByPk(collectorGroupDb.id))
       .then(() => cg.destroy())
       .then(() => done(new Error('expecting error')))
       .catch((err) => {
@@ -93,9 +93,9 @@ describe('tests/db/model/collectorGroup/delete.js >', () => {
   });
 
   it('ok, should not be able to find a collectorGroup once deleted', (done) => {
-    CollectorGroup.findById(collectorGroupDb.id)
+    CollectorGroup.findByPk(collectorGroupDb.id)
     .then((c) => c.destroy())
-    .then((o) => CollectorGroup.findById(o.id))
+    .then((o) => CollectorGroup.findByPk(o.id))
     .then((o) => {
       expect(o).to.equal(null);
       done();
@@ -128,10 +128,10 @@ describe('tests/db/model/collectorGroup/delete.js >', () => {
       .then((cgColl) => { // getCollectors on collectorGroup gives collector
         expect(cgColl).to.have.length(1);
         expect(cgColl[0].name).to.be.equal('___Collector');
-        return CollectorGroup.findById(collectorGroupDb.id);
+        return CollectorGroup.findByPk(collectorGroupDb.id);
       })
       .then((cg) => cg.destroy()) // delete collectorGroup
-      .then(() => Collector.findById(collectorCreated.id))
+      .then(() => Collector.findByPk(collectorCreated.id))
       .then((coll) => { // collector exists
         expect(coll.name).to.be.equal('___Collector');
         done();

@@ -170,7 +170,7 @@ describe('tests/db/model/profile/withUser.js >', () => {
   it('After attaching a user to a profile, get all profiles should contain ' +
   'a profile object with userCount of 1, and users array of length 1. All ' +
   'profiles will have users field ', (done) => {
-    Profile.findAndCount({
+    Profile.findAndCountAll({
       where: {
         name: tu.namePrefix + 1,
       },
