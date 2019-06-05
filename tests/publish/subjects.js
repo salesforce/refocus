@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/publish.js
+ * tests/publish/subjects.js
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
