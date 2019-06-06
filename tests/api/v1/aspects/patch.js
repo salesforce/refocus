@@ -156,22 +156,6 @@ describe('tests/api/v1/aspects/patch.js >', () => {
       });
     });
 
-    it('patching with readOnly field isDeleted should fail', (done) => {
-      api.patch(`${path}/${i}`)
-      .set('Authorization', token)
-      .send({ isDeleted: 0 })
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.errors[0].description)
-        .to.contain('You cannot modify the read-only field: isDeleted');
-        return done();
-      });
-    });
-
     it('patching with readOnly field id should fail', (done) => {
       api.patch(`${path}/${i}`)
       .set('Authorization', token)

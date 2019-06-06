@@ -103,7 +103,6 @@ describe('tests/api/v1/globalconfig/delete.js >', () => {
 
       expect(res.body.key).to.equal(config);
       expect(res.body).to.have.property('value', 'def');
-      expect(res.body.isDeleted).to.be.greaterThan(ZERO);
       done();
     });
   });
@@ -119,7 +118,6 @@ describe('tests/api/v1/globalconfig/delete.js >', () => {
         expect(res.body).to.have.property('key',
           `${tu.namePrefix}_GLOBAL_CONFIG_ABC`);
         expect(res.body).to.have.property('value', 'def');
-        expect(res.body.isDeleted).to.be.greaterThan(ZERO);
         done();
       }
     });

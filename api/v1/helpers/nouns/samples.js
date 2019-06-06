@@ -45,7 +45,7 @@ module.exports = {
     'status', 'previousStatus',
   ],
   readOnlyFields: [
-    'id', 'isDeleted', 'status', 'previousStatus',
+    'id', 'status', 'previousStatus',
     'statusChangedAt', 'createdAt', 'updatedAt', 'name',
   ],
 }; // exports

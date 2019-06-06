@@ -80,25 +80,25 @@ module.exports = {
       return u.forbidden(next);
     }
 
+    let found;
     return helper.model.findOne()
-    .then((o) => {
-      if (o) {
-        o.destroy()
-          .then((destroyedObj) => {
-            resultObj.dbTime = new Date() - resultObj.reqStartTime;
-            u.logAPI(req, resultObj, destroyedObj);
-            res.status(httpStatus.OK)
-              .json(responsify(destroyedObj, helper, req.method));
-          })
-          .catch((err) => u.handleError(next, err, helper.modelName));
-      } else {
+      .then((o) => {
+        if (o) {
+          found = o;
+          return o.destroy();
+        }
+
         const err = new apiErrors.ResourceNotFoundError();
         err.info = 'There is no sso config to delete.';
-        u.handleError(next, err, helper.modelName);
-      }
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
-  },
+        throw err;
+      })
+      .then((destroyedObj) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        u.logAPI(req, resultObj, found);
+        res.status(httpStatus.OK).json(responsify(found, helper, req.method));
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // deleteSSOConfig
 
   /**
    * GET /ssoconfig
@@ -112,22 +112,22 @@ module.exports = {
   getSSOConfig(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     helper.model.findOne()
-    .then((o) => {
-      if (o) {
-        resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        u.logAPI(req, resultObj, o.dataValues);
-        res.status(httpStatus.OK).json(responsify(o, helper, req.method));
-      } else {
-        const err = new apiErrors.ResourceNotFoundError({
-          explanation: 'There is no sso config.',
-        });
+      .then((o) => {
+        if (o) {
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+          u.logAPI(req, resultObj, o.dataValues);
+          res.status(httpStatus.OK).json(responsify(o, helper, req.method));
+        } else {
+          const err = new apiErrors.ResourceNotFoundError({
+            explanation: 'There is no sso config.',
+          });
+          u.handleError(next, err, helper.modelName);
+        }
+      })
+      .catch((err) => {
         u.handleError(next, err, helper.modelName);
-      }
-    })
-    .catch((err) => {
-      u.handleError(next, err, helper.modelName);
-    });
-  },
+      });
+  }, // getSSOConfig
 
   /**
    * PATCH /ssoconfig
@@ -148,35 +148,35 @@ module.exports = {
     }
 
     return helper.model.findOne()
-    .then((o) => {
-      if (o) {
-        const requestBody = req.swagger.params.queryBody.value;
+      .then((o) => {
+        if (o) {
+          const requestBody = req.swagger.params.queryBody.value;
 
-        /*
-         * If patching with value, force db to update value, regardless
-         * of whether it changed
-         */
-        if (Object.keys(requestBody).indexOf('value') >= 0) {
-          o.changed('value', true);
+          /*
+           * If patching with value, force db to update value, regardless
+           * of whether it changed
+           */
+          if (Object.keys(requestBody).indexOf('value') >= 0) {
+            o.changed('value', true);
+          }
+
+          o.update(requestBody)
+            .then((updatedObj) => {
+              resultObj.dbTime = new Date() - resultObj.reqStartTime;
+              u.logAPI(req, resultObj, o.dataValues);
+              res.status(httpStatus.OK)
+                .json(responsify(updatedObj, helper, req.method));
+            })
+            .catch((err) => u.handleError(next, err, helper.modelName));
+        } else {
+          const err = new apiErrors.ResourceNotFoundError({
+            explanation: 'There is no sso config.',
+          });
+          u.handleError(next, err, helper.modelName);
         }
-
-        o.update(requestBody)
-          .then((updatedObj) => {
-            resultObj.dbTime = new Date() - resultObj.reqStartTime;
-            u.logAPI(req, resultObj, o.dataValues);
-            res.status(httpStatus.OK)
-              .json(responsify(updatedObj, helper, req.method));
-          })
-          .catch((err) => u.handleError(next, err, helper.modelName));
-      } else {
-        const err = new apiErrors.ResourceNotFoundError({
-          explanation: 'There is no sso config.',
-        });
-        u.handleError(next, err, helper.modelName);
-      }
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
-  },
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // patchSSOConfig
 
   /**
    * POST /ssoconfig
@@ -197,13 +197,13 @@ module.exports = {
     const toPost = req.swagger.params.queryBody.value;
     const assocToCreate = u.includeAssocToCreate(toPost, helper);
     return helper.model.create(toPost, assocToCreate)
-    .then((o) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      u.logAPI(req, resultObj, o.dataValues);
-      res.status(httpStatus.CREATED).json(responsify(o, helper, req.method));
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
-  },
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        u.logAPI(req, resultObj, o.dataValues);
+        res.status(httpStatus.CREATED).json(responsify(o, helper, req.method));
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // postSSOConfig
 
   /**
    * PUT /ssoconfig
@@ -226,40 +226,40 @@ module.exports = {
     const puttableFields =
       req.swagger.params.queryBody.schema.schema.properties;
     return helper.model.findOne()
-    .then((o) => {
-      if (o) {
-        const keys = Object.keys(puttableFields);
-        for (let i = 0; i < keys.length; i++) {
-          const key = keys[i];
-          if (toPut[key] === undefined) {
-            let nullish = null;
-            if (puttableFields[key].type === 'boolean') {
-              nullish = false;
-            } else if (puttableFields[key].enum) {
-              nullish = puttableFields[key].default;
+      .then((o) => {
+        if (o) {
+          const keys = Object.keys(puttableFields);
+          for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (toPut[key] === undefined) {
+              let nullish = null;
+              if (puttableFields[key].type === 'boolean') {
+                nullish = false;
+              } else if (puttableFields[key].enum) {
+                nullish = puttableFields[key].default;
+              }
+
+              o.set(key, nullish);
+            } else {
+              o.set(key, toPut[key]);
             }
-
-            o.set(key, nullish);
-          } else {
-            o.set(key, toPut[key]);
           }
-        }
 
-        o.save()
-          .then((savedObj) => {
-            resultObj.dbTime = new Date() - resultObj.reqStartTime;
-            u.logAPI(req, resultObj, savedObj);
-            res.status(httpStatus.OK)
-              .json(responsify(savedObj, helper, req.method));
-          })
-          .catch((err) => u.handleError(next, err, helper.modelName));
-      } else {
-        const err = new apiErrors.ResourceNotFoundError({
-          explanation: 'There is no sso config.',
-        });
-        u.handleError(next, err, helper.modelName);
-      }
-    })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+          o.save()
+            .then((savedObj) => {
+              resultObj.dbTime = new Date() - resultObj.reqStartTime;
+              u.logAPI(req, resultObj, savedObj);
+              res.status(httpStatus.OK)
+                .json(responsify(savedObj, helper, req.method));
+            })
+            .catch((err) => u.handleError(next, err, helper.modelName));
+        } else {
+          const err = new apiErrors.ResourceNotFoundError({
+            explanation: 'There is no sso config.',
+          });
+          u.handleError(next, err, helper.modelName);
+        }
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
   },
 }; // exports
