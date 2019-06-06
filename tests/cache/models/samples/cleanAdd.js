@@ -38,7 +38,6 @@ describe('tests/cache/models/samples/cleanAdd.js >', () => {
       tags: [],
       id: '966a9d60-4681-48de-9202-1497a230831c',
       updatedAt: '2018-07-05T17:41:15.225Z',
-      isDeleted: '0',
       valueType: 'NUMERIC',
       relatedLinks: [
         { name: 'Google', value: 'http://www.google.com' },
@@ -121,7 +120,6 @@ describe('tests/cache/models/samples/cleanAdd.js >', () => {
       description: 'this is sample description',
       id: '216b424a-7444-43c7-9384-20d4b6e8380e',
       imageUrl: 'http://www.bar.com/a0.jpg',
-      isDeleted: '0',
       isPublished: 'true',
       name: '___TEST_SUBJECT',
       relatedLinks: '[]',

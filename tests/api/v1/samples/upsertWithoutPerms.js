@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/api/v1/samples/upsert.js
+ * tests/api/v1/samples/upsertWithoutPerms.js
  */
 'use strict';
 const supertest = require('supertest');

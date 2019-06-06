@@ -40,7 +40,7 @@ function stackTraceFilter(ln) {
  * @param {Function} outputFn - the output function, defaults to console.error
  */
 function displayErrorDetails(req, errResponse, err, outputFn = console.error) {
-  outputFn('\n------------\nerrorHandler\n------------');
+  outputFn('\n--------- errorHandler ---------');
   outputFn(req.method, req.url, req.body);
   outputFn(errResponse);
   outputFn(`Status ${err.status}: ${err.message}`);

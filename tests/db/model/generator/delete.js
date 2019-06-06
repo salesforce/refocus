@@ -30,14 +30,12 @@ describe('tests/db/model/generator/delete.js >', () => {
   afterEach(u.forceDelete);
   after(gtUtil.forceDelete);
 
-  it('ok, soft delete successful', (done) => {
+  it('ok, delete successful', (done) => {
     Generator.create(generator)
     .then((o) => o.destroy())
-    .then((o) => {
-      expect(o.deletedAt).to.not.equal(null);
-      expect(o.isDeleted).to.not.equal(null);
-      done();
-    })
+    .then(() => Generator.findAll({ where: { name: generator.name } }))
+    .then((found) => expect(found).to.have.length(0))
+    .then(() => done())
     .catch(done);
   });
 
@@ -45,10 +43,8 @@ describe('tests/db/model/generator/delete.js >', () => {
     Generator.create(generator)
     .then((o) => o.destroy())
     .then((o) => Generator.findByPk(o.id))
-    .then((o) => {
-      expect(o).to.equal(null);
-      done();
-    })
+    .then((o) => expect(o).to.be.null)
+    .then(() => done())
     .catch(done);
   });
 
@@ -57,10 +53,8 @@ describe('tests/db/model/generator/delete.js >', () => {
     Generator.create(generator)
     .then((o) => o.destroy())
     .then(() => Generator.create(generator))
-    .then((o) => {
-      expect(o.isDeleted).to.equal('0');
-      done();
-    })
+    .then((o) => expect(o).to.have.property('name', generator.name))
+    .then(() => done())
     .catch(done);
   });
 });

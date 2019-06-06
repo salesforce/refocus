@@ -32,7 +32,6 @@ describe('tests/db/model/aspect/create.js >', () => {
           o.helpEmail === null &&
           o.helpUrl === null &&
           o.id !== null &&
-          Number(o.isDeleted) === Number(0) &&
           o.imageUrl === null &&
           o.isPublished === false &&
           o.name === u.name &&
@@ -46,8 +45,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           /* TODO once we have users, expect createdBy to be populated */
           o.createdBy === null &&
           o.updatedAt !== null &&
-          o.createdAt !== null &&
-          o.deletedAt === null) {
+          o.createdAt !== null) {
           return;
         }
 
@@ -522,109 +520,6 @@ describe('tests/db/model/aspect/create.js >', () => {
 
           done(tu.uniError);
         });
-      });
-    });
-
-    describe('isDeleted >', () => {
-      it('provide an empty string', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = '';
-        Aspect.create(toCreate)
-        .then(() => done(u.dbError))
-        .catch((err) => {
-          if (err.name === tu.dbErrorName &&
-            err.message === 'invalid input syntax for integer: ""') {
-            return done();
-          }
-
-          done(err);
-        });
-      });
-
-      it('provide a null value', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = null;
-        Aspect.create(toCreate)
-        .then(() => done(tu.valError))
-        .catch((err) => {
-          if (err.name === tu.valErrorName &&
-            tu.gotArrayWithExpectedLength(err.errors, 1) &&
-            err.errors[0].message === 'Aspect.isDeleted cannot be null' &&
-            err.errors[0].type === 'notNull Violation' &&
-            err.errors[0].path === 'isDeleted' &&
-            err.errors[0].value === null) {
-            return done();
-          }
-
-          done(err);
-        });
-      });
-
-      it('provide a string value', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = 'abcdefg';
-        Aspect.create(toCreate)
-        .then(() => done(u.dbError))
-        .catch((err) => {
-          if (err.name === tu.dbErrorName &&
-            err.message === 'invalid input syntax for integer: "abcdefg"') {
-            return done();
-          }
-
-          done(err);
-        });
-      });
-
-      it('provide a string value which is a number', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = '100';
-        Aspect.create(toCreate)
-        .then((o) => {
-          if (o.isDeleted === '100') {
-            return done();
-          }
-
-          done(new Error('should have accepted a number-ish string'));
-        })
-        .catch(done);
-      });
-
-      it('provide a number', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = 100000000;
-        Aspect.create(toCreate)
-        .then((o) => {
-          if (Number(o.isDeleted) === Number(100000000)) {
-            return done();
-          }
-
-          done(new Error('should have accepted a number'));
-        })
-        .catch(done);
-      });
-
-      it('provide an array', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = [0];
-        Aspect.create(toCreate)
-        .then(() => done(u.dbError))
-        .catch((err) => {
-          if (err.name === tu.dbErrorName &&
-            err.message === 'column "isDeleted" is of type bigint but ' +
-              'expression is of type integer[]') {
-            return done();
-          }
-
-          done(u.dbError);
-        });
-      });
-
-      it('provide an object', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = { a: 0 };
-        Aspect.create(toCreate)
-        .then(() => done(u.dbError))
-        .catch(() => done());
       });
     });
 
@@ -2294,23 +2189,6 @@ describe('tests/db/model/aspect/create.js >', () => {
         expect(err.name).to.equal(tu.uniErrorName);
         done();
       });
-    });
-
-    it('provide a name already in use by a soft-deleted aspect', (done) => {
-      Aspect.create(u.getSmall())
-      .then((o) => o.destroy())
-      .then(() => Aspect.create(u.getSmall()))
-      .then(() => done())
-      .catch(() => done(tu.uniError));
-    });
-
-    it('provide a name already in use, other aspect is hard-deleted',
-    (done) => {
-      Aspect.create(u.getSmall())
-      .then((o) => o.destroy({ force: true }))
-      .then(() => Aspect.create(u.getSmall()))
-      .then(() => done())
-      .catch(() => done(tu.uniError));
     });
   }); // duplicate names
 

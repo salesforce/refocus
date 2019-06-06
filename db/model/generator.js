@@ -83,11 +83,6 @@ module.exports = function generator(seq, dataTypes) {
         min: 1,
       },
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     isActive: {
       type: dataTypes.BOOLEAN,
       allowNull: false,
@@ -206,10 +201,6 @@ module.exports = function generator(seq, dataTypes) {
         return Promise.all(promises);
       }, // beforeUpdate
 
-      beforeDestroy(inst /* , opts */) {
-        return common.setIsDeleted(seq.Promise, inst);
-      }, // beforeDestroy
-
       afterCreate(inst /* , opts*/) {
         return Promise.all([
           Promise.resolve().then(() => {
@@ -251,12 +242,9 @@ module.exports = function generator(seq, dataTypes) {
     },
     indexes: [
       {
-        name: 'GeneratorUniqueLowercaseNameIsDeleted',
+        name: 'GeneratorUniqueLowercaseName',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('name')),
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('name'))],
       },
     ],
 
@@ -279,8 +267,6 @@ module.exports = function generator(seq, dataTypes) {
         ],
       },
     },
-
-    paranoid: true,
   });
 
   /**

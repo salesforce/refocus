@@ -67,9 +67,7 @@ module.exports = {
   fieldsWithJsonArrayType,
   fieldsWithArrayType,
   tagFilterName: 'tags',
-  readOnlyFields: [
-    'hierarchyLevel', 'absolutePath', 'childCount', 'id', 'isDeleted',
-  ],
+  readOnlyFields: ['hierarchyLevel', 'absolutePath', 'childCount', 'id'],
   requireAtLeastOneFields: ['helpEmail', 'helpUrl'],
   timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

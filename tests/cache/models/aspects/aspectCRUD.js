@@ -295,10 +295,14 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
   it('once an aspect is destroyed no entry should be found in the ' +
   'aspectStore and the corresponding hash set should not be found', (done) => {
     let aspectKey;
+    let found;
     Aspect.findByPk(aspHumdId)
-    .then((a) => a.destroy())
+    .then((a) => {
+      found = a;
+      return a.destroy();
+    })
     .then((asp) => {
-      aspectKey = redisStore.toKey('aspect', asp.name);
+      aspectKey = redisStore.toKey('aspect', found.name);
       return rcli.sismemberAsync(subjectIndexName, aspectKey);
     })
     .then((ok) => {
@@ -317,6 +321,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     // of the form samsto:samples:
     let aspectName;
     let subjectAbsPath;
+    let found;
     samstoinit.populate()
     .then(() => Subject.findByPk(ipar))
     .then((s) => {
@@ -329,9 +334,12 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       expect(res).to.include.members(['humidity', 'temperature']);
       return Aspect.findByPk(aspTempId);
     }) // temperature aspect deleted
-    .then((a) => a.destroy())
     .then((a) => {
-      aspectName = a.name;
+      found = a;
+      return a.destroy();
+    })
+    .then((a) => {
+      aspectName = found.name;
       return rcli.smembersAsync(sampleIndexName);
     })
     .then((members) => {

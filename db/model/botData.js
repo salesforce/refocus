@@ -108,9 +108,8 @@ module.exports = function botData(seq, dataTypes) {
 
         // Publish creation
         const changedKeys = Object.keys(instance._changed);
-        const ignoreAttributes = ['isDeleted'];
         const publishObject = realTime.publishObject(instance.toJSON(),
-          botDataEventNames.add, changedKeys, ignoreAttributes, pubOpts);
+          botDataEventNames.add, changedKeys, [], pubOpts);
 
         return Promise.all([updateValues, publishObject]);
       },
@@ -125,9 +124,8 @@ module.exports = function botData(seq, dataTypes) {
 
         // Publish update
         const changedKeys = Object.keys(instance._changed);
-        const ignoreAttributes = ['isDeleted'];
         const publishObject = realTime.publishObject(instance.toJSON(),
-          botDataEventNames.upd, changedKeys, ignoreAttributes, pubOpts);
+          botDataEventNames.upd, changedKeys, [], pubOpts);
 
         return Promise.all([updateValues, publishObject]);
       }, // hooks.afterUpdate
@@ -135,9 +133,8 @@ module.exports = function botData(seq, dataTypes) {
       afterDestroy(instance /* , opts */) {
         // Publish delete
         const changedKeys = Object.keys(instance._changed);
-        const ignoreAttributes = ['isDeleted'];
         return realTime.publishObject(instance.toJSON(),
-          botDataEventNames.del, changedKeys, ignoreAttributes, pubOpts);
+          botDataEventNames.del, changedKeys, [], pubOpts);
       }, // hooks.afterDestroy
     },
     indexes: [
