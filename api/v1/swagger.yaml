@@ -5631,6 +5631,7 @@ paths:
               - installedBy
               - createdAt
               - updatedAt
+              - lensEventApiVersion
               - -description
               - -helpEmail
               - -helpUrl
@@ -5644,6 +5645,7 @@ paths:
               - -installedBy
               - -createdAt
               - -updatedAt
+              - -lensEventApiVersion
         -
           $ref: "#/parameters/limitParam"
         -
@@ -5673,6 +5675,14 @@ paths:
             The url where a user can go to get more help about the lens. A lens
             may choose to display this information to the user e.g. if the user
             clicks a “help” icon attached to the lens.
+        -
+          name: lensEventApiVersion
+          in: query
+          required: false
+          type: integer
+          default: 1
+          description: >-
+            The API version for the Lens Event API, e.g. 1, 2, etc.
         -
           name: isCustom
           type: boolean
@@ -12508,6 +12518,12 @@ definitions:
         readOnly: true
         description: >
           True when the lens is available to users.
+      lensEventApiVersion:
+        description: >-
+          The API version for the Lens Event API, e.g. 1, 2, etc.
+        readOnly: true
+        type: integer
+        default: 1
       name:
         type: string
         maxLength: 60
@@ -14437,6 +14453,7 @@ parameters:
         - installedBy
         - isCustom
         - isPublished
+        - lensEventApiVersion
         - name
         - sourceDescription
         - sourceName

@@ -58,6 +58,7 @@ describe('tests/api/v1/lenses/patch.js >', () => {
 
         expect(res.body.description).to.equal('changed description');
         expect(res.body.user).to.be.an('object');
+        expect(res.body).to.have.property('lensEventApiVersion', 1);
         expect(res.body.user.id).to.equal(userId);
         done();
       });
