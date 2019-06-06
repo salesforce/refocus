@@ -365,7 +365,7 @@ describe('tests/cache/models/samples/get.js, ' +
           .expect((res) => {
             expect(res.body.length).to.equal(3);
             res.body.map((sample) => {
-              expect(sample.name.endsWith('|___Aspect1')).to.be.true
+              expect(sample.name.endsWith('|___Aspect1')).to.be.true;
             });
           })
           .end(done);
@@ -500,7 +500,7 @@ describe('tests/cache/models/samples/get.js, ' +
             expect(res.body[1].name).to.equal(s1s3a1);
             res.body.forEach((obj) => {
               expect(obj.value).to.equal(String(5));
-            })
+            });
           })
           .end(done);
       });
@@ -573,23 +573,28 @@ describe('tests/cache/models/samples/get.js, ' +
               { name: 'Salesforce', value: 'http://www.salesforce.com' },
             ]);
             expect(res.body.apiLinks).to.be.eql([
-              { href: '/v1/samples/___Subject1.___Subject3|___Aspect1',
+              {
+                href: '/v1/samples/___Subject1.___Subject3|___Aspect1',
                 method: 'DELETE',
                 rel: 'Delete this sample',
               },
-              { href: '/v1/samples/___Subject1.___Subject3|___Aspect1',
+              {
+                href: '/v1/samples/___Subject1.___Subject3|___Aspect1',
                 method: 'GET',
                 rel: 'Retrieve this sample',
               },
-              { href: '/v1/samples/___Subject1.___Subject3|___Aspect1',
+              {
+                href: '/v1/samples/___Subject1.___Subject3|___Aspect1',
                 method: 'PATCH',
                 rel: 'Update selected attributes of this sample',
               },
-              { href: '/v1/samples',
+              {
+                href: '/v1/samples',
                 method: 'POST',
                 rel: 'Create a new sample',
               },
-              { href: '/v1/samples/___Subject1.___Subject3|___Aspect1',
+              {
+                href: '/v1/samples/___Subject1.___Subject3|___Aspect1',
                 method: 'PUT',
                 rel: 'Overwrite all attributes of this sample',
               },
@@ -684,6 +689,7 @@ describe('tests/cache/models/samples/get.js, ' +
           .end(done);
       });
     });
+
   });
 
   describe('should return user object with profile field >', () => {
@@ -824,11 +830,11 @@ describe('tests/cache/models/samples/get.js > cache the response >', () => {
   before((done) => {
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
-      done();
-    })
-    .catch(done);
+      .then((returnedToken) => {
+        token = returnedToken;
+        done();
+      })
+      .catch(done);
   });
 
   before(rtu.populateRedis);
@@ -841,73 +847,73 @@ describe('tests/cache/models/samples/get.js > cache the response >', () => {
 
   it('get with wildcard should cache response', (done) => {
     api.get(`${path}?name=___Subj*`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      redisCache.get('___Subj*', (cacheErr, reply) => {
-        if (cacheErr) {
-          return done(cacheErr);
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
         }
 
-        expect(JSON.parse(reply).length).to.be.equal(3);
-        const sampNames = [s1s2a1, s1s2a2, s1s3a1];
-        JSON.parse(reply).forEach((obj) => {
-          expect(sampNames.includes(obj.name));
+        redisCache.get('___Subj*', (cacheErr, reply) => {
+          if (cacheErr) {
+            return done(cacheErr);
+          }
+
+          expect(JSON.parse(reply).length).to.be.equal(3);
+          const sampNames = [s1s2a1, s1s2a2, s1s3a1];
+          JSON.parse(reply).forEach((obj) => {
+            expect(sampNames.includes(obj.name));
+          });
+          redisCache.del('___Subj*');
+          return done();
         });
-        redisCache.del('___Subj*');
-        return done();
       });
-    });
   });
 
   it('get without wildcard should not cache response', (done) => {
     api.get(`${path}?name=___Subject1.___Subject2|___Aspect1`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      redisCache.get('___Subject1.___Subject2|___Aspect1',
-        (cacheErr, reply) => {
-        if (cacheErr || !reply) {
-          expect(res.body.length).to.be.equal(1);
-          expect(res.body[0].name).to.equal(s1s2a1);
-          return done();
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
         }
+
+        redisCache.get('___Subject1.___Subject2|___Aspect1',
+          (cacheErr, reply) => {
+            if (cacheErr || !reply) {
+              expect(res.body.length).to.be.equal(1);
+              expect(res.body[0].name).to.equal(s1s2a1);
+              return done();
+            }
+          });
       });
-    });
   });
 
   it('do not return response from cache if ?fields are different', (done) => {
     api.get(`${path}?name=___Subj*`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      redisCache.get('___Subj*', (cacheErr, reply) => {
-        if (cacheErr) {
-          return done(cacheErr);
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
         }
 
-        expect(JSON.parse(reply).length).to.be.equal(3);
-        redisCache.get('___Subj*&fields=name,status', (cacheErr2, reply2) => {
-          if (cacheErr2) {
-            return done(cacheErr2);
+        redisCache.get('___Subj*', (cacheErr, reply) => {
+          if (cacheErr) {
+            return done(cacheErr);
           }
 
-          expect(reply2).to.be.null;
-          return done();
+          expect(JSON.parse(reply).length).to.be.equal(3);
+          redisCache.get('___Subj*&fields=name,status', (cacheErr2, reply2) => {
+            if (cacheErr2) {
+              return done(cacheErr2);
+            }
+
+            expect(reply2).to.be.null;
+            return done();
+          });
         });
       });
-    });
   });
 });

@@ -1258,8 +1258,6 @@ module.exports = {
     const sortByName = opts.order &&
       (opts.order === ['name'] || opts.order === ['-name']);
 
-    const defaultSortByName = !hasOrder || opts.order === ['name'];
-
     /**
      * Sort and get samplesKeys from sample set alphabetically when:
      * No filter and No sort order (asc by default), or
@@ -1271,7 +1269,7 @@ module.exports = {
      */
     if (!hasFilter) {
       let sortArgs;
-      if (defaultSortByName) {
+      if (!hasOrder || opts.order === ['name']) {
         sortArgs = [constants.indexKey.sample, 'alpha'];
       } else if (opts.order === ['-name']) {
         sortArgs = [constants.indexKey.sample, 'alpha', 'desc'];
@@ -1316,7 +1314,7 @@ module.exports = {
               .then(([samp, asp]) => samp && asp ? [samp, asp] : []);
           }
 
-          if (defaultSortByName) {
+          if (!hasOrder || opts.order === ['name']) {
             nameFilterArr.sort();
             nameFilterArr = modelUtils.applyLimitAndOffset(
               opts, nameFilterArr);
@@ -1382,13 +1380,11 @@ module.exports = {
       .then((filteredKeys) => {
         let keys = filteredKeys;
 
-        if (sortByName) {
-          if (defaultSortByName) {
-            filteredKeys.sort();
-          } else {
-            filteredKeys.sort().reverse();
-          }
-
+        if (!hasOrder || opts.order === ['name']) {
+          filteredKeys.sort();
+          keys = modelUtils.applyLimitAndOffset(opts, filteredKeys);
+        } else if (opts.order === ['-name']) {
+          filteredKeys.sort();
           keys = modelUtils.applyLimitAndOffset(opts, filteredKeys);
         }
 
