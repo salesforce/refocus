@@ -64,15 +64,6 @@ function destroySoftDeleted(qi, Seq) {
 
   console.log('destroySoftDeleted...');
 
-  /*
-   * Why this order?
-   * - Generator THEN Collector THEN CollectorGroup so we don't try to delete
-   *   a CollectorGroup which is referenced by a Collector or Generator
-   * - Generator THEN GeneratorTemplate so we don't try to delete a
-   *   GeneratorTemplate which is referenced by a Generator
-   * - Perpsective THEN Lens/Subject so we don't try to delete a Lens or
-   *   Subject which is referenced by a Perspective
-   */
   return qi.sequelize.transaction(() => Promise.all([
     exec('Aspect', optsIs),
     exec('AuditEvent', optsAt),
