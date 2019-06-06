@@ -77,11 +77,6 @@ module.exports = function subject(seq, dataTypes) {
       type: dataTypes.STRING(constants.fieldlen.url),
       validate: { isUrl: true },
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     isPublished: {
       type: dataTypes.BOOLEAN,
       allowNull: false,
@@ -269,7 +264,6 @@ module.exports = function subject(seq, dataTypes) {
           'childcount',
           'parentAbsolutePath',
           'updatedAt',
-          'isDeleted',
         ];
 
         // finally update the subject hash in redis too
@@ -368,7 +362,7 @@ module.exports = function subject(seq, dataTypes) {
                 err.subject = inst.get();
                 throw err;
               } else {
-                return common.setIsDeleted(seq.Promise, inst);
+                return true;
               }
             })
             .then(() => resolve())
@@ -530,23 +524,15 @@ module.exports = function subject(seq, dataTypes) {
     }, // hooks
     indexes: [
       {
-        name: 'SubjectUniqueLowercaseAbsolutePathIsDeleted',
+        name: 'SubjectUniqueLowercaseAbsolutePath',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('absolutePath')),
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('absolutePath'))],
       },
       {
-        name: 'SubjectAbsolutePathDeletedAtIsPublished',
-        fields: [
-          seq.fn('lower', seq.col('absolutePath')),
-          'deletedAt',
-          'isPublished',
-        ],
+        name: 'SubjectAbsolutePathIsPublished',
+        fields: [seq.fn('lower', seq.col('absolutePath')), 'isPublished'],
       },
     ],
-    paranoid: true,
   });
 
   /**

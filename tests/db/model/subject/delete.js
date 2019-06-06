@@ -222,23 +222,6 @@ describe('tests/db/model/subject/delete.js >', () => {
       });
     });
 
-    it('clear isDeleted field on parent, should fail', (done) => {
-      Subject.findByPk(theParent)
-      .then((parent1) => {
-        // console.log(parent1.dataValues.isDeleted);
-        // Expecting a string 0 since sequelize treats BIGINT as an object
-        expect(parent1.dataValues.isDeleted).to.equal('0');
-        return parent1.update({ isDeleted: null });
-      })
-      .then(() => done('Uh oh. This should have thrown an error!'))
-      .catch((err) => {
-        // console.log(err);
-        expect(err).to.have.property('name')
-        .to.equal('SequelizeValidationError');
-        done();
-      });
-    });
-
     it('clear name field on parent, should fail', (done) => {
       Subject.findByPk(theParent)
       .then((parent1) => {

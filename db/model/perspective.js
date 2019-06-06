@@ -28,11 +28,6 @@ module.exports = function perspective(seq, dataTypes) {
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     name: {
       type: dataTypes.STRING,
       allowNull: false,
@@ -83,9 +78,6 @@ module.exports = function perspective(seq, dataTypes) {
     },
   }, {
     hooks: {
-      beforeDestroy(inst /* , opts */) {
-        return common.setIsDeleted(seq.Promise, inst);
-      },
 
       // OLD - remove along with namespace toggles
       /**
@@ -96,8 +88,7 @@ module.exports = function perspective(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         const changedKeys = Object.keys(inst._changed);
-        const ignoreAttributes = ['isDeleted'];
-        return publishObject(inst, eventName, changedKeys, ignoreAttributes);
+        return publishObject(inst, eventName, changedKeys, []);
       },
 
       // OLD - remove along with namespace toggles
@@ -109,21 +100,16 @@ module.exports = function perspective(seq, dataTypes) {
        */
       afterUpdate(inst /* , opts */) {
         const changedKeys = Object.keys(inst._changed);
-        const ignoreAttributes = ['isDeleted'];
-        return publishObject(inst, eventName, changedKeys, ignoreAttributes);
+        return publishObject(inst, eventName, changedKeys, []);
       },
     },
     indexes: [
       {
-        name: 'PerspectiveUniqueLowercaseNameIsDeleted',
+        name: 'PerspectiveUniqueLowercaseName',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('name')),
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('name'))],
       },
     ],
-    paranoid: true,
     validate: {
       lensIdNotNull() {
         if (!this.lensId) {
@@ -248,9 +234,6 @@ module.exports = function perspective(seq, dataTypes) {
         'statusFilterType',
         'statusFilter',
       ],
-      where: {
-        isDeleted: 0,
-      },
     });
   };
 

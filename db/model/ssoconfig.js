@@ -75,7 +75,6 @@ module.exports = function user(seq, dataTypes) {
         }
       }, // hooks.beforeValidate
     },
-    paranoid: true,
   });
 
   /**

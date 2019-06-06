@@ -34,7 +34,6 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
     const samp = null;
     const asp = {
       id: '1979b734-bece-446e-9cb1-03917f60788e',
-      isDeleted: '0',
       relatedLinks: [],
       tags: [],
       isPublished: 'true',
@@ -88,7 +87,6 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
     };
     const asp = {
       id: '50513365-f24f-455c-8d47-c507d1c62a96',
-      isDeleted: '0',
       relatedLinks: [],
       tags: [],
       description: 'this is a0 description',
@@ -143,7 +141,6 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
     };
     const asp = {
       id: '50513365-f24f-455c-8d47-c507d1c62a96',
-      isDeleted: '0',
       relatedLinks: [],
       tags: [],
       description: 'this is a0 description',
@@ -199,7 +196,6 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
     };
     const asp = {
       id: '50513365-f24f-455c-8d47-c507d1c62a96',
-      isDeleted: '0',
       relatedLinks: [],
       tags: [],
       description: 'this is a0 description',
@@ -255,7 +251,6 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
     };
     const asp = {
       id: '50513365-f24f-455c-8d47-c507d1c62a96',
-      isDeleted: '0',
       relatedLinks: [],
       tags: [],
       description: 'this is a0 description',
@@ -312,7 +307,6 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
     };
     const asp = {
       id: '50513365-f24f-455c-8d47-c507d1c62a96',
-      isDeleted: '0',
       relatedLinks: [],
       tags: [],
       description: 'this is a0 description',
@@ -370,7 +364,6 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
     };
     const asp = {
       id: '50513365-f24f-455c-8d47-c507d1c62a96',
-      isDeleted: '0',
       relatedLinks: [],
       tags: [],
       description: 'this is a0 description',
@@ -427,7 +420,6 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
     };
     const asp = {
       id: '50513365-f24f-455c-8d47-c507d1c62a96',
-      isDeleted: '0',
       relatedLinks: [],
       tags: [],
       description: 'this is a0 description',

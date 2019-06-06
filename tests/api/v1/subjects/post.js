@@ -54,10 +54,6 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         errors.push(new Error(`absolutePath should be ${n0.name}`));
       }
 
-      if (res.body.isDeleted !== '0') {
-        errors.push(new Error('isDeleted should be "0"'));
-      }
-
       if (errors.length) {
         throw new Error(errors);
       }
@@ -272,22 +268,6 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
 
         expect(res.body.errors[0].description)
         .to.contain('You cannot modify the read-only field: id');
-        return done();
-      });
-    });
-
-    it('posting with readOnly field isDeleted should fail', (done) => {
-      api.post(path)
-      .set('Authorization', token)
-      .send({ name: n0.name, isDeleted: 0 })
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.errors[0].description)
-        .to.contain('You cannot modify the read-only field: isDeleted');
         return done();
       });
     });

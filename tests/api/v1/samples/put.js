@@ -117,22 +117,6 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
     });
   });
 
-  it('put with readOnly field isDeleted should fail', (done) => {
-    api.put(`${path}/${sampleName1}`)
-    .set('Authorization', token)
-    .send({ subjectId2, aspectId2, isDeleted: 0 })
-    .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.errors[0].description)
-      .to.contain('You cannot modify the read-only field: isDeleted');
-      return done();
-    });
-  });
-
   it('put with readOnly field createdAt should fail', (done) => {
     api.put(`${path}/${sampleName1}`)
     .set('Authorization', token)
@@ -201,11 +185,16 @@ describe(`tests/api/v1/samples/put.js, PUT ${path} >`, () => {
       .catch(done);
     });
 
+    /*
+     * Expect either 400 or 404 depending on the timing of when the sample is
+     * deleted from the sampleStore after unpublishing the subject.
+     */
     it('cannot create sample if subject not published', (done) => {
       api.put(`${path}/${sampleName1}`)
       .set('Authorization', token)
       .send({ subjectId1, aspectId1, value: '2' })
-      .expect(constants.httpStatus.NOT_FOUND)
+      .expect((res) => res.status === constants.httpStatus.BAD_REQUEST ||
+        res.status === constants.httpStatus.NOT_FOUND)
       .end(done);
     });
   });

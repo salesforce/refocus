@@ -29,7 +29,7 @@ module.exports = {
     users: 'writers',
   },
   fieldsWithEnum: ['status'],
-  readOnlyFields: ['id', 'isDeleted'],
+  readOnlyFields: ['id'],
   fieldsWritableByCollectorOnly: ['osInfo', 'processInfo', 'version'],
   fieldScopeMap: {
     user: 'user',

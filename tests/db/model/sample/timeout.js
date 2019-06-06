@@ -248,7 +248,6 @@ describe('tests/db/model/sample/timeout.js >', () => {
       expect(samp.messageCode).to.equal(undefined);
       expect(samp.status).to.equal(undefined);
       expect(samp.createdAt).to.equal(undefined);
-      expect(samp.deletedAt).to.equal(undefined);
     })
     .then(() => done())
     .catch(done);

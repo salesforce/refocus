@@ -26,11 +26,6 @@ module.exports = function token(seq, dataTypes) {
       type: dataTypes.STRING(constants.fieldlen.normalName),
       allowNull: false,
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     isRevoked: {
       type: dataTypes.BIGINT,
       defaultValue: 0,
@@ -41,23 +36,13 @@ module.exports = function token(seq, dataTypes) {
       defaultValue: Date.now(),
     },
   }, {
-    hooks: {
-      beforeDestroy(inst /* , opts */) {
-        return common.setIsDeleted(seq.Promise, inst);
-      },
-    },
     indexes: [
       {
-        name: 'TokenUniqueLowercaseNameCreatedByIsDeleted',
+        name: 'TokenUniqueLowercaseNameCreatedBy',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('name')),
-          'createdBy',
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('name')), 'createdBy'],
       },
     ],
-    paranoid: true,
   });
 
   /**

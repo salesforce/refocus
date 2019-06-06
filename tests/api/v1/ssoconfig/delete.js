@@ -75,7 +75,6 @@ describe(`tests/api/v1/ssoconfig/delete.js, DELETE ${path} >`, () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.samlEntryPoint).to.equal(u.samlParams.samlEntryPoint);
-      expect(res.body.isDeleted).to.not.equal(0);
     })
     .end(done);
   });
