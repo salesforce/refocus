@@ -43,7 +43,6 @@ module.exports = function token(seq, dataTypes) {
         fields: [seq.fn('lower', seq.col('name')), 'createdBy'],
       },
     ],
-    paranoid: true,
   });
 
   /**
