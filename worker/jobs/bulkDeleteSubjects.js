@@ -13,7 +13,6 @@ const logger = require('winston');
 const subjectHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
-const publisher = require('../../realtime/redisPublisher');
 const jobLog = require('../jobLog');
 const utils = require('../../api/v1/helpers/verbs/utils');
 
@@ -109,7 +108,6 @@ module.exports = (job, done) => {
         }
 
         successCount++;
-        publisher.publishObject(result, subjectHelper.model);
         return Promise.resolve();
       }));
     })
