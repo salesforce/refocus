@@ -15,4 +15,3 @@ module.exports = {
   }),
   down: (qi, Seq) => qi.removeColumn('Lenses', 'lensEventApiVersion'),
 };
-tests/api/v1/lenses/get.js
