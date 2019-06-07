@@ -412,7 +412,7 @@ describe('tests/cache/models/samples/get.js, ' +
       });
 
       it('get all, with sort option, desc by status', (done) => {
-        api.get(`${path}?sort=-status,value`)
+        api.get(`${path}?sort=-status`)
           .set('Authorization', token)
           .expect(constants.httpStatus.OK)
           .end((err, res) => {
@@ -427,12 +427,6 @@ describe('tests/cache/models/samples/get.js, ' +
             expect(res.body[3].status).to.be.equal('Invalid');
             expect(res.body[4].status).to.be.equal('Critical');
             expect(res.body[5].status).to.be.equal('Critical');
-            expect(res.body[0].value).to.be.equal('50');
-            expect(res.body[1].value).to.be.equal('-1');
-            expect(res.body[2].value).to.be.equal('5');
-            expect(res.body[3].value).to.be.equal('5');
-            expect(res.body[4].value).to.be.equal('0');
-            expect(res.body[5].value).to.be.equal('0');
             expect(res.body[0].aspect.name).to.be.equal('___Aspect2');
             done();
           });

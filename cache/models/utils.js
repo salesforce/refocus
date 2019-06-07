@@ -74,7 +74,7 @@ function applyLimitAndOffset(opts, arr) {
  * * @param  {boolean} hasNameFilterOnly - True if opts has name filter only
  * @returns {Array} - Filtered sample array
  */
-function applyFiltersOnSampleObjs(sampleArray, opts, sortByName) {
+function applyFiltersOnSampleObjs(sampleArray, opts) {
   let filtered = sampleArray;
 
   if (opts.filter) {
@@ -86,6 +86,9 @@ function applyFiltersOnSampleObjs(sampleArray, opts, sortByName) {
       }
     });
   }
+
+  const sortByName = opts.order &&
+    (opts.order === ['name'] || opts.order === ['-name']);
 
   // If sorting was not applied on keys, sort and apply limit/offset
   if (opts.order && !sortByName) {

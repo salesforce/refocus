@@ -1255,37 +1255,38 @@ module.exports = {
     const hasFilter = filterKeys.length > 0;
     const hasOrder = opts.order && opts.order.length > 0;
     const hasNameFilterOnly = filterKeys.length === 1 && opts.filter.name;
-    const sortByName = opts.order &&
-      (opts.order === ['name'] || opts.order === ['-name']);
 
     /**
-     * Sort and get samplesKeys from sample set alphabetically when:
-     * No filter and No sort order (asc by default), or
-     * No filter and ?sort=name (asc by default), or
-     * No filter and ?sort=-name (add desc parameter to sort args)
-     *
+     * Apply following logic when options have no filter and no sorting/sorting
+     * only by name.
+     * Get samplesKeys from sample set.
+     * Sort if sorting default or by name
+     * Apply limit/offset
      * Get sample hashes, apply attributes filter, cleanup and
      * return all samples.
      */
-    if (!hasFilter) {
-      let sortArgs;
-      if (!hasOrder || opts.order === ['name']) {
-        sortArgs = [constants.indexKey.sample, 'alpha'];
-      } else if (opts.order === ['-name']) {
-        sortArgs = [constants.indexKey.sample, 'alpha', 'desc'];
-      }
+    const shouldGetAllKeys = !hasFilter &&
+      (!hasOrder || opts.order === ['name'] || opts.order === ['-name']);
 
-      if (sortArgs) {
-        sortArgs.push('LIMIT', opts.offset, opts.limit);
-        return redisClient.sortAsync(sortArgs)
-          .then((sampleKeys) => getSamplesAndAspects(sampleKeys))
-          .then((samplesAndAspects) => {
-            const { samples, sampAspectMap } =
-              assembleSampleAspects(samplesAndAspects);
-            return applyAttributesFilter(samples, opts,
-              sampAspectMap, req.method);
-          });
-      }
+    if (shouldGetAllKeys) {
+      return redisClient.smembersAsync(sampleStore.constants.indexKey.sample)
+        .then((sampleKeys) => {
+          sampleKeys.sort();
+
+          if (opts.order === ['-name']) {
+            sampleKeys.reverse();
+          }
+
+          const filteredSampleKeys = modelUtils.applyLimitAndOffset(
+            opts, sampleKeys);
+          return getSamplesAndAspects(filteredSampleKeys);
+        })
+        .then((samplesAndAspects) => {
+          const { samples, sampAspectMap } =
+            assembleSampleAspects(samplesAndAspects);
+          return applyAttributesFilter(samples, opts,
+            sampAspectMap, req.method);
+        });
     }
 
     /**
@@ -1316,8 +1317,7 @@ module.exports = {
 
           if (!hasOrder || opts.order === ['name']) {
             nameFilterArr.sort();
-            nameFilterArr = modelUtils.applyLimitAndOffset(
-              opts, nameFilterArr);
+            nameFilterArr = modelUtils.applyLimitAndOffset(opts, nameFilterArr);
           }
 
           // multiple samples
@@ -1360,9 +1360,8 @@ module.exports = {
      */
     return Promise.resolve()
       .then(() => {
-        const filterVal = opts.filter.name;
-        if (opts.filter && filterVal) {
-          const subjAsp = filterVal.split('|');
+        if (opts.filter && opts.filter.name) {
+          const subjAsp = opts.filter.name.split('|');
           if (subjAsp.length === 2) {
             const isSubjWildCard = subjAsp[0].includes('*');
             const isAspWildCard = subjAsp[1].includes('*');
@@ -1394,7 +1393,7 @@ module.exports = {
         const { samples, sampAspectMap } = assembleSampleAspects(
           redisResponses);
         const fSamples = modelUtils.applyFiltersOnSampleObjs(samples,
-          opts, sortByName);
+          opts);
         return applyAttributesFilter(fSamples, opts,
           sampAspectMap, req.method);
       });
