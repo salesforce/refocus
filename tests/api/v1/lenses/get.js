@@ -65,6 +65,7 @@ describe('tests/api/v1/lenses/get.js >', () => {
         expect(obj.name).to.equal(`${tu.namePrefix}testLensName`);
         expect(obj.library).to.be.defined;
         expect(obj.user.id).to.equal(userId);
+        expect(obj).to.have.property('lensEventApiVersion', 1);
         done();
       });
     });
@@ -87,6 +88,26 @@ describe('tests/api/v1/lenses/get.js >', () => {
         expect(obj.user.id).to.equal(userId);
         done();
       });
+    });
+
+    it('get with fields query param', (done) => {
+      api.get(`${path}/${lensId}?fields=name,lensEventApiVersion`)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          const obj = res.body;
+          console.log(obj);
+          expect(obj).to.have.property('name', `${tu.namePrefix}testLensName`);
+          expect(obj).to.have.property('lensEventApiVersion', 1);
+          expect(obj).to.not.have.property('library');
+          expect(obj).to.not.have.property('user');
+          expect(obj).to.not.have.property('sourceName');
+          done();
+        });
     });
   });
 });
