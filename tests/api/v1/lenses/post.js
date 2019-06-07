@@ -217,7 +217,6 @@ describe('tests/api/v1/lenses/post.js >', () => {
       .field('description', 'test description')
       .attach('library',
         'tests/api/v1/lenses/lensZips/withValidLensEventApiVersion.zip')
-      .expect((res) => console.log(res.body))
       .expect(constants.httpStatus.CREATED)
       .expect((res) => {
         expect(res.body).to.have.property('user');
