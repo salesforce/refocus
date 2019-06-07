@@ -60,6 +60,7 @@ describe('tests/api/v1/lenses/put.js >', () => {
         expect(res.body.description).to.equal('changed description');
         expect(res.body.user).to.be.an('object');
         expect(res.body.user.id).to.equal(userId);
+        expect(res.body).to.have.property('lensEventApiVersion', 1);
         done();
       });
     });

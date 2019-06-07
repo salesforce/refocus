@@ -55,6 +55,12 @@ module.exports = function lens(seq, dataTypes) {
       allowNull: false,
       defaultValue: false,
     },
+    lensEventApiVersion: {
+      type: dataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      validate: { isInt: true },
+    },
     library: {
       type: dataTypes.BLOB,
       allowNull: false,
