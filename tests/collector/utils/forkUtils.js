@@ -10,6 +10,7 @@
  * tests/collector/utils.js
  */
 'use strict'; // eslint-disable-line strict
+const expect = require('chai').expect;
 const sinon = require('sinon');
 const Promise = require('bluebird');
 const fork = require('child_process').fork;
@@ -36,6 +37,7 @@ module.exports = {
   killAllCollectors,
   killCollector,
   setupMocking,
+  expectLogins,
   tick,
   tickSync,
   tickFor,
@@ -45,9 +47,30 @@ module.exports = {
 let nockConfig;
 function setupMocking(conf) {
   nockConfig = conf;
-  Object.values(subprocesses).forEach((subprocess) =>
-    subprocess.send({ nockConfig })
+  return Promise.map(Object.values(subprocesses), (subprocess) =>
+    new Promise((resolve) => {
+      subprocess.on('message', (msg) => {
+        if (msg.mocked) resolve();
+      });
+      subprocess.send({ nockConfig });
+    })
   );
+}
+
+function getRequestCount(collectorName, key) {
+  return new Promise((resolve) => {
+    subprocesses[collectorName].on('message', (msg) => {
+      if (msg.hasOwnProperty('requestCount')) {
+        resolve(msg.requestCount);
+      }
+    });
+    subprocesses[collectorName].send({ getRequestCount: { key } });
+  });
+}
+
+function expectLogins(collectorName, expectedCount) {
+  return getRequestCount(collectorName, '/login - 200')
+         .then((numLogins) => expect(numLogins).to.equal(expectedCount));
 }
 
 function doCommand({ command, name, url, token, refocusProxy, dataSourceProxy }) {
