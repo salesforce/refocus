@@ -422,9 +422,15 @@ function expectBulkUpsertInterval(collectorName, expectedInterval, expectedSampl
       if (matches) {
         samples.forEach((sample, i) => {
           const expectedSample = expectedSamples[i];
-          expect(sample.name).to.equal(expectedSample.name);
-          if (expectedSample.value) {
-            expect(sample.value).to.equal(expectedSample.value);
+          try {
+            expect(sample.name).to.equal(expectedSample.name);
+            if (expectedSample.value) {
+              expect(sample.value).to.equal(expectedSample.value);
+            }
+          } catch (err) {
+            err.expected = expectedSample;
+            err.actual = sample;
+            throw err;
           }
         });
       } else if (intervalExceeded) {

@@ -14,6 +14,7 @@ const nock = require('nock');
 const sinon = require('sinon');
 const u = require('./forkUtils');
 let clock;
+const trackedRequests = {};
 
 // mock the data sources for the collector
 process.on('message', (msg) => {
@@ -32,7 +33,25 @@ process.on('message', (msg) => {
           interceptor.matchHeader(header, value);
         });
       }
+
+      const key = `${conf.path} - ${conf.status}`;
+      if (!trackedRequests[key]) {
+        trackedRequests[key] = 0;
+      }
+
+      interceptor.log((x) => {
+        if (x.endsWith('true')) {
+          trackedRequests[key]++;
+        }
+      });
     });
+
+    process.send({ mocked: true });
+  }
+
+  if (msg.getRequestCount) {
+    const key = msg.getRequestCount.key;
+    process.send({ requestCount: trackedRequests[key] });
   }
 });
 
