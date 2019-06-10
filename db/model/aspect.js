@@ -47,11 +47,6 @@ module.exports = function aspect(seq, dataTypes) {
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     imageUrl: {
       type: dataTypes.STRING(constants.fieldlen.url),
       validate: { isUrl: true },
