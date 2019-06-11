@@ -1097,7 +1097,7 @@ module.exports = {
   /**
    * Retrieves the sample from redis and sends it back in the response. Get
    * sample and corresponsing aspect from redis and then apply field list
-   * filter is needed. Then attach aspect to sample and return.
+   * filter if needed. Then attach aspect to sample and return.
    *
    * @param  {String} params - Req Query parameters
    * @returns {Promise} - Resolves to a sample object
