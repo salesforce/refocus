@@ -13,6 +13,7 @@
 const Promise = require('bluebird');
 const common = require('../helpers/common');
 const collectorUtils = require('../helpers/collectorUtils');
+const generatorUtil = require('../helpers/generatorUtil');
 const constants = require('../constants');
 const dbUtils = require('../utils');
 const ValidationError = require('../dbErrors').ValidationError;
@@ -186,16 +187,29 @@ module.exports = function collectorgroup(seq, dataTypes) {
 
   CollectorGroup.createCollectorGroup = function (requestBody) {
     let collectors;
-    return collectorUtils.validate(seq, requestBody.collectors)
+    let generators;
+    return Promise.resolve()
+      .then(() => collectorUtils.validate(seq, requestBody.collectors))
       .then(collectorUtils.alreadyAssigned)
       .then((validCollectors) => (collectors = validCollectors))
+      .then(() => generatorUtil.validateGeneratorNames(seq, requestBody.generators))
+      .then(generatorUtil.alreadyAssigned)
+      .then((validGenerators) => (generators = validGenerators))
       .then(() => CollectorGroup.create(requestBody))
       .then((collectorGroup) =>
-        (collectors.length ? collectorGroup.setCollectors(collectors) :
-          collectorGroup))
+        collectors.length ? collectorGroup.setCollectors(collectors)
+                          : collectorGroup
+      )
       .then((collectorGroup) =>
         collectorGroup.reload(CollectorGroup.options.defaultScope))
-      .then((collectorGroup) => collectorGroup.handleCollectorUpdates());
+      .then((collectorGroup) => collectorGroup.handleCollectorUpdates())
+      .then((collectorGroup) =>
+        generators.length ? collectorGroup.setGenerators(generators)
+                          : collectorGroup
+      )
+      .then((collectorGroup) =>
+        collectorGroup.reload(CollectorGroup.options.defaultScope))
+      .then((collectorGroup) => collectorGroup.handleGeneratorUpdates([], this.generators));
   }; // createCollectorGroup
 
   // Instance Methods
@@ -244,6 +258,24 @@ module.exports = function collectorgroup(seq, dataTypes) {
       .then(() => this.reload(CollectorGroup.options.defaultScope))
       .then(() => this.handleCollectorUpdates());
   }; // patchCollectors
+
+  /**
+   * Assign the named generators to this collector group.
+   *
+   * @param {Array<String>} gens - array of generator names
+   * @returns {Promise}
+   */
+  CollectorGroup.prototype.patchGenerators = function (gens) {
+    const oldGens = this.generators;
+    return generatorUtil.validateGeneratorNames(seq, gens)
+    .then((gens) => generatorUtil.alreadyAssignedToOtherGroup(gens, this))
+    .then((generators) => this.setGenerators(generators))
+    .then(() => this.reload(CollectorGroup.options.defaultScope))
+    .then(() => {
+      const newGens = this.generators;
+      return this.handleGeneratorUpdates(oldGens, newGens);
+    });
+  }; // patchGenerators
 
   /**
    * Delete the named collectors from this collector group. Reject if any of
@@ -311,6 +343,36 @@ module.exports = function collectorgroup(seq, dataTypes) {
       );
     }
   }; // handleCollectorUpdates
+
+  /**
+   * When the list of generators is changed, reassign any affected generators.
+   *
+   * @param {Array<Generator>} oldGens - the generators attached to this
+   *  collector group before the update
+   * @param {Array<Generator>} newGens - the generators attached to this
+   *  collector group after the update
+   * @returns {Promise<CollectorGroup>}
+   */
+  CollectorGroup.prototype.handleGeneratorUpdates = function (oldGens=[], newGens=[]) {
+    return Promise.resolve()
+    .then(() => {
+      const removedGens = oldGens.filter((oldGen) =>
+        !newGens.some((newGen) =>
+          oldGen.name === newGen.name
+        )
+      );
+      const addedGens = newGens.filter((newGen) =>
+        !oldGens.some((oldGen) =>
+          oldGen.name === newGen.name
+        )
+      );
+      removedGens.forEach((g) => delete g.collectorGroup);
+      return Promise.map([...removedGens, ...addedGens], (gen) =>
+        gen.assignToCollector().then(() => gen.save())
+      );
+    })
+    .then(() => this);
+  }; // handleGeneratorUpdates
 
   return CollectorGroup;
 };

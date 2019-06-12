@@ -335,6 +335,30 @@ module.exports = function collector(seq, dataTypes) {
       .map((g) => g.assignToCollector().then(() => g.save()));
   };
 
+  /**
+   * Set the collector group.
+   *
+   * @param {Object} requestBody From API
+   * @returns {Promise}
+   */
+  Collector.prototype.updateCollectorGroup = function (requestBody) {
+    const oldGroup = this.collectorGroup;
+    let newGroup;
+    return u.validateCollectorGroup(seq, requestBody.collectorGroup)
+    .then((cg) => {
+      if (cg) {
+        newGroup = cg;
+        delete requestBody.collectorGroup;
+        return this.setCollectorGroup(newGroup);
+      }
+    })
+    .then(() => this.reload())
+    .then(() => oldGroup && oldGroup.reload(oldGroup._modelOptions.defaultScope))
+    .then(() => newGroup && newGroup.reload(newGroup._modelOptions.defaultScope))
+    .then(() => oldGroup && oldGroup.handleCollectorUpdates())
+    .then(() => newGroup && newGroup.handleCollectorUpdates());
+  }; // updateCollectorGroup
+
   Collector.prototype.isWritableBy = function (who) {
     return new seq.Promise((resolve /* , reject */) =>
       this.getWriters()

@@ -3374,6 +3374,9 @@ paths:
             type: object
             description: Fields permitted for patching.
             properties:
+              collectorGroup:
+                description: Name of the collectorGroup this collector belongs to.
+                type: string
               description:
                 type: string
                 maxLength: 4096
@@ -11714,6 +11717,11 @@ paths:
                 type: array
                 items:
                   type: string
+              generators:
+                description: List of generators assigned to this group.
+                type: array
+                items:
+                  type: string
               owner:
                 type: string
                 description: >
@@ -11903,6 +11911,11 @@ paths:
                 type: array
                 items:
                   type: string
+              generators:
+                description: List of generators assigned to this group.
+                type: array
+                items:
+                  type: string
               owner:
                 type: string
                 description: >
@@ -11958,6 +11971,11 @@ paths:
                   A unique and descriptive name for the collector group.
               collectors:
                 description: List of collectors for the group.
+                type: array
+                items:
+                  type: string
+              generators:
+                description: List of generators assigned to this group.
                 type: array
                 items:
                   type: string

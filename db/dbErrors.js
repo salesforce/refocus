@@ -147,6 +147,14 @@ errors.create({
   parent: this.ValidationError,
   defaultMessage: 'Invalid aspect status range.',
 });
+errors.create({
+  scope: exports,
+  code: 10123,
+  status: 400,
+  name: 'DuplicateGeneratorError',
+  parent: this.ValidationError,
+  defaultMessage: 'You cannot map duplicate Generators to this Object.',
+});
 
 // ----------------------------------------------------------------------------
 // Not Found

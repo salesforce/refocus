@@ -171,6 +171,16 @@ function patchCollectorGroup(req, res, next) {
       return collectorGroup;
     })
     .then((patched) => (cg = patched))
+    .then((collectorGroup) => {
+      if (requestBody.hasOwnProperty('generators')) {
+        const gens = requestBody.generators;
+        delete requestBody.collectors;
+        return collectorGroup.patchGenerators(gens);
+      }
+
+      return collectorGroup;
+    })
+    .then((patched) => (cg = patched))
     .then(() => cg.update(requestBody))
     .then((o) => o.reload())
     .then(() => {
@@ -223,6 +233,15 @@ function putCollectorGroup(req, res, next) {
       }
 
       return collectorGroup.patchCollectors(colls);
+    })
+    .then((collectorGroup) => {
+      let gens = [];
+      if (requestBody.hasOwnProperty('generators')) {
+        gens = requestBody.generators;
+        delete requestBody.generators;
+      }
+
+      return collectorGroup.patchGenerators(gens);
     })
     .then((patched) => (cg = patched))
     .then(() => cg.update(requestBody))
