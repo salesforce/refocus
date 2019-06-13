@@ -260,31 +260,33 @@ function getValuesObject(accumulatorObject) {
 
   function getPageLoadingPromises(perspective) {
     /*
-     * getLens and getHierarchy are dispatched simultaneously.
-     * Both lensLoadEvent and hierarchyLoadEvent will be called once:
+     * Dispatch getLens and getHierarchy simultaneously. Both lensLoadEvent and
+     * hierarchyLoadEvent will be called once and only once.
      *
-     * If getLens resolves first,
-     * 1. In handleLensDomEvent:
-     * hierarchyLoadEvent is NOT be dispatched since it is not defined,
-     * lensLoadEvent is dispatched.
-     * 2. gotLens is set to true.
-     * 3. When getHierarchy resolves:
-     * in handleHierarchyEvent, because gotLens is true, hierarchyLoadEvent
-     * is dispatched.
+     * If getLens resolves first:
+     *   1. In handleLensDomEvent:
+     *      hierarchyLoadEvent is NOT be dispatched since it is not defined,
+     *      lensLoadEvent is dispatched.
+     *   2. gotLens is set to true.
+     *   3. When getHierarchy resolves:
+     *      in handleHierarchyEvent, because gotLens is true,
+     *      hierarchyLoadEvent is dispatched.
+     *
      * Else if getHierarchy is resolved first:
-     * 1. in handleHierarchyEvent:
-     * Because gotLens is false,
-     * hierarchyLoadEvent is NOT dispatched. Instead it is returned and assigned
-     * to the variable hierarchyLoadEvent.
-     * 2. When getLens resolves, in handleLensDomEvent:
-     * lensLoadEvent is dispatched. Since hierarchyLoadEvent is truthy,
-     * it is also dispatched.
+     *   1. in handleHierarchyEvent:
+     *      Because gotLens is false,
+     *      hierarchyLoadEvent is NOT dispatched. Instead it is returned and
+     *      assigned to the variable hierarchyLoadEvent.
+     *   2. When getLens resolves, in handleLensDomEvent:
+     *      lensLoadEvent is dispatched. Since hierarchyLoadEvent is truthy,
+     *      it is also dispatched.
      */
     const getLens = getPromiseWithUrl('/v1/lenses/' + perspective.lens.id)
       .then((res) => {
         // hierarchyLoadEvent can be undefined or a custom event
         // if hierarchyLoadEvent is custom event, it will be dispatched
-        handleLensDomEvent(res.body.library, hierarchyLoadEvent);
+        handleLensDomEvent(res.body.lensEventApiVersion || 1,
+          res.body.library, hierarchyLoadEvent);
 
         // set the lens received flag to true, to dispatch lens load
         // when hierarchy is resolved in getHierarchy
@@ -417,6 +419,50 @@ function getValuesObject(accumulatorObject) {
     .catch(() => Promise.resolve());
 } // getValuesObject
 
+/**
+ * Transform the *new* hierarchy response back into the shape of the v1
+ * response for lenses which have not yet transitioned to lens event api
+ * version 2. Traverse the hierarchy and attach the aspect to each of the
+ * samples.
+ *
+ * @param hierarchyResponse
+ * @returns {boolean|string}
+ */
+function reconstructV1Hierarchy(h) {
+  /*
+   * If for some reason this gets called with a v1 hierarchy, just return it
+   * unchanged.
+   */
+  if (!h.hasOwnProperty('aspects')) return h;
+
+  const lowerCaseAspectMap = {};
+  Object.keys(h.aspects).forEach((a) => {
+    lowerCaseAspectMap[a.toLowerCase()] = h.aspects[a];
+  });
+
+  function traverse(subj) {
+    console.log(`entered traverse(${subj.absolutePath})`)
+    if (subj.hasOwnProperty('samples')) {
+      subj.samples.forEach((samp) => {
+        console.log(`  iterating over samples... ${samp.name}`)
+        const aspectName = samp.name.split('|')[1].toLowerCase();
+        const aspect = lowerCaseAspectMap[aspectName];
+        samp.aspectId = aspect.id;
+        samp.aspect = aspect;
+      });
+    }
+
+    if (subj.hasOwnProperty('children')) {
+      subj.children.forEach(traverse);
+    };
+
+    return subj;
+  } // traverse
+
+  const v1h = traverse(h.hierarchy);
+  return v1h;
+} // reconstructV1Hierarchy
+
 module.exports = {
   getValuesObject,
   getTagsFromArrays,
@@ -425,4 +471,6 @@ module.exports = {
   getConfig,
   getArray,
   getTagsFromResources,
+  hierarchyIsV1: (h) => !h.hasOwnProperty('aspects'),
+  reconstructV1Hierarchy,
 };

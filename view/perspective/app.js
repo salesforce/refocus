@@ -86,6 +86,7 @@ let minTimeoutCount;
 let maxAspectTimeout;
 let lastUpdateTime;
 let intervalId;
+let lensEventApiVersion = 1;
 
 /**
  * Add error message to the errorInfo div in the page.
@@ -263,19 +264,36 @@ function handleLibraryFiles(lib) {
 } // handleLibraryFiles
 
 /**
- * Setup the aspect timeout check, then dispatch
- * hierarchyLoad event if the lens is received.
- * Return the hierarchyLoadEvent otherwise
+ * Setup the aspect timeout check. If the lens has already been loaded,
+ * dispatch the "hierarchyLoad" event. If not, return the hierarchyLoad event.
  *
- * @param {Object} rootSubject
+ * @param {Object} hierarchyResponse
  * @param {Boolean} gotLens
  * @returns {CustomEvent} if lens is received, return undefined,
  * else return hierarchyLoadEvent.
  */
-function handleHierarchyEvent(rootSubject, gotLens) {
-  setupAspectTimeout(rootSubject);
+function handleHierarchyEvent(hierarchyResponse, gotLens) {
+  setupAspectTimeout(hierarchyResponse);
+
+  let eventDetail;
+  const hierarchyIsV1 = u.hierarchyIsV1(hierarchyResponse);
+  if (hierarchyIsV1) {
+    if (lensEventApiVersion < 2) {
+      eventDetail = hierarchyResponse; // just pass through as is
+    } else {
+      console.error('This instance of Refocus is not ready for lenses with ' +
+        'lensEventApiVersion 2 yet.');
+    }
+  } else { // hierarchy is "new" format with separate list of aspects
+    if (lensEventApiVersion < 2) {
+      eventDetail = u.reconstructV1Hierarchy(hierarchyResponse);
+    } else {
+      eventDetail = hierarchyResponse; // just pass through as is
+    }
+  }
+
   const hierarchyLoadEvent = new CustomEvent('refocus.lens.hierarchyLoad', {
-    detail: rootSubject,
+    detail: eventDetail,
   });
 
   /*
@@ -287,8 +305,10 @@ function handleHierarchyEvent(rootSubject, gotLens) {
     return;
   }
 
-  // lens is not received yet. Return hierarchyLoadEvent
-  // to be dispatched from getLens
+  /*
+   * Lens not here yet. Return the hierarchyLoad event--it will be dispatched
+   * from getLens once the lens arrives.
+   */
   return hierarchyLoadEvent;
 }
 
@@ -415,10 +435,9 @@ function parseTimeout(timeoutString) {
  * @param {Object} hierarchyLoadEvent undefined or
  * a Custom Event
  */
-function handleLensDomEvent(library, hierarchyLoadEvent) {
-  // inject lens library files in perspective view.
-  handleLibraryFiles(library);
-
+function handleLensDomEvent(lensEventApiVer, library, hierarchyLoadEvent) {
+  handleLibraryFiles(library); // inject lens library files in perspective view
+  lensEventApiVersion = lensEventApiVer; // save lens event api version
   u.removeSpinner(SPINNER_ID);
 
   /*
