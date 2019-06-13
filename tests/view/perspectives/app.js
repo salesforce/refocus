@@ -436,6 +436,17 @@ describe('tests/view/perspectives/app.js >', () => {
       expect(app.parseTimeout('4H')).to.equal(4 * 3600 * 1000);
       expect(app.parseTimeout('2D')).to.equal(2 * 86400 * 1000);
     });
+  });
 
+  describe('handleHierarchyEvent >', () => {
+    it('with v1 hierarchy', () => {
+      const hierarchyLoadEvent = app.exportForTesting.handleHierarchyEvent({
+        absolutePath: 'a',
+        children: [{ absolutePath: 'a.b' }]
+      }, false);
+      // console.log(hierarchyLoadEvent);
+    });
+
+    it('with v2 hierarchy');
   });
 });

@@ -50,6 +50,7 @@ import ReactDOM from 'react-dom';
 import PerspectiveController from './PerspectiveController';
 import { getValuesObject } from './utils';
 const u = require('../utils');
+const pu = require('./utils');
 const constants = require('../constants');
 const eventsQueue = require('./eventsQueue');
 const pcValues = {};
@@ -276,7 +277,7 @@ function handleHierarchyEvent(hierarchyResponse, gotLens) {
   setupAspectTimeout(hierarchyResponse);
 
   let eventDetail;
-  const hierarchyIsV1 = u.hierarchyIsV1(hierarchyResponse);
+  const hierarchyIsV1 = pu.hierarchyIsV1(hierarchyResponse);
   if (hierarchyIsV1) {
     if (lensEventApiVersion < 2) {
       eventDetail = hierarchyResponse; // just pass through as is
@@ -286,7 +287,7 @@ function handleHierarchyEvent(hierarchyResponse, gotLens) {
     }
   } else { // hierarchy is "new" format with separate list of aspects
     if (lensEventApiVersion < 2) {
-      eventDetail = u.reconstructV1Hierarchy(hierarchyResponse);
+      eventDetail = pu.reconstructV1Hierarchy(hierarchyResponse);
     } else {
       eventDetail = hierarchyResponse; // just pass through as is
     }
@@ -550,4 +551,7 @@ module.exports = {
   parseTimeout,
   setupAspectTimeout,
   setupTimeoutInterval,
+  exportForTesting: {
+    handleHierarchyEvent,
+  },
 };
