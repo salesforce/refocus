@@ -722,25 +722,20 @@ function sscanAndFilterSampleKeys(cursor, filteredSamples, opts) {
       const newCursor = reply[0];
       const sampleKeys = reply[1];
 
-      return Promise.resolve()
-        .then(() => {
-          if (opts.filter && opts.filter.name) {
-            return modelUtils.filterSampleKeysByName(sampleKeys, opts);
-          }
+      let keys = sampleKeys;
+      if (opts.filter && opts.filter.name) {
+        keys = modelUtils.filterSampleKeysByName(sampleKeys, opts);
+      }
 
-          return sampleKeys;
-        })
-        .then((keys) => {
-          keys.forEach((key) => {
-            filteredSamples.add(key);
-          });
+      keys.forEach((key) => {
+        filteredSamples.add(key);
+      });
 
-          if (newCursor === '0') {
-            return Array.from(filteredSamples);
-          }
+      if (newCursor === '0') {
+        return Array.from(filteredSamples);
+      }
 
-          return sscanAndFilterSampleKeys(newCursor, filteredSamples);
-        });
+      return sscanAndFilterSampleKeys(newCursor, filteredSamples);
     });
 }
 
@@ -1326,15 +1321,14 @@ module.exports = {
           return getSamplesAndAspects(sampleKeys);
         })
         .then((samplesAndAspects) => {
-          const { samples, sampAspectMap } =
+          let { samples, sampAspectMap } =
             assembleSampleAspects(samplesAndAspects);
 
           if (samples.length > 1 && hasOrder && opts.order !== ['name']) {
             let filteredSamples = modelUtils.sortByOrder(samples, opts.order);
             filteredSamples = modelUtils.applyLimitAndOffset(
               opts, filteredSamples);
-            return applyAttributesFilter(filteredSamples, opts,
-              sampAspectMap, req.method);
+            samples = filteredSamples;
           }
 
           return applyAttributesFilter(samples, opts,
@@ -1384,6 +1378,7 @@ module.exports = {
           keys = modelUtils.applyLimitAndOffset(opts, filteredKeys);
         } else if (opts.order === ['-name']) {
           filteredKeys.sort();
+          filteredKeys.reverse();
           keys = modelUtils.applyLimitAndOffset(opts, filteredKeys);
         }
 

@@ -190,17 +190,10 @@ function getSampleKeysUsingMaps(subjectAspExpr, hasSubjectName) {
 function filterSampleKeysByName(sampleKeys, opts) {
   const namefilterValues = opts.filter.name.split(',').map((n) => n.trim());
 
-  return Promise.all(namefilterValues.map((filterVal) => {
+  return namefilterValues.map((filterVal) => {
     const sampArr = filterByFieldWildCardExpr(sampleKeys, 'name', filterVal);
     return sampArr;
-  })).then((sampleArr) => {
-    const resSampleKeys = [];
-    sampleArr.forEach((samples) => {
-      resSampleKeys.push(...samples);
-    });
-
-    return resSampleKeys;
-  });
+  }).reduce((a, b) => [...a, ...b]);
 } // filterSampleKeysByName
 
 /**
