@@ -307,6 +307,21 @@ describe('tests/cache/models/samples/get.js, ' +
           .end(done);
       });
 
+      it('name filter, multiple samples, one does not exist', (done) => {
+        const NAME1 = '___Subject1.___Subject2|___Aspect2';
+        const NAME2 = '___Subject1|___NOTEXIST';
+        const NAME3 = '___Subject1.___Subject3|___Aspect2';
+        api.get(path + `?name=${NAME1}, ${NAME2},${NAME3}`)
+          .set('Authorization', token)
+          .expect(constants.httpStatus.OK)
+          .expect((res) => {
+            expect(res.body.length).to.equal(2);
+            expect(res.body[0].name).to.equal(NAME1);
+            expect(res.body[1].name).to.equal(NAME3);
+          })
+          .end(done);
+      });
+
       it('name filter, no wildcard, multiple samples, sort order,' +
         ' fields filter', (done) => {
         const sampS1S2A2 = '___Subject1.___Subject2|___Aspect2';

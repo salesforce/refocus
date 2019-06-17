@@ -702,8 +702,12 @@ function assembleSampleAspects(samplesAndAspects) {
   // e.g { samplename: asp object }, so that we can attach aspect later
   const sampAspectMap = {};
   for (let num = 0; num < samplesAndAspects.length; num += TWO) {
-    samples.push(samplesAndAspects[num]);
-    sampAspectMap[samplesAndAspects[num].name] = samplesAndAspects[num + ONE];
+    const sample = samplesAndAspects[num];
+    const aspect = samplesAndAspects[num + ONE];
+    if (sample && aspect) {
+      samples.push(sample);
+      sampAspectMap[sample.name] = aspect;
+    }
   }
 
   return { samples, sampAspectMap };
