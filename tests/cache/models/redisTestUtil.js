@@ -20,26 +20,24 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const Sample = tu.db.Sample;
 const testStartTime = new Date();
-
-module.exports = {
-  populateRedis(done) {
-    let a1;
-    let a2;
-    let s1;
-    let s2;
-    let s3;
-    tu.toggleOverride(sampleStore.constants.featureName, true);
-    Aspect.create({
-      isPublished: true,
-      name: `${tu.namePrefix}Aspect1`,
-      timeout: '30s',
-      valueType: 'NUMERIC',
-      criticalRange: [0, 1],
-      relatedLinks: [
-        { name: 'Google', value: 'http://www.google.com' },
-        { name: 'Yahoo', value: 'http://www.yahoo.com' },
-      ],
-    })
+let a1;
+let a2;
+let s1;
+let s2;
+let s3;
+function createThreeSamples() {
+  tu.toggleOverride(sampleStore.constants.featureName, true);
+  return Aspect.create({
+    isPublished: true,
+    name: `${tu.namePrefix}Aspect1`,
+    timeout: '30s',
+    valueType: 'NUMERIC',
+    criticalRange: [0, 1],
+    relatedLinks: [
+      { name: 'Google', value: 'http://www.google.com' },
+      { name: 'Yahoo', value: 'http://www.yahoo.com' },
+    ],
+  })
     .then((created) => (a1 = created))
     .then(() => Aspect.create({
       isPublished: true,
@@ -93,10 +91,52 @@ module.exports = {
       relatedLinks: [
         { name: 'Salesforce', value: 'http://www.salesforce.com' },
       ],
-    }))
-    .then(() => samstoinit.populate())
-    .then(() => done())
-    .catch(done);
+    }));
+}
+
+module.exports = {
+  populateRedis(done) {
+    createThreeSamples()
+      .then(() => samstoinit.populate())
+      .then(() => done())
+      .catch(done);
+  },
+
+  populateRedisSixSamples(done) {
+    createThreeSamples()
+      .then(() => Sample.create({
+        previousStatus: 'Warning',
+        messageCode: '55',
+        subjectId: s1.id,
+        aspectId: a1.id,
+        value: '0',
+        relatedLinks: [
+          { name: 'Salesforce', value: 'http://www.salesforce.com' },
+        ],
+      }))
+      .then(() => Sample.create({
+        previousStatus: 'Warning',
+        messageCode: '55',
+        subjectId: s1.id,
+        aspectId: a2.id,
+        value: '-1',
+        relatedLinks: [
+          { name: 'Salesforce', value: 'http://www.salesforce.com' },
+        ],
+      }))
+      .then(() => Sample.create({
+        previousStatus: 'Warning',
+        messageCode: '55',
+        subjectId: s3.id,
+        aspectId: a2.id,
+        value: '5',
+        relatedLinks: [
+          { name: 'Salesforce', value: 'http://www.salesforce.com' },
+        ],
+      }))
+      .then(() => samstoinit.populate())
+      .then(() => done())
+      .catch(done);
   },
 
   forceDeleteAspSampSubj(done) {
