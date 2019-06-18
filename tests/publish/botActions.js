@@ -129,7 +129,6 @@ describe('tests/publish/botActions.js >', () => {
                 const evt = JSON.parse(subscribeTracker[0]);
                 expect(evt).to.have.property(botActionEvents.del);
                 const evtBody = evt[botActionEvents.del];
-                console.log(evtBody)
                 expect(evtBody).to.include.keys('id', 'isPending', 'name',
                   'actionLog', 'parameters', 'response', 'createdAt',
                   'updatedAt', 'roomId', 'botId', 'ownerId', 'userId', 'User',

@@ -21,6 +21,7 @@ const tu = require('../testUtils');
 const Subject = tu.db.Subject;
 const redisPublisher = require('../../realtime/redisPublisher');
 const sampleEvents = require('../../realtime/constants').events.sample;
+const subjectEvents = require('../../realtime/constants').events.subject;
 const samstoinit = require('../../cache/sampleStoreInit');
 const doTimeout = require('../../cache/sampleStoreTimeout').doTimeout;
 const DEFAULT_LOCAL_REDIS_URL = '//127.0.0.1:6379';
@@ -150,6 +151,228 @@ describe('tests/publish/samples.js >', () => {
             'previousStatus', 'statusChangedAt', 'aspect', 'subject',
             'absolutePath');
           done();
+        });
+    });
+
+    it('do not edit tags, no events', (done) => {
+      api.patch(`/v1/aspects/${tu.namePrefix}A2`)
+        .set('Authorization', token)
+        .send({ description: 'I have updated the description' })
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(subscribeTracker).to.have.length(0);
+          done();
+        });
+    });
+  });
+
+  describe('delete subject >', () => {
+    before(() => addSubject(`${tu.namePrefix}S9`, token)
+      .then(() => addAspect(`${tu.namePrefix}A9`, token))
+      .then(() => addAspect(`${tu.namePrefix}A10`, token))
+      .then(() => upsertSample(`${tu.namePrefix}S9|${tu.namePrefix}A9`, token))
+      .then(() =>
+        upsertSample(`${tu.namePrefix}S9|${tu.namePrefix}A10`, token))
+      .then(() => (subscribeTracker = [])));
+
+    it('one sample.remove event per sample for deleted subject', (done) => {
+      api.delete(`/v1/subjects/${tu.namePrefix}S9`)
+        .set('Authorization', token)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(subscribeTracker).to.have.length(3);
+          const s0 = JSON.parse(subscribeTracker[0]);
+          expect(s0).to.have.property(sampleEvents.del);
+          const s0Body = s0[sampleEvents.del];
+          expect(s0Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
+            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
+            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
+            'absolutePath');
+
+          const s1 = JSON.parse(subscribeTracker[1]);
+          expect(s1).to.have.property(sampleEvents.del);
+          const s1Body = s1[sampleEvents.del];
+          expect(s1Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
+            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
+            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
+            'absolutePath');
+
+          const s3 = JSON.parse(subscribeTracker[2]);
+          expect(s3).to.have.property(subjectEvents.del);
+          const s3Body = s3[subjectEvents.del];
+          expect(s1Body)
+            .to.have.property('absolutePath', `${tu.namePrefix}S9`);
+          done();
+        })
+    });
+  });
+
+  describe('patch subject >', () => {
+    beforeEach(() => addSubject(`${tu.namePrefix}S10`, token)
+      .then(() => addSubject(`${tu.namePrefix}S11`, token)
+      .then(() => addAspect(`${tu.namePrefix}A11`, token))
+      .then(() =>
+        upsertSample(`${tu.namePrefix}S10|${tu.namePrefix}A11`, token)))
+      .then(() => (subscribeTracker = [])));
+
+    afterEach(() => tu.forceDelete(tu.db.Subject)
+      .then(() => tu.forceDelete(tu.db.Aspect)));
+
+    it('isPublished true>>false, subscriber gets sample remove event and ' +
+      'subject remove event, then update false to true and get subject add ' +
+      'but no sample events', (done) => {
+      api.patch(`/v1/subjects/${tu.namePrefix}S10`, token)
+        .set('Authorization', token)
+        .send({ isPublished: false })
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(subscribeTracker).to.have.length(2);
+          const s0 = JSON.parse(subscribeTracker[0]);
+          expect(s0).to.have.property(sampleEvents.del);
+
+          const s1 = JSON.parse(subscribeTracker[1]);
+          expect(s1).to.have.property(subjectEvents.del);
+
+          subscribeTracker = [];
+
+          api.patch(`/v1/subjects/${tu.namePrefix}S10`, token)
+            .set('Authorization', token)
+            .send({ isPublished: true })
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              expect(subscribeTracker).to.have.length(1);
+              const s0 = JSON.parse(subscribeTracker[0]);
+              expect(s0).to.have.property(subjectEvents.add);
+
+              done();
+            });
+        });
+    });
+
+    it('update parentAbsolutePath of published subject, subscriber gets ' +
+      'sample remove event, subject remove event, subject add ' +
+      'event', (done) => {
+      api.patch(`/v1/subjects/${tu.namePrefix}S10`, token)
+        .set('Authorization', token)
+        .send({ parentAbsolutePath: `${tu.namePrefix}S11` })
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(subscribeTracker).to.have.length(3);
+          const s0 = JSON.parse(subscribeTracker[0]);
+          expect(s0).to.have.property(sampleEvents.del);
+
+          const s1 = JSON.parse(subscribeTracker[1]);
+          expect(s1).to.have.property(subjectEvents.del);
+
+          const s2 = JSON.parse(subscribeTracker[2]);
+          expect(s2).to.have.property(subjectEvents.add);
+
+          done();
+        });
+    });
+
+    it('update name of published subject, subscriber gets sample remove ' +
+      'event, subject remove event, subject add event', (done) => {
+      api.patch(`/v1/subjects/${tu.namePrefix}S10`, token)
+        .set('Authorization', token)
+        .send({ name: `${tu.namePrefix}S10b` })
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(subscribeTracker).to.have.length(3);
+          const s0 = JSON.parse(subscribeTracker[0]);
+          expect(s0).to.have.property(sampleEvents.del);
+
+          const s1 = JSON.parse(subscribeTracker[1]);
+          expect(s1).to.have.property(subjectEvents.del);
+
+          const s2 = JSON.parse(subscribeTracker[2]);
+          expect(s2).to.have.property(subjectEvents.add);
+
+          done();
+        });
+    });
+
+    it('update tags of published subject, subscriber gets sample remove ' +
+      'event, subject remove event, subject add event', (done) => {
+      api.patch(`/v1/subjects/${tu.namePrefix}S10`, token)
+        .set('Authorization', token)
+        .send({ tags: ['t1', 't2'] })
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(subscribeTracker).to.have.length(3);
+          const foundEvents = subscribeTracker.map((st) =>
+            Object.keys(JSON.parse(st))[0]);
+          expect(foundEvents).to.include.members([
+            'refocus.internal.realtime.subject.remove',
+            'refocus.internal.realtime.subject.add',
+            'refocus.internal.realtime.sample.remove',
+          ]);
+          done();
+        });
+    });
+
+    it('update description of published subject, subscriber gets update ' +
+      'event, no sample events', (done) => {
+      api.patch(`/v1/subjects/${tu.namePrefix}S10`, token)
+        .set('Authorization', token)
+        .send({ description: 'Updated' })
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(subscribeTracker).to.have.length(1);
+          const s0 = JSON.parse(subscribeTracker[0]);
+          expect(s0).to.have.property(subjectEvents.upd);
+          done();
+        });
+    });
+
+    it('update name of unpublished subject, subscriber gets no ' +
+      'subject or sample events', (done) => {
+      api.patch(`/v1/subjects/${tu.namePrefix}S10`, token)
+        .set('Authorization', token)
+        .send({ isPublished: false })
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(subscribeTracker).to.have.length(2);
+          subscribeTracker = [];
+
+          api.patch(`/v1/subjects/${tu.namePrefix}S10`, token)
+            .set('Authorization', token)
+            .send({ name: `${tu.namePrefix}S10b`})
+            .end((err, res) => {
+              if (err) {
+                return done(err);
+              }
+
+              expect(subscribeTracker).to.have.length(0);
+              done();
+            });
         });
     });
   });
@@ -288,7 +511,9 @@ describe('tests/publish/samples.js >', () => {
       .then(() => (subscribeTracker = [])));
 
     it('sample update event', (done) => {
-      api.delete(`/v1/samples/${tu.namePrefix}S6|${tu.namePrefix}A6/relatedLinks/a`)
+      const pth =
+        `/v1/samples/${tu.namePrefix}S6|${tu.namePrefix}A6/relatedLinks/a`;
+      api.delete(pth)
         .set('Authorization', token)
         .end((err, res) => {
           if (err) {
@@ -319,7 +544,9 @@ describe('tests/publish/samples.js >', () => {
       .then(() => (subscribeTracker = [])));
 
     it('sample update event', (done) => {
-      api.delete(`/v1/samples/${tu.namePrefix}S7|${tu.namePrefix}A7/relatedLinks`)
+      const pth =
+        `/v1/samples/${tu.namePrefix}S7|${tu.namePrefix}A7/relatedLinks`;
+      api.delete(pth)
         .set('Authorization', token)
         .end((err, res) => {
           if (err) {

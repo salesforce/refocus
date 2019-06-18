@@ -304,6 +304,8 @@ module.exports = function subject(seq, dataTypes) {
                * If subject tags or parent were not updated, just send the usual
                * "update" event.
                */
+              pubPromises.push(subjectUtils.removeRelatedSamples(
+                inst._previousDataValues, seq, true));
               pubPromises.push(publishObject(inst._previousDataValues,
                 eventName.del, changedKeys, ignoreAttributes));
               pubPromises.push(publishObject(inst, eventName.add, changedKeys,
