@@ -8729,6 +8729,7 @@ paths:
           items:
             type: string
             enum:
+              - name
               - messageBody
               - messageCode
               - status
@@ -8741,6 +8742,7 @@ paths:
               - -value
               - -createdAt
               - -updatedAt
+              - -name
               # TODO aspect name
               # TODO subject absolutePath
         -
