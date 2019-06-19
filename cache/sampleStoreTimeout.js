@@ -20,6 +20,10 @@ const constants = require('../api/v1/constants');
 const fieldsToStringify = require('./sampleStore').constants.fieldsToStringify;
 const redisErrors = require('./redisErrors');
 const rconf = require('../config').redis;
+const publisher = require('../realtime/redisPublisher');
+const sampleEvent = require('../realtime/constants').events.sample;
+const helper = require('../api/v1/helpers/nouns/samples');
+const model = require('./models/samples');
 const IORedis = require('ioredis');
 const ioredisClient = new IORedis(rconf.instanceUrl.sampleStore);
 const featureToggles = require('feature-toggles');
@@ -76,11 +80,7 @@ function getSampleTimeoutComponents(samples, aspects, curr) {
       const sampleKey = sampleStore
         .toKey(sampleStore.constants.objectType.sample, samp.name);
       logInvalidHmsetValues(sampleKey, objToUpdate);
-      sampCmds.push([
-        'hmset',
-        sampleKey,
-        objToUpdate,
-      ]);
+      sampCmds.push(['hmset', sampleKey, objToUpdate]);
     }
   }
 
@@ -130,9 +130,7 @@ module.exports = {
       });
 
       aspectsSet.forEach((aspName) => {
-        commands.push(
-          ['hgetall', sampleStore.toKey(aspectType, aspName)]
-        );
+        commands.push(['hgetall', sampleStore.toKey(aspectType, aspName)]);
       });
 
       // ioredis use
@@ -180,10 +178,12 @@ module.exports = {
 
       return redisClient.batch(sampCmds).execAsync();
     })
-    .then(() => {
-      const res = { numberEvaluated, numberTimedOut, timedOutSamples };
-      return res;
-    })
+    .then(() => Promise.all(timedOutSamples.map((s) =>
+      model.getSample({ key: { value: s.name } }))))
+    .then((samples) => Promise.all(samples.map((s) =>
+      publisher.publishSample(s, helper.associatedModels.subject,
+        sampleEvent.upd, helper.associatedModels.aspect))))
+    .then(() => ({ numberEvaluated, numberTimedOut, timedOutSamples }))
     .catch((err) => {
       throw err;
     });
