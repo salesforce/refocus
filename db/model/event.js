@@ -8,7 +8,7 @@
  */
 
 /**
- * db/model/event.js
+ * db/model/events.js
  *
  * This model is to store any log that might need to be searched
  * for later. The context JSON can be any format that log line

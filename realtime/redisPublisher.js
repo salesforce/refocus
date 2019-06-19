@@ -159,8 +159,8 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
     }
   }
 
-  pubClient.publish(channelName, JSON.stringify(obj));
-  return obj;
+  return pubClient.publishAsync(channelName, JSON.stringify(obj))
+    .then((numClients) => obj);
 } // publishObject
 
 /**
@@ -196,8 +196,8 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     .then((sample) => {
       if (sample) {
         sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
-        publishObject(sample, eventType);
-        return sample;
+        return publishObject(sample, eventType)
+          .then(() => sample);
       }
     })
     .catch((err) => {
@@ -233,11 +233,8 @@ function publishSampleNoChange(sample) {
       timeout: sample.aspectTimeout,
     },
   };
-  return Promise.resolve(true)
-  .then(() => {
-    publishObject(s, sampleEvent.nc);
-    return sample;
-  });
+  return publishObject(s, sampleEvent.nc)
+    .then(() => sample);
 } // publishSampleNoChange
 
 module.exports = {

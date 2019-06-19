@@ -23,19 +23,10 @@ const sampleStoreTimeout = require('../../cache/sampleStoreTimeout');
  */
 function execute() {
   return sampleStoreTimeout.doTimeout()
-  .then((dbRes) => {
-    // send the timeoutsample to the client by publishing it to redis channel
-    if (dbRes.timedOutSamples) {
-      dbRes.timedOutSamples.forEach((sample) => {
-        publisher.publishSample(sample, dbSubject, sampleEvent.upd);
-      });
-    }
-
-    return {
-      recordCount: dbRes.numberTimedOut,
-      errorCount: dbRes.numberEvaluated - dbRes.numberTimedOut,
-    };
-  });
+  .then((dbRes) => ({
+    recordCount: dbRes.numberTimedOut,
+    errorCount: dbRes.numberEvaluated - dbRes.numberTimedOut,
+  }));
 } // execute
 
 module.exports = {

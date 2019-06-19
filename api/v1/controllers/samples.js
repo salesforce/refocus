@@ -280,16 +280,21 @@ module.exports = {
     const resultObj = { reqStartTime: req.timestamp };
     const reqParams = req.swagger.params;
     const toPost = reqParams.queryBody.value;
+    let s;
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
     u.checkDuplicateRLinks(toPost.relatedLinks);
     sampleModel.postSample(toPost, req.user)
     .then((sample) => {
+      s = sample;
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      publisher.publishSample(sample, helper.associatedModels.subject,
-      realtimeEvents.sample.add, helper.associatedModels.aspect);
-      u.logAPI(req, resultObj, sample);
+      return publisher.publishSample(sample, helper.associatedModels.subject,
+        realtimeEvents.sample.add, helper.associatedModels.aspect);
+    })
+    .then(() => {
+      if (s.hasOwnProperty('aspect')) delete s.aspect;
+      u.logAPI(req, resultObj, s);
       return res.status(httpStatus.CREATED)
-        .json(u.responsify(sample, helper, req.method));
+        .json(u.responsify(s, helper, req.method));
     })
     .catch((err) => {
       // Tracking invalid sample name problems, e.g. missing name
@@ -370,10 +375,13 @@ module.exports = {
 
       const upsertSamplePromise =
         sampleModel.upsertSample(sampleQueryBody, user);
+      let dataValues;
+      let sample;
       return upsertSamplePromise
       .then((samp) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        const dataValues = samp.dataValues ? samp.dataValues : samp;
+        dataValues = samp.dataValues ? samp.dataValues : samp;
+        sample = samp;
 
         // loop through remove values to delete property
         u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
@@ -382,11 +390,12 @@ module.exports = {
          * Send the upserted sample to the client by publishing it to the redis
          * channel.
          */
-        publisher.publishSample(samp, subHelper.model);
-
+        return publisher.publishSample(samp, subHelper.model);
+      })
+      .then(() => {
         u.logAPI(req, resultObj, dataValues);
         return res.status(httpStatus.OK)
-          .json(u.responsify(samp, helper, req.method));
+          .json(u.responsify(sample, helper, req.method));
       });
     } // doUpsert
 
@@ -480,25 +489,24 @@ module.exports = {
     const userName = req.user ? req.user.name : undefined;
     const delRlinksPromise =
       sampleModel.deleteSampleRelatedLinks(params, userName);
+    let retval;
 
     delRlinksPromise.then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      const retval = u.responsify(o, helper, req.method);
+      retval = u.responsify(o, helper, req.method);
 
       // loop through remove values to delete property
       u.removeFieldsFromResponse(helper.fieldsToExclude, retval);
 
-      /* send the updated sample to the client by publishing it to the redis
-      channel */
-      publisher.publishSample(
+      return publisher.publishSample(
         o, helper.associatedModels.subject, u.realtimeEvents.sample.upd,
         helper.associatedModels.aspect
       );
-
-      u.logAPI(req, resultObj, retval);
-      res.status(httpStatus.OK).json(retval);
     })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+      .then(() => {
+        u.logAPI(req, resultObj, retval);
+        res.status(httpStatus.OK).json(retval);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
   },
-
 }; // exports
