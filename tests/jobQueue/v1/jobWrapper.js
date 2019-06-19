@@ -20,6 +20,19 @@ const path = '/v1/samples/upsert/bulk';
 const sinon = require('sinon');
 const activityLogUtil = require('../../../utils/activityLog');
 const MILLISECONDS_EXPRESSION = /^\d*ms/;
+const featureToggles = require('feature-toggles');
+
+const jobPriority = {
+  high: 'high',
+  normal: 'normal',
+  low: 'low',
+};
+
+if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj')) {
+  jobPriority.high = 1;
+  jobPriority.normal = 50;
+  jobPriority.low = 100;
+}
 
 describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
   beforeEach((done) => {
@@ -67,6 +80,8 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
     'job id', (done) => {
     const jobType = 'myTestJob';
     const testData = { foo: 'bar' };
+    const jobPriorityNum = featureToggles.isFeatureEnabled(
+      'enableBullForBulkDelSubj') ? 50 : 0;
     jobWrapper.createPromisifiedJob(jobType, testData)
     .then((job) => {
       expect(job).to.not.equal(null);
@@ -77,7 +92,7 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
         activityLogUtil.printActivityLogString,
         sinon.match({
           jobId: sinon.match.number,
-          jobPriority: 0,
+          jobPriority: jobPriorityNum,
           jobType: 'myTestJob',
           process: sinon.match.any,
           totalTime: sinon.match(MILLISECONDS_EXPRESSION),
@@ -86,6 +101,45 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
       done();
     })
     .catch((err) => done(err));
+  });
+
+  it('jobWrapper: bulkDeleteSubjects: promisified job creation should return' +
+    ' job with a job id', (done) => {
+    const jobType = 'bulkDeleteSubjects';
+    const testData = { foo: 'bar' };
+    jobWrapper.createPromisifiedJob(jobType, testData)
+      .then((job) => {
+        expect(job).to.not.equal(null);
+        expect(job.type).to.equal(jobType);
+        expect(job.data).to.equal(testData);
+        expect(job.id).to.be.at.least(1);
+        if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj')) {
+          sinon.assert.calledWith(
+            activityLogUtil.printActivityLogString,
+            sinon.match({
+              jobId: sinon.match.string,
+              jobPriority: 50,
+              jobType: 'bulkDeleteSubjects',
+              process: sinon.match.any,
+              totalTime: sinon.match(MILLISECONDS_EXPRESSION),
+            }),
+            'jobCreate');
+        } else {
+          sinon.assert.calledWith(
+            activityLogUtil.printActivityLogString,
+            sinon.match({
+              jobId: sinon.match.number,
+              jobPriority: 0,
+              jobType: 'bulkDeleteSubjects',
+              process: sinon.match.any,
+              totalTime: sinon.match(MILLISECONDS_EXPRESSION),
+            }),
+            'jobCreate');
+        }
+
+        done();
+      })
+      .catch((err) => done(err));
   });
 
   describe('calculateJobPriority >', () => {
@@ -110,7 +164,7 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
         locals: {
           ipAddress: '123.456.789',
         },
-      })).to.equal('high');
+      })).to.equal(jobPriority.high);
     });
 
     it('prioritize by token', () => {
@@ -123,7 +177,7 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
         locals: {
           ipAddress: '456.789.123',
         },
-      })).to.equal('high');
+      })).to.equal(jobPriority.high);
     });
 
     it('prioritize by ip address', () => {
@@ -136,7 +190,7 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
         locals: {
           ipAddress: '123.456.789',
         },
-      })).to.equal('high');
+      })).to.equal(jobPriority.high);
     });
 
     it('deprioritize by name', () => {
@@ -149,7 +203,7 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
         locals: {
           ipAddress: '789.123.456',
         },
-      })).to.equal('low');
+      })).to.equal(jobPriority.low);
     });
 
     it('deprioritize by token', () => {
@@ -162,7 +216,7 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
         locals: {
           ipAddress: '789.123.456',
         },
-      })).to.equal('low');
+      })).to.equal(jobPriority.low);
     });
 
     it('deprioritize by ip address', () => {
@@ -175,7 +229,7 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
         locals: {
           ipAddress: '456.789.123',
         },
-      })).to.equal('low');
+      })).to.equal(jobPriority.low);
     });
 
     it('empty prioritize/deprioritize arrays', () => {
@@ -188,7 +242,7 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
         locals: {
           ipAddress: '123.456.789',
         },
-      })).to.equal('normal');
+      })).to.equal(jobPriority.normal);
     });
   });
 });
