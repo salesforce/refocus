@@ -499,6 +499,21 @@ describe('tests/cache/models/samples/get.js, ' +
           .end(done);
       });
 
+      it('filter by status and limit', (done) => {
+        api.get(path + '?status=Invalid&limit=2')
+          .set('Authorization', token)
+          .expect(constants.httpStatus.OK)
+          .expect((res) => {
+            expect(res.body.length).to.equal(2);
+            expect(res.body[0].name).to.equal(s1s3a1);
+            expect(res.body[1].name).to.equal(s1s3a2);
+            res.body.forEach((obj) => {
+              expect(obj.status).to.equal('Invalid');
+            });
+          })
+          .end(done);
+      });
+
       it('filter by value, sort by status', (done) => {
         api.get(path + '?value=5&sort=-name')
           .set('Authorization', token)
