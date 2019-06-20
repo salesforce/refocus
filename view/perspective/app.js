@@ -293,9 +293,8 @@ function handleHierarchyEvent(hierarchyResponse, gotLens) {
     }
   }
 
-  const hierarchyLoadEvent = new CustomEvent('refocus.lens.hierarchyLoad', {
-    detail: eventDetail,
-  });
+  const hierarchyLoadEvent = new window.CustomEvent(
+    'refocus.lens.hierarchyLoad', { detail: eventDetail });
 
   /*
    * The order of events matters so only dispatch the hierarchyLoad event if
@@ -445,7 +444,7 @@ function handleLensDomEvent(lensEventApiVer, library, hierarchyLoadEvent) {
    * Load the lens. Pass userId from cookie through to the lens, in case the
    * lens wants to do any analytics by userId.
    */
-  const lensLoadEvent = new CustomEvent('refocus.lens.load', {
+  const lensLoadEvent = new window.CustomEvent('refocus.lens.load', {
     detail: {
       userId: u.getCookie('userId'),
     },

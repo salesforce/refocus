@@ -441,10 +441,8 @@ function reconstructV1Hierarchy(h) {
   });
 
   function traverse(subj) {
-    console.log(`entered traverse(${subj.absolutePath})`)
     if (subj.hasOwnProperty('samples')) {
       subj.samples.forEach((samp) => {
-        console.log(`  iterating over samples... ${samp.name}`)
         const aspectName = samp.name.split('|')[1].toLowerCase();
         const aspect = lowerCaseAspectMap[aspectName];
         samp.aspectId = aspect.id;

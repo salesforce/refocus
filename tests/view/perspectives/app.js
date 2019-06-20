@@ -16,6 +16,8 @@ import { getFilterQuery,
   getTagsFromArrays } from '../../../view/perspective/utils.js';
 const app = require('../../../view/perspective/app.js');
 const eventsQueue = require('../../../view/perspective/eventsQueue.js');
+const v1hierarchy = require('./v1hierarchy');
+const v2hierarchy = require('./v2hierarchy');
 
 describe('tests/view/perspectives/app.js >', () => {
   describe('get filter query >', () => {
@@ -440,13 +442,15 @@ describe('tests/view/perspectives/app.js >', () => {
 
   describe('handleHierarchyEvent >', () => {
     it('with v1 hierarchy', () => {
-      const hierarchyLoadEvent = app.exportForTesting.handleHierarchyEvent({
-        absolutePath: 'a',
-        children: [{ absolutePath: 'a.b' }]
-      }, false);
-      // console.log(hierarchyLoadEvent);
+      const hierarchyLoadEvent =
+        app.exportForTesting.handleHierarchyEvent(v1hierarchy, false);
+      expect(hierarchyLoadEvent.detail).to.deep.equal(v1hierarchy);
     });
 
-    it('with v2 hierarchy');
+    it('with v2 hierarchy', () => {
+      const hierarchyLoadEvent =
+        app.exportForTesting.handleHierarchyEvent(v2hierarchy, false);
+      expect(hierarchyLoadEvent.detail).to.deep.equal(v1hierarchy);
+    });
   });
 });
