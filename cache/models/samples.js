@@ -739,7 +739,7 @@ function sscanAndFilterSampleKeys(cursor, filteredSamples, opts) {
         return Array.from(filteredSamples);
       }
 
-      return sscanAndFilterSampleKeys(newCursor, filteredSamples);
+      return sscanAndFilterSampleKeys(newCursor, filteredSamples, opts);
     });
 }
 
