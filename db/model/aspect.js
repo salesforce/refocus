@@ -165,21 +165,7 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       beforeDestroy(inst /* , opts */) {
-        const promiseArr = [];
-
-        promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
-          .each((samp) => {
-            if (samp) {
-              publishSample(
-                samp, seq.models.Subject, sampleEventNames.del,
-                seq.models.Aspect
-              );
-            }
-          })
-        );
-
-        promiseArr.push(inst.checkGeneratorReferences('delete'));
-        return seq.Promise.all(promiseArr);
+        return inst.checkGeneratorReferences('delete');
       }, // hooks.beforeDestroy
 
       /**

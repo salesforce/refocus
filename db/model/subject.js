@@ -148,7 +148,7 @@ module.exports = function subject(seq, dataTypes) {
       afterCreate(inst /* , opts */) {
         const promiseArr = [];
         if (inst.getDataValue('isPublished') === true) {
-          publishObject(inst, eventName.add);
+          promiseArr.push(publishObject(inst, eventName.add));
         }
 
         // Prevent any changes to original inst dataValues object
@@ -277,22 +277,23 @@ module.exports = function subject(seq, dataTypes) {
         return Promise.all(promiseArr)
           .then(() => redisOps.executeBatchCmds(cmds))
           .then(() => {
+            const pubPromises = [];
             if (isSubjectUnpublished) {
               // Treat unpublishing a subject as a "delete" event.
-              publishObject(inst, eventName.del);
+              pubPromises.push(publishObject(inst, eventName.del));
             } else if (isSubjectPublished) {
               // Treat publishing a subject as an "add" event.
-              publishObject(inst, eventName.add);
+              pubPromises.push(publishObject(inst, eventName.add));
             } else if (inst.isPublished && inst.changed('absolutePath')) {
               /*
                * When an absolutePath is changed, send a subject delete event with
                * the old subject instance, followed by a subject add event with
                * the new subject instance
                */
-              publishObject(inst._previousDataValues, eventName.del,
-                changedKeys, ignoreAttributes);
-              publishObject(inst, eventName.add, changedKeys,
-                ignoreAttributes);
+              pubPromises.push((publishObject(inst._previousDataValues,
+                eventName.del, changedKeys, ignoreAttributes)));
+              pubPromises.push(publishObject(inst, eventName.add, changedKeys,
+                ignoreAttributes));
             } else if (inst.isPublished && (common.tagsChanged(inst) ||
               inst.changed('parentId'))) {
               /*
@@ -303,14 +304,18 @@ module.exports = function subject(seq, dataTypes) {
                * If subject tags or parent were not updated, just send the usual
                * "update" event.
                */
-              publishObject(inst._previousDataValues, eventName.del,
-                changedKeys, ignoreAttributes);
-              publishObject(inst, eventName.add, changedKeys,
-                ignoreAttributes);
+              pubPromises.push(subjectUtils.removeRelatedSamples(
+                inst._previousDataValues, seq, true));
+              pubPromises.push(publishObject(inst._previousDataValues,
+                eventName.del, changedKeys, ignoreAttributes));
+              pubPromises.push(publishObject(inst, eventName.add, changedKeys,
+                ignoreAttributes));
             } else if (inst.getDataValue('isPublished')) {
-              publishObject(inst, eventName.upd, changedKeys,
-                ignoreAttributes);
+              pubPromises.push(publishObject(inst, eventName.upd, changedKeys,
+                ignoreAttributes));
             }
+
+            return Promise.all(pubPromises);
           });
       }, // hooks.afterUpdate
 
