@@ -76,6 +76,10 @@ describe('tests/api/v1/collectors/patch.js >', () => {
     .catch(done);
   });
 
+  beforeEach(() => {
+    clock = sinon.useFakeTimers(now);
+  });
+
   beforeEach((done) => {
     Promise.all([
       Collector.create(collector1),
@@ -108,10 +112,6 @@ describe('tests/api/v1/collectors/patch.js >', () => {
         .then((g) => g.setCurrentCollector(null)),
     ]))
   );
-
-  beforeEach(() => {
-    clock = sinon.useFakeTimers(now);
-  });
 
   afterEach(() => clock.restore());
 
