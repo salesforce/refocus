@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/db/api/botActions/utils.js
+ * tests/api/v1/botActions/utils.js
  */
 'use strict';
 const tu = require('../../../testUtils');

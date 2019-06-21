@@ -134,7 +134,7 @@ module.exports = function botData(seq, dataTypes) {
         // Publish delete
         const changedKeys = Object.keys(instance._changed);
         return realTime.publishObject(instance.toJSON(),
-          botDataEventNames.del, changedKeys, [], pubOpts);
+          botDataEventNames.del, ['updatedAt'], [], pubOpts);
       }, // hooks.afterDestroy
     },
     indexes: [
