@@ -87,12 +87,19 @@ function applyFiltersOnSampleObjs(sampleArray, opts) {
     });
   }
 
-  const sortByName = opts.order &&
+  const hasNameFilterOnly = Object.keys(opts.filter).length === 1 &&
+    opts.filter.name;
+  const sortByNameOnly = opts.order &&
     (opts.order === ['name'] || opts.order === ['-name']);
 
   // If sorting was not applied on keys, sort and apply limit/offset
-  if (opts.order && !sortByName) {
-    filtered = sortByOrder(filtered, opts.order);
+  if (!hasNameFilterOnly || !sortByNameOnly) {
+    if (opts.order) {
+      filtered = sortByOrder(filtered, opts.order);
+    } else {
+      filtered = sortByOrder(filtered, ['name']);
+    }
+
     filtered = applyLimitAndOffset(opts, filtered);
   }
 
