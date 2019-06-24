@@ -197,6 +197,39 @@ function validate(seq, collectorNames) {
 }
 
 /**
+ * Used by db model.
+ * Validate the collectorGroup name field: if succeed, return a promise with
+ * the collectorGroup.
+ * If fail, reject Promise with the appropriate error
+ *
+ * @param {Object} seq - the Sequelize object
+ * @param {String} collectorGroupName - name of a collectorGroup
+ * @returns {Promise} with collectorGroup if validation pass,
+ * rejected promise with the appropriate error otherwise.
+ */
+function validateCollectorGroup(seq, collectorGroupName) {
+  if (!collectorGroupName) {
+    return Promise.resolve(null);
+  }
+
+  return new seq.Promise((resolve, reject) =>
+    seq.models.CollectorGroup.findOne({ where: { name: collectorGroupName } })
+    .then((_cg) => {
+      if (_cg) {
+        resolve(_cg);
+      }
+
+      const err = new dbErrors.ResourceNotFoundError(
+        `CollectorGroup "${collectorGroupName}" not found.`
+      );
+      err.resourceType = 'CollectorGroup';
+      err.resourceKey = collectorGroupName;
+      reject(err);
+    })
+  );
+}
+
+/**
  * Checks if any of the collectors in the array is already assigned to a group.
  * @param {Array<Object>} arr - array of collector objects
  * @returns {Array<Object>} the original array
@@ -242,4 +275,5 @@ module.exports = {
   validateVersion,
   assignUnassignedGenerators,
   validate,
+  validateCollectorGroup,
 }; // exports

@@ -175,7 +175,15 @@ function patchCollector(req, res, next) {
     return u.handleError(next, err, helper.modelName);
   }
 
-  return doPatch(req, res, next, helper);
+  const requestBody = req.swagger.params.queryBody.value;
+  return u.findByKey(helper, req.swagger.params)
+  .then((o) =>
+    o.updateCollectorGroup(requestBody)
+  )
+  .then(() =>
+    doPatch(req, res, next, helper)
+  )
+  .catch((err) => u.handleError(next, err, helper.modelName));
 } // patchCollector
 
 /**

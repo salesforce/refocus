@@ -739,7 +739,7 @@ function sscanAndFilterSampleKeys(cursor, filteredSamples, opts) {
         return Array.from(filteredSamples);
       }
 
-      return sscanAndFilterSampleKeys(newCursor, filteredSamples);
+      return sscanAndFilterSampleKeys(newCursor, filteredSamples, opts);
     });
 }
 
@@ -1377,13 +1377,15 @@ module.exports = {
       .then((filteredKeys) => {
         let keys = filteredKeys;
 
-        if (!hasOrder || opts.order === ['name']) {
-          filteredKeys.sort();
-          keys = modelUtils.applyLimitAndOffset(opts, filteredKeys);
-        } else if (opts.order === ['-name']) {
-          filteredKeys.sort();
-          filteredKeys.reverse();
-          keys = modelUtils.applyLimitAndOffset(opts, filteredKeys);
+        if (hasNameFilterOnly) {
+          if (!hasOrder || opts.order === ['name']) {
+            filteredKeys.sort();
+            keys = modelUtils.applyLimitAndOffset(opts, filteredKeys);
+          } else if (opts.order === ['-name']) {
+            filteredKeys.sort();
+            filteredKeys.reverse();
+            keys = modelUtils.applyLimitAndOffset(opts, filteredKeys);
+          }
         }
 
         return getSamplesAndAspects(keys);
