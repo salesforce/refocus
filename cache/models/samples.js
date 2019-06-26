@@ -1488,14 +1488,26 @@ module.exports = {
          * that batch of commands.
          */
         else {
-          return redisClient.sortAsync(sortArgs)
+          return redisClient.smembersAsync(
+            sampleStore.constants.indexKey.sample)
+            .then((sampleKeys) => {
+              sampleKeys.sort();
+
+              if (!hasFilters) {
+                sampleKeys = modelUtils.applyLimitAndOffset(
+                  opts, sampleKeys);
+              }
+
+              return sampleKeys;
+            })
             .then((allSampKeys) => {
               const filteredSampKeys = hasFilters ?
                 modelUtils.prefilterKeys(allSampKeys, opts) : allSampKeys;
               const commands = [];
               filteredSampKeys.forEach((sKey) => {
                 const aName = sKey.split('|')[ONE];
-                const aKey = sampleStore.toKey(constants.objectType.aspect, aName);
+                const aKey = sampleStore.toKey(
+                  constants.objectType.aspect, aName);
                 commands.push(['hgetall', sKey]);
                 commands.push(['hgetall', aKey]);
               });

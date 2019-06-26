@@ -24,7 +24,7 @@ const enableRedisSampleStore =
   featureToggles.isFeatureEnabled('enableRedisSampleStore');
 
 function testGetSamples() {
-  describe('tests/cache/models/samples/get.js > cache the response >', () => {
+  describe('cache the response >', () => {
     let token;
     const s1s2a1 = '___Subject1.___Subject2|___Aspect1';
     const s1s2a2 = '___Subject1.___Subject2|___Aspect2';
@@ -959,10 +959,17 @@ function testGetSamples() {
 }
 
 describe('tests/cache/models/samples/get.js  >', () => {
-  testGetSamples();
+  const toggleName = 'optimizeSampleFilteredGets';
+  describe(' with optimizeSampleFilteredGets toggle OFF >', () => {
+    const initialFeatureState = featureToggles
+      .isFeatureEnabled(toggleName);
+    before(() => tu.toggleOverride(toggleName, false));
+    after(() => tu.toggleOverride(toggleName,
+      initialFeatureState));
+    testGetSamples();
+  });
 
-  describe(' with optimizeSampleFilteredGets toggle on >', () => {
-    const toggleName = 'optimizeSampleFilteredGets';
+  describe(' with optimizeSampleFilteredGets toggle ON >', () => {
     const initialFeatureState = featureToggles
       .isFeatureEnabled(toggleName);
     before(() => tu.toggleOverride(toggleName, true));
