@@ -50,6 +50,7 @@ import ReactDOM from 'react-dom';
 import PerspectiveController from './PerspectiveController';
 import { getValuesObject } from './utils';
 const u = require('../utils');
+const pu = require('./utils');
 const constants = require('../constants');
 const eventsQueue = require('./eventsQueue');
 const pcValues = {};
@@ -86,6 +87,7 @@ let minTimeoutCount;
 let maxAspectTimeout;
 let lastUpdateTime;
 let intervalId;
+let lensEventApiVersion = 1;
 
 /**
  * Add error message to the errorInfo div in the page.
@@ -263,20 +265,36 @@ function handleLibraryFiles(lib) {
 } // handleLibraryFiles
 
 /**
- * Setup the aspect timeout check, then dispatch
- * hierarchyLoad event if the lens is received.
- * Return the hierarchyLoadEvent otherwise
+ * Setup the aspect timeout check. If the lens has already been loaded,
+ * dispatch the "hierarchyLoad" event. If not, return the hierarchyLoad event.
  *
- * @param {Object} rootSubject
+ * @param {Object} hierarchyResponse
  * @param {Boolean} gotLens
  * @returns {CustomEvent} if lens is received, return undefined,
  * else return hierarchyLoadEvent.
  */
-function handleHierarchyEvent(rootSubject, gotLens) {
-  setupAspectTimeout(rootSubject);
-  const hierarchyLoadEvent = new CustomEvent('refocus.lens.hierarchyLoad', {
-    detail: rootSubject,
-  });
+function handleHierarchyEvent(hierarchyResponse, gotLens) {
+  setupAspectTimeout(hierarchyResponse);
+
+  let eventDetail;
+  const hierarchyIsV1 = pu.hierarchyIsV1(hierarchyResponse);
+  if (hierarchyIsV1) {
+    if (lensEventApiVersion < 2) {
+      eventDetail = hierarchyResponse; // just pass through as is
+    } else {
+      console.error('This instance of Refocus is not ready for lenses with ' +
+        'lensEventApiVersion 2 yet.');
+    }
+  } else { // hierarchy is "new" format with separate list of aspects
+    if (lensEventApiVersion < 2) {
+      eventDetail = pu.reconstructV1Hierarchy(hierarchyResponse);
+    } else {
+      eventDetail = hierarchyResponse; // just pass through as is
+    }
+  }
+
+  const hierarchyLoadEvent = new window.CustomEvent(
+    'refocus.lens.hierarchyLoad', { detail: eventDetail });
 
   /*
    * The order of events matters so only dispatch the hierarchyLoad event if
@@ -287,8 +305,10 @@ function handleHierarchyEvent(rootSubject, gotLens) {
     return;
   }
 
-  // lens is not received yet. Return hierarchyLoadEvent
-  // to be dispatched from getLens
+  /*
+   * Lens not here yet. Return the hierarchyLoad event--it will be dispatched
+   * from getLens once the lens arrives.
+   */
   return hierarchyLoadEvent;
 }
 
@@ -415,17 +435,16 @@ function parseTimeout(timeoutString) {
  * @param {Object} hierarchyLoadEvent undefined or
  * a Custom Event
  */
-function handleLensDomEvent(library, hierarchyLoadEvent) {
-  // inject lens library files in perspective view.
-  handleLibraryFiles(library);
-
+function handleLensDomEvent(lensEventApiVer, library, hierarchyLoadEvent) {
+  handleLibraryFiles(library); // inject lens library files in perspective view
+  lensEventApiVersion = lensEventApiVer; // save lens event api version
   u.removeSpinner(SPINNER_ID);
 
   /*
    * Load the lens. Pass userId from cookie through to the lens, in case the
    * lens wants to do any analytics by userId.
    */
-  const lensLoadEvent = new CustomEvent('refocus.lens.load', {
+  const lensLoadEvent = new window.CustomEvent('refocus.lens.load', {
     detail: {
       userId: u.getCookie('userId'),
     },
@@ -531,4 +550,7 @@ module.exports = {
   parseTimeout,
   setupAspectTimeout,
   setupTimeoutInterval,
+  exportForTesting: {
+    handleHierarchyEvent,
+  },
 };
