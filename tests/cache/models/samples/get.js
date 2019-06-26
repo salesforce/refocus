@@ -121,7 +121,6 @@ function testGetSamples() {
     });
   });
 
-
   describe('tests/cache/models/samples/get.js, ' +
     `api::redisEnabled::GET ${path} >`, () => {
     let userId;
