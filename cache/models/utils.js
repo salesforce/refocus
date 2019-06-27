@@ -17,6 +17,7 @@ const sampleStore = require('../sampleStore');
 const u = require('../../api/v1/helpers/verbs/utils');
 const redisOps = require('../redisOps');
 const Promise = require('bluebird');
+const debugfindSamples = require('debug')('refocus:findSamples');
 const MINUS_ONE = -1;
 const ONE = 1;
 const ZERO = 0;
@@ -75,10 +76,14 @@ function applyLimitAndOffset(opts, arr) {
  * @returns {Array} - Filtered sample array
  */
 function applyFiltersOnSampleObjs(sampleArray, opts) {
+  debugfindSamples('entered applyFiltersOnSampleObjs. Sample array size: %d',
+    sampleArray.length);
   let filtered = sampleArray;
 
   if (opts.filter) {
     const filterOptions = opts.filter;
+    debugfindSamples('filter by field wildcard expr (except name): %o',
+      filterOptions);
     Object.keys(filterOptions).forEach((field) => {
       const value = filterOptions[field];
       if (field !== 'name' && typeof field === 'string') {
@@ -101,6 +106,8 @@ function applyFiltersOnSampleObjs(sampleArray, opts) {
     }
 
     filtered = applyLimitAndOffset(opts, filtered);
+    debugfindSamples('After sort and applying limit/offset. Number of ' +
+      'samples: %d', filtered.length);
   }
 
   return filtered;
@@ -165,6 +172,7 @@ function getSampleKeysUsingMaps(subjectAspExpr, hasSubjectName) {
     getMapMembers = redisOps.getSubjAspMapMembers(subjStr);
   }
 
+  debugfindSamples('redis executeCommand: %o', getMapMembers);
   return redisOps.executeCommand(getMapMembers)
     .then((items) => {
       const re = regexToMatchWildcards(wildCardExpr);
@@ -181,6 +189,7 @@ function getSampleKeysUsingMaps(subjectAspExpr, hasSubjectName) {
         }
       });
 
+      debugfindSamples('matched samples size: %d', sampleKeysArr.length);
       return sampleKeysArr;
     });
 }
