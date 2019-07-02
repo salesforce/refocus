@@ -22,6 +22,9 @@ const redisCache = require('../../../../cache/redisCache').client.cache;
 const featureToggles = require('feature-toggles');
 const enableRedisSampleStore =
   featureToggles.isFeatureEnabled('enableRedisSampleStore');
+const sscanSamples = require('../../../../cache/models/samples')
+  .sscanAndFilterSampleKeys;
+const config = require('../../../../config');
 
 function testGetSamples() {
   describe('cache the response >', () => {
@@ -969,12 +972,38 @@ describe('tests/cache/models/samples/get.js  >', () => {
     testGetSamples();
   });
 
-  describe(' with optimizeSampleFilteredGets toggle ON >', () => {
+  describe('with optimizeSampleFilteredGets toggle ON >', () => {
     const initialFeatureState = featureToggles
       .isFeatureEnabled(toggleName);
     before(() => tu.toggleOverride(toggleName, true));
     after(() => tu.toggleOverride(toggleName,
       initialFeatureState));
     testGetSamples();
+
+    describe('findSamplesSscanCount >', () => {
+      before(rtu.populateRedisSixSamples);
+      after(rtu.forceDelete);
+
+      it('sscan samples, no filter options', (done) => {
+        config.findSamplesSscanCount = '2';
+        const samples = new Set();
+        sscanSamples('0', samples, {})
+          .then((sampArr) => {
+            expect(sampArr.length).to.equal(6);
+            done();
+          });
+      });
+
+      it('sscan, with filter options', (done) => {
+        config.findSamplesSscanCount = '2';
+        const samples = new Set();
+        sscanSamples('0', samples,
+          { filter: { name: '___Subject1.*' } })
+          .then((sampArr) => {
+            expect(sampArr.length).to.equal(4);
+            done();
+          });
+      });
+    });
   });
 });
