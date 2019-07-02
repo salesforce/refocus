@@ -215,6 +215,10 @@ const shortTermToggles = {
 
   // use new socket.io namespace/room format for Imc rooms
   useNewNamespaceFormatImc: environmentVariableTrue(pe, 'USE_NEW_NAMESPACE_FORMAT_IMC'),
+
+  // optimize sample filtered gets
+  optimizeSampleFilteredGets: environmentVariableTrue(pe,
+    'OPTIMIZE_SAMPLE_FILTERED_GETS'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
