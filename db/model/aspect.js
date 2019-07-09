@@ -23,11 +23,10 @@ const aspectType = redisOps.aspectType;
 const Promise = require('bluebird');
 const Op = require('sequelize').Op;
 const publishSample = require('../../realtime/redisPublisher').publishSample;
-const sampleEventNames = {
-  add: 'refocus.internal.realtime.sample.add',
-  upd: 'refocus.internal.realtime.sample.update',
-  del: 'refocus.internal.realtime.sample.remove',
-};
+const publishObject = require('../../realtime/redisPublisher').publishObject;
+const realtimeConstants = require('../../realtime/constants');
+const aspectEventNames = realtimeConstants.events.aspect;
+const sampleEventNames = realtimeConstants.events.sample;
 
 module.exports = function aspect(seq, dataTypes) {
   const Aspect = seq.define('Aspect', {
@@ -150,10 +149,13 @@ module.exports = function aspect(seq, dataTypes) {
       afterCreate(inst /* , opts */) {
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-        return Promise.join(
-          redisOps.addKey(aspectType, inst.getDataValue('name')),
-          redisOps.hmSet(aspectType, inst.name, instDataObj)
-        );
+        const promiseArr = [];
+        if (inst.getDataValue('isPublished') === true) {
+          promiseArr.push(publishObject(inst, aspectEventNames.add));
+        }
+        promiseArr.push(redisOps.addKey(aspectType, inst.getDataValue('name')));
+        promiseArr.push(redisOps.hmSet(aspectType, inst.name, instDataObj));
+        return Promise.all(promiseArr);
       }, // hooks.afterCreate
 
       /**
@@ -262,6 +264,10 @@ module.exports = function aspect(seq, dataTypes) {
            */
           promiseArr.push(u.removeAspectRelatedSamples(
             inst._previousDataValues, seq));
+
+          promiseArr.push(publishObject(inst._previousDataValues,
+            aspectEventNames.del));
+          promiseArr.push(publishObject(inst, aspectEventNames.add));
         } else if (isPublishedChanged) {
           // Prevent any changes to original inst dataValues object
           const instDataObj = JSON.parse(JSON.stringify(inst.get()));
@@ -269,7 +275,9 @@ module.exports = function aspect(seq, dataTypes) {
 
           // add the aspect to the aspect master list regardless of isPublished
           promiseArr.push(redisOps.addKey(aspectType, inst.name));
-          if (!inst.isPublished) {
+          if (inst.isPublished) {
+            promiseArr.push(publishObject(inst, aspectEventNames.add));
+          } else {
             /*
              * delete multiple possible sample entries in the sample master
              * list of index and the related sample hashes. Deletes aspect
@@ -277,6 +285,7 @@ module.exports = function aspect(seq, dataTypes) {
              * subject resource map with aspect name as key.
              */
             promiseArr.push(u.removeAspectRelatedSamples(inst.dataValues, seq));
+            promiseArr.push(publishObject(inst, aspectEventNames.del));
           }
         } else if (inst.isPublished) {
           const instChanged = {};
@@ -286,6 +295,8 @@ module.exports = function aspect(seq, dataTypes) {
             instChanged[key] = inst[key];
           });
           promiseArr.push(redisOps.hmSet(aspectType, inst.name, instChanged));
+          promiseArr.push(publishObject(inst, aspectEventNames.upd,
+            Object.keys(inst._changed), []));
         }
 
         /*
@@ -318,7 +329,7 @@ module.exports = function aspect(seq, dataTypes) {
         }
 
         return seq.Promise.all(promiseArr)
-        .then(() => redisOps.executeBatchCmds(cmds));
+          .then(() => redisOps.executeBatchCmds(cmds));
       }, // hooks.afterUpdate
 
       /**
@@ -333,10 +344,14 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       afterDestroy(inst /* , opts */) {
-        return Promise.join(
+        const promises = [
           redisOps.deleteKey(aspectType, inst.name),
-          u.removeAspectRelatedSamples(inst.dataValues, seq)
-        );
+          u.removeAspectRelatedSamples(inst.dataValues, seq),
+        ];
+        if (inst.getDataValue('isPublished')) {
+          promises.push(publishObject(inst, aspectEventNames.del));
+        }
+        return Promise.all(promises);
       }, // hooks.afterDestroy
 
       /**

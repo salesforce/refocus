@@ -17,11 +17,6 @@ const redisStore = require('../cache/sampleStore');
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
 const Op = require('sequelize').Op;
-const eventName = {
-  add: 'refocus.internal.realtime.subject.add',
-  upd: 'refocus.internal.realtime.subject.update',
-  del: 'refocus.internal.realtime.subject.remove',
-};
 const filters = [
   'aspectFilter',
   'subjectTagFilter',
@@ -30,20 +25,28 @@ const filters = [
 ];
 const botAbsolutePath = '/Bots';
 const subjectAttributesToAttach = ['absolutePath', 'name', 'tags'];
-
 const ASPECT_INDEX = 0;
 const SUBJECT_INDEX = 1;
+const ObjectType = {
+  Aspect: 'Aspect',
+  Sample: 'Sample',
+  Subject: 'Subject',
+};
 
 /**
- * A function to see if an object is a subject object or not. It returns true
- * if an object passed has 'parentAbsolutePath' as one of its property.
+ * A function to see if an object is a subject/aspect/sample. It returns
+ * "Subject" if an object passed has 'parentAbsolutePath' as one of its
+ * properties, "Aspect" if has "timeout" attribute, otherwise assumes it is
+ * Sample.
+ *
  * @param  {Object}  obj - An object instance
- * @returns {Boolean} - returns true if the object has the property
- * "parentAbsolutePath"
+ * @returns {String} - returns the object type
  */
-function isThisSubject(obj) {
-  return obj.hasOwnProperty('parentAbsolutePath');
-}
+function whatAmI(obj) {
+  if (obj.hasOwnProperty('parentAbsolutePath')) return ObjectType.Subject;
+  if (obj.hasOwnProperty('timeout')) return ObjectType.Aspect;
+  return ObjectType.Sample;
+} // whatAmI
 
 /**
  * Transforms and returns the stringified object.
@@ -92,12 +95,12 @@ function parseObject(messgObj, key) {
   // If event is subject delete then send the old subject so that namespace
   // filter can send the delete event to perspectives
   if (messgObj.new) {
-    return key === eventName.del ? messgObj.old : messgObj.new;
+    return key === constants.events.subject.del ? messgObj.old : messgObj.new;
   }
 
   // If event is subject add then send the new subject so that namespace
   // filter can send the add event to perspectives
-  if (key === eventName.add && messgObj.new) {
+  if (key === constants.events.subject.add && messgObj.new) {
     return messgObj.new;
   }
 
@@ -195,9 +198,16 @@ function perspectiveEmit(nspComponents, obj) {
    * If the obj is a subject, just apply the subjectTagFilter and return the
    * result.
    */
-  if (isThisSubject(obj)) return applyFilter(subjectTagFilter, obj.tags);
+  const objectType = whatAmI(obj);
+  if (objectType === ObjectType.Subject) {
+    return applyFilter(subjectTagFilter, obj.tags);
+  }
 
-  // Otherwise it's a sample, so apply all the filters and return the result.
+  if (objectType === ObjectType.Aspect) {
+    return applyFilter(aspectFilter, obj.aspect.name) &&
+      applyFilter(aspectTagFilter, obj.tags);
+  }
+
   return applyFilter(aspectFilter, obj.aspect.name) &&
     applyFilter(subjectTagFilter, obj.subject.tags) &&
     applyFilter(aspectTagFilter, obj.aspect.tags) &&
