@@ -153,6 +153,7 @@ module.exports = function aspect(seq, dataTypes) {
         if (inst.getDataValue('isPublished') === true) {
           promiseArr.push(publishObject(inst, aspectEventNames.add));
         }
+
         promiseArr.push(redisOps.addKey(aspectType, inst.getDataValue('name')));
         promiseArr.push(redisOps.hmSet(aspectType, inst.name, instDataObj));
         return Promise.all(promiseArr);
@@ -351,6 +352,7 @@ module.exports = function aspect(seq, dataTypes) {
         if (inst.getDataValue('isPublished')) {
           promises.push(publishObject(inst, aspectEventNames.del));
         }
+
         return Promise.all(promises);
       }, // hooks.afterDestroy
 
