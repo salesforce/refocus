@@ -143,4 +143,8 @@ describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
   it('ok, goToRoomList button has onclick', () => {
     expect(document.getElementById('room_list_button').onclick).to.not.equal(null);
   });
+
+  it('ok, banner is created at the top of room.', () => {
+    expect(document.getElementById('banner').innerHTML).to.not.equal(null);
+  });
 });

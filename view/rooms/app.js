@@ -59,6 +59,13 @@ const BOT_REQ_HEADERS = {
   Expires: '-1',
   'Cache-Control': 'private, max-age=31536000', // 31536000s = 1 year
 };
+const feedBackChatterURL = 'https://gus.lightning.force.com/' +
+'lightning/r/CollaborationGroup/0F9B00000000Lv9KAE/view';
+const feedbackEmail = 'imc@salesforce.com';
+const openInNewTabProps = 'rel="noopener noreferrer" target="_blank"';
+const banner = 'Got questions or feedback? Reach IMC via ' +
+`<a href="${feedBackChatterURL}" ${openInNewTabProps}>Chatter</a> or ` +
+`<a href="mailto:${feedbackEmail}" ${openInNewTabProps}>${feedbackEmail}</a>`;
 let _realtimeApplication;
 let _io;
 let _user;
@@ -1071,10 +1078,11 @@ window.onload = () => {
     debugMessage(`Error ${err}`);
   })
   .then((res) => {
-    if(res) {
+    if (res) {
       _roomTypeName = res.body.name;
       const subTitle = `${_roomName} - ${_roomTypeName}`;
       uPage.setSubtitle(subTitle);
+      uPage.setBannerText(banner);
       document.title = subTitle;
       let layoutCookie =
         u.getCookie(`${window.location.pathname}-bots-layout`);

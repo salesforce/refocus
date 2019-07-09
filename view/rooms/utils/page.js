@@ -48,6 +48,10 @@ module.exports = {
     return document.getElementById(SUBTITLE_ELEM_ID).innerHTML = subtitle;
   },
 
+  setBannerText(text) {
+    return document.getElementById('banner').innerHTML = text;
+  },
+
   /**
    * Removes spinner from DOM.
    */

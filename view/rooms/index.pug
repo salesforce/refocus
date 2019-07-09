@@ -31,8 +31,10 @@ html
                       svg.slds-icon.slds-m-right_x-small.slds-icon_x-small(aria-hidden='true' style="fill: #000;")
                         use(xlink:href='../static/icons/utility-sprite/svg/symbols.svg#left')
                   div
-                    h1#title.slds-page-header__title.slds-m-right--small.slds-align-middle
+                    h1#title.slds-page-header__title.slds-m-right--small.slds-align-middle(style='width: max-content;')
                     p#subTitle.slds-text-body_small.slds-line-height_reset
+                  div(style='width: -webkit-fill-available; text-align: center;')
+                    span#banner.slds-text-body_medium
     block container
       div#botsContainer.slds-grid.slds-grid_align-space.slds-wrap
         div#botsLeftColumn.slds-col.slds-large-size--1-of-3.slds-size--1-of-1
