@@ -23,8 +23,6 @@ const constants = require('../../../api/v1/constants');
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
-const logger = require('../../../utils/activityLog').logger;
-const RADIX = 10;
 
 describe('tests/jobQueue/v1/bulkUpsert.js, ' +
 `api: POST using worker process ${path} >`, () => {
@@ -104,9 +102,6 @@ describe('tests/jobQueue/v1/bulkUpsert.js, ' +
   it('test logging', (done) => {
     tu.toggleOverride('enableApiActivityLogs', true);
     tu.toggleOverride('enableWorkerActivityLogs', true);
-    logger.on('logging', testLogMessage);
-    let workerLogged = false;
-    let apiLogged = false;
 
     api.post(path)
     .set('Authorization', token)
@@ -131,70 +126,7 @@ describe('tests/jobQueue/v1/bulkUpsert.js, ' +
       // don't call done() yet, need to wait for data to be logged
     });
 
-    function testLogMessage(transport, level, msg, meta) {
-      const logObj = {};
-      msg.split(' ').forEach((entry) => {
-        logObj[entry.split('=')[0]] = entry.split('=')[1];
-      });
-
-      if (logObj.activity === 'worker') {
-        try {
-          expect(logObj.totalTime).to.match(/\d+ms/);
-          expect(logObj.queueTime).to.match(/\d+ms/);
-          expect(logObj.queueResponseTime).to.match(/\d+ms/);
-          expect(logObj.workTime).to.match(/\d+ms/);
-          expect(logObj.dbTime).to.match(/\d+ms/);
-          expect(logObj.recordCount).to.equal('2');
-          expect(logObj.errorCount).to.equal('1');
-
-          const totalTime = parseInt(logObj.totalTime, RADIX);
-          const queueTime = parseInt(logObj.queueTime, RADIX);
-          const queueResponseTime = parseInt(logObj.queueResponseTime, RADIX);
-          const workTime = parseInt(logObj.workTime, RADIX);
-          const dbTime = parseInt(logObj.dbTime, RADIX);
-
-          expect(workTime).to.be.at.least(dbTime);
-          expect(totalTime).to.be.at.least(workTime);
-          expect(totalTime).to.be.at.least(queueTime);
-          expect(totalTime).to.be.at.least(queueResponseTime);
-          expect(queueTime + workTime + queueResponseTime).to.equal(totalTime);
-
-          workerLogged = true;
-          if (workerLogged && apiLogged) {
-            logger.removeListener('logging', testLogMessage);
-            tu.toggleOverride('enableApiActivityLogs', false);
-            tu.toggleOverride('enableWorkerActivityLogs', false);
-            done();
-          }
-        } catch (err) {
-          done(err);
-        }
-      }
-
-      if (logObj.activity === 'api') {
-        try {
-          expect(logObj.totalTime).to.match(/\d+ms/);
-          expect(logObj.dbTime).to.match(/\d+ms/);
-          expect(logObj.recordCount).to.equal('3');
-          expect(logObj.responseBytes).to.match(/\d+/);
-
-          const totalTime = parseInt(logObj.totalTime, RADIX);
-          const dbTime = parseInt(logObj.dbTime, RADIX);
-
-          expect(totalTime).to.be.above(dbTime);
-
-          apiLogged = true;
-          if (workerLogged && apiLogged) {
-            logger.removeListener('logging', testLogMessage);
-            tu.toggleOverride('enableApiActivityLogs', false);
-            tu.toggleOverride('enableWorkerActivityLogs', false);
-            done();
-          }
-        } catch (err) {
-          done(err);
-        }
-      }
-    };
+    u.testWorkerAPiActivityLogs(done);
   });
 
   describe('force create job to return error >', () => {

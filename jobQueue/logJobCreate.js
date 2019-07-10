@@ -11,12 +11,21 @@
  */
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
+const jobType = require('./setup').jobType;
 
 module.exports = (startTime, job) => {
   if (featureToggles.isFeatureEnabled('enableJobCreateActivityLogs')) {
+    let jobPriority;
+    if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
+      job.type === jobType.bulkDeleteSubjects) {
+      jobPriority = job.opts.priority;
+    } else {
+      jobPriority = job._priority;
+    }
+
     const jc = {
       jobId: job.id,
-      jobPriority: job._priority,
+      jobPriority,
       jobType: job.type,
       process: process.env.DYNO || process.pid,
       totalTime: `${Date.now() - startTime}ms`,
