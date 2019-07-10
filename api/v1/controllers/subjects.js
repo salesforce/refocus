@@ -36,8 +36,9 @@ const common = require('../../../utils/common');
 const WORKER_TTL = 1000 * jobSetup.ttlForJobsSync;
 const ZERO = 0;
 const Op = require('sequelize').Op;
-const kueSetup = require('../../../jobQueue/setup');
-const kue = kueSetup.kue;
+const queueSetup = require('../../../jobQueue/setup');
+const kue = queueSetup.kue;
+const bulkDelSubQueue = queueSetup.bulkDelSubQueue;
 
 /**
  * If both parentAbsolutePath and parentId are provided,
@@ -615,7 +616,7 @@ module.exports = {
         const resultObj = { reqStartTime: req.timestamp };
 
         // gives the jobId back to the client
-        body.jobId = job.id;
+        body.jobId = parseInt(job.id, 10);
         u.logAPI(req, resultObj, body,
           req.swagger.params.queryBody.value.length);
         return res.status(httpStatus.OK).json(body);
@@ -639,25 +640,60 @@ module.exports = {
     const resultObj = { reqStartTime: new Date() };
     const reqParams = req.swagger.params;
     const jobId = reqParams.key.value;
-    kue.Job.get(jobId, (_err, job) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
-      if (_err || !job || job.type !== kueSetup.jobType.bulkDeleteSubjects) {
-        const err = new apiErrors.ResourceNotFoundError();
-        return u.handleError(next, err, helper.modelName);
-      }
+    if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj')) {
+      let bulkDelSubJob;
+      bulkDelSubQueue.getJobFromId(jobId)
+        .then((job) => {
+          bulkDelSubJob = job;
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
-      const ret = {};
-      ret.status = job._state;
+          if (!job ||
+            job.queue.name !== queueSetup.jobType.bulkDeleteSubjects) {
+            const err = new apiErrors.ResourceNotFoundError();
+            throw err;
+          }
 
-      if (job._state === 'complete' && job.result.errors) {
-        ret.errors = job.result.errors;
-      } else if (job._state === 'failed') {
-        ret.error = job._error;
-      }
+          return job.getState();
+        })
+        .then((jobState) => {
+          const ret = {};
+          ret.status = jobState;
 
-      u.logAPI(req, resultObj, ret);
-      return res.status(httpStatus.OK).json(ret);
-    });
+          if (jobState === 'completed' && bulkDelSubJob.returnvalue.errors) {
+            ret.errors = bulkDelSubJob.returnvalue.errors;
+          } else if (jobState === 'failed') {
+            ret.error = bulkDelSubJob.failedReason;
+          }
+
+          u.logAPI(req, resultObj, ret);
+          return res.status(httpStatus.OK).json(ret);
+        })
+        .catch(() => {
+          const err = new apiErrors.ResourceNotFoundError();
+          return u.handleError(next, err, helper.modelName);
+        });
+    } else {
+      kue.Job.get(jobId, (_err, job) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+        if (_err || !job || job.type !== queueSetup.jobType.bulkDeleteSubjects) {
+          const err = new apiErrors.ResourceNotFoundError();
+          return u.handleError(next, err, helper.modelName);
+        }
+
+        const ret = {};
+        ret.status = job._state;
+
+        if (job._state === 'complete' && job.result.errors) {
+          ret.errors = job.result.errors;
+        } else if (job._state === 'failed') {
+          ret.error = job._error;
+        }
+
+        u.logAPI(req, resultObj, ret);
+        return res.status(httpStatus.OK).json(ret);
+      });
+    }
   },
 }; // exports

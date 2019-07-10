@@ -87,7 +87,6 @@ module.exports = (job, done) => {
   const dbStartTime = Date.now();
   let dbEndTime;
   let successCount = 0;
-
   bulkDelete(subjectKeys, readOnlyFields, user)
     .then((results) => {
       // Split success and failures
@@ -96,11 +95,13 @@ module.exports = (job, done) => {
         if (result.isFailed) {
           let error = result.explanation;
 
-          // Kue doesn't handle native errors properly because they have
-          // non-enumerable properties. Need to clone to a plain object.
-          if (typeof error === 'object') {
-            const props = ['name', ...Object.getOwnPropertyNames(error)];
-            error = JSON.parse(JSON.stringify(error, props));
+          if (!featureToggles.isFeatureEnabled('enableBullForBulkDelSubj')) {
+            // Kue doesn't handle native errors properly because they have
+            // non-enumerable properties. Need to clone to a plain object.
+            if (typeof error === 'object') {
+              const props = ['name', ...Object.getOwnPropertyNames(error)];
+              error = JSON.parse(JSON.stringify(error, props));
+            }
           }
 
           errors.push(error);
@@ -132,7 +133,7 @@ module.exports = (job, done) => {
       }
 
       jobLog(jobStartTime, job);
-
+      jobResultData.requestInfo = job.data.requestInfo;
       return done(null, jobResultData);
     })
     .catch((err) => {

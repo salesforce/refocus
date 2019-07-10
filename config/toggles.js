@@ -219,6 +219,9 @@ const shortTermToggles = {
   // optimize sample filtered gets
   optimizeSampleFilteredGets: environmentVariableTrue(pe,
     'OPTIMIZE_SAMPLE_FILTERED_GETS'),
+
+  enableBullForBulkDelSubj: environmentVariableTrue(
+    pe, 'ENABLE_BULL_FOR_BULK_DEL_SUBJ'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
