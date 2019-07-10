@@ -18,6 +18,7 @@ const conf = require('../config');
 const featureToggles = require('feature-toggles');
 const urlParser = require('url');
 const kue = require('kue');
+const BullQueue = require('bull');
 const Promise = require('bluebird');
 const activityLogUtil = require('../utils/activityLog');
 
@@ -31,12 +32,15 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
 }
 
 const jobQueue = kue.createQueue(redisOptions);
+const bulkDelSubQueue = new BullQueue(
+  conf.jobType.bulkDeleteSubjects, redisOptions.redis);
 
 function resetJobQueue() {
   return Promise.map(jobQueue.workers, (w) =>
     new Promise((resolve) => w.shutdown(resolve))
   )
-  .then(() => jobQueue.workers = []);
+  .then(() => jobQueue.workers = [])
+    .then(() => bulkDelSubQueue.empty());
 }
 
 /**
@@ -44,16 +48,34 @@ function resetJobQueue() {
  */
 function gracefulShutdown() {
   const start = Date.now();
-  jobQueue.shutdown(conf.kueShutdownTimeout, (err) => {
-    if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
-      const status = '"Job queue shutdown: ' + (err || 'OK') + '"';
-      const logWrapper = {
-        status,
-        totalTime: `${Date.now() - start}ms`,
-      };
-      activityLogUtil.printActivityLogString(logWrapper, 'sigterm');
-    }
-  });
+  function printLog(status) {
+    const logWrapper = {
+      status,
+      totalTime: `${Date.now() - start}ms`,
+    };
+    activityLogUtil.printActivityLogString(logWrapper, 'sigterm');
+  }
+
+  bulkDelSubQueue.close()
+    .then(() => {
+      if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
+        const status = '"Bull Job queue shutdown: OK"';
+        printLog(status);
+      }
+
+      return jobQueue.shutdown(conf.kueShutdownTimeout, (err) => {
+        if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
+          const status = '"Kue Job queue shutdown: ' + (err || 'OK') + '"';
+          printLog(status);
+        }
+      });
+    })
+    .catch((err) => {
+      if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
+        const status = '"Kue Job queue shutdown: ' + err + '"';
+        printLog(status);
+      }
+    });
 }
 
 jobQueue.on('error', (err) => {
@@ -76,4 +98,5 @@ module.exports = {
   ttlForJobsSync: conf.JOB_QUEUE_TTL_SECONDS_SYNC,
   delayToRemoveJobs: conf.JOB_REMOVAL_DELAY_SECONDS,
   kue,
+  bulkDelSubQueue,
 }; // exports
