@@ -263,24 +263,33 @@ describe('tests/publish/aspects.js >', () => {
                   return done(err);
                 }
 
-                expect(subscribeTracker).to.have.length(1);
-                const evt = JSON.parse(subscribeTracker[0]);
-                expect(evt).to.have.property(aspectEvents.upd);
-                const evtBody = evt[aspectEvents.upd];
-                expect(evtBody).to.have.property('new')
-                  .to.include.keys('createdAt', 'createdBy',
+                expect(subscribeTracker).to.have.length(2);
+                const evt0 = JSON.parse(subscribeTracker[0]);
+                const evt1 = JSON.parse(subscribeTracker[1]);
+                expect(evt0).to.have.property(aspectEvents.del);
+                const evtBody0 = evt0[aspectEvents.del];
+                expect(evtBody0).to.include.keys('createdAt', 'createdBy',
                   'criticalRange', 'description', 'helpEmail', 'helpUrl', 'id',
                   'imageUrl', 'infoRange', 'isPublished', 'name', 'okRange',
                   'ownerId', 'rank', 'relatedLinks', 'tags', 'timeout',
                   'updatedAt', 'valueLabel', 'valueType', 'warningRange');
-                expect(evtBody.new).to.have.property('name', name);
-                expect(evtBody.new).to.have.property('tags').to.deep.equal(tags);
+                expect(evtBody0).to.have.property('name', name);
+                expect(evtBody0).to.have.property('tags')
+                  .to.deep.equal([]);
+                const evtBody1 = evt1[aspectEvents.add];
+                expect(evtBody1).to.include.keys('createdAt', 'createdBy',
+                  'criticalRange', 'description', 'helpEmail', 'helpUrl', 'id',
+                  'imageUrl', 'infoRange', 'isPublished', 'name', 'okRange',
+                  'ownerId', 'rank', 'relatedLinks', 'tags', 'timeout',
+                  'updatedAt', 'valueLabel', 'valueType', 'warningRange');
+                expect(evtBody1).to.have.property('tags')
+                  .to.deep.equal(['Foo']);
                 done();
               });
           });
       });
 
-    it('update description of published subject, subscriber gets update ' +
+    it('update description of published aspect, subscriber gets update ' +
       'event', (done) => {
       const name = `${tu.namePrefix}PatchDesc`;
       const description = 'Cool description!';
@@ -488,7 +497,7 @@ describe('tests/publish/aspects.js >', () => {
         });
     });
 
-    it('update tags of published subject, subscriber gets update event',
+    it('update tags of published aspect, subscriber gets update event',
       (done) => {
         const name = `${tu.namePrefix}PutName`;
         const tags = ['Foo'];
@@ -516,19 +525,27 @@ describe('tests/publish/aspects.js >', () => {
                   return done(err);
                 }
 
-                expect(subscribeTracker).to.have.length(1);
-                const evt = JSON.parse(subscribeTracker[0]);
-                expect(evt).to.have.property(aspectEvents.upd);
-                const evtBody = evt[aspectEvents.upd];
-                expect(evtBody).to.have.property('new')
-                  .to.include.keys('createdAt', 'createdBy',
+                expect(subscribeTracker).to.have.length(2);
+                const evt0 = JSON.parse(subscribeTracker[0]);
+                const evt1 = JSON.parse(subscribeTracker[1]);
+                expect(evt0).to.have.property(aspectEvents.del);
+                const evtBody0 = evt0[aspectEvents.del];
+                expect(evtBody0).to.include.keys('createdAt', 'createdBy',
                   'criticalRange', 'description', 'helpEmail', 'helpUrl', 'id',
                   'imageUrl', 'infoRange', 'isPublished', 'name', 'okRange',
                   'ownerId', 'rank', 'relatedLinks', 'tags', 'timeout',
                   'updatedAt', 'valueLabel', 'valueType', 'warningRange');
-                expect(evtBody.new).to.have.property('name', name);
-                expect(evtBody.new).to.have.property('tags')
-                  .to.deep.equal(tags);
+                expect(evtBody0).to.have.property('name', name);
+                expect(evtBody0).to.have.property('tags')
+                  .to.deep.equal([]);
+                const evtBody1 = evt1[aspectEvents.add];
+                expect(evtBody1).to.include.keys('createdAt', 'createdBy',
+                  'criticalRange', 'description', 'helpEmail', 'helpUrl', 'id',
+                  'imageUrl', 'infoRange', 'isPublished', 'name', 'okRange',
+                  'ownerId', 'rank', 'relatedLinks', 'tags', 'timeout',
+                  'updatedAt', 'valueLabel', 'valueType', 'warningRange');
+                expect(evtBody1).to.have.property('tags')
+                  .to.deep.equal(['Foo']);
                 done();
               });
           });

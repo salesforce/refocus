@@ -296,8 +296,15 @@ module.exports = function aspect(seq, dataTypes) {
             instChanged[key] = inst[key];
           });
           promiseArr.push(redisOps.hmSet(aspectType, inst.name, instChanged));
-          promiseArr.push(publishObject(inst, aspectEventNames.upd,
-            Object.keys(inst._changed), []));
+
+          if (common.tagsChanged(inst)) {
+            promiseArr.push(publishObject(inst._previousDataValues,
+              aspectEventNames.del));
+            promiseArr.push(publishObject(inst, aspectEventNames.add));
+          } else {
+            promiseArr.push(publishObject(inst, aspectEventNames.upd,
+              Object.keys(inst._changed), []));
+          }
         }
 
         /*
