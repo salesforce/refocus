@@ -11,7 +11,6 @@
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
-const featureToggles = require('feature-toggles');
 const supertest = require('supertest');
 const redis = require('redis');
 const rconf = require('../../config/redisConfig');
@@ -744,7 +743,7 @@ describe('tests/publish/subjects.js >', () => {
             .expect(constants.httpStatus.OK)
             .end((_err, _res) => {
               if (_err) {
-                return done(err);
+                return done(_err);
               }
 
               expect(subscribeTracker).to.have.length(1);

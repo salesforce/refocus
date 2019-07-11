@@ -41,6 +41,12 @@ module.exports = {
   filterTypeInclude: 'INCLUDE',
 
   events: {
+    aspect: {
+      add: 'refocus.internal.realtime.aspect.add',
+      upd: 'refocus.internal.realtime.aspect.update',
+      del: 'refocus.internal.realtime.aspect.remove',
+    },
+
     subject: {
       add: 'refocus.internal.realtime.subject.add',
       upd: 'refocus.internal.realtime.subject.update',
