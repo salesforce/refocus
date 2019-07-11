@@ -170,7 +170,10 @@ function setupSocketIOClient(persBody) {
     socket = _io.connect(`${_realtimeApplication}${namespace}`, options)
              .on('connect', function() {
                this.emit('auth', _userSession);
-             });
+             })
+             .on('auth error', (err) =>
+               console.error('Socket auth error:', err)
+             );
   } else {
     const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
       `?p=${persBody.name}&t=${_userSession}`;
