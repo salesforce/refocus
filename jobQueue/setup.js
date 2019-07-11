@@ -26,14 +26,17 @@ const redisOptions = {
   redis: conf.redis.instanceUrl.queue,
 };
 
+let redisUrlForBull = redisOptions.redis;
+
 const redisInfo = urlParser.parse(redisOptions.redis, true);
 if (redisInfo.protocol !== PROTOCOL_PREFIX) {
   redisOptions.redis = 'redis:' + redisOptions.redis;
+  redisUrlForBull = 'redis:' + redisUrlForBull;
 }
 
 const jobQueue = kue.createQueue(redisOptions);
 const bulkDelSubQueue = new BullQueue(
-  conf.jobType.bulkDeleteSubjects, redisOptions.redis);
+  conf.jobType.bulkDeleteSubjects, redisUrlForBull);
 
 function resetJobQueue() {
   return Promise.map(jobQueue.workers, (w) =>
