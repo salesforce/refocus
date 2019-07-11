@@ -50,6 +50,9 @@ const iplist = configUtil.parseIPlist(ipWhitelist);
 // GET Samples Cache invalidation default time
 const DEFAULT_GET_SAMPLES_WILDCARD_CACHE_INVALIDATION = 5;
 
+// Default count for find samples when using redis sscan operation
+const DEFAULT_FIND_SAMPLES_SSCAN_COUNT_STR = '1000';
+
 // Expiry time used for redis cache
 const DEFAULT_CACHE_EXPIRY_IN_SECS = 60;
 const CACHE_EXPIRY_IN_SECS = pe.CACHE_EXPIRY_IN_SECS ||
@@ -333,4 +336,6 @@ module.exports = {
   queueTime95thMillis: pe.QUEUESTATS_95TH_WARNING_MILLIS,
   readReplicas,
   waitingSigKillTimeout,
+  findSamplesSscanCount: pe.FIND_SAMPLES_SSCAN_COUNT_STR ||
+    DEFAULT_FIND_SAMPLES_SSCAN_COUNT_STR,
 };
