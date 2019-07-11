@@ -235,7 +235,7 @@ describe('tests/publish/aspects.js >', () => {
         });
     });
 
-    it('update tags of published aspect, subscriber gets update event',
+    it('update tags of published aspect, subscriber gets remove then add',
       (done) => {
         const name = `${tu.namePrefix}PatchTags`;
         const tags = ['Foo'];
@@ -497,7 +497,7 @@ describe('tests/publish/aspects.js >', () => {
         });
     });
 
-    it('update tags of published aspect, subscriber gets update event',
+    it('update tags of published aspect, subscriber gets remove then add',
       (done) => {
         const name = `${tu.namePrefix}PutName`;
         const tags = ['Foo'];
