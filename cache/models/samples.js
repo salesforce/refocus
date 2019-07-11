@@ -34,6 +34,7 @@ const commonUtils = require('../../utils/common');
 const sampleNameSeparator = '|';
 const logger = require('winston');
 const featureToggles = require('feature-toggles');
+const config = require('../../config');
 
 const sampFields = {
   PROVIDER: 'provider',
@@ -726,11 +727,13 @@ function assembleSampleAspects(samplesAndAspects) {
  * @returns {Array} - An Array of filtered samples
  */
 function sscanAndFilterSampleKeys(cursor, filteredSamples, opts) {
-  debugfindSamples('entered sscanAndFilterSampleKeys - cursor: %s, ' +
-    'filteredSamples length: %d', cursor, filteredSamples.length);
-  return redisClient.sscanAsync(constants.indexKey.sample, cursor)
+  return redisClient.sscanAsync(constants.indexKey.sample, cursor,
+    'COUNT', config.findSamplesSscanCount)
     .then((reply) => {
       const newCursor = reply[0];
+      debugfindSamples('sscanAndFilterSampleKeys - previous cursor: %s, ' +
+        'new cursor: %s, filteredSamples length: %d', cursor, newCursor,
+        filteredSamples.size);
       const sampleKeys = reply[1];
 
       let keys = sampleKeys;
@@ -744,7 +747,7 @@ function sscanAndFilterSampleKeys(cursor, filteredSamples, opts) {
 
       if (newCursor === '0') {
         debugfindSamples('sscanAndFilterSampleKeys: returning samples ' +
-          'size: %d', filteredSamples.length);
+          'size: %d', filteredSamples.size);
         return Array.from(filteredSamples);
       }
 
@@ -1638,4 +1641,5 @@ module.exports = {
   cleanAddSubjectToSample, // export for testing only
   cleanAddAspectToSample, // export for testing only
   updateSampleAttributes, // export for testing only
+  sscanAndFilterSampleKeys, // export for testing only
 };
