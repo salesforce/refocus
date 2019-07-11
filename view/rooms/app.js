@@ -699,7 +699,10 @@ function setupSocketIOClient(realtimeApp, bots, roomId) {
     socket = _io(`${realtimeApp}${namespace}`, options)
              .on('connect', function() {
                this.emit('auth', _userSession);
-             });
+             })
+             .on('auth error', (err) =>
+               console.error('Socket auth error:', err)
+             );
   } else {
     const realtimeEndpoint = (realtimeApp.endsWith('/') ? realtimeApp :
       (realtimeApp + '/')) + `?t=${_userSession}`;
