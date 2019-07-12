@@ -71,10 +71,10 @@ function getNewObjAsString(key, obj) {
     wrappedObj[key] = {
       name: obj.name,
       updatedAt: obj.updatedAt,
-      aspect: {
-        name: obj.aspect.name,
-        timeout: obj.aspect.timeout, // needed by lens
-      },
+      // aspect: {
+      //   name: obj.aspect.name,
+      //   timeout: obj.aspect.timeout, // needed by lens
+      // },
     };
   } else {
     wrappedObj[key] = obj;

@@ -71,7 +71,7 @@ module.exports = (job, done) => {
         successCount++;
 
         // Wait for publish to complete before resolving the promise.
-        return publisher.publishSample(result, subHelper.model);
+        return publisher.publishSample(result, null);
       }));
     })
     .then(() => {

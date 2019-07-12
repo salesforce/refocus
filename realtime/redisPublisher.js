@@ -159,6 +159,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
     }
   }
 
+  // console.log('publishing >>', obj);
   return pubClient.publishAsync(channelName, JSON.stringify(obj))
     .then((numClients) => obj);
 } // publishObject
@@ -172,39 +173,33 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  * @param  {Model} subjectModel - The subject model to get the related
  *  subject instance
  * @param  {String} event  - Type of the event that is being published
- * @param  {Model} aspectModel  - The aspect model to get the related
- *  aspect instance
  * @returns {Promise} - which resolves to a sample object
  */
-function publishSample(sampleInst, subjectModel, event, aspectModel) {
+function publishSample(sampleInst, event) {
+  /**
+   * TODO: Needs to be deleted once sample store is updated because sample will
+   * no longer have these attributes.
+   */
+
+  delete sampleInst.aspectId;
+  delete sampleInst.subjectId;
+  delete sampleInst.aspect;
+  delete sampleInst.subject;
+
   if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
     return publishSampleNoChange(sampleInst);
   }
 
   const eventType = event || getSampleEventType(sampleInst);
-  let prom;
 
-  // No need to attachAspectSubject if subject and aspect are already attached
-  if (sampleInst.hasOwnProperty('subject') &&
-    sampleInst.hasOwnProperty('aspect')) {
-    prom = Promise.resolve(sampleInst);
-  } else {
-    prom = rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel);
-  }
-
-  return prom
-    .then((sample) => {
-      if (sample) {
-        sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
-        return publishObject(sample, eventType)
-          .then(() => sample);
-      }
-    })
+  return publishObject(sampleInst, eventType)
+    .then(() => sampleInst)
     .catch((err) => {
       // Any failure on publish sample must not stop the next promise.
       logger.error('publishSample error', err);
       return Promise.resolve();
     });
+
 } // publishSample
 
 /**
@@ -217,22 +212,9 @@ function publishSampleNoChange(sample) {
   const s = {
     name: sample.name,
     status: sample.status, // for socket.io perspective filtering
-    absolutePath: sample.absolutePath, // used for persp filtering
     updatedAt: sample.updatedAt,
-    subject: {
-      absolutePath: sample.absolutePath,
-      tags: sample.subjectTags, // for socket.io perspective filtering
-    },
-    aspect: {
-      name: sample.aspectName, // for socket.io perspective filtering
-      tags: sample.aspectTags, // for socket.io perspective filtering
-      /*
-       * aspect.timeout is needed by perspective to track whether page is still
-       * getting real-time events
-       */
-      timeout: sample.aspectTimeout,
-    },
   };
+
   return publishObject(s, sampleEvent.nc)
     .then(() => sample);
 } // publishSampleNoChange

@@ -72,9 +72,9 @@ function getSampleTimeoutComponents(samples, aspects, curr) {
       };
       const fullSampObj = Object.assign({}, objToUpdate);
       fullSampObj.name = samp.name;
-      fullSampObj.aspect =
-        sampleStore.arrayObjsStringsToJson(asp, fieldsToStringify.aspect);
-      fullSampObj.aspectId = fullSampObj.aspect.id;
+      // fullSampObj.aspect =
+      //   sampleStore.arrayObjsStringsToJson(asp, fieldsToStringify.aspect);
+      // fullSampObj.aspectId = fullSampObj.aspect.id;
       timedOutSamples.push(fullSampObj);
 
       const sampleKey = sampleStore
@@ -181,8 +181,7 @@ module.exports = {
     .then(() => Promise.all(timedOutSamples.map((s) =>
       model.getSample({ key: { value: s.name } }))))
     .then((samples) => Promise.all(samples.map((s) =>
-      publisher.publishSample(s, helper.associatedModels.subject,
-        sampleEvent.upd, helper.associatedModels.aspect))))
+      publisher.publishSample(s, sampleEvent.upd))))
     .then(() => ({ numberEvaluated, numberTimedOut, timedOutSamples }))
     .catch((err) => {
       throw err;

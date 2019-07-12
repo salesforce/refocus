@@ -538,7 +538,7 @@ function upsertOneParsedSample(sampleQueryBodyObj, parsedSample, isBulk, user) {
    * If any of these promises throws an error, we drop through to the catch
    * block and return an error. Otherwise, we return the sample.
    */
-  return checkWritePermission(aspectName, userName, isBulk)
+  return checkWritePermission(aspect, userName, isBulk)
   .then(() => Promise.all([
     redisClient.hgetallAsync(subjKey),
     redisClient.hgetallAsync(sampleKey),
@@ -546,12 +546,12 @@ function upsertOneParsedSample(sampleQueryBodyObj, parsedSample, isBulk, user) {
   .then((responses) => {
     [subject, sample] = responses;
 
-    if (!subject || subject.isPublished === 'false') {
-      handleUpsertError(constants.objectType.subject, isBulk, sampleName);
-    }
+    // if (!subject || subject.isPublished === 'false') {
+    //   handleUpsertError(constants.objectType.subject, isBulk, sampleName);
+    // }
 
-    sampleQueryBodyObj.subjectId = subject.id;
-    sampleQueryBodyObj.aspectId = aspect.id;
+    // sampleQueryBodyObj.subjectId = subject.id;
+    // sampleQueryBodyObj.aspectId = aspect.id;
     return checkWritePermission(aspect, userName, isBulk);
   })
   .then(() => {
@@ -616,32 +616,36 @@ function upsertOneParsedSample(sampleQueryBodyObj, parsedSample, isBulk, user) {
     // Publish the sample.nochange event
     if (noChange) {
       updatedSamp.noChange = true;
-      updatedSamp.absolutePath = subject.absolutePath;
-      updatedSamp.aspectName = aspect.name;
-      updatedSamp.aspectTags = aspect.tags || [];
-      updatedSamp.aspectTimeout = aspect.timeout;
+      // updatedSamp.absolutePath = subject.absolutePath;
+      // updatedSamp.aspectName = aspect.name;
+      // updatedSamp.aspectTags = aspect.tags || [];
+      // updatedSamp.aspectTimeout = aspect.timeout;
 
-      if (Array.isArray(subject.tags)) {
-        updatedSamp.subjectTags = subject.tags;
-      } else {
-        try {
-          updatedSamp.subjectTags = JSON.parse(subject.tags);
-        } catch (err) {
-          updatedSamp.subjectTags = [];
-        }
-      }
+      // if (Array.isArray(subject.tags)) {
+      //   updatedSamp.subjectTags = subject.tags;
+      // } else {
+      //   try {
+      //     updatedSamp.subjectTags = JSON.parse(subject.tags);
+      //   } catch (err) {
+      //     updatedSamp.subjectTags = [];
+      //   }
+      // }
 
       return updatedSamp; // skip cleanAdd...
     }
 
-    return cleanAddAspectToSample(updatedSamp, aspect);
+    return sampleStore.arrayObjsStringsToJson(updatedSamp,
+      constants.fieldsToStringify.sample);
+    // return cleanAddAspectToSample(updatedSamp, aspect);
   })
   .then((updatedSamp) => {
     if (updatedSamp.hasOwnProperty(noChange) && updatedSamp.noChange === true) {
       return updatedSamp;
     }
 
-    return cleanAddSubjectToSample(updatedSamp, subject);
+    return sampleStore.arrayObjsStringsToJson(updatedSamp,
+      constants.fieldsToStringify.sample);
+    // return cleanAddSubjectToSample(updatedSamp, subject);
   })
   .catch((err) => {
     debugUpsertErrors('refocus:sample:upsert:errors|upsertOneSample|%s|%o|%o',
@@ -825,7 +829,9 @@ module.exports = {
     .then(() => redisOps.executeBatchCmds(cmds))
 
     /* Attach aspect and links to sample. */
-    .then(() => cleanAddAspectToSample(sampObjToReturn, aspect));
+      .then(() => sampleStore.arrayObjsStringsToJson(sampObjToReturn,
+        constants.fieldsToStringify.sample));
+    // .then(() => cleanAddAspectToSample(sampObjToReturn, aspect));
   }, // deleteSample
 
   /**
@@ -877,7 +883,9 @@ module.exports = {
       // if no change in related links, then return the object.
       if (JSON.stringify(updatedRlinks) ===
         JSON.stringify(currSampObj.relatedLinks)) {
-        Promise.resolve(cleanAddAspectToSample(currSampObj, aspectObj));
+        Promise.resolve(sampleStore.arrayObjsStringsToJson(currSampObj,
+          constants.fieldsToStringify.sample));
+        // Promise.resolve(cleanAddAspectToSample(currSampObj, aspectObj));
       }
 
       const hmsetObj = {};
@@ -894,7 +902,9 @@ module.exports = {
       return redisOps.setHashMultiPromise(sampleType, sampleName, hmsetObj);
     })
     .then(() => redisOps.getHashPromise(sampleType, sampleName))
-    .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
+      .then((updatedSamp) => sampleStore.arrayObjsStringsToJson(updatedSamp,
+        constants.fieldsToStringify.sample));
+    // .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
   }, // deleteSampleRelatedLinks
 
   isSampleChanged, // export for testing only

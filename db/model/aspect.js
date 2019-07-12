@@ -198,10 +198,7 @@ module.exports = function aspect(seq, dataTypes) {
           promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
             .each((samp) => {
               if (samp) {
-                publishSample(
-                  samp, seq.models.Subject, sampleEventNames.del,
-                  seq.models.Aspect
-                );
+                publishSample(samp, sampleEventNames.del);
               }
             })
           );
@@ -317,10 +314,7 @@ module.exports = function aspect(seq, dataTypes) {
           promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
             .each((samp) => {
               if (samp) {
-                publishSample(
-                  samp, seq.models.Subject, sampleEventNames.add,
-                  seq.models.Aspect
-                );
+                publishSample(samp, sampleEventNames.add);
               }
             })
           );

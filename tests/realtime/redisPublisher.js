@@ -68,7 +68,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
 
     it('certain aspect fields should be array, others undefined', (done) => {
       Sample.findOne(sampleName)
-        .then((sam) => redisPublisher.publishSample(sam, Subject, event.upd, Aspect))
+        .then((sam) => redisPublisher.publishSample(sam, event.upd))
         .then((pubObj) => {
           expect(pubObj.aspect).to.not.equal(null);
           expect(pubObj.aspect.name).to.equal(aspectName);
@@ -82,7 +82,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
 
     it('certain subject fields should be array, others undefined', (done) => {
       Sample.findOne(sampleName)
-        .then((sam) => redisPublisher.publishSample(sam, Subject, event.upd, Aspect))
+        .then((sam) => redisPublisher.publishSample(sam, event.upd))
         .then((pubObj) => {
           expect(pubObj.subject).to.not.equal(null);
           expect(pubObj.subject.name).to.equal(subjectName);
@@ -99,7 +99,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
         .then((sam) => {
           const sampInst = sam;
           delete sampInst.aspect;
-          return redisPublisher.publishSample(sam, Subject, event.upd, Aspect);
+          return redisPublisher.publishSample(sam, event.upd);
         })
         .then((pubObj) => {
           expect(pubObj.aspect).to.not.equal(null);
@@ -163,7 +163,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
         'object and asbolutePath field', (done) => {
         Sample.findOne(sampleName)
           .then((sam) => redisPublisher
-            .publishSample(sam, Subject, event.upd, Aspect))
+            .publishSample(sam, event.upd))
           .then((pubObj) => {
             expect(pubObj.subject).to.not.equal(null);
             expect(pubObj.subject.name).to.equal(subjectNA.name);
@@ -180,7 +180,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
       it('without EventType argument: sample should be published with subject ' +
         ' object and absolutePath field', (done) => {
         Sample.findOne(sampleName)
-          .then((sam) => redisPublisher.publishSample(sam, Subject))
+          .then((sam) => redisPublisher.publishSample(sam, null))
           .then((pubObj) => {
             expect(pubObj.subject).to.not.equal(null);
             expect(pubObj.subject.name).to.equal(subjectNA.name);
@@ -200,7 +200,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
           .then((sam) => {
             const sampInst = sam;
             delete sampInst.aspect;
-            return redisPublisher.publishSample(sam, Subject, event.upd, Aspect);
+            return redisPublisher.publishSample(sam, event.upd);
           })
           .then((pubObj) => {
             expect(pubObj.aspect).to.not.equal(null);
@@ -227,7 +227,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
 
       Sample.findOne(sampleName)
         .then((sam) => redisPublisher
-          .publishSample(sam, Subject, event.upd, Aspect))
+          .publishSample(sam, event.upd))
         .then((sample) => {
           expect(sample).to.equal(undefined);
           done();
@@ -316,7 +316,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
 
     it('smaller subject', (done) => {
       Sample.findOne(sampleName)
-        .then((sam) => redisPublisher.publishSample(sam, Subject, event.upd, Aspect))
+        .then((sam) => redisPublisher.publishSample(sam, event.upd))
         .then((pubObj) => {
           expect(pubObj.subject).to.not.equal(null);
           expect(pubObj.subject.name).to.equal(subjectName);

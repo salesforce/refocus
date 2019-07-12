@@ -100,8 +100,7 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
 
   // publish the update event to the redis channel
   if (props.publishEvents) {
-    publisher.publishSample(returnObj, props.associatedModels.subject,
-      realtimeEvents.sample.upd);
+    publisher.publishSample(returnObj, realtimeEvents.sample.upd);
   }
 
   // update the cache
