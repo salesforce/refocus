@@ -17,7 +17,7 @@ const Sample = require('../db').Sample;
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
 const constants = samsto.constants;
-const log = require('winston');
+const log = require('../logger').logger;
 const infoLoggingEnabled =
   featureToggles.isFeatureEnabled('enableSampleStoreInfoLogging');
 

@@ -21,6 +21,7 @@ const DEFAULT_WEB_CONCURRENCY = 1;
 const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 const conf = require('./config');
 const logEnvVars = require('./utils/logEnvVars');
+const initKafkaLoggingProducer = require('./logger').initKafkaLoggingProducer;
 
 /**
  * Entry point for each clustered process.
@@ -87,14 +88,20 @@ function startMaster() {
   console.log('Started node cluster master');
 } // startMaster
 
+function startWithKafkaLogging() {
+  initKafkaLoggingProducer.then(() => {
+    start();
+  });
+}
+
 const isProd = (process.env.NODE_ENV === 'production');
 if (isProd) {
   throng({
     lifetime: Infinity,
     master: startMaster,
-    start,
+    start: startWithKafkaLogging,
     workers: WORKERS,
   });
 } else {
-  start();
+  startWithKafkaLogging();
 }

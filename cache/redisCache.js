@@ -13,7 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const redis = require('redis');
-const logger = require('winston');
+const logger = require('../logger').logger;
 const rconf = require('../config').redis;
 const featureToggles = require('feature-toggles');
 
@@ -26,8 +26,10 @@ bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
 const opts = {
+
   /* Redis Client Retry Strategy */
   retry_strategy: (options) => {
+
     /*
      * Stop retrying if we've exceeded the configured threshold since the last
      * successful connection. Flush all commands with a custom error message.

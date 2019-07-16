@@ -9,7 +9,7 @@
 /**
  * /worker/jobs/bulkUpsertSamples.js
  */
-const logger = require('winston');
+const logger = require('../logger').logger;
 const subHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
@@ -18,6 +18,7 @@ const publisher = require('../../realtime/redisPublisher');
 const jobLog = require('../jobLog');
 
 module.exports = (job, done) => {
+
   /*
    * The shape of the old jobs objects in redis is different from the shape
    * of the new job objects that will be inserted in redis. The following
@@ -45,6 +46,7 @@ module.exports = (job, done) => {
   cacheSampleModel.bulkUpsertByName(samples, user, readOnlyFields)
     .then((results) => {
       dbEndTime = Date.now();
+
       /*
        * For each result, if there was an error, track the error to return to
        * to the caller when they check status. If no error, publish the sample

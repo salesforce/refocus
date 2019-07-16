@@ -10,7 +10,7 @@
  * api/v1/controllers/bots.js
  */
 'use strict';
-const logger = require('winston');
+const logger = require('../../../logger').logger;
 const featureToggles = require('feature-toggles');
 const apiLogUtils = require('../../../utils/apiLog');
 const u = require('../helpers/verbs/utils');

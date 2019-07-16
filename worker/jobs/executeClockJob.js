@@ -9,7 +9,7 @@
 /**
  * /worker/jobs/executeClockJob.js
  */
-const logger = require('winston');
+const logger = require('../../logger').logger;
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 const jobLog = require('../jobLog');

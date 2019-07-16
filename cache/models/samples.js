@@ -32,7 +32,7 @@ const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
 const commonUtils = require('../../utils/common');
 const sampleNameSeparator = '|';
-const logger = require('winston');
+const logger = require('../../../logger').logger;
 const featureToggles = require('feature-toggles');
 const config = require('../../config');
 
@@ -210,6 +210,7 @@ function updateSampleAttributes(curr, prev, aspect) {
   const now = new Date().toISOString();
 
   if (!curr.hasOwnProperty(sampFields.VALUE)) {
+
     /*
      * If no value is provided and this is a new sample, set value to empty
      * string, which will generate a status of "Invalid". If this is NOT a new
@@ -227,6 +228,7 @@ function updateSampleAttributes(curr, prev, aspect) {
   if (curr[sampFields.VALUE] === undefined) curr[sampFields.VALUE] = '';
 
   if (!prev) {
+
     /*
      * This is a brand new sample so calculate current status based on value,
      * set previous status to invalid, and set status changed at to now.
@@ -236,6 +238,7 @@ function updateSampleAttributes(curr, prev, aspect) {
     curr[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
     curr[sampFields.STS_CHANGED_AT] = now;
   } else if (curr[sampFields.VALUE] === prev[sampFields.VALUE]) {
+
     /*
      * Value is same so no need to recalculate status. Just carry over the
      * status, previous status, and status changed at from the old sample.
@@ -244,12 +247,14 @@ function updateSampleAttributes(curr, prev, aspect) {
     curr[sampFields.PRVS_STATUS] = prev[sampFields.PRVS_STATUS];
     curr[sampFields.STS_CHANGED_AT] = prev[sampFields.STS_CHANGED_AT];
   } else {
+
     /*
      * The value is different so we need to calculate the status.
      */
     curr[sampFields.STATUS] =
       sampleUtils.computeStatus(aspect, curr[sampFields.VALUE]);
     if (curr[sampFields.STATUS] === prev[sampFields.STATUS]) {
+
       /*
        * The status is the same so carry over the previous status and status
        * changed at from the old sample.
@@ -257,6 +262,7 @@ function updateSampleAttributes(curr, prev, aspect) {
       curr[sampFields.PRVS_STATUS] = prev[sampFields.PRVS_STATUS];
       curr[sampFields.STS_CHANGED_AT] = prev[sampFields.STS_CHANGED_AT];
     } else {
+
       /*
        * The status is different so assign previous status based on the old
        * sample's status, and set status changd at to now.
@@ -274,6 +280,7 @@ function updateSampleAttributes(curr, prev, aspect) {
   } else if (!prev) { // if we are creating new sample
     rlinks = []; // default value
   } else if (prev[sampFields.RLINKS] && prev[sampFields.RLINKS] !== '[]') {
+
     /* retain previous related links if query body does not have attribute */
     rlinks = JSON.parse(prev[sampFields.RLINKS]);
   }
@@ -281,6 +288,7 @@ function updateSampleAttributes(curr, prev, aspect) {
   if (rlinks) {
     curr[sampFields.RLINKS] = JSON.stringify(rlinks);
   } else {
+
     /* safeguard against sending null argument to hmset command */
     delete curr[sampFields.RLINKS];
   }
@@ -401,6 +409,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
       })
       .then(() => {
         if (sample && !isSampleChanged(sampleQueryBodyObj, sample)) {
+
           /* Sample is not new AND nothing has changed */
           noChange = true;
         }
@@ -556,6 +565,7 @@ function upsertOneParsedSample(sampleQueryBodyObj, parsedSample, isBulk, user) {
   })
   .then(() => {
     if (sample && !isSampleChanged(sampleQueryBodyObj, sample)) {
+
       /* Sample is not new AND nothing has changed */
       noChange = true;
     }
@@ -1334,7 +1344,6 @@ module.exports = {
        *
        */
       if (hasNameFilterOnly && !opts.filter.name.includes('*')) {
-
         let nameFilterArr = opts.filter.name.split(',').map((item) =>
           item.trim());
         debugfindSamples('Case 2: Name filter only and no wildcards. ' +

@@ -9,7 +9,7 @@
 /**
  * /worker/jobs/bulkDeleteSubjects.js
  */
-const logger = require('winston');
+const logger = require('../../logger').logger;
 const subjectHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
