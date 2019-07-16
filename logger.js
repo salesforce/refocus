@@ -10,7 +10,6 @@ const KafkaProducer = require('no-kafka');
 const configFunctions = require('./config/kafkaConfig');
 const kafkaConfig = configFunctions.getConfig();
 const winston = require('winston');
-const featureToggles = require('feature-toggles');
 
 let producer;
 const initKafkaLoggingProducer = () => {

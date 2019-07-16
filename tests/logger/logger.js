@@ -6,10 +6,10 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 const expect = require('chai').expect;
-const { initKafkaLoggingProducer, writeLog } = require('../logger');
+const { initKafkaLoggingProducer, writeLog } = require('../../logger');
 const KafkaProducer = require('no-kafka');
 const sinon = require('sinon');
-const kafkaConfig = require('../config/kafkaConfig');
+const kafkaConfig = require('../../config/kafkaConfig');
 
 describe.only('test/logger.js > ', () => {
   it('Happy path:call producer with the right args,' +
