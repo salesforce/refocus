@@ -87,5 +87,5 @@ module.exports = {
     }
   },
 
-  logger,
+  logger: logger.logger,
 };
