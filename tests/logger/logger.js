@@ -10,12 +10,14 @@ const { initKafkaLoggingProducer, writeLog } = require('../../logger');
 const KafkaProducer = require('no-kafka');
 const sinon = require('sinon');
 const kafkaConfig = require('../../config/kafkaConfig');
+const tu = require('../testUtils');
+
 
 describe.only('test/logger.js > ', () => {
   it('Happy path:call producer with the right args,' +
   'call the init function and send', () => {
-    kafkaConfig.kafkaLogging = true;
-    kafkaConfig.localLogging = true;
+    tu.toggleOverride('kafkaLogging', true);
+    tu.toggleOverride('localLogging', true);
     const localWriteCallback = sinon.spy();
     const sendMock = sinon.stub().returns(Promise.resolve());
     const initMock = sinon.stub().returns(Promise.resolve());
@@ -41,8 +43,8 @@ describe.only('test/logger.js > ', () => {
   });
 
   it('Happy path: local logging off', () => {
-    kafkaConfig.kafkaLogging = true;
-    kafkaConfig.localLogging = false;
+    tu.toggleOverride('kafkaLogging', true);
+    tu.toggleOverride('localLogging', false);
     const localWriteCallback = sinon.spy();
     const sendMock = sinon.stub().returns(Promise.resolve());
     const initMock = sinon.stub().returns(Promise.resolve());
@@ -67,8 +69,8 @@ describe.only('test/logger.js > ', () => {
   });
 
   it('Kafka and local both off', () => {
-    kafkaConfig.kafkaLogging = false;
-    kafkaConfig.localLogging = false;
+    tu.toggleOverride('kafkaLogging', false);
+    tu.toggleOverride('localLogging', false);
     const localWriteCallback = sinon.spy();
     const sendMock = sinon.stub().returns(Promise.resolve());
     const initMock = sinon.stub().returns(Promise.resolve());
@@ -87,8 +89,8 @@ describe.only('test/logger.js > ', () => {
   });
 
   it('Send throws an error', () => {
-    kafkaConfig.kafkaLogging = true;
-    kafkaConfig.localLogging = false;
+    tu.toggleOverride('kafkaLogging', true);
+    tu.toggleOverride('localLogging', false);
     const localWriteCallback = sinon.spy();
     const sendMock = sinon.stub().returns(Promise.reject());
     const initMock = sinon.stub().returns(Promise.resolve());

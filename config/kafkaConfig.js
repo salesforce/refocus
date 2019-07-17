@@ -6,6 +6,8 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Since this file uses process.env for config we need to disable eslint
+/* eslint-disable */
 const herokuConfig = {
   topic: process.env.KAFKA_LOGGING_TOPIC ? process.env.KAFKA_LOGGING_TOPIC : 'refocus-whitelist',
   sslCert: process.env.KAFKA_CLIENT_CERT || '.ssl/client.crt',
@@ -33,10 +35,6 @@ module.exports = {
     return kafkaConfig[environmentName] ? kafkaConfig[environmentName] : kafkaConfig.test;
   },
 
-  kafkaLogging: process.env.KAFKA_LOGGING ? true : false,
-
-  // Local logging will only be off if process.env.LOCAL_LOGGING is false, default true
-  localLogging: process.env.LOCAL_LOGGING ? !(process.env.LOCAL_LOGGING === 'false') : true,
   testExport: {
     herokuConfig,
     testConfig,

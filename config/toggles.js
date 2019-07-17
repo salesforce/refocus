@@ -40,6 +40,24 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
 } // environmentVariableTrue
 
 /**
+ * Return boolean false if the named environment variable is boolean false or
+ * case-insensitive string 'false'.
+ *
+ * @param {Object} processEnv - The node process environment. (Passing it into
+ *  this function instead of just getting a reference to it *inside* this
+ *  function makes the function easier to test.)
+ * @param {String} environmentVariableName - The name of the environment var.
+ * @returns {Boolean} true if the named environment variable is boolean true or
+ *  case-insensitive string 'true'.
+ */
+function environmentVariableFalse(processEnv, environmentVariableName) {
+  const x = processEnv[environmentVariableName];
+  return typeof x !== 'undefined' && x !== null &&
+    x.toString().toLowerCase() === 'false';
+} // environmentVariableTrue
+
+
+/**
  * Return boolean true if the named environment variable contains a comma-
  * delimited list of strings and one of those strings matches the test string
  * (case-insensitive). If the env var === '*' then returns true for any test
@@ -163,6 +181,12 @@ const longTermToggles = {
   // Toggle to redirect to different instance of refocus
   enableRedirectDifferentInstance: environmentVariableTrue(pe,
     'ENABLE_REDIRECT_DIFFERENT_INSTANCE'),
+
+  // Toggle to turn on Kafka Logging
+  kafkaLogging: envVarIncludes(pe, 'KAFKA_LOGGING'),
+
+  // Toggle to turn on LocalLogging
+  localLogging: !environmentVariableFalse(pe, 'LOCAL_LOGGING'),
 
 }; // longTermToggles
 
