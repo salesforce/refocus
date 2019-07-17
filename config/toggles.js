@@ -183,7 +183,7 @@ const longTermToggles = {
     'ENABLE_REDIRECT_DIFFERENT_INSTANCE'),
 
   // Toggle to turn on Kafka Logging
-  kafkaLogging: envVarIncludes(pe, 'KAFKA_LOGGING'),
+  kafkaLogging: environmentVariableTrue(pe, 'KAFKA_LOGGING'),
 
   // Toggle to turn on LocalLogging
   localLogging: !environmentVariableFalse(pe, 'LOCAL_LOGGING'),
