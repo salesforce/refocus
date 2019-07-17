@@ -10,6 +10,10 @@ const KafkaProducer = require('no-kafka');
 const kafkaConfig = require('./config/kafkaConfig').getConfig();
 const winston = require('winston');
 const featureToggles = require('feature-toggles');
+const EventEmitter = require('events');
+
+class LogEmitter extends EventEmitter {}
+const logEmitter = new LogEmitter();
 
 let producer;
 const initKafkaLoggingProducer = () => {
@@ -45,6 +49,7 @@ const writeLocalLog = (logMessage) => {
 
 const writeLog = (value, key = 'info', topic = kafkaConfig.topic,
     localCallback = winston.info) => {
+  logEmitter.emit('logging', value);
   const messageValue = {
     sendTimeStamp: new Date(),
     value,
@@ -81,6 +86,7 @@ const logger = {
   debug: (value) => writeLog(value, 'debug'),
   verbose: (value) => writeLog(value, 'verbose'),
   silly: (value) => writeLog(value, 'silly'),
+  on: (event, func) => logEmitter.on(event, func),
 };
 
 module.exports = {
