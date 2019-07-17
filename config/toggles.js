@@ -56,7 +56,6 @@ function environmentVariableFalse(processEnv, environmentVariableName) {
     x.toString().toLowerCase() === 'false';
 } // environmentVariableTrue
 
-
 /**
  * Return boolean true if the named environment variable contains a comma-
  * delimited list of strings and one of those strings matches the test string
