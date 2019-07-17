@@ -87,6 +87,7 @@ const logger = {
   verbose: (value) => writeLog(value, 'verbose'),
   silly: (value) => writeLog(value, 'silly'),
   on: (event, func) => logEmitter.on(event, func),
+  removeListener: (event, func) => logEmitter.removeListener(event, func),
 };
 
 module.exports = {
