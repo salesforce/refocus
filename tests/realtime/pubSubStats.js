@@ -17,7 +17,7 @@ const globalKey = require('../../realtime/constants').pubSubStatsAggregator;
 const tu = require('../testUtils');
 const u = require('./utils');
 
-describe('tests/realtime/pubSubStats.js >', () => {
+describe.only('tests/realtime/pubSubStats.js >', () => {
   describe('track >', () => {
     describe('missing or invalid args >', () => {
       beforeEach(() => (delete global[globalKey]));
@@ -175,7 +175,7 @@ describe('tests/realtime/pubSubStats.js >', () => {
     });
   });
 
-  describe.only('log >', () => {
+  describe('log >', () => {
     let inspect;
 
     beforeEach(() => {
@@ -199,7 +199,7 @@ describe('tests/realtime/pubSubStats.js >', () => {
       const re1 = /info: activity=pubsub key=bye.world process=MyProcessName pubCount=3 pubTime=\d+ subCount=1 subTime=\d+ \n/; // jscs:ignore maximumLineLength
       const re2 = /info: activity=pubsub key=hello.world process=MyProcessName pubCount=1 pubTime=\d+ subCount=1 subTime=\d+ \n/; // jscs:ignore maximumLineLength
       expect(inspect.output).to.be.array;
-      console.log(inspect.output);
+      console.log('----Log test failing----', inspect.output);
       expect(inspect.output).to.have.lengthOf(2);
       expect(inspect.output[0]).to.match(re1);
       expect(inspect.output[1]).to.match(re2);
