@@ -17,7 +17,7 @@ const globalKey = require('../../realtime/constants').pubSubStatsAggregator;
 const tu = require('../testUtils');
 const u = require('./utils');
 
-describe.only('tests/realtime/pubSubStats.js >', () => {
+describe('tests/realtime/pubSubStats.js >', () => {
   describe('track >', () => {
     describe('missing or invalid args >', () => {
       beforeEach(() => (delete global[globalKey]));
