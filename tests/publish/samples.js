@@ -21,6 +21,7 @@ const tu = require('../testUtils');
 const Subject = tu.db.Subject;
 const redisPublisher = require('../../realtime/redisPublisher');
 const sampleEvents = require('../../realtime/constants').events.sample;
+const aspectEvents = require('../../realtime/constants').events.aspect;
 const subjectEvents = require('../../realtime/constants').events.subject;
 const samstoinit = require('../../cache/sampleStoreInit');
 const doTimeout = require('../../cache/sampleStoreTimeout').doTimeout;
@@ -98,14 +99,10 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(2);
+          expect(subscribeTracker).to.have.length(3);
+
           const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(sampleEvents.del);
-          const s0Body = s0[sampleEvents.del];
-          expect(s0Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
-            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
-            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
-            'absolutePath');
+          expect(s0).to.have.property(aspectEvents.del);
 
           const s1 = JSON.parse(subscribeTracker[1]);
           expect(s1).to.have.property(sampleEvents.del);
@@ -114,8 +111,16 @@ describe('tests/publish/samples.js >', () => {
             'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
             'previousStatus', 'statusChangedAt', 'aspect', 'subject',
             'absolutePath');
+
+          const s2 = JSON.parse(subscribeTracker[2]);
+          expect(s2).to.have.property(sampleEvents.del);
+          const s2Body = s2[sampleEvents.del];
+          expect(s1Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
+            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
+            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
+            'absolutePath');
           done();
-        })
+        });
     });
   });
 
@@ -134,7 +139,8 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(2);
+          expect(subscribeTracker).to.have.length(4);
+
           const s0 = JSON.parse(subscribeTracker[0]);
           expect(s0).to.have.property(sampleEvents.del);
           const s0Body = s0[sampleEvents.del];
@@ -144,9 +150,15 @@ describe('tests/publish/samples.js >', () => {
             'absolutePath');
 
           const s1 = JSON.parse(subscribeTracker[1]);
-          expect(s1).to.have.property(sampleEvents.add);
-          const s1Body = s1[sampleEvents.add];
-          expect(s1Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
+          expect(s1).to.have.property(aspectEvents.del);
+
+          const s2 = JSON.parse(subscribeTracker[2]);
+          expect(s2).to.have.property(aspectEvents.add);
+
+          const s3 = JSON.parse(subscribeTracker[3]);
+          expect(s3).to.have.property(sampleEvents.add);
+          const s3Body = s3[sampleEvents.add];
+          expect(s3Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
             'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
             'previousStatus', 'statusChangedAt', 'aspect', 'subject',
             'absolutePath');
@@ -163,7 +175,9 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(0);
+          expect(subscribeTracker).to.have.length(1);
+          const s0 = JSON.parse(subscribeTracker[0]);
+          expect(s0).to.have.property(aspectEvents.upd);
           done();
         });
     });
