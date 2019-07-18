@@ -18,7 +18,7 @@ const Subject = require('../db').Subject;
 const featureToggles = require('feature-toggles');
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
-const log = require('../logger');
+const log = require('../log');
 const samstoPersist = require('./sampleStorePersist');
 const constants = samsto.constants;
 const infoLoggingEnabled =
@@ -105,7 +105,7 @@ function eradicate() {
     })
     .catch((err) => {
       // NO-OP
-      logger.error(err); // eslint-disable-line no-console
+      log.error(err); // eslint-disable-line no-console
       Promise.resolve(true);
     }));
   return deletePreviousStatus()
@@ -171,7 +171,7 @@ function populateAspects() {
         return true;
       });
   })
-  .catch(logger.error); // eslint-disable-line no-console
+  .catch(log.error); // eslint-disable-line no-console
 } // populateAspects
 
 /**
@@ -209,7 +209,7 @@ function populateSubjects() {
         return true;
       });
   })
-  .catch(logger.error); // eslint-disable-line no-console
+  .catch(log.error); // eslint-disable-line no-console
 } // populateSubjects
 
 /**
@@ -305,7 +305,7 @@ function populateSamples() {
         return true;
       });
   })
-  .catch(logger.error); // eslint-disable-line no-console
+  .catch(log.error); // eslint-disable-line no-console
 } // populateSamples
 
 /**
@@ -400,7 +400,7 @@ function init() {
   .then((ret) => Promise.resolve(ret))
   .catch((err) => {
     // NO-OP
-    logger.error(err); // eslint-disable-line no-console
+    log.error(err); // eslint-disable-line no-console
     Promise.resolve(false);
   });
 } // init
