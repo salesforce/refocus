@@ -17,6 +17,7 @@ const fork = require('child_process').fork;
 const Promise = require('bluebird');
 const ft = require('feature-toggles');
 const ms = require('ms');
+const logger = require('../../../logger');
 const { jobQueue } = require('../../../jobQueue/setup');
 
 let jobTimes;
@@ -169,7 +170,7 @@ function doFork(path, args, env) {
   };
 
   const subprocess = fork(path, args, opts);
-  subprocess.stdout.on('data', (data) => console.log(data.toString()));
+  subprocess.stdout.on('data', (data) => logger.info(data.toString()));
   subprocess.stderr.on('data', (data) => console.error(data.toString()));
   return subprocess;
 }

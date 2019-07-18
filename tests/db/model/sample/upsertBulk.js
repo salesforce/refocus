@@ -20,6 +20,7 @@ const u = require('./utils');
 const Sample = tu.db.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
+const logger = require('../../../../logger');
 
 describe('tests/db/model/sample/upsertBulk.js >', () => {
   describe('normal >', () => {
@@ -79,7 +80,7 @@ describe('tests/db/model/sample/upsertBulk.js >', () => {
         },
       ])
       .each((o) => {
-        // console.log(o.dataValues);
+        // logger.info(o.dataValues);
         expect(o.dataValues).to.have.property('value', '2');
         if (util.isError(o)) {
           throw new Error('not expecting error');

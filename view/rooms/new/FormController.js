@@ -13,6 +13,7 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
+const logger = require('../../../logger');
 const request = require('superagent');
 const _ = require('lodash');
 const FIRST_ENTRY = 0;
@@ -50,7 +51,7 @@ class FormController extends React.Component {
     req
       .end((error, res) => {
         if (error) {
-          console.log('Error: ', error.response.text);
+          logger.info('Error: ', error.response.text);
         } else {
           this.setState({ types: res.body });
           if (this.props.type !== '') {
@@ -94,7 +95,7 @@ class FormController extends React.Component {
           if (error.response.text.includes('SequelizeUniqueConstraintError')) {
             window.location.href = `/rooms/${this.state.name}`;
           }
-          console.log('Error: ', error.response.text);
+          logger.info('Error: ', error.response.text);
         } else {
           window.location.replace(`/rooms/${res.body.id}`);
         }

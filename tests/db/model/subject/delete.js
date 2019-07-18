@@ -13,6 +13,7 @@
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const logger = require('../../../../logger');
 const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
 const Sample = tu.Sample;
@@ -153,7 +154,7 @@ describe('tests/db/model/subject/delete.js >', () => {
         return parent1.update({ description: null });
       })
       .then((parent1) => {
-        // console.log(parent1.dataValues.description);
+        // logger.info(parent1.dataValues.description);
         expect(parent1.dataValues.description).to.equal(null);
         done();
       })
@@ -163,12 +164,12 @@ describe('tests/db/model/subject/delete.js >', () => {
     it('clear helpEmail field on parent, should succeed', (done) => {
       Subject.findByPk(theParent)
       .then((parent1) => {
-        // console.log(parent1.dataValues.helpEmail);
+        // logger.info(parent1.dataValues.helpEmail);
         expect(parent1.dataValues.helpEmail).to.equal('foo@bar.com');
         return parent1.update({ helpEmail: null });
       })
       .then((parent1) => {
-        // console.log(parent1.dataValues.helpEmail);
+        // logger.info(parent1.dataValues.helpEmail);
         expect(parent1.dataValues.helpEmail).to.equal(null);
         done();
       })
@@ -178,13 +179,13 @@ describe('tests/db/model/subject/delete.js >', () => {
     it('clear helpUrl field on parent, should succeed', (done) => {
       Subject.findByPk(theParent)
       .then((parent1) => {
-        // console.log(parent1.dataValues.helpUrl);
+        // logger.info(parent1.dataValues.helpUrl);
         expect(parent1.dataValues.helpUrl)
         .to.equal('http://www.bar.com');
         return parent1.update({ helpUrl: null });
       })
       .then((parent1) => {
-        // console.log(parent1.dataValues.helpUrl);
+        // logger.info(parent1.dataValues.helpUrl);
         expect(parent1.dataValues.helpUrl).to.equal(null);
         done();
       })
@@ -194,13 +195,13 @@ describe('tests/db/model/subject/delete.js >', () => {
     it('clear imageUrl field on parent, should succeed', (done) => {
       Subject.findByPk(theParent)
       .then((parent1) => {
-        // console.log(parent1.dataValues.imageUrl);
+        // logger.info(parent1.dataValues.imageUrl);
         expect(parent1.dataValues.imageUrl)
         .to.equal('http://www.bar.com/foo.jpg');
         return parent1.update({ imageUrl: null });
       })
       .then((parent1) => {
-        // console.log(parent1.dataValues.imageUrl);
+        // logger.info(parent1.dataValues.imageUrl);
         expect(parent1.dataValues.imageUrl).to.equal(null);
         done();
       })
@@ -210,7 +211,7 @@ describe('tests/db/model/subject/delete.js >', () => {
     it('clear isPublished field on parent, should fail', (done) => {
       Subject.findByPk(theParent)
       .then((parent1) => {
-        // console.log(parent1.dataValues.isPublished);
+        // logger.info(parent1.dataValues.isPublished);
         expect(parent1.dataValues.isPublished).to.equal(true);
         return parent1.update({ isPublished: null });
       })

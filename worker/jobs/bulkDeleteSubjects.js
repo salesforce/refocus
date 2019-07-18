@@ -81,7 +81,7 @@ module.exports = (job, done) => {
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg = `[KJI] Entered bulkDeleteSubjects.js: job.id=${job.id} ` +
       `SubjectsToDelete=${subjectKeys.length}`;
-    console.log(msg); // eslint-disable-line no-console
+    logger.info(msg); // eslint-disable-line no-console
   }
 
   const dbStartTime = Date.now();

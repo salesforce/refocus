@@ -13,6 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 require('./config/toggles'); // Loads the feature toggles
+const logger = require('./logger');
 const configUtil = require('./config/configUtil');
 const redisConfig = require('./config/redisConfig');
 const collectorConfig = require('./config/collectorConfig');
@@ -183,7 +184,7 @@ Object.keys(clockJobConfig.intervals).forEach((jobName) => {
 // as well to enable database migration in the environment.
 const environment = {
   build: {
-    dbLogging: false, // console.log | false | ...
+    dbLogging: false, // logger.info | false | ...
     dbUrl: defaultDbUrl,
     defaultNodePort: defaultPort,
     host: '127.0.0.1',
@@ -193,7 +194,7 @@ const environment = {
     defaultAdminPassword: defaultDevPassword,
   },
   development: {
-    dbLogging: false, // console.log | false | ...
+    dbLogging: false, // logger.info | false | ...
     dbUrl: defaultDbUrl,
     defaultNodePort: defaultPort,
     host: '127.0.0.1',
@@ -207,7 +208,7 @@ const environment = {
     defaultAdminPassword: defaultDevPassword,
   },
   production: {
-    dbLogging: false, // console.log | false | ...
+    dbLogging: false, // logger.info | false | ...
     dbUrl: pe.DATABASE_URL,
     ipWhitelist: iplist,
     dialect: 'postgres',
@@ -219,7 +220,7 @@ const environment = {
     defaultAdminPassword: pe.DEFAULT_ADMIN_PASSWORD,
   },
   testWhitelistLocalhost: {
-    dbLogging: false, // console.log | false | ...
+    dbLogging: false, // logger.info | false | ...
     dbUrl: defaultDbUrl,
     defaultNodePort: defaultPort,
     host: '127.0.0.1',
@@ -228,7 +229,7 @@ const environment = {
     defaultAdminPassword: defaultDevPassword,
   },
   testBlockAllhosts: {
-    dbLogging: false, // console.log | false | ...
+    dbLogging: false, // logger.info | false | ...
     dbUrl: defaultDbUrl,
     defaultNodePort: defaultPort,
     host: '127.0.0.1',

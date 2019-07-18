@@ -23,6 +23,7 @@
  * clockJobConfig object in config.js.
  */
 const conf = require('../config');
+const logger = require('../logger');
 if (conf.newRelicKey) require('newrelic');
 const logEnvVars = require('../utils/logEnvVars');
 logEnvVars.log(process.env); // eslint-disable-line no-process-env
@@ -35,6 +36,6 @@ const jobs = requireDir('./scheduledJobs');
  * Adding some extra logging to get to the bottom of why we're crashing worker
  * dynos with "Error: Cannot find module '../../clock/scheduledJobs/undefined'".
  */
-console.log(`clock/index, require-dir: ['${Object.keys(jobs).join(', ')}]`);
+logger.info(`clock/index, require-dir: ['${Object.keys(jobs).join(', ')}]`);
 
 module.exports = setupIntervals(jobs, conf.clockJobConfig);

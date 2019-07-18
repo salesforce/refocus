@@ -12,6 +12,7 @@
  * When page is loaded we take all the bots queried and processed
  * to have their UI appended to the page.
  */
+const logger = require('../../logger');
 const constants = require('../constants');
 const NEG_ONE = -1;
 const ZERO = 0;
@@ -87,9 +88,9 @@ const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
  */
 function debugMessage(msg, obj) {
   if ((DEBUG_REALTIME) && obj) {
-    console.log(msg, obj);
+    logger.info(msg, obj);
   } else if (DEBUG_REALTIME) {
-    console.log(msg);
+    logger.info(msg);
   }
 }
 

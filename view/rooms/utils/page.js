@@ -11,6 +11,7 @@
  */
 
 const u = require('./../../utils');
+const logger = require('../../../logger');
 
 // ids from view/rooms/index.pug
 const TITLE_ELEM_ID = 'title';
@@ -77,7 +78,7 @@ module.exports = {
       iframedoc.writeln(iframeContent);
       iframedoc.close();
     } else if (DEBUG_REALTIME) {
-      console.log('Cannot inject dynamic contents into iframe.');
+      logger.info('Cannot inject dynamic contents into iframe.');
     }
   },
 

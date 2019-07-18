@@ -19,6 +19,8 @@ const url = require('url');
 const Sequelize = require('sequelize');
 require('sequelize-hierarchy')(Sequelize);
 const conf = require('../config');
+const logger = require('../logger');
+
 const env = conf.environment[conf.nodeEnv];
 const DB_URL = env.dbUrl;
 const Op = require('sequelize').Op;
@@ -157,7 +159,7 @@ seq.Promise = Sequelize.Promise; // seq v5
  */
 function clog(moduleName, functionName, msg) {
   if (conf.nodeEnv === 'development') {
-    console.log('[./db/' + // eslint-disable-line no-console
+    logger.info('[./db/' + // eslint-disable-line no-console
       `${moduleName}${functionName ? '.' + functionName : ''}]`,
       msg);
   }

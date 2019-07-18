@@ -49,6 +49,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PerspectiveController from './PerspectiveController';
 import { getValuesObject } from './utils';
+const logger = require('../../logger');
 const u = require('../utils');
 const pu = require('./utils');
 const constants = require('../constants');
@@ -114,7 +115,7 @@ function handleError(err) {
 function handleEvent(eventData, eventTypeName) {
   const j = JSON.parse(eventData);
   if (DEBUG_REALTIME) {
-    console.log({ // eslint-disable-line no-console
+    logger.info({ // eslint-disable-line no-console
       handleEventTimestamp: new Date(),
       eventData: j,
     });
@@ -208,7 +209,7 @@ function setupSocketIOClient(persBody) {
      *      stream. In the meantime, just log it in the browser.
      */
     socket.on('disconnect', (msg) => {
-      console.log('Disconnected from real-time event stream.');
+      logger.info('Disconnected from real-time event stream.');
     });
   });
 } // setupSocketIOClient

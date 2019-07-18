@@ -15,6 +15,7 @@ const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const logger = require('../../../../logger');
 const path = '/v1/lenses';
 const expect = require('chai').expect;
 const ZERO = 0;
@@ -100,7 +101,7 @@ describe('tests/api/v1/lenses/get.js >', () => {
           }
 
           const obj = res.body;
-          console.log(obj);
+          logger.info(obj);
           expect(obj).to.have.property('name', `${tu.namePrefix}testLensName`);
           expect(obj).to.have.property('lensEventApiVersion', 1);
           expect(obj).to.not.have.property('library');

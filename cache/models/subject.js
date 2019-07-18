@@ -20,6 +20,7 @@ const redisClient = require('../redisCache').client.sampleStore;
 const u = require('../../utils/filters');
 const modelUtils = require('./utils');
 const redisErrors = require('../redisErrors');
+const logger = require('../../logger');
 const ONE = 1;
 const TWO = 2;
 
@@ -232,7 +233,7 @@ function completeSubjectHierarchy(res, params) {
     u.resetFilters(filters);
 
     if (featureToggles.isFeatureEnabled('instrumentCompleteSubjectHierarchy')) {
-      console.log('cache/model/subject.completeSubjectHierarchy:' +
+      logger.info('cache/model/subject.completeSubjectHierarchy:' +
         `${res.absolutePath}:${new Date() - startTime}`);
     }
 

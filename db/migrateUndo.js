@@ -13,20 +13,22 @@
  * current migration(s).
  */
 const exec = require('child_process').exec;
+const logger = require('../logger');
+
 const cmd = 'node_modules/.bin/sequelize db:migrate:undo';
 
 module.exports = exec(cmd, (error, stdout, stderr) => {
   // Log the results to the console.
-  console.log(// eslint-disable-line no-console
+  logger.info(// eslint-disable-line no-console
     '[./db/migrateUndo (stdout)] ' + stdout);
 
   if (stderr) {
-    console.log(// eslint-disable-line no-console
+    logger.info(// eslint-disable-line no-console
       '[./db/migrateUndo (stderr)] ' + stderr);
   }
 
   if (error !== null) {
-    console.log('[./db/migrateUndo] ' + // eslint-disable-line no-console
+    logger.info('[./db/migrateUndo] ' + // eslint-disable-line no-console
       error);
     process.exit(-1); // eslint-disable-line
   }

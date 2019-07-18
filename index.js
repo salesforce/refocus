@@ -21,7 +21,8 @@ const DEFAULT_WEB_CONCURRENCY = 1;
 const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 const conf = require('./config');
 const logEnvVars = require('./utils/logEnvVars');
-const initKafkaLoggingProducer = require('./logger').initKafkaLoggingProducer;
+const logger = require('./logger');
+const initKafkaLoggingProducer = logger.initKafkaLoggingProducer;
 
 /**
  * Entry point for each clustered process.
@@ -30,7 +31,7 @@ const initKafkaLoggingProducer = require('./logger').initKafkaLoggingProducer;
  *  otherwise 0
  */
 function start(clusterProcessId = 0) { // eslint-disable-line max-statements
-  console.log(`Started node process ${clusterProcessId}`);
+  logger.info(`Started node process ${clusterProcessId}`);
 
   /*
    * Express app
@@ -85,7 +86,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
 }
 
 function startMaster() {
-  console.log('Started node cluster master');
+  logger.info('Started node cluster master');
 } // startMaster
 
 function startWithKafkaLogging() {

@@ -35,6 +35,8 @@ const cors = require('cors');
 const etag = require('etag');
 const ipAddressUtils = require('./utils/ipAddressUtils');
 const ipWhitelistUtils = require('./utils/ipWhitelistUtils');
+const logger = require('./logger');
+
 
 // set up server side socket.io and redis publisher
 const express = require('express');
@@ -117,11 +119,11 @@ if (isDevelopment) {
   app.use(require('webpack-hot-middleware')(compiler));
 
   app.listen(PORT, () => {
-    console.log(listening, PORT); // eslint-disable-line no-console
+    logger.info(listening, PORT); // eslint-disable-line no-console
   });
 } else {
   httpServer.listen(PORT, () => {
-    console.log(listening, PORT); // eslint-disable-line no-console
+    logger.info(listening, PORT); // eslint-disable-line no-console
   });
 }
 

@@ -19,6 +19,7 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects';
 const expect = require('chai').expect;
 const featureToggles = require('feature-toggles');
+const logger = require('../../../../logger');
 const ZERO = 0;
 
 describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
@@ -610,7 +611,7 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         })
         .end((err /* , res */) => {
           if (err) {
-            console.log(err);
+            logger.info(err);
             return done(err);
           }
 

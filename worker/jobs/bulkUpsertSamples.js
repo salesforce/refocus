@@ -37,7 +37,7 @@ module.exports = (job, done) => {
     const msg =
       `[KJI] Entered bulkUpsertSamples.js: job.id=${job.id} ` +
       `sampleCount=${samples.length}`;
-    console.log(msg); // eslint-disable-line no-console
+    logger.info(msg); // eslint-disable-line no-console
   }
 
   const dbStartTime = Date.now();

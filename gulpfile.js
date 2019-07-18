@@ -18,6 +18,7 @@ const babelify = require('babelify');
 const fs = require('fs');
 const chmod = require('gulp-chmod');
 const es = require('event-stream');
+const logger = require('./logger');
 
 const conf = {
   tasks: {
@@ -97,7 +98,7 @@ function browserifyTask() {
         // rename them to have "bundle as postfix"
         .pipe(gulp.dest(conf.view.dest))
         .once('end', () => {
-          console.log('finished building', outputPath);
+          logger.info('finished building', outputPath);
         });
     });
 

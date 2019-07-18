@@ -21,6 +21,7 @@ const kue = require('kue');
 const BullQueue = require('bull');
 const Promise = require('bluebird');
 const activityLogUtil = require('../utils/activityLog');
+const logger = require('../logger');
 
 const redisOptions = {
   redis: conf.redis.instanceUrl.queue,
@@ -87,7 +88,7 @@ jobQueue.on('error', (err) => {
 
 if (featureToggles.isFeatureEnabled('instrumentKue')) {
   jobQueue.on('job enqueue', (id, type) => {
-    console.log('[KJI] enqueued: ' + // eslint-disable-line no-console
+    logger.info('[KJI] enqueued: ' + // eslint-disable-line no-console
       'id=%s type=%s', id, type);
   });
 }

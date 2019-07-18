@@ -15,6 +15,8 @@ const featureToggles = require('feature-toggles');
 const Promise = require('bluebird');
 const kue = require('kue');
 const conf = require('../../config');
+const logger = require('../../logger');
+
 kue.Job.rangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
 kue.Job.prototype.removeAsync = Promise.promisify(kue.Job.prototype.remove);
 const activityLogUtil = require('../../utils/activityLog');
@@ -74,7 +76,7 @@ function execute() {
     // get n jobs
     return kue.Job.rangeByStateAsync('complete', from, to, 'asc')
       .catch((err) => {
-        console.log('Error getting completed jobs from queue', err);
+        logger.info('Error getting completed jobs from queue', err);
         return Promise.reject(err);
       })
 

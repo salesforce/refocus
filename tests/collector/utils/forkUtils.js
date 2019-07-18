@@ -15,6 +15,8 @@ const sinon = require('sinon');
 const Promise = require('bluebird');
 const fork = require('child_process').fork;
 const conf = require('../../../config');
+const logger = require('../../../logger');
+
 const awaitImmediate = require('util').promisify(setImmediate);
 
 const clock = sinon.useFakeTimers({
@@ -91,7 +93,7 @@ function doFork(args) {
   };
   const forkPath = require.resolve('./runCollector');
   const subprocess = fork(forkPath, args, opts);
-  subprocess.stdout.on('data', (data) => console.log(data.toString()));
+  subprocess.stdout.on('data', (data) => logger.info(data.toString()));
   subprocess.stderr.on('data', (data) => console.error(data.toString()));
   return subprocess;
 }

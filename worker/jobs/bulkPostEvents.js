@@ -26,7 +26,7 @@ module.exports = (job, done) => {
     const msg =
       `[KJI] Entered bulkPostEvents.js: job.id=${job.id} ` +
       `eventCount=${events.length}`;
-    console.log(msg); // eslint-disable-line no-console
+    logger.info(msg); // eslint-disable-line no-console
   }
 
   const dbStartTime = Date.now();

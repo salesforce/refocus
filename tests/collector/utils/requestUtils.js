@@ -20,6 +20,8 @@ const app = require('../../../express').app;
 const tu = require('../../testUtils');
 const forkUtils = require('./forkUtils');
 const constants = require('../../../api/v1/constants');
+const logger = require('../../../logger');
+
 const genPath = '/v1/generators';
 const cgPath = '/v1/collectorGroups';
 const api = supertest(app);
@@ -226,8 +228,8 @@ function setupInterceptFuncs(interceptConfig) {
       else resolveArray.push({ resolve, startTime });
     })
     .tap(({ req, res }) => {
-      // console.log(`${conf.reqType} request ${collectorName}:`, req.url, req.body);
-      // console.log(`${conf.reqType} response ${collectorName}:`, res.body);
+      // logger.info(`${conf.reqType} request ${collectorName}:`, req.url, req.body);
+      // logger.info(`${conf.reqType} response ${collectorName}:`, res.body);
       if (conf.expectedRequestKeys) {
         expect(req.body).to.include.keys(conf.expectedRequestKeys);
       }
