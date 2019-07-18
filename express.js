@@ -37,7 +37,6 @@ const ipAddressUtils = require('./utils/ipAddressUtils');
 const ipWhitelistUtils = require('./utils/ipWhitelistUtils');
 const logger = require('./logger');
 
-
 // set up server side socket.io and redis publisher
 const express = require('express');
 const enforcesSSL = require('express-enforces-ssl');

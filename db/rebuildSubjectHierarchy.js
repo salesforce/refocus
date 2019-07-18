@@ -22,7 +22,6 @@
 const utils = require('./utils.js');
 const logger = require('../logger');
 
-
 utils.doImport()
 .then(() => {
   utils.seq.models.Subject.rebuildHierarchy()
