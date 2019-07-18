@@ -18,6 +18,8 @@ const tu = require('../testUtils');
 const u = require('./utils');
 
 describe('tests/realtime/pubSubStats.js >', () => {
+  tu.toggleOverride('localLogging', true);
+
   describe('track >', () => {
     describe('missing or invalid args >', () => {
       beforeEach(() => (delete global[globalKey]));
@@ -177,7 +179,6 @@ describe('tests/realtime/pubSubStats.js >', () => {
 
   describe('log >', () => {
     let inspect;
-    tu.toggleOverride('localLogging', true);
 
     beforeEach(() => {
       inspect = stdout.inspect();
