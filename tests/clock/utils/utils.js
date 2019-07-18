@@ -171,7 +171,7 @@ function doFork(path, args, env) {
 
   const subprocess = fork(path, args, opts);
   subprocess.stdout.on('data', (data) => logger.info(data.toString()));
-  subprocess.stderr.on('data', (data) => console.error(data.toString()));
+  subprocess.stderr.on('data', (data) => logger.error(data.toString()));
   return subprocess;
 }
 

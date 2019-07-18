@@ -246,8 +246,8 @@ swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
       try {
         app[method](paths, rateLimit);
       } catch (err) {
-        console.error(`Failed to initialize limiter for ${method} ${paths}`);
-        console.error(err);
+        logger.error(`Failed to initialize limiter for ${method} ${paths}`);
+        logger.error(err);
       }
     }
   });

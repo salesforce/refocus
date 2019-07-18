@@ -12,6 +12,7 @@
 const apiErrors = require('../api/v1/apiErrors');
 const constants = require('../api/v1/constants');
 const featureToggles = require('feature-toggles');
+const logger = require('../logger');
 
 /**
  * Logs with stack trace if toggle is on and there are invalid values in hmset
@@ -27,7 +28,7 @@ function logInvalidHmsetValues(key, obj) {
         (obj[_key] === undefined) || Array.isArray(obj[_key])) {
         // eslint-disable-next-line no-console
         const stringified = JSON.stringify(obj, (k, v) => v === undefined ? 'undefined' : v);
-        console.trace('Invalid hmset params: key ' + key +
+        logger.verbose('Invalid hmset params: key ' + key +
           ' with invalid field: ' + _key + ', received: ' + stringified);
         break;
       }

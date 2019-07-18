@@ -17,7 +17,7 @@ const Sample = require('../db').Sample;
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
 const constants = samsto.constants;
-const log = require('../logger');
+const logger = require('../logger');
 const infoLoggingEnabled =
   featureToggles.isFeatureEnabled('enableSampleStoreInfoLogging');
 
@@ -29,14 +29,14 @@ const infoLoggingEnabled =
  */
 function storeSampleToDb() {
   if (infoLoggingEnabled) {
-    log.info('Persist to db started :|. This will start by truncating the ' +
+    logger.info('Persist to db started :|. This will start by truncating the ' +
       'sample table followed by persisting the sample to db');
   }
 
   return Sample.destroy({ truncate: true, force: true })
   .then(() => {
     if (infoLoggingEnabled) {
-      log.info('truncated the sample table :|');
+      logger.info('truncated the sample table :|');
     }
 
     return redisClient.smembersAsync(constants.indexKey.sample);
@@ -45,8 +45,8 @@ function storeSampleToDb() {
   .then((cmds) => redisClient.batch(cmds).execAsync())
   .then((res) => {
     if (infoLoggingEnabled) {
-      log.info('Preparing list of samples to persist...');
-      log.info(`Checking ${res.length} samples...`);
+      logger.info('Preparing list of samples to persist...');
+      logger.info(`Checking ${res.length} samples...`);
     }
 
     const samplesToCreate = res.map((sample) => {
@@ -55,7 +55,7 @@ function storeSampleToDb() {
     })
     .filter((s) => {
       if (!s.aspectId || !s.subjectId) {
-        log.warn('Skipping sample with missing aspectId or subjectId: ',
+        logger.warn('Skipping sample with missing aspectId or subjectId: ',
           JSON.stringify(s));
         return false;
       }
@@ -63,14 +63,14 @@ function storeSampleToDb() {
       return true;
     });
     if (infoLoggingEnabled) {
-      log.info(`Bulk creating ${samplesToCreate.length} samples...`);
+      logger.info(`Bulk creating ${samplesToCreate.length} samples...`);
     }
 
     return Sample.bulkCreate(samplesToCreate);
   })
   .then((retval) => {
     if (infoLoggingEnabled) {
-      log.info('persisted redis sample store to db :D');
+      logger.info('persisted redis sample store to db :D');
     }
 
     return retval.length;
@@ -92,7 +92,7 @@ function persist() {
   return storeSampleToDb()
   .catch((err) => {
     // NO-OP
-    console.error(err); // eslint-disable-line no-console
+    logger.error(err); // eslint-disable-line no-console
     Promise.resolve(false);
   });
 } // persist

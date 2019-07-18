@@ -51,17 +51,17 @@ function trackStats(key, obj) {
     obj.new.hasOwnProperty('updatedAt')) {
     elapsed = Date.now() - new Date(obj.new.updatedAt);
   } else {
-    console.trace('Where is updatedAt? ' + JSON.stringify(obj));
+    logger.verbose('Where is updatedAt? ' + JSON.stringify(obj));
   }
 
   rcache.hincrbyAsync(pubKeys.count, key, ONE)
     .catch((err) => {
-      console.error('redisPublisher.trackStats HINCRBY', pubKeys.count, key,
+      logger.error('redisPublisher.trackStats HINCRBY', pubKeys.count, key,
         ONE);
     });
   rcache.hincrbyAsync(pubKeys.time, key, elapsed)
     .catch((err) => {
-      console.error('redisPublisher.trackStats HINCRBY', pubKeys.time, key,
+      logger.error('redisPublisher.trackStats HINCRBY', pubKeys.time, key,
         elapsed, err);
     });
 } // trackStats
@@ -155,7 +155,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
     try {
       pubSubStats.track('pub', event, obj[event]);
     } catch (err) {
-      console.error(err);
+      logger.error(err);
     }
   }
 

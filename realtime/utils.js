@@ -393,7 +393,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
     logger.error('sample object does not contain name', JSON.stringify(sample));
-    console.trace('from attachAspectSubject');
+    logger.verbose('from attachAspectSubject');
     return Promise.resolve(null);
   }
 

@@ -702,7 +702,7 @@ function setupSocketIOClient(realtimeApp, bots, roomId) {
                this.emit('auth', _userSession);
              })
              .on('auth error', (err) =>
-               console.error('Socket auth error:', err)
+               logger.error('Socket auth error:', err)
              );
   } else {
     const realtimeEndpoint = (realtimeApp.endsWith('/') ? realtimeApp :

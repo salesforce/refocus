@@ -21,6 +21,7 @@ const constants = require('./constants');
 const dbErrors = require('../../db/dbErrors');
 const cacheErrors = require('../../cache/redisErrors');
 const activityLog = require('../../utils/activityLog');
+const logger = require('../../logger');
 
 function stackTraceFilter(ln) {
   return !ln.includes('/node_modules/') &&
@@ -31,15 +32,15 @@ function stackTraceFilter(ln) {
 
 /**
  * Display additional details from the request, response and error using
- * console.error. Filters a bunch of node_modules and core node.js lines from
+ * logger.error. Filters a bunch of node_modules and core node.js lines from
  * the stack trace so we can focus on *our* code.
  *
  * @param {Object} req - the request
  * @param {Object} errResponse - the error response
  * @param {Error} - the error
- * @param {Function} outputFn - the output function, defaults to console.error
+ * @param {Function} outputFn - the output function, defaults to logger.error
  */
-function displayErrorDetails(req, errResponse, err, outputFn = console.error) {
+function displayErrorDetails(req, errResponse, err, outputFn = logger.error) {
   outputFn('\n--------- errorHandler ---------');
   outputFn(req.method, req.url, req.body);
   outputFn(errResponse);

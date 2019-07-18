@@ -173,7 +173,7 @@ function setupSocketIOClient(persBody) {
                this.emit('auth', _userSession);
              })
              .on('auth error', (err) =>
-               console.error('Socket auth error:', err)
+               logger.error('Socket auth error:', err)
              );
   } else {
     const namespace = u.getNamespaceString(_realtimeApplication, persBody) +
@@ -286,7 +286,7 @@ function handleHierarchyEvent(hierarchyResponse, gotLens) {
     if (lensEventApiVersion < 2) {
       eventDetail = hierarchyResponse; // just pass through as is
     } else {
-      console.error('This instance of Refocus is not ready for lenses with ' +
+      logger.error('This instance of Refocus is not ready for lenses with ' +
         'lensEventApiVersion 2 yet.');
     }
   } else { // hierarchy is "new" format with separate list of aspects

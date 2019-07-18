@@ -83,7 +83,7 @@ function gracefulShutdown() {
 }
 
 jobQueue.on('error', (err) => {
-  console.error('Kue Error!', err); // eslint-disable-line no-console
+  logger.error('Kue Error!', err); // eslint-disable-line no-console
 });
 
 if (featureToggles.isFeatureEnabled('instrumentKue')) {

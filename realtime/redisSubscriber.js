@@ -15,6 +15,7 @@ const emitter = require('./socketIOEmitter');
 const subPerspectives = require('../cache/redisCache').client.subPerspectives;
 const subBot = require('../cache/redisCache').client.subBot;
 const rtUtils = require('./utils');
+const logger = require('../logger');
 const pubSubStats = require('./pubSubStats');
 const ZERO = 0;
 const ONE = 1;
@@ -43,7 +44,7 @@ module.exports = (io) => {
         try {
           pubSubStats.track('sub', key, parsedObj);
         } catch (err) {
-          console.error(err);
+          logger.error(err);
         }
       }
 
