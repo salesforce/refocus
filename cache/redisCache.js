@@ -13,7 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const redis = require('redis');
-const logger = require('../logger').logger;
+const logger = require('../logger');
 const rconf = require('../config').redis;
 const featureToggles = require('feature-toggles');
 

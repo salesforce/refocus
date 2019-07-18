@@ -9,9 +9,7 @@ const expect = require('chai').expect;
 const { initKafkaLoggingProducer, writeLog } = require('../../logger');
 const KafkaProducer = require('no-kafka');
 const sinon = require('sinon');
-const kafkaConfig = require('../../config/kafkaConfig');
 const tu = require('../testUtils');
-
 
 describe('test/logger.js > ', () => {
   it('Happy path:call producer with the right args,' +

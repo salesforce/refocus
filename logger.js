@@ -79,19 +79,15 @@ const writeLog = (value, key = 'info', topic = kafkaConfig.topic,
   return promise ? promise : Promise.resolve();
 };
 
-const logger = {
-  error: (value) => writeLog(value, 'error'),
-  warn: (value) => writeLog(value, 'warn'),
-  info: (value) => writeLog(value, 'info'),
-  debug: (value) => writeLog(value, 'debug'),
-  verbose: (value) => writeLog(value, 'verbose'),
-  silly: (value) => writeLog(value, 'silly'),
-  on: (event, func) => logEmitter.on(event, func),
-  removeListener: (event, func) => logEmitter.removeListener(event, func),
-};
-
 module.exports = {
   initKafkaLoggingProducer,
   writeLog,
-  logger,
+  error: (...args) => args.map((value) => writeLog(value, 'error')),
+  warn: (...args) => args.map((value) => writeLog(value, 'warn')),
+  info: (...args) => args.map((value) => writeLog(value, 'info')),
+  debug: (...args) => args.map((value) => writeLog(value, 'debug')),
+  verbose: (...args) => args.map((value) => writeLog(value, 'verbose')),
+  silly: (...args) => args.map((value) => writeLog(value, 'silly')),
+  on: (event, func) => logEmitter.on(event, func),
+  removeListener: (event, func) => logEmitter.removeListener(event, func),
 };

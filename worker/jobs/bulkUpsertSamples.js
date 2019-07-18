@@ -9,7 +9,7 @@
 /**
  * /worker/jobs/bulkUpsertSamples.js
  */
-const logger = require('../../logger').logger;
+const logger = require('../../logger');
 const subHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');

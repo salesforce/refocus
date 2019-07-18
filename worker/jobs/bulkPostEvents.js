@@ -10,7 +10,7 @@
  * /worker/jobs/bulkPostEvents.js
  */
 
-const logger = require('../../logger').logger;
+const logger = require('../../logger');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 const eventModel = require('./../../db/index.js').Event;

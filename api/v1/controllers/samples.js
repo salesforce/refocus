@@ -31,7 +31,7 @@ const getSamplesWildcardCacheInvalidation = require('../../../config')
 const redisCache = require('../../../cache/redisCache').client.cache;
 const RADIX = 10;
 const COUNT_HEADER_NAME = require('../constants').COUNT_HEADER_NAME;
-const logger = require('../../../logger').logger;
+const logger = require('../../../logger');
 const generators = require('../helpers/nouns/generators');
 
 /**

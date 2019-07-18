@@ -9,7 +9,7 @@
 /**
  * /worker/jobs/createAuditEvents.js
  */
-const logger = require('../../logger').logger;
+const logger = require('../../logger');
 const auditEvent = require('../../api/v1/helpers/nouns/auditEvents').model;
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');

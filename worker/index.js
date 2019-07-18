@@ -17,7 +17,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
-const logger = require('../logger').logger;
+const logger = require('../logger');
 const conf = require('../config');
 if (conf.newRelicKey) require('newrelic');
 const logEnvVars = require('../utils/logEnvVars');

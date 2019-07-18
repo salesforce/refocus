@@ -25,7 +25,7 @@ const apiErrors = require('../apiErrors');
 const AdmZip = require('adm-zip');
 const redisCache = require('../../../cache/redisCache').client.cache;
 const lensUtil = require('../../../utils/lensUtil');
-const logger = require('../../../logger').logger;
+const logger = require('../../../logger');
 const ZERO = 0;
 const ONE = 1;
 
