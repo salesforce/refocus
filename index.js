@@ -89,7 +89,7 @@ function startMaster() {
 } // startMaster
 
 function startWithKafkaLogging() {
-  initKafkaLoggingProducer.then(() => {
+  initKafkaLoggingProducer().then(() => {
     start();
   });
 }
