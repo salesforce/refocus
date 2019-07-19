@@ -11,7 +11,7 @@ const KafkaProducer = require('no-kafka');
 const sinon = require('sinon');
 const tu = require('../testUtils');
 
-describe.only('test/logger.js > ', () => {
+describe('test/logger.js > ', () => {
   it('Happy path:call producer with the right args,' +
   'call the init function and send', () => {
     tu.toggleOverride('kafkaLogging', true);
