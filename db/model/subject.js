@@ -18,6 +18,7 @@ const validateParentField = subjectUtils.validateParentField;
 const constants = require('../constants');
 const dbErrors = require('../dbErrors');
 const redisOps = require('../../cache/redisOps');
+const sampleStore = require('../../cache/sampleStore');
 const subjectType = redisOps.subjectType;
 const publishObject = require('../../realtime/redisPublisher').publishObject;
 const eventName = require('../../realtime/constants').events.subject;
@@ -147,20 +148,22 @@ module.exports = function subject(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         const promiseArr = [];
+        const cmds = [];
         if (inst.getDataValue('isPublished') === true) {
           promiseArr.push(publishObject(inst, eventName.add));
+          const subjTagsKey = sampleStore.toKey(redisOps.tagType,
+            inst.getDataValue('absolutePath'));
+          cmds.push(['sadd', subjTagsKey, inst.getDataValue('tags')]);
         }
 
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
 
-        promiseArr.push(redisOps.addKey(subjectType,
-          inst.getDataValue('absolutePath')));
-        promiseArr.push(redisOps.hmSet(
-          subjectType,
-          inst.getDataValue('absolutePath'),
-          instDataObj
-        ));
+        cmds.push(redisOps.addKey(subjectType,
+          inst.getDataValue('absolutePath'), true));
+
+        cmds.push(redisOps.hmSet(subjectType, inst.getDataValue('absolutePath'),
+          instDataObj, true));
 
         return new seq.Promise((resolve, reject) =>
           inst.getParent()
@@ -169,7 +172,8 @@ module.exports = function subject(seq, dataTypes) {
                 par.increment('childCount');
               }
 
-              return Promise.all(promiseArr);
+              return Promise.all(promiseArr)
+                .then(redisOps.executeBatchCmds(cmds));
             })
             .then(() => resolve(inst))
             .catch((err) => reject(err))
@@ -197,6 +201,8 @@ module.exports = function subject(seq, dataTypes) {
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
 
         const promiseArr = [];
+        const subjTagsKey = sampleStore.toKey(redisOps.tagType,
+          inst.getDataValue('absolutePath'));
 
         // change from published to unpublished
         const isSubjectUnpublished = inst.changed('isPublished') &&
@@ -206,9 +212,14 @@ module.exports = function subject(seq, dataTypes) {
         const isSubjectPublished = inst.changed('isPublished') &&
           !inst._previousDataValues.isPublished && inst.isPublished;
 
+        let tagsSetCreated = false;
         if (isSubjectUnpublished) {
           promiseArr.push(
             subjectUtils.removeRelatedSamples(inst.dataValues, seq));
+          cmds.push(['del', subjTagsKey]);
+        } else if (isSubjectPublished) {
+          tagsSetCreated = true;
+          cmds.push(['sadd', subjTagsKey, inst.getDataValue('tags')]);
         }
 
         if (inst.changed('absolutePath')) {
@@ -231,11 +242,22 @@ module.exports = function subject(seq, dataTypes) {
                 .map((aspectName) => cmds.push(
                   redisOps.addSubjectAbsPathInAspectSet(aspectName, newAbsPath)))
             );
+
+            const oldSubjTagsKey = sampleStore.toKey(redisOps.tagType,
+              oldAbsPath);
+            cmds.push(['del', oldSubjTagsKey]);
+            if (!tagsSetCreated) {
+              cmds.push(['sadd', subjTagsKey, inst.getDataValue('tags')]);
+            }
           }
 
           // remove all the related samples
           promiseArr.push(
             subjectUtils.removeRelatedSamples(inst._previousDataValues, seq));
+        } else if (common.tagsChanged(inst) && inst.isPublished &&
+          !tagsSetCreated) {
+          cmds.push(['del', subjTagsKey]);
+          cmds.push(['sadd', subjTagsKey, inst.getDataValue('tags')]);
         }
 
         if (inst.changed('parentAbsolutePath') ||
@@ -304,8 +326,9 @@ module.exports = function subject(seq, dataTypes) {
                * If subject tags or parent were not updated, just send the usual
                * "update" event.
                */
+
               pubPromises.push(subjectUtils.removeRelatedSamples(
-                inst._previousDataValues, seq, true));
+                  inst._previousDataValues, seq, true));
               pubPromises.push(publishObject(inst._previousDataValues,
                 eventName.del, changedKeys, ignoreAttributes));
               pubPromises.push(publishObject(inst, eventName.add, changedKeys,
