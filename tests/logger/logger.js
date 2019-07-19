@@ -11,12 +11,12 @@ const KafkaProducer = require('no-kafka');
 const sinon = require('sinon');
 const tu = require('../testUtils');
 
-describe('test/logger.js > ', () => {
+describe.only('test/logger.js > ', () => {
   it('Happy path:call producer with the right args,' +
   'call the init function and send', () => {
     tu.toggleOverride('kafkaLogging', true);
     tu.toggleOverride('localLogging', true);
-    const localWriteCallback = sinon.spy();
+    const callback = sinon.spy();
     const sendMock = sinon.stub().returns(Promise.resolve());
     const initMock = sinon.stub().returns(Promise.resolve());
     const producerMock = sinon.stub(KafkaProducer, 'Producer').returns({
@@ -32,9 +32,9 @@ describe('test/logger.js > ', () => {
         },
       });
       expect(initMock.calledOnce).to.be.true;
-      writeLog('test-value', 'info', 'test-topic', localWriteCallback).then(() => {
+      writeLog('test-value', 'info', 'test-topic', callback).then(() => {
         expect(sendMock.calledOnce).to.be.true;
-        expect(localWriteCallback.calledOnce).to.be.true;
+        expect(callback.calledOnce).to.be.true;
       });
       KafkaProducer.Producer.restore();
     });
@@ -43,7 +43,7 @@ describe('test/logger.js > ', () => {
   it('Happy path: local logging off', () => {
     tu.toggleOverride('kafkaLogging', true);
     tu.toggleOverride('localLogging', false);
-    const localWriteCallback = sinon.spy();
+    const callback = sinon.spy();
     const sendMock = sinon.stub().returns(Promise.resolve());
     const initMock = sinon.stub().returns(Promise.resolve());
     const producerMock = sinon.stub(KafkaProducer, 'Producer').returns({
@@ -59,9 +59,9 @@ describe('test/logger.js > ', () => {
         },
       });
       expect(initMock.calledOnce).to.be.true;
-      writeLog('test-value', 'info', 'test-topic', localWriteCallback);
+      writeLog('test-value', 'info', 'test-topic', callback);
       expect(sendMock.calledOnce).to.be.true;
-      expect(localWriteCallback.calledOnce).to.be.false;
+      expect(callback.calledOnce).to.be.false;
     });
     KafkaProducer.Producer.restore();
   });
@@ -69,7 +69,7 @@ describe('test/logger.js > ', () => {
   it('Kafka and local both off', () => {
     tu.toggleOverride('kafkaLogging', false);
     tu.toggleOverride('localLogging', false);
-    const localWriteCallback = sinon.spy();
+    const callback = sinon.spy();
     const sendMock = sinon.stub().returns(Promise.resolve());
     const initMock = sinon.stub().returns(Promise.resolve());
     const producerMock = sinon.stub(KafkaProducer, 'Producer').returns({
@@ -79,9 +79,9 @@ describe('test/logger.js > ', () => {
     initKafkaLoggingProducer().then(() => {
       expect(producerMock.calledOnce).to.be.false;
       expect(initMock.calledOnce).to.be.false;
-      writeLog('test-value', 'info', 'test-topic', localWriteCallback);
+      writeLog('test-value', 'info', 'test-topic', callback);
       expect(sendMock.calledOnce).to.be.false;
-      expect(localWriteCallback.calledOnce).to.be.false;
+      expect(callback.calledOnce).to.be.false;
     });
     KafkaProducer.Producer.restore();
   });
@@ -89,7 +89,7 @@ describe('test/logger.js > ', () => {
   it('Send throws an error', () => {
     tu.toggleOverride('kafkaLogging', true);
     tu.toggleOverride('localLogging', false);
-    const localWriteCallback = sinon.spy();
+    const callback = sinon.spy();
     const sendMock = sinon.stub().returns(Promise.reject());
     const initMock = sinon.stub().returns(Promise.resolve());
     const producerMock = sinon.stub(KafkaProducer, 'Producer').returns({
@@ -99,7 +99,7 @@ describe('test/logger.js > ', () => {
     initKafkaLoggingProducer().then(() => {
       expect(initMock.calledOnce).to.be.true;
       writeLog('test-value', 'info', 'test-topic',
-      localWriteCallback).then(() => {
+      callback).then(() => {
         expect(sendMock.calledTwice).to.be.true;
       });
     });
