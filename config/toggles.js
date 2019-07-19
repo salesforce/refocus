@@ -252,4 +252,5 @@ featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
 module.exports = {
   environmentVariableTrue, // exporting to make it easy to test
   envVarIncludes, // exporting for test only
+  environmentVariableFalse, // exporting for test only
 };

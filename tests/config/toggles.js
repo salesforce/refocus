@@ -32,6 +32,25 @@ describe('tests/config/toggles.js >', () => {
     done();
   });
 
+  it('environmentVariableFalse', (done) => {
+    const env = {
+      foo: true,
+      bar: false,
+      baz: null,
+      foobar: 'True',
+      barbaz: 'falSE',
+    };
+    expect(toggles.environmentVariableFalse(env, 'foo')).to.equal(false);
+    expect(toggles.environmentVariableFalse(env, 'bar')).to.equal(true);
+    expect(toggles.environmentVariableFalse(env, 'baz')).to.equal(false);
+    expect(toggles.environmentVariableFalse(env, 'foobar')).to.equal(false);
+    expect(toggles.environmentVariableFalse(env, 'barbaz')).to.equal(true);
+    expect(toggles.environmentVariableFalse(env, '')).to.equal(false);
+    expect(toggles.environmentVariableFalse(env)).to.equal(false);
+    expect(toggles.environmentVariableFalse(env, 'hello')).to.equal(false);
+    done();
+  });
+
   it('envVarIncludes', (done) => {
     const env = {
       myList: ' Abc,def ,GHi,',
