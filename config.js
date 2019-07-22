@@ -343,5 +343,5 @@ module.exports = {
   refocusRoomsContactEmail,
   waitingSigKillTimeout,
   findSamplesSscanCount: pe.FIND_SAMPLES_SSCAN_COUNT_STR ||
-  DEFAULT_FIND_SAMPLES_SSCAN_COUNT_STR,
+    DEFAULT_FIND_SAMPLES_SSCAN_COUNT_STR,
 };
