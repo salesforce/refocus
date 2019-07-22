@@ -23,6 +23,8 @@ const jwtUtil = require('../utils/jwtUtil');
 const httpStatus = require('./constants').httpStatus;
 const url = require('url');
 const ft = require('feature-toggles');
+const { refocusRoomsChatterUrl,
+  refocusRoomsContactEmail } = require('../config');
 
 const redirectFeature = ft.isFeatureEnabled('enableRedirectDifferentInstance');
 
@@ -194,6 +196,8 @@ function loadView(app, passport) {
           user: JSON.stringify(copyOfUser).replace(/'/g,"apos;"),
           realtimeApplication: viewConfig.realtimeApplication,
           realtimeApplicationImc: viewConfig.realtimeApplicationImc,
+          refocusRoomsChatterUrl,
+          refocusRoomsContactEmail,
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
           useNewNamespaceFormat: ft.isFeatureEnabled('useNewNamespaceFormat'),
           useNewNamespaceFormatImc: ft.isFeatureEnabled('useNewNamespaceFormatImc'),

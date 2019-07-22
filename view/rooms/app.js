@@ -59,6 +59,11 @@ const BOT_REQ_HEADERS = {
   Expires: '-1',
   'Cache-Control': 'private, max-age=31536000', // 31536000s = 1 year
 };
+
+const openInNewTabProps = 'rel="noopener noreferrer" target="_blank"';
+let _refocusRoomsChatterUrl;
+let _refocusRoomsContactEmail;
+let banner;
 let _realtimeApplication;
 let _io;
 let _user;
@@ -697,12 +702,12 @@ function setupSocketIOClient(realtimeApp, bots, roomId) {
 
     const namespace = realtimeApp.endsWith('/') ? 'rooms' : '/rooms';
     socket = _io(`${realtimeApp}${namespace}`, options)
-             .on('connect', function() {
-               this.emit('auth', _userSession);
-             })
-             .on('auth error', (err) =>
-               console.error('Socket auth error:', err)
-             );
+              .on('connect', function() {
+                this.emit('auth', _userSession);
+              })
+              .on('auth error', (err) =>
+              console.error('Socket auth error:', err)
+              );
   } else {
     const realtimeEndpoint = (realtimeApp.endsWith('/') ? realtimeApp :
       (realtimeApp + '/')) + `?t=${_userSession}`;
@@ -1037,6 +1042,17 @@ window.onload = () => {
   declineButton.onclick = closeConfirmationModal;
   setupColumns();
 
+  // Get Url from index.pug
+  _refocusRoomsChatterUrl = refocusRoomsChatterUrl;
+  _refocusRoomsContactEmail = refocusRoomsContactEmail;
+  if (_refocusRoomsChatterUrl && _refocusRoomsContactEmail) {
+    banner = 'Got questions or feedback? Reach IMC via ' +
+    `<a href="${_refocusRoomsChatterUrl}" ${openInNewTabProps}>Chatter</a> or ` +
+    `<a href="mailto:${_refocusRoomsContactEmail}" ${openInNewTabProps}>${_refocusRoomsContactEmail}</a>`;
+  } else {
+    banner = '';
+  }
+
   // Note: this is declared in index.pug:
   _realtimeApplication = realtimeApplication;
   _io = io;
@@ -1074,10 +1090,11 @@ window.onload = () => {
     debugMessage(`Error ${err}`);
   })
   .then((res) => {
-    if(res) {
+    if (res) {
       _roomTypeName = res.body.name;
       const subTitle = `${_roomName} - ${_roomTypeName}`;
       uPage.setSubtitle(subTitle);
+      uPage.setBannerText(banner);
       document.title = subTitle;
       let layoutCookie =
         u.getCookie(`${window.location.pathname}-bots-layout`);

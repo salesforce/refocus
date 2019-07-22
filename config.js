@@ -72,6 +72,10 @@ const botEventLimit = pe.BOT_EVENT_LIMIT || 100;
 
 const minRoomDeactivationAge = +pe.MIN_ROOM_DEACTIVATION_AGE || 120; // 2 hours
 
+// Get feedback links for refocus room banner
+const refocusRoomsChatterUrl = pe.REFOCUS_ROOMS_CHATTER_URL || null;
+const refocusRoomsContactEmail = pe.REFOCUS_ROOMS_CONTACT_EMAIL || null;
+
 /*
  * name of the environment variable containing the read-only
  * database names as CSV
@@ -335,7 +339,9 @@ module.exports = {
   pubSubStatsLoggingInterval,
   queueTime95thMillis: pe.QUEUESTATS_95TH_WARNING_MILLIS,
   readReplicas,
+  refocusRoomsChatterUrl,
+  refocusRoomsContactEmail,
   waitingSigKillTimeout,
   findSamplesSscanCount: pe.FIND_SAMPLES_SSCAN_COUNT_STR ||
-    DEFAULT_FIND_SAMPLES_SSCAN_COUNT_STR,
+  DEFAULT_FIND_SAMPLES_SSCAN_COUNT_STR,
 };
