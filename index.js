@@ -90,9 +90,14 @@ function startMaster() {
 } // startMaster
 
 function startWithKafkaLogging() {
-  initKafkaLoggingProducer().then(() => {
-    start();
-  });
+  try {
+    initKafkaLoggingProducer().then(() => {
+      start();
+    });
+  } catch (err) {
+    logger.error(err);
+    process.exit(1);
+  }
 }
 
 const isProd = (process.env.NODE_ENV === 'production');

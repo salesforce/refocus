@@ -7,7 +7,7 @@
  */
 
 const KafkaProducer = require('no-kafka');
-const kafkaConfig = require('./config/kafkaConfig').getConfig();
+const kafkaConfig = require('./config/kafkaLoggingConfig').getConfig();
 const winston = require('winston');
 const featureToggles = require('feature-toggles');
 const EventEmitter = require('events');
@@ -73,7 +73,7 @@ const writeLog = (value, key = 'info', topic = kafkaConfig.topic,
 
   if (featureToggles.isFeatureEnabled('localLogging')) {
     localCallback('Local logging is turned on');
-    writeLocalLog(logMessage);
+    logFunc[logMessage.message.key](logMessage.message.value);
   }
 
   return promise ? promise : Promise.resolve();
