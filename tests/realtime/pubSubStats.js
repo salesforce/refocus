@@ -197,9 +197,9 @@ describe('tests/realtime/pubSubStats.js >', () => {
       inspect.restore();
     });
 
-    it('ok', () => {
-      const re1 = /.activity=pubsub key=bye.world process=MyProcessName pubCount=3 pubTime=\d+ subCount=1 subTime=\d+/; // jscs:ignore maximumLineLength
-      const re2 = /.activity=pubsub key=hello.world process=MyProcessName pubCount=1 pubTime=\d+ subCount=1 subTime=\d+/; // jscs:ignore maximumLineLength
+    it.only('ok', () => {
+      const re1 = /activity=pubsub key=bye.world process=MyProcessName pubCount=3 pubTime=\d+ subCount=1 subTime=\d+/; // jscs:ignore maximumLineLength
+      const re2 = /activity=pubsub key=hello.world process=MyProcessName pubCount=1 pubTime=\d+ subCount=1 subTime=\d+/; // jscs:ignore maximumLineLength
       expect(inspect.output).to.be.array;
       expect(inspect.output).to.have.lengthOf(4);
       expect(inspect.output[1]).to.match(re1);
