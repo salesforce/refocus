@@ -54,7 +54,7 @@ function environmentVariableFalse(processEnv, environmentVariableName) {
   const x = processEnv[environmentVariableName];
   return typeof x !== 'undefined' && x !== null &&
     x.toString().toLowerCase() === 'false';
-} // environmentVariableTrue
+} // environmentVariableFalse
 
 /**
  * Return boolean true if the named environment variable contains a comma-
