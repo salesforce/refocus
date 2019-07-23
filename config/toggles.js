@@ -40,15 +40,15 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
 } // environmentVariableTrue
 
 /**
- * Return boolean false if the named environment variable is boolean false or
+ * Return boolean true if the named environment variable is boolean false or
  * case-insensitive string 'false'.
  *
  * @param {Object} processEnv - The node process environment. (Passing it into
  *  this function instead of just getting a reference to it *inside* this
  *  function makes the function easier to test.)
  * @param {String} environmentVariableName - The name of the environment var.
- * @returns {Boolean} true if the named environment variable is boolean true or
- *  case-insensitive string 'true'.
+ * @returns {Boolean} true if the named environment variable is boolean false or
+ *  case-insensitive string 'false'.
  */
 function environmentVariableFalse(processEnv, environmentVariableName) {
   const x = processEnv[environmentVariableName];
@@ -184,7 +184,9 @@ const longTermToggles = {
   // Toggle to turn on Kafka Logging
   kafkaLogging: environmentVariableTrue(pe, 'KAFKA_LOGGING'),
 
-  // Toggle to turn on LocalLogging
+  // Toggle to turn on LocalLogging, this uses environmentVariableFalse
+  // We want the value of localLogging to be only turned off when the admin
+  // explicitly sets to false
   localLogging: !environmentVariableFalse(pe, 'LOCAL_LOGGING'),
 
 }; // longTermToggles
