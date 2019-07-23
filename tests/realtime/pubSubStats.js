@@ -17,7 +17,7 @@ const globalKey = require('../../realtime/constants').pubSubStatsAggregator;
 const tu = require('../testUtils');
 const u = require('./utils');
 
-describe.only('tests/realtime/pubSubStats.js >', () => {
+describe('tests/realtime/pubSubStats.js >', () => {
   tu.toggleOverride('localLogging', true);
 
   describe('track >', () => {
