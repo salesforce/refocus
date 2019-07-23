@@ -89,10 +89,8 @@ function startMaster() {
   logger.info('Started node cluster master');
 } // startMaster
 
-function startWithKafkaLogging() {
-  initKafkaLoggingProducer().then(() => {
-    start();
-  }).catch((err) => {
+function initApp() {
+  initKafkaLoggingProducer().then(start).catch((err) => {
     logger.error(err);
   });
 }
@@ -102,9 +100,9 @@ if (isProd) {
   throng({
     lifetime: Infinity,
     master: startMaster,
-    start: startWithKafkaLogging,
+    start: initApp,
     workers: WORKERS,
   });
 } else {
-  startWithKafkaLogging();
+  initApp();
 }
