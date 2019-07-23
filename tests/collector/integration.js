@@ -536,7 +536,7 @@ describe('tests/collector/integration.js >', function () {
         );
       });
 
-      describe('collector config >', () => {
+      describe.only('collector config >', () => {
         beforeEach(() =>
           u.doStart(coll1)
           .then(() => u.patchCollectorGroup(cg1.name, { collectors: [coll1] }))
