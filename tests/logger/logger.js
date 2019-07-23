@@ -14,7 +14,7 @@ const sinon = require('sinon');
 const featureToggles = require('feature-toggles');
 const tu = require('../testUtils');
 
-describe.only('test/logger.js > ', () => {
+describe('test/logger.js > ', () => {
   const localLoggingValue = featureToggles.isFeatureEnabled('localLogging');
   const kafkaLoggingValue = featureToggles.isFeatureEnabled('kafkaLogging');
 
