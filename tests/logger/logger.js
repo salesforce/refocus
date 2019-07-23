@@ -11,9 +11,18 @@ const expect = require('chai').expect;
 const { initKafkaLoggingProducer, writeLog } = require('../../logger');
 const KafkaProducer = require('no-kafka');
 const sinon = require('sinon');
+const featureToggles = require('feature-toggles');
 const tu = require('../testUtils');
 
-describe('test/logger.js > ', () => {
+describe.only('test/logger.js > ', () => {
+  const localLoggingValue = featureToggles.isFeatureEnabled('localLogging');
+  const kafkaLoggingValue = featureToggles.isFeatureEnabled('kafkaLogging');
+
+  afterEach(() => {
+    tu.toggleOverride('localLogging', localLoggingValue);
+    tu.toggleOverride('kafkaLogging', kafkaLoggingValue);
+  });
+
   it('Happy path:call producer with the right args,' +
   'call the init function and send', () => {
     tu.toggleOverride('kafkaLogging', true);
