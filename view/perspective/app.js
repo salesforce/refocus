@@ -161,7 +161,7 @@ function setupSocketIOClient(persBody) {
     const options = {
       query: {
         p: persBody.name,
-        id: u.getNamespaceString(_realtimeApplication, persBody),
+        id: u.getNamespaceString('/', persBody),
       },
       ...constants.socketOptions,
     };
