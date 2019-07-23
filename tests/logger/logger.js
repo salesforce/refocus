@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or
  * https://opensource.org/licenses/BSD-3-Clause
  */
+
+/* eslint-disable no-unused-expressions*/
 const expect = require('chai').expect;
 const { initKafkaLoggingProducer, writeLog } = require('../../logger');
 const KafkaProducer = require('no-kafka');
@@ -92,7 +94,7 @@ describe('test/logger.js > ', () => {
     const callback = sinon.spy();
     const sendMock = sinon.stub().returns(Promise.reject());
     const initMock = sinon.stub().returns(Promise.resolve());
-    const producerMock = sinon.stub(KafkaProducer, 'Producer').returns({
+    sinon.stub(KafkaProducer, 'Producer').returns({
       init: () => Promise.resolve(initMock()),
       send: (message) => Promise.resolve(sendMock(message)),
     });

@@ -6,6 +6,7 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 
+/* eslint-disable func-style*/
 const KafkaProducer = require('no-kafka');
 const kafkaConfig = require('./config/kafkaLoggingConfig').getConfig();
 const winston = require('winston');
@@ -43,37 +44,32 @@ const logFunc = {
   debug: winston.debug,
 };
 
-const writeLocalLog = (logMessage) => {
-  logFunc[logMessage.message.key](logMessage.message.value);
-};
-
-const writeLog = (value, key = 'info', topic = kafkaConfig.topic,
-    localCallback = winston.info) => {
-  logEmitter.emit('logging', value);
-  const messageValue = {
+const writeLog = (message, key = 'info', topic = kafkaConfig.topic,
+    callback = winston.info) => {
+  const value = JSON.stringify({
     sendTimeStamp: new Date(),
-    value,
-  };
+    message,
+  });
   const logMessage = {
     topic,
     partition: 0,
     message: {
       key,
-      value: JSON.stringify(messageValue),
+      value,
     },
   };
   let promise;
   if (featureToggles.isFeatureEnabled('kafkaLogging')) {
     promise = producer.send(logMessage).catch((err) => {
-      localCallback(`Sending the log message to Kafka cluster failed,
-      retrying, error: ${err}`);
+      // eslint-disable-next-line callback-return
+      callback('Sending the log message to Kafka cluster failed,' +
+       `retrying, error: ${err}`);
       producer.send(logMessage); // retry again if failed
     });
   }
 
   if (featureToggles.isFeatureEnabled('localLogging')) {
-    localCallback('Local logging is turned on');
-    logFunc[logMessage.message.key](logMessage.message.value);
+    logFunc[logMessage.message.key](message);
   }
 
   return promise ? promise : Promise.resolve();
