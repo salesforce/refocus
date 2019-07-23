@@ -115,7 +115,7 @@ describe('tests/publish/samples.js >', () => {
           const s2 = JSON.parse(subscribeTracker[2]);
           expect(s2).to.have.property(sampleEvents.del);
           const s2Body = s2[sampleEvents.del];
-          expect(s1Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
+          expect(s2Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
             'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
             'previousStatus', 'statusChangedAt', 'aspect', 'subject',
             'absolutePath');
@@ -220,10 +220,10 @@ describe('tests/publish/samples.js >', () => {
           const s3 = JSON.parse(subscribeTracker[2]);
           expect(s3).to.have.property(subjectEvents.del);
           const s3Body = s3[subjectEvents.del];
-          expect(s1Body)
+          expect(s3Body)
             .to.have.property('absolutePath', `${tu.namePrefix}S9`);
           done();
-        })
+        });
     });
   });
 
