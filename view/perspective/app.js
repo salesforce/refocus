@@ -184,7 +184,7 @@ function setupSocketIOClient(persBody) {
   }
   socket.on('connect', () => {
     Object.values(eventsQueue.eventType).forEach((eventType) =>
-      socket.on(eventType, (data, cb) => handleEvent(eventType, data, cb))
+      socket.on(eventType, (data, cb) => handleEvent(data, eventType, cb))
     );
 
     /*
