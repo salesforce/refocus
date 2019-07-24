@@ -48,7 +48,7 @@ const writeLog = (message, key = 'info', topic = kafkaConfig.topic,
     callback = winston.info) => {
   logEmitter.emit('logging', message);
   const value = JSON.stringify({
-    sendTimeStamp: new Date(),
+    messageTime: new Date(),
     message,
   });
   const logMessage = {
