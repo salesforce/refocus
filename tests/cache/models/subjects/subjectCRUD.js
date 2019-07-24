@@ -30,7 +30,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
   const parUnPub = {
     name: `${tu.namePrefix}SouthAmerica`,
     isPublished: false,
-    tags: ['parent', 'unpub']
+    tags: ['parent', 'unpub'],
   };
   const aspectTemp = {
     name: 'temperature',
