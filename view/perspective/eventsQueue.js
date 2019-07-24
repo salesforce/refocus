@@ -24,8 +24,9 @@ const eventType = {
   INTRNL_SMPL_DEL: 'refocus.internal.realtime.sample.remove',
   INTRNL_SMPL_UPD: 'refocus.internal.realtime.sample.update',
   INTRNL_SMPL_NC: 'refocus.internal.realtime.sample.nochange',
-  LENS_CHANGE: 'refocus.lens.realtime.change',
 };
+
+const LENS_CHANGE = 'refocus.lens.realtime.change';
 
 /**
  * Push event data to corresponding event queue.
@@ -58,7 +59,7 @@ function enqueueEvent(eventName, eventData) {
 function createAndDispatchLensEvent(queueToFlush, lensElement) {
   if (queueToFlush !== undefined && queueToFlush.length > ZERO) {
     const evt = new CustomEvent(
-      eventType.LENS_CHANGE, { detail: queueToFlush }
+      LENS_CHANGE, { detail: queueToFlush }
     );
     lensElement.dispatchEvent(evt);
   }

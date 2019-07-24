@@ -110,8 +110,11 @@ function handleError(err) {
  *
  * @param  {String} eventData - Data recieved with event
  * @param  {String} eventTypeName - Event type
+ * @param  {Function} trackEndToEndTime - Callback to send event receipt time back to server
  */
-function handleEvent(eventData, eventTypeName) {
+function handleEvent(eventData, eventTypeName, trackEndToEndTime) {
+  trackEndToEndTime && trackEndToEndTime(Date.now());
+
   const j = JSON.parse(eventData);
   if (DEBUG_REALTIME) {
     console.log({ // eslint-disable-line no-console
@@ -180,27 +183,9 @@ function setupSocketIOClient(persBody) {
     socket = _io.connect(namespace, constants.socketOptions);
   }
   socket.on('connect', () => {
-    socket.on(eventsQueue.eventType.INTRNL_SUBJ_ADD, (data) => {
-      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_ADD);
-    });
-    socket.on(eventsQueue.eventType.INTRNL_SUBJ_DEL, (data) => {
-      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_DEL);
-    });
-    socket.on(eventsQueue.eventType.INTRNL_SUBJ_UPD, (data) => {
-      handleEvent(data, eventsQueue.eventType.INTRNL_SUBJ_UPD);
-    });
-    socket.on(eventsQueue.eventType.INTRNL_SMPL_ADD, (data) => {
-      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_ADD);
-    });
-    socket.on(eventsQueue.eventType.INTRNL_SMPL_DEL, (data) => {
-      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_DEL);
-    });
-    socket.on(eventsQueue.eventType.INTRNL_SMPL_UPD, (data) => {
-      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_UPD);
-    });
-    socket.on(eventsQueue.eventType.INTRNL_SMPL_NC, (data) => {
-      handleEvent(data, eventsQueue.eventType.INTRNL_SMPL_NC);
-    });
+    Object.values(eventsQueue.eventType).forEach((eventType) =>
+      socket.on(eventType, (data, cb) => handleEvent(eventType, data, cb))
+    );
 
     /*
      * TODO once we build new perspective page, we should have a way to tell
