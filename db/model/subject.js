@@ -151,7 +151,7 @@ module.exports = function subject(seq, dataTypes) {
         const cmds = [];
         if (inst.getDataValue('isPublished') === true) {
           promiseArr.push(publishObject(inst, eventName.add));
-          const subjTagsKey = sampleStore.toKey(redisOps.tagType,
+          const subjTagsKey = sampleStore.toKey(redisOps.subjectTagsType,
             inst.getDataValue('absolutePath'));
           cmds.push(['sadd', subjTagsKey, inst.getDataValue('tags')]);
         }
@@ -201,7 +201,7 @@ module.exports = function subject(seq, dataTypes) {
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
 
         const promiseArr = [];
-        const subjTagsKey = sampleStore.toKey(redisOps.tagType,
+        const subjTagsKey = sampleStore.toKey(redisOps.subjectTagsType,
           inst.getDataValue('absolutePath'));
 
         // change from published to unpublished
@@ -243,7 +243,7 @@ module.exports = function subject(seq, dataTypes) {
                   redisOps.addSubjectAbsPathInAspectSet(aspectName, newAbsPath)))
             );
 
-            const oldSubjTagsKey = sampleStore.toKey(redisOps.tagType,
+            const oldSubjTagsKey = sampleStore.toKey(redisOps.subjectTagsType,
               oldAbsPath);
             cmds.push(['del', oldSubjTagsKey]);
             if (!tagsSetCreated) {
