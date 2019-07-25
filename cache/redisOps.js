@@ -20,7 +20,7 @@ const subAspMapType = redisStore.constants.objectType.subAspMap;
 const aspSubMapType = redisStore.constants.objectType.aspSubMap;
 const aspectType = redisStore.constants.objectType.aspect;
 const sampleType = redisStore.constants.objectType.sample;
-const tagType = redisStore.constants.objectType.tags;
+const subjectTagsType = redisStore.constants.objectType.subjectTags;
 
 /**
  * Capitalize the first letter of the string and returns the modified string.
@@ -43,7 +43,7 @@ function capitalizeFirstLetter(str) {
  * @returns {Promise|Array} - Promise which resolves to true or command if
  * returnCmd is true.
  */
-function hmSet(objectName, name, value, returnCmd=null) {
+function hmSet(objectName, name, value, returnCmd=false) {
   const cleanobj =
     redisStore['clean' + capitalizeFirstLetter(objectName)](value);
   const nameKey = redisStore.toKey(objectName, name);
@@ -110,7 +110,7 @@ function getValue(type, name) {
  * @returns {Promise|Array} - Promise which resolves to the values returned
  * by the redis command | command array if returnCmd is true.
  */
-function addKey(type, name, returnCmd=null) {
+function addKey(type, name, returnCmd=false) {
   const indexName = redisStore.constants.indexKey[type];
   const nameKey = redisStore.toKey(type, name);
 
@@ -574,7 +574,7 @@ module.exports = {
 
   aspSubMapType,
 
-  tagType,
+  subjectTagsType,
 
   getValue,
 

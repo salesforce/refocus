@@ -111,7 +111,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
         absolutePath));
       cmds.push(['hgetall', key]);
 
-      const subjTagKey = redisStore.toKey(redisOps.tagType, absolutePath);
+      const subjTagKey = redisStore.toKey(redisOps.subjectTagsType, absolutePath);
       subj.tags.forEach((tag) => {
         cmds.push(['sismember', subjTagKey, tag]);
       });
@@ -142,7 +142,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       cmds.push(['hgetall', key]);
 
       // tags key should not be found
-      const subjTagKey = redisStore.toKey(redisOps.tagType, sub.absolutePath);
+      const subjTagKey = redisStore.toKey(redisOps.subjectTagsType, sub.absolutePath);
       cmds.push(['exists', subjTagKey]);
       return redisOps.executeBatchCmds(cmds);
     })
@@ -183,12 +183,12 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       cmds.push(['hgetall', newKey]);
 
       // tags key should not be found for old absolute path
-      const oldSubjTagKey = redisStore.toKey(redisOps.tagType,
+      const oldSubjTagKey = redisStore.toKey(redisOps.subjectTagsType,
         oldAbsPath);
       cmds.push(['exists', oldSubjTagKey]);
 
       // tags should be found for new absolute path
-      const newSubjTagKey = redisStore.toKey(redisOps.tagType,
+      const newSubjTagKey = redisStore.toKey(redisOps.subjectTagsType,
         newAbsPath);
       subj.tags.forEach((tag) => {
         cmds.push(['sismember', newSubjTagKey, tag]);
@@ -249,12 +249,12 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       cmds.push(['hgetall', newKey]);
 
       // tags key should not be found for old absolute path
-      const oldSubjTagKey = redisStore.toKey(redisOps.tagType,
+      const oldSubjTagKey = redisStore.toKey(redisOps.subjectTagsType,
         oldAbsPath);
       cmds.push(['exists', oldSubjTagKey]);
 
       // tags should be updated new absolute path
-      const newSubjTagKey = redisStore.toKey(redisOps.tagType,
+      const newSubjTagKey = redisStore.toKey(redisOps.subjectTagsType,
         newAbsPath);
       ARRAY.forEach((tag) => {
         cmds.push(['sismember', newSubjTagKey, tag]);
@@ -367,7 +367,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       cmds.push(['hgetall', key]);
 
       // tags not found
-      const subjTagKey = redisStore.toKey(redisOps.tagType,
+      const subjTagKey = redisStore.toKey(redisOps.subjectTagsType,
         found.absolutePath);
       cmds.push(['exists', subjTagKey]);
       return redisOps.executeBatchCmds(cmds);
@@ -400,7 +400,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       cmds.push(['smembers', aspSubMapKeyHumid]);
 
       // tags key should not be found
-      const subjTagKey = redisStore.toKey(redisOps.tagType,
+      const subjTagKey = redisStore.toKey(redisOps.subjectTagsType,
         parentName);
       cmds.push(['exists', subjTagKey]);
       return redisOps.executeBatchCmds(cmds);
@@ -440,7 +440,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       cmds.push(['smembers', aspSubMapKeyHumid]);
 
       // tags key should not be found
-      const subjTagKey = redisStore.toKey(redisOps.tagType,
+      const subjTagKey = redisStore.toKey(redisOps.subjectTagsType,
         parentName);
       cmds.push(['exists', subjTagKey]);
       return redisOps.executeBatchCmds(cmds);
@@ -485,7 +485,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       cmds.push(['smembers', aspSubMapKeyHumid]);
 
       // tags key should not be found
-      const subjTagKey = redisStore.toKey(redisOps.tagType,
+      const subjTagKey = redisStore.toKey(redisOps.subjectTagsType,
         parentName);
       cmds.push(['exists', subjTagKey]);
 
@@ -518,7 +518,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
       ],
     })
     .then((subj) => {
-      const subjTagKey = redisStore.toKey(redisOps.tagType, subj.absolutePath);
+      const subjTagKey = redisStore.toKey(redisOps.subjectTagsType, subj.absolutePath);
       const key = redisStore.toKey('subject', subj.absolutePath);
       const cmds = [];
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
@@ -565,7 +565,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         subj.absolutePath));
       cmds.push(['hgetall', key]);
 
-      const subjTagKey = redisStore.toKey(redisOps.tagType, subj.absolutePath);
+      const subjTagKey = redisStore.toKey(redisOps.subjectTagsType, subj.absolutePath);
       subj.tags.forEach((tag) => {
         cmds.push(['sismember', subjTagKey, tag]);
       });
@@ -610,7 +610,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         subj.absolutePath));
       cmds.push(['hgetall', key]);
 
-      const subjTagKey = redisStore.toKey(redisOps.tagType, subj.absolutePath);
+      const subjTagKey = redisStore.toKey(redisOps.subjectTagsType, subj.absolutePath);
       subj.tags.forEach((tag) => {
         cmds.push(['sismember', subjTagKey, tag]);
       });
@@ -655,7 +655,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         subj.absolutePath));
       cmds.push(['hgetall', key]);
 
-      const subjTagKey = redisStore.toKey(redisOps.tagType, subj.absolutePath);
+      const subjTagKey = redisStore.toKey(redisOps.subjectTagsType, subj.absolutePath);
       subj.tags.forEach((tag) => {
         cmds.push(['sismember', subjTagKey, tag]);
       });
@@ -724,7 +724,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
       cmds.push(['hgetall', key]);
 
       const subjTagKey = redisStore.toKey(
-        redisOps.tagType, subInst.absolutePath);
+        redisOps.subjectTagsType, subInst.absolutePath);
       subInst.tags.forEach((tag) => {
         cmds.push(['sismember', subjTagKey, tag]);
       });
