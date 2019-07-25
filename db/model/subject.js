@@ -242,7 +242,6 @@ module.exports = function subject(seq, dataTypes) {
                 .map((aspectName) => cmds.push(
                   redisOps.addSubjectAbsPathInAspectSet(aspectName, newAbsPath)))
             );
-
             const oldSubjTagsKey = redisOps.getSubjectTagsKey(oldAbsPath);
             cmds.push(['del', oldSubjTagsKey]);
             if (!tagsSetCreated) {

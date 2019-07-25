@@ -714,7 +714,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
       cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
         subInst.absolutePath));
       cmds.push(['hgetall', key]);
-
+      
       const subjTagKey = redisOps.getSubjectTagsKey(subInst.absolutePath);
       subInst.tags.forEach((tag) => {
         cmds.push(['sismember', subjTagKey, tag]);
