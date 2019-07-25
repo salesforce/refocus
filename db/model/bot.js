@@ -26,6 +26,7 @@
 
 const constants = require('../constants');
 const u = require('../helpers/botUtils');
+const redisCache = require('../../cache/redisCache').client.cache;
 const assoc = {};
 
 module.exports = function bot(seq, dataTypes) {
@@ -47,6 +48,18 @@ module.exports = function bot(seq, dataTypes) {
     url: {
       type: dataTypes.STRING,
       allowNull: false,
+      validate: { isUrl: true },
+      comment: 'The URL to load bot',
+    },
+    helpUrl: {
+      type: dataTypes.STRING,
+      allowNull: true,
+      validate: { isUrl: true },
+      comment: 'The URL to load bot',
+    },
+    ownerUrl: {
+      type: dataTypes.STRING,
+      allowNull: true,
       validate: { isUrl: true },
       comment: 'The URL to load bot',
     },
@@ -84,39 +97,118 @@ module.exports = function bot(seq, dataTypes) {
       },
       comment: 'List of data variables a bot has available',
     },
+    lastHeartbeat: {
+      type: dataTypes.DATE,
+      allowNull: true,
+    },
+    version: {
+      type: dataTypes.STRING(constants.fieldlen.shortish),
+      allowNull: false,
+      comment: 'Bot Version. Use Semantic Versioning ^2.0.0',
+    },
+    displayName: {
+      type: dataTypes.STRING(constants.fieldlen.normalName),
+      allowNull: true,
+      comment: 'Displayed in the header of the Bot',
+    },
   }, {
-    classMethods: {
-      getBotAssociations() {
-        return assoc;
+    hooks: {
+
+      afterDestroy(inst /* , opts */) {
+        redisCache.del(`${constants.botsRoute}/${inst.id}`);
+        redisCache.del(`${constants.botsRoute}/${inst.name}`);
       },
 
-      getProfileAccessField() {
-        return 'botAccess';
-      },
-
-      postImport(models) {
-        assoc.writers = Bot.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'BotWriters',
-          foreignKey: 'botId',
-        });
-        assoc.roomTypes = Bot.belongsToMany(models.RoomType, {
-          foreignKey: 'botId',
-          through: 'RoomTypeBots',
-        });
-
-        Bot.addScope('botUI', {
-          attributes: { include: ['ui'] },
-        });
-
-        Bot.addScope('defaultScope', {
-          attributes: { exclude: ['ui'] },
-        }, {
-          override: true,
-        });
+      /**
+       * Clear this record from the cache so that a fresh entry is populated
+       * from the API layer when the bot is fetched.
+       * Note: we don't just add inst to the cache from here because default
+       * scope excludes the "ui" attribute, which obviously needs to be
+       * cached.
+       */
+      afterUpdate(inst /* , opts */) {
+        // Clear the bot from the cache whether it's stored by id or by name.
+        redisCache.del(`${constants.botsRoute}/${inst.id}`);
+        redisCache.del(`${constants.botsRoute}/${inst.name}`);
       },
     },
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Bot.getBotAssociations = function () {
+    return assoc;
+  };
+
+  Bot.getProfileAccessField = function () {
+    return 'botAccess';
+  };
+
+  Bot.postImport = function (models) {
+    assoc.owner = Bot.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+    assoc.user = Bot.belongsTo(models.User, {
+      foreignKey: 'installedBy',
+      as: 'user',
+    });
+    assoc.writers = Bot.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'BotWriters',
+      foreignKey: 'botId',
+    });
+    assoc.roomTypes = Bot.belongsToMany(models.RoomType, {
+      foreignKey: 'botId',
+      through: 'RoomTypeBots',
+    });
+
+    Bot.addScope('botUI', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+      attributes: { include: ['ui'] },
+    });
+
+    Bot.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+      attributes: { exclude: ['ui'] },
+    }, {
+      override: true,
+    });
+  };
+
+  Bot.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getWriters()
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
   return Bot;
 };
-

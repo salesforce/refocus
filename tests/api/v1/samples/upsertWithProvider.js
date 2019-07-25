@@ -11,18 +11,15 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const expect = require('chai').expect;
-const ZERO = 0;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
-const adminUser = require('../../../../config').db.adminUser;
-const predefinedAdminUserToken =
-  tu.createTokenFromUserName(adminUser.name, adminUser.name);
+const predefinedAdminUserToken = tu.createAdminToken();
 
 describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
 () => {
@@ -35,7 +32,6 @@ describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
   const expectedValue = '100';
 
   before((done) => {
-    tu.toggleOverride('returnUser', true);
     tu.createUserAndToken()
     .then((obj) => {
       token = obj.token;
@@ -58,13 +54,12 @@ describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
     .catch(done);
   });
 
+  beforeEach(u.populateRedis);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
-  after(() => tu.toggleOverride('returnUser', false));
 
-  describe(`new sample >`, () => {
-    it('upsert succeeds when token is provided, and the result returns ' +
-      ' non-empty provider and user fields', (done) => {
+  describe('new sample >', () => {
+    it('return provider and user fields', (done) => {
       api.post(path)
       .set('Authorization', token)
       .send({
@@ -83,47 +78,6 @@ describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
         done();
       });
     });
-
-    it('upsert succeeds without token, and the result returns ' +
-      'without user and provider fields', (done) => {
-      api.post(path)
-      .send({
-        name: `${subject.absolutePath}|${aspect.name}`,
-        value: expectedValue,
-      })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.value).to.equal(expectedValue);
-        expect(res.body.provider).to.be.undefined;
-        expect(res.body.user).to.be.undefined;
-        done();
-      });
-    });
-
-    it('upsert succeeds with invalid token, and the result returns ' +
-      ' without provider and user fields', (done) => {
-      api.post(path)
-      .set('Authorization', DONT_EXIST_NAME)
-      .send({
-        name: `${subject.absolutePath}|${aspect.name}`,
-        value: expectedValue,
-      })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.value).to.equal(expectedValue);
-        expect(res.body.provider).to.be.undefined;
-        expect(res.body.user).to.be.undefined;
-        done();
-      });
-    });
   });
 
   describe('existing sample >', () => {
@@ -134,17 +88,17 @@ describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
         aspectId: aspect.id,
         subjectId: subject.id,
         provider: user.id,
-      })
+      }, user)
       .then(() => done())
       .catch(done);
     });
 
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
-    after(() => tu.toggleOverride('returnUser', false));
 
-    it('upsert succeeds WITH token of another user, and the result returns ' +
-      ' the original provider and user fields', (done) => {
+    it('upsert with token of another user, return original provider and user',
+    (done) => {
       api.get('/v1/samples/' + `${subject.absolutePath}|${aspect.name}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -177,51 +131,6 @@ describe(`tests/api/v1/samples/upsertWithProvider.js, upsert without cache >`,
           expect(res.body.user.email).to.equal(user.email);
           done();
         });
-      });
-    });
-
-    it('upsert succeeds even WITHOUT token, and the result returns ' +
-      ' the original provider and user fields', (done) => {
-      api.post(path)
-      .send({
-        name: `${subject.absolutePath}|${aspect.name}`,
-        value: expectedValue,
-      })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.value).to.equal(expectedValue);
-        expect(res.body.provider).to.equal(user.id);
-        expect(res.body.user).to.be.an('object');
-        expect(res.body.user.name).to.equal(user.name);
-        expect(res.body.user.email).to.equal(user.email);
-        done();
-      });
-    });
-
-    it('upsert succeeds with INVALID token, and the result returns ' +
-      ' the original provider and user fields', (done) => {
-      api.post(path)
-      .set('Authorization', DONT_EXIST_NAME)
-      .send({
-        name: `${subject.absolutePath}|${aspect.name}`,
-        value: expectedValue,
-      })
-      .expect(constants.httpStatus.OK)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.value).to.equal(expectedValue);
-        expect(res.body.provider).to.equal(user.id);
-        expect(res.body.user).to.be.an('object');
-        expect(res.body.user.name).to.equal(user.name);
-        expect(res.body.user.email).to.equal(user.email);
-        done();
       });
     });
   });

@@ -96,46 +96,6 @@ describe('tests/db/model/sample/sampleNameUpdate.js >', () => {
       .then(() => done())
       .catch(done);
     });
-
-    describe('subject name/parentId gets updated >', () => {
-      it('sample name updated when subject name is updated, ' +
-      'when subject parent name is updated, ' +
-      'when subject grandparent name is updated', (done) => {
-        Subject.findById(b1.id)
-        .then((b) => b.update({ name: `${tu.namePrefix}UPDATED` }))
-        .then(() => Subject.scope('withSamples').findById(b1.id))
-        .then((b) => b.getSamples())
-        .each((samp) => {
-          samp.get('name').should.match(/$__UDPATED|__Aspect[12]/);
-        })
-        .then(() => Subject.scope('withSamples').findById(b2.id))
-        .then((b) => b.getSamples())
-        .each((samp) => {
-          samp.get('name').should.match(/$__UDPATED|__Aspect[12]/);
-        })
-        .then(() => Subject.scope('withSamples').findById(b3.id))
-        .then((b) => b.getSamples())
-        .each((samp) => {
-          samp.get('name').should.match(/$__UDPATED|__Aspect[12]/);
-        })
-        .then(() => done())
-        .catch(done);
-      });
-    });
-
-    describe('aspect name gets updated >', () => {
-      it('sample name updated when aspect name is updated', (done) => {
-        Aspect.findById(a1.id)
-        .then((a) => a.update({ name: `${tu.namePrefix}UPDATED` }))
-        .then(() => Aspect.scope('withSamples').findById(a1.id))
-        .then((a) => a.getSamples())
-        .each((samp) => {
-          samp.get('name').should.match(/.*|__UPDATED$/);
-        })
-        .then(() => done())
-        .catch(done);
-      });
-    });
   });
 
   describe('isWritableBy >', () => {

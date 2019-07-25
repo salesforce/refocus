@@ -10,7 +10,7 @@
  * api/v1/controllers/globalconfig.js
  */
 'use strict';
-
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/globalconfig');
 const doDelete = require('../helpers/verbs/doDelete');
 const doPatch = require('../helpers/verbs/doPatch');
@@ -18,7 +18,7 @@ const doPost = require('../helpers/verbs/doPost');
 const doGet = require('../helpers/verbs/doGet');
 const doFind = require('../helpers/verbs/doFind');
 const u = require('../helpers/verbs/utils');
-const authUtils = require('../helpers/authUtils');
+const httpStatus = require('../constants').httpStatus;
 
 module.exports = {
 
@@ -33,17 +33,15 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteGlobalConfig(req, res, next) {
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        doDelete(req, res, next, helper);
-      } else {
-        u.forbidden(next);
-      }
-    })
-    .catch((err) => {
+    if (req.headers.IsAdmin) {
+      doDelete(req, res, next, helper)
+        .then(() => {
+          apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+          res.status(httpStatus.OK).json(res.locals.retVal);
+        });
+    } else {
       u.forbidden(next);
-    });
+    }
   },
 
   /**
@@ -71,7 +69,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getGlobalConfig(req, res, next) {
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -85,17 +87,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchGlobalConfig(req, res, next) {
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        doPatch(req, res, next, helper);
-      } else {
-        u.forbidden(next);
-      }
-    })
-    .catch((err) => {
+    if (req.headers.IsAdmin) {
+      doPatch(req, res, next, helper);
+    } else {
       u.forbidden(next);
-    });
+    }
   },
 
   /**
@@ -109,17 +105,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postGlobalConfig(req, res, next) {
-    authUtils.isAdmin(req)
-    .then((ok) => {
-      if (ok) {
-        doPost(req, res, next, helper);
-      } else {
-        u.forbidden(next);
-      }
-    })
-    .catch((err) => {
+    if (req.headers.IsAdmin) {
+      doPost(req, res, next, helper);
+    } else {
       u.forbidden(next);
-    });
+    }
   },
 
 }; // exports

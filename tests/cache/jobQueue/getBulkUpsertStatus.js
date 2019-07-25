@@ -14,7 +14,7 @@ const jobSetup = require('../../../jobQueue/setup');
 const jobQueue = jobSetup.jobQueue;
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const api = supertest(require('../../../index').app);
+const api = supertest(require('../../../express').app);
 const tu = require('../../testUtils');
 const rtu = require('../models/redisTestUtil');
 const samstoinit = require('../../../cache/sampleStoreInit');
@@ -24,12 +24,14 @@ const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 const getStatusPath = '/v1/samples/upsert/bulk/{jobId}/status';
 const bulkUpsertSamplesJob =
-  require('../../../worker/jobs/bulkUpsertSamplesJob');
+  require('../../../worker/jobs/bulkUpsertSamples');
 
 describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
 `api: GET ${getStatusPath} >`, () => {
-  let token;
+  before(() => jobSetup.resetJobQueue());
+  after(() => jobSetup.resetJobQueue());
 
+  let token;
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enableRedisSampleStore', true);
@@ -53,7 +55,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
       isPublished: true,
       name: `${tu.namePrefix}Aspect2`,
       timeout: '10m',
-      valueType: 'BOOLEAN',
+      valueType: 'NUMERIC',
       okRange: [10, 100],
     }))
     .then(() => Subject.create({
@@ -67,6 +69,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
   });
 
   after(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => {
     tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enableRedisSampleStore', false);
@@ -96,7 +99,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULKUPSERTSAMPLES,
+      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
 
       /*
@@ -105,6 +108,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -150,7 +154,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULKUPSERTSAMPLES,
+      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
 
       /*
@@ -159,6 +163,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -221,7 +226,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULKUPSERTSAMPLES,
+      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
 
       /*
@@ -230,6 +235,7 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);

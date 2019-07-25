@@ -12,16 +12,20 @@
 'use strict'; // eslint-disable-line strict
 
 const helper = require('../helpers/nouns/generatorTemplates');
+const httpStatus = require('../constants').httpStatus;
+const apiLogUtils = require('../../../utils/apiLog');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doFind = require('../helpers/verbs/doFind');
+const doFindOne = require('../helpers/verbs/doFindOne');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doGetWriters = require('../helpers/verbs/doGetWriters');
 const doPostWriters = require('../helpers/verbs/doPostWriters');
+const u = require('../helpers/verbs/utils');
+const apiErrors = require('../apiErrors');
 
 module.exports = {
-
   /**
    * GET /generatorTemplates
    *
@@ -45,7 +49,25 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getGeneratorTemplate(req, res, next) {
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
+  },
+
+  /**
+   * GET /generatorTemplates/{name}/{version}
+   *
+   * Retrieves the generatorTemplate by name and version and sends it back
+   * in the response.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getGeneratorTemplateByNameAndVersion(req, res, next) {
+    doFindOne(req, res, next, helper);
   },
 
   /**
@@ -58,6 +80,16 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchGeneratorTemplate(req, res, next) {
+    const allowedToPatch = ['isPublished', 'owner'];
+    const illegal = Object.keys(req.body)
+    .filter((f) => !allowedToPatch.includes(f));
+    if (illegal.length) {
+      const verr = new apiErrors.ValidationError(
+        { explanation: `You cannot modify these attributes: ${illegal}` }
+      );
+      return u.handleError(next, verr, helper.modelName);
+    }
+
     doPatch(req, res, next, helper);
   },
 
@@ -84,7 +116,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getGeneratorTemplateWriters(req, res, next) {
-    doGetWriters.getWriters(req, res, next, helper);
+    doGetWriters.getWriters(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -98,7 +134,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getGeneratorTemplateWriter(req, res, next) {
-    doGetWriters.getWriter(req, res, next, helper);
+    doGetWriters.getWriter(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**

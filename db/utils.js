@@ -21,6 +21,7 @@ require('sequelize-hierarchy')(Sequelize);
 const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
 const DB_URL = env.dbUrl;
+const Op = require('sequelize').Op;
 
 const SQL_DROP_SEQUELIZE_META = 'DROP TABLE IF EXISTS public."SequelizeMeta"';
 const SQL_INSERT_SEQUELIZE_META = 'INSERT INTO "SequelizeMeta"(name) VALUES';
@@ -144,6 +145,8 @@ if (conf.readReplicas) {
   seq = new Sequelize(env.dbUrl, opts);
 }
 
+seq.Promise = Sequelize.Promise; // seq v5
+
 /**
  * A console logging wrapper for stuff running from the command line.
  *
@@ -183,12 +186,12 @@ function createOrDropDb(cmd) {
  */
 function initializeAdminUserAndProfile() {
   const profileFinder = {
-    where: { name: { $iLike: conf.db.adminProfile.name } },
+    where: { name: { [Op.iLike]: conf.db.adminProfile.name } },
   };
   const userFinder = {
     where: {
       name: {
-        $iLike: conf.db.adminUser.name,
+        [Op.iLike]: conf.db.adminUser.name,
       },
     },
   };
@@ -204,8 +207,15 @@ function initializeAdminUserAndProfile() {
       return u;
     }
 
-    conf.db.adminUser.profileId = pid;
-    return seq.models.User.create(conf.db.adminUser);
+    const adminUser = conf.db.adminUser;
+    adminUser.profileId = pid;
+    if (!adminUser.password) {
+      throw new Error(
+        'No password provided! Set the environment variable: "DEFAULT_ADMIN_PASSWORD".'
+      );
+    }
+
+    return seq.models.User.create(adminUser);
   })
   .then(() => 'Initialize Admin User and Profile... OK');
 } // initializeAdminUserAndProfile
@@ -218,7 +228,7 @@ function initializeAdminUserAndProfile() {
  */
 function setMigrations() {
   const migrationPath = path.resolve('migrations');
-  return new seq.Promise((resolve, reject) => {
+  return new Sequelize.Promise((resolve, reject) => {
     fs.readdir(migrationPath, (err, items) => {
       if (err) {
         reject(err);
@@ -272,14 +282,14 @@ function doImport() {
     clog('utils', 'doImport', `Import ${modelNames.length} models... OK`);
     const promises = modelNames.filter((m) => seq.models[m].postImport)
       .map((m) => seq.models[m].postImport(seq.models));
-    return seq.Promise.all(promises)
+    return Sequelize.Promise.all(promises)
     .then(() => {
       clog('utils', 'doImport', 'Post-import... OK');
       return 'Import complete... OK';
     });
   }
 
-  return new seq.Promise((resolve) => {
+  return new Sequelize.Promise((resolve) => {
     resolve('No models found');
   });
 } // doImport
@@ -364,6 +374,22 @@ if (!Array.prototype.includes) {
   };
 }
 
+/**
+ * Combine multiple scopes into a single scope object.
+ * This is necessary because Sequelize doesn't provide a way to combine
+ * scopes directly (the only place this happens is in Model.scope()), and
+ * the scope-combining logic is non-trivial.
+ *
+ * @param {Model} model - Sequelize model object
+ * @param {Array} scopes - The names of scopes to be combined
+ * @returns {Object} the resulting scope
+ */
+function combineScopes(scopes, model) {
+  const scopedModel = model.scope(scopes);
+  const combinedScope = scopedModel._scope;
+  return combinedScope;
+} //combineScopes
+
 module.exports = {
   clog,
   createOrDropDb,
@@ -377,4 +403,5 @@ module.exports = {
   Sequelize,
   getDBReplicationObject,
   getReadOnlyDBConfig,
+  combineScopes,
 };

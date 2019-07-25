@@ -9,16 +9,16 @@
 /**
  * tests/db/model/aspect/tags.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 
 describe('tests/db/model/aspect/tags.js, update >', () => {
-  beforeEach((done) => {
+  before((done) => {
     Aspect.create({
       isPublished: true,
       name: `${tu.namePrefix}A`,
@@ -45,6 +45,7 @@ describe('tests/db/model/aspect/tags.js, update >', () => {
       isPublished: true,
       name: `${tu.namePrefix}Subject`,
     }))
+    .then(() => u.samstoinit.populate())
     .then(() => Sample.bulkUpsertByName([
       { name: `${tu.namePrefix}Subject|${tu.namePrefix}A`, value: 1 },
       { name: `${tu.namePrefix}Subject|${tu.namePrefix}B`, value: 2 },
@@ -53,7 +54,7 @@ describe('tests/db/model/aspect/tags.js, update >', () => {
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
 
   it('update an aspect tag, samples have it next time they are loaded',
   (done) => {
@@ -66,7 +67,7 @@ describe('tests/db/model/aspect/tags.js, update >', () => {
       name: `${tu.namePrefix}Subject|${tu.namePrefix}A`,
     }))
     .then((s) => {
-      expect(s.dataValues.aspect.tags).to.deep.equal(['T3']);
+      expect(s.aspect.tags).to.equal('["T3"]');
       done();
     })
     .catch(done);

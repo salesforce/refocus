@@ -14,6 +14,63 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
+const sequelize = tu.db.sequelize;
+
+describe('tests/db/model/subject/rebuildHierarchy.js >', () => {
+  const trueParent = { name: `${tu.namePrefix}trueParent`, isPublished: true };
+  const fakeParent = { name: `${tu.namePrefix}fakeParent`, isPublished: true };
+  const child = { name: `${tu.namePrefix}child`, isPublished: true };
+  let ipar = 0;
+  let fakeParentId = 0;
+  let childId = 0;
+
+  before((done) => {
+    Subject.create(trueParent)
+    .then((subj) => {
+      ipar = subj.id;
+    })
+    .then(() => {
+      child.parentId = ipar;
+      return Subject.create(child);
+    })
+    .then((subj) => {
+      childId = subj.id;
+      return Subject.create(fakeParent);
+    })
+    .then((subj) => {
+      fakeParentId = subj.id;
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Rebuild Hierarchy', (done) => {
+    const query = `UPDATE "Subjectsancestors" SET "ancestorId"=` +
+      `'${fakeParentId}' WHERE "SubjectId"='${childId}'`;
+
+    const getQuery = `SELECT "ancestorId" FROM "Subjectsancestors" ` +
+      `WHERE "SubjectId"='${childId}'`;
+
+    sequelize.query(query)
+    .then((res) => {
+      sequelize.query(getQuery)
+      .then((res) => {
+        expect(res[0][0].ancestorId).to.equal(fakeParentId);
+        Subject.rebuildHierarchy()
+        .then(() => {
+          Subject.findByPk(childId)
+          .then((subj) => {
+            expect(subj.parentId).to.equal(ipar);
+
+            return done();
+          });
+        });
+      });
+    });
+  });
+
+  after(u.forceDelete);
+});
 
 describe('tests/db/model/subject/hierarchy.js >', () => {
   const parTag = ['___na', '___continent'];
@@ -57,7 +114,7 @@ describe('tests/db/model/subject/hierarchy.js >', () => {
 
   describe('with tags and related links >', () => {
     it('at all levels of hierarchy', (done) => {
-      Subject.scope('hierarchy').findById(ipar)
+      Subject.scope('hierarchy').findByPk(ipar)
       .then((sub) => {
         const parent = sub.get({ plain: true });
         expect(parent.tags).to.have.length(parTag.length);
@@ -75,7 +132,7 @@ describe('tests/db/model/subject/hierarchy.js >', () => {
     });
 
     it('no tags and relatedlinks at child level', (done) => {
-      Subject.scope('hierarchy').findById(ichi)
+      Subject.scope('hierarchy').findByPk(ichi)
       .then((sub) => {
         expect(sub.tags).to.have.length(0);
         expect(sub.relatedLinks).to.have.length(0);
@@ -85,7 +142,7 @@ describe('tests/db/model/subject/hierarchy.js >', () => {
     });
 
     it('parentAbsolutePath is null at root level', (done) => {
-      Subject.scope('hierarchy').findById(ipar)
+      Subject.scope('hierarchy').findByPk(ipar)
       .then((sub) => {
         expect(sub.dataValues.parentAbsolutePath).to.equal.null;
         done();
@@ -94,7 +151,7 @@ describe('tests/db/model/subject/hierarchy.js >', () => {
     });
 
     it('parentAbsolutePath is non-null at child level', (done) => {
-      Subject.scope('hierarchy').findById(ichi)
+      Subject.scope('hierarchy').findByPk(ichi)
       .then((sub) => {
         expect(sub.dataValues.parentAbsolutePath).to.equal(par.name);
         done();
@@ -103,7 +160,7 @@ describe('tests/db/model/subject/hierarchy.js >', () => {
     });
 
     it('present at the grand child level', (done) => {
-      Subject.scope('hierarchy').findById(ipar)
+      Subject.scope('hierarchy').findByPk(ipar)
       .then((sub) => {
         expect(sub.tags).to.have.length(grnTag.length);
         expect(sub.relatedLinks).to.have.length(grnLink.length);
@@ -132,7 +189,7 @@ describe('tests/db/model/subject/hierarchy.js >', () => {
   });
 
   it('explicitly include descendents', (done) => {
-    Subject.find({
+    Subject.findOne({
       where: { id: ipar },
       include: [
         {
@@ -159,7 +216,7 @@ describe('tests/db/model/subject/hierarchy.js >', () => {
   });
 
   it('using "hierarchy" scope', (done) => {
-    Subject.scope('hierarchy').findById(ipar)
+    Subject.scope('hierarchy').findByPk(ipar)
     .then((o) => {
       const gp = o.get({ plain: true });
       expect(gp.children).to.have.length(1);
@@ -167,28 +224,6 @@ describe('tests/db/model/subject/hierarchy.js >', () => {
       const pa = gp.children[0].get();
       expect(pa.children).to.have.length(1);
       expect(pa.childCount).to.equal(1);
-      const ch = pa.children[0].get();
-      expect(ch.parentAbsolutePath).to.equal(pa.absolutePath);
-      expect(ch.childCount).to.equal(0);
-      expect(ch).to.not.have.property('children');
-      expect(ch).to.have.property('samples');
-      done();
-    })
-    .catch(done);
-  });
-
-  it('using "subject hierarchy" scope: sample should not be ' +
-    ' included in any level of the hierarchy', (done) => {
-    Subject.scope('subjectHierarchy').findById(ipar)
-    .then((o) => {
-      const gp = o.get({ plain: true });
-      expect(gp).to.not.have.property('samples');
-      expect(gp.children).to.have.length(1);
-      expect(gp.childCount).to.equal(1);
-      const pa = gp.children[0].get();
-      expect(pa.children).to.have.length(1);
-      expect(pa.childCount).to.equal(1);
-      expect(pa).to.not.have.property('samples');
       const ch = pa.children[0].get();
       expect(ch.parentAbsolutePath).to.equal(pa.absolutePath);
       expect(ch.childCount).to.equal(0);

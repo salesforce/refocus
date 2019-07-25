@@ -11,11 +11,13 @@
  *
  * Used by the RoomType model.
  */
+'use strict'; // eslint-disable-line strict
 
 const dbErrors = require('../dbErrors');
 const ValidationError = require('../dbErrors').ValidationError;
 const constants = require('../constants');
 const MAX_ARGUMENTS = 2;
+const Op = require('sequelize').Op;
 
 /**
  * Determines actions parameters contain a name and value
@@ -129,6 +131,10 @@ function validateSettingsArray(arr) {
  * @throws {validationError} - Invalid data array
  */
 function validateRulesArray(arr) {
+  if (arr === null || arr === undefined) {
+    return;
+  }
+
   if (Array.isArray(arr)) {
     for (let i = 0; i < arr.length; i++) {
       if ((arr[i].hasOwnProperty('rule')) &&
@@ -164,7 +170,7 @@ function validateBotsArray(inst, seq) {
       seq.models.Bot.findOne({
         where: {
           name: {
-            $iLike: botName,
+            [Op.iLike]: botName,
           },
         },
       })

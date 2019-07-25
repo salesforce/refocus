@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -39,8 +39,8 @@ describe('tests/api/v1/perspectives/post.js >', () => {
 
   beforeEach((done) => {
     u.doSetup()
-    .then((lens) => {
-      createdLensId = lens.id;
+    .then(({ lensId }) => {
+      createdLensId = lensId;
       basicParams.lensId = createdLensId;
       done();
     })
@@ -61,7 +61,7 @@ describe('tests/api/v1/perspectives/post.js >', () => {
       api.post(path)
       .set('Authorization', token)
       .send(basicParams)
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -77,7 +77,7 @@ describe('tests/api/v1/perspectives/post.js >', () => {
       api.post(path)
       .set('Authorization', token)
       .send(basicParams)
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -172,7 +172,6 @@ describe('tests/api/v1/perspectives/post.js >', () => {
       lensId: createdLensId,
       rootSubject: 'myMainSubject',
       aspectTagFilter: ['ea', 'na'],
-
     })
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {

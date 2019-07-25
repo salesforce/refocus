@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -22,53 +22,45 @@ const ZERO = 0;
 describe('tests/api/v1/lenses/delete.js >', () => {
   let lensId;
   let token;
+  let userId;
 
   before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      token = obj.token;
       done();
     })
     .catch(done);
   });
-
-  beforeEach((done) => {
-    u.doSetup()
-    .then((lens) => {
-      lensId = lens.id;
-      done();
-    })
-    .catch(done);
-  });
-
-  afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('with same name and different case succeeds', (done) => {
-    api.delete(`${path}/${u.name.toLowerCase()}`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.name).to.equal(u.name);
-      done();
+  describe('user object should be returned >', () => {
+    before((done) => {
+      u.createBasic({ installedBy: userId })
+      .then((lens) => {
+        expect(lens.installedBy).to.equal(userId);
+        lensId = lens.id;
+        done();
+      })
+      .catch(done);
     });
-  });
+    after(u.forceDelete);
 
-  it('delete ok', (done) => {
-    api.delete(`${path}/${lensId}`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+    it('with same name and different case succeeds', (done) => {
+      api.delete(`${path}/${u.name.toLowerCase()}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
 
-      expect(res.body.isDeleted).to.not.equal(ZERO);
-      done();
+        expect(res.body.name).to.equal(u.name);
+        expect(res.body.user).to.be.an('object');
+        expect(res.body.user.id).to.equal(userId);
+        done();
+      });
     });
   });
 });

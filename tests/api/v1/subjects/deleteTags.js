@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -47,6 +47,9 @@ describe('tests/api/v1/subjects/deleteTags.js >', () => {
     })
     .catch(done);
   });
+
+  beforeEach(u.populateRedis);
+
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 

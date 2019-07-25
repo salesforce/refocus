@@ -11,15 +11,17 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
+const Aspect = tu.db.Aspect;
+const Sample = tu.Sample;
 const User = tu.db.User;
 const path = '/v1/samples';
 const deleteAllRelLinkPath = '/v1/samples/{key}/relatedLinks';
 const deleteOneRelLinkPath = '/v1/samples/{key}/relatedLinks/{akey}';
+const Op = require('sequelize').Op;
 
 describe('tests/api/v1/samples/deleteWithoutPerms.js >', () => {
   let sampleName;
@@ -41,18 +43,19 @@ describe('tests/api/v1/samples/deleteWithoutPerms.js >', () => {
     User.findOne({ where: { name: tu.userName } })
     .then((usr) => {
       user = usr;
-      return u.doSetup();
+      return u.createBasic();
     })
-    .then((samp) => Sample.create(samp))
     .then((samp) => {
       sampleName = samp.name;
-      return samp.getAspect();
+      const aspectName = sampleName.split('|')[1].toLowerCase();
+      return Aspect.findOne({ where: { name: { [Op.iLike]: aspectName } } });
     })
     .then((asp) => asp.addWriters(user))
     .then(() => done())
     .catch(done);
   });
 
+  before(u.populateRedis);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 

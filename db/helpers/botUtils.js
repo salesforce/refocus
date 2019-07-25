@@ -11,6 +11,7 @@
  *
  * Used by the Bot model.
  */
+'use strict'; // eslint-disable-line strict
 
 const Joi = require('joi');
 const ValidationError = require('../dbErrors').ValidationError;
@@ -60,6 +61,10 @@ const actionArraySchema = Joi.array().items(
  * @throws {validationError} - if the array does not contain valid attributes
  */
 function arrayHasValidParameters(arr) {
+  if (arr === null || arr === undefined) {
+    return;
+  }
+
   const result = Joi.validate(arr, parameterArraySchema);
 
   if (result.error !== null) {
@@ -78,6 +83,10 @@ function arrayHasValidParameters(arr) {
  * @throws {validationError} - Invalid actions array
  */
 function validateActionArray(arr) {
+  if (arr === null || arr === undefined) {
+    return;
+  }
+
   const result = Joi.validate(arr, actionArraySchema);
 
   if (result.error !== null) {
@@ -96,6 +105,10 @@ function validateActionArray(arr) {
  * @throws {validationError} - Invalid data array
  */
 function validateDataArray(arr) {
+  if (arr === null || arr === undefined) {
+    return;
+  }
+
   const result = Joi.validate(arr, dataArraySchema);
 
   if (result.error !== null) {
@@ -114,6 +127,10 @@ function validateDataArray(arr) {
  * @throws {validationError} - Invalid settings array
  */
 function validateSettingsArray(arr) {
+  if (arr === null || arr === undefined) {
+    return;
+  }
+
   const result = Joi.validate(arr, settingsArraySchema);
 
   if (result.error !== null) {

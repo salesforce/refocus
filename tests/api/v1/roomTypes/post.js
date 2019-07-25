@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const path = '/v1/roomTypes';
@@ -22,14 +22,16 @@ const bu = require('../bots/utils');
 
 describe(`tests/api/v1/roomTypes/post.js >`, () => {
   let token;
+  let userId;
 
   before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      token = obj.token;
     })
     .then(() => {
-      bu.createStandard();
+      bu.createStandard(userId);
       done();
     })
     .catch(done);
@@ -50,6 +52,9 @@ describe(`tests/api/v1/roomTypes/post.js >`, () => {
       }
 
       expect(res.body.name).to.equal(u.name);
+      expect(res.body).to.have.property('createdBy');
+      expect(res.body.user).to.have.property('email');
+      expect(res.body.user.email).to.equal('___testUser@refocus.com');
       done();
     });
   });
@@ -74,12 +79,12 @@ describe(`tests/api/v1/roomTypes/post.js >`, () => {
   });
 
   it('Fail, duplicate roomType', (done) => {
-    u.createStandard()
+    u.createStandard(userId)
     .then(() => {
       api.post(`${path}`)
       .set('Authorization', token)
       .send(u.getStandard())
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);

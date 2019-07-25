@@ -12,9 +12,10 @@
  * Redis Error Definitions
  */
 
-const redisErrors = require('errors');
+const errors = require('errors');
 
-redisErrors.create({
+errors.create({
+  scope: exports,
   code: 10010,
   name: 'RefocusRedisError',
 });
@@ -22,22 +23,24 @@ redisErrors.create({
 // ----------------------------------------------------------------------------
 // Validation Errors
 // ----------------------------------------------------------------------------
-redisErrors.create({
+errors.create({
+  scope: exports,
   code: 11100,
   status: 400,
   name: 'ValidationError',
-  parent: redisErrors.RefocusRedisError,
+  parent: this.RefocusRedisError,
   fields: [],
 });
 
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------
-redisErrors.create({
+errors.create({
+  scope: exports,
   code: 11200,
   status: 404,
   name: 'ResourceNotFoundError',
-  parent: redisErrors.RefocusRedisError,
+  parent: this.RefocusRedisError,
   resourceType: '',
   resourceKey: '',
 });
@@ -45,27 +48,27 @@ redisErrors.create({
 // ---------------------------------------------------------------------------
 // Permission Errors
 // ----------------------------------------------------------------------------
-redisErrors.create({
+errors.create({
+  scope: exports,
   code: 11300,
   status: 403,
   name: 'UpdateDeleteForbidden',
-  parent: redisErrors.RefocusRedisError,
+  parent: this.RefocusRedisError,
   fields: [],
 });
 
 // ----------------------------------------------------------------------------
 // Forbidden Error
 // ----------------------------------------------------------------------------
-redisErrors.create({
+errors.create({
+  scope: exports,
   code: 11400,
   status: 403,
   name: 'ForbiddenError',
-  parent: redisErrors.RefocusRedisError,
+  parent: this.RefocusRedisError,
   defaultMessage: 'Forbidden',
   resourceType: '',
   resourceKey: '',
 });
 
 // ----------------------------------------------------------------------------
-
-module.exports = redisErrors;

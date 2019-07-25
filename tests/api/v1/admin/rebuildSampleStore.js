@@ -14,7 +14,7 @@ const supertest = require('supertest');
 const featureToggles = require('feature-toggles');
 const sampleStore = require('../../../../cache/sampleStore');
 const rcli = require('../../../../cache/redisCache').client.sampleStore;
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const tu = require('../../../testUtils');
@@ -23,7 +23,6 @@ const Subject = tu.db.Subject;
 const Sample = tu.db.Sample;
 const jwtUtil = require('../../../../utils/jwtUtil');
 const path = '/v1/admin/sampleStore/rebuild';
-const adminUser = require('../../../../config').db.adminUser;
 const expect = require('chai').expect;
 const initialFeatureState = featureToggles
   .isFeatureEnabled(sampleStore.constants.featureName);
@@ -31,9 +30,7 @@ const initialFeatureState = featureToggles
 describe('tests/api/v1/admin/rebuildSampleStore.js >', () => {
   describe(`POST ${path} (feature is off) >`, () => {
     let token;
-    const predefinedAdminUserToken = jwtUtil.createToken(
-      adminUser.name, adminUser.name
-    );
+    const predefinedAdminUserToken = tu.createAdminToken();
     const uname = `${tu.namePrefix}test@test.com`;
     let testUserToken = '';
 
@@ -89,9 +86,7 @@ describe('tests/api/v1/admin/rebuildSampleStore.js >', () => {
 
   describe(`POST ${path} (feature is on) >`, () => {
     let token;
-    const predefinedAdminUserToken = jwtUtil.createToken(
-      adminUser.name, adminUser.name
-    );
+    const predefinedAdminUserToken = tu.createAdminToken();
     const uname = `${tu.namePrefix}test@test.com`;
     let testUserToken = '';
     let a1;
@@ -139,7 +134,7 @@ describe('tests/api/v1/admin/rebuildSampleStore.js >', () => {
             isPublished: true,
             name: `${tu.namePrefix}Aspect2`,
             timeout: '10m',
-            valueType: 'BOOLEAN',
+            valueType: 'NUMERIC',
             okRange: [10, 100],
           }))
           .then((created) => (a2 = created))
@@ -147,7 +142,7 @@ describe('tests/api/v1/admin/rebuildSampleStore.js >', () => {
             isPublished: true,
             name: `${tu.namePrefix}Aspect3`,
             timeout: '10m',
-            valueType: 'BOOLEAN',
+            valueType: 'NUMERIC',
             okRange: [10, 100],
           }))
           .then((created) => (a3 = created))

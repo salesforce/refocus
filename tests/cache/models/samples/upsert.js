@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const redisOps = require('../../../../cache/redisOps');
@@ -30,6 +30,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
   let aspect;
   let subject;
   let token;
+  let userId;
   const URL1 = 'https://samples.com';
   const URL2 = 'https://updatedsamples.com';
   const relatedLinks = [
@@ -43,9 +44,10 @@ describe('tests/cache/models/samples/upsert.js, ' +
 
   before((done) => {
     tu.toggleOverride('enableRedisSampleStore', true);
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      token = obj.token;
       done();
     })
     .catch(done);
@@ -67,7 +69,43 @@ describe('tests/cache/models/samples/upsert.js, ' +
   });
 
   afterEach(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
+
+  describe('returns user and profile >', () => {
+    it('return user and profile objects', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${aspect.name}`,
+        value: '2',
+        provider: userId,
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        const { user } = res.body;
+        expect(user).to.be.an('object');
+        expect(user.name).to.be.an('string');
+        expect(user.email).to.be.an('string');
+        expect(user.profile).to.be.an('object');
+        expect(user.profile.name).to.be.an('string');
+
+        // check aspsubmap for added set
+        rcli.smembersAsync(
+          'samsto:aspsubmap:' + aspect.name.toLowerCase()
+        )
+        .then((resCli) => {
+          expect(resCli).to.deep.equal([subject.absolutePath.toLowerCase()]);
+        })
+        .then(() => done())
+        .catch(done);
+      });
+    });
+  });
 
   describe('when subject not present >', () => {
     // unpublish the subjects
@@ -93,7 +131,8 @@ describe('tests/cache/models/samples/upsert.js, ' +
         }
 
         expect(res.body.errors[0].description)
-        .to.be.equal('subject not found');
+        .to.be.equal('subject for this sample was not found or has ' +
+          'isPublished=false');
         done();
       });
     });
@@ -123,209 +162,72 @@ describe('tests/cache/models/samples/upsert.js, ' +
         }
 
         expect(res.body.errors[0].description)
-        .to.be.equal('aspect not found');
+        .to.be.equal('aspect for this sample was not found or has ' +
+          'isPublished=false');
         done();
       });
     });
   });
 
-  it('name field is required', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      value: '2',
-    })
-    .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+  describe('unpublished subject >', () => {
+    let unPublishedSubjectAbsolutePath;
 
-      const error = res.body.errors[0];
-      expect(error.message).to.contain('name');
-      expect(error.type).to.equal(tu.schemaValidationErrorName);
-      done();
-    });
-  });
-
-  it('aspect is added', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.absolutePath}|${aspect.name}`,
-      value: '2',
-    })
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      const cmds = [
-        redisOps.aspExistsInSubjSetCmd(subject.absolutePath, aspect.name),
-      ];
-      redisOps.executeBatchCmds(cmds)
-      .then((response) => {
-        expect(response[0]).to.be.equal(1);
+    // unpublish the subject
+    beforeEach((done) => {
+      Subject.findByPk(subject.id)
+      .then((subjectOne) => subjectOne.update({
+        isPublished: false,
+      }))
+      .then((_subject) => {
+        unPublishedSubjectAbsolutePath = _subject.absolutePath;
+        done();
       })
-      .then(() => done());
+      .catch(done);
+    });
+
+    it('name refers to unpublished subject', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${unPublishedSubjectAbsolutePath.absolutePath}|${aspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        done();
+      });
     });
   });
 
-  it('returns aspectId, subjectId, and aspect object', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.absolutePath}|${aspect.name}`,
-      value: '2',
-    })
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+  describe('unpublished aspect >', () => {
+    let updatedAspect;
 
-      expect(res.body.aspect).to.be.an('object');
-      expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
-      expect(tu.looksLikeId(res.body.subjectId)).to.be.true;
-      done();
+    // unpublish the aspects
+    beforeEach((done) => {
+      Aspect.findByPk(aspect.id)
+      .then((aspectOne) => aspectOne.update({
+        isPublished: false,
+      }))
+      .then((_aspect) => {
+        updatedAspect = _aspect;
+        done();
+      })
+      .catch(done);
     });
-  });
 
-  it('upsert succeeds when the sample does not exist', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.absolutePath}|${aspect.name}`,
-      value: '2',
-    })
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body).to.be.an('object');
-      expect(res.body.status).to.equal(constants.statuses.Warning);
-      done();
-    });
-  });
-
-  it('when the sample does not exist, name should match subject absolutePath,' +
-    ' aspect name', (done) => {
-    const sampleName = `${subject.absolutePath}|${aspect.name}`;
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: sampleName.toLowerCase(),
-      value: '2',
-    })
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.name).to.equal(sampleName);
-      done();
-    });
-  });
-
-  it('createdAt and updatedAt fields have the expected format', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.absolutePath}|${aspect.name}`,
-      relatedLinks: updatedRelatedLinks,
-    })
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      const { updatedAt, createdAt } = res.body;
-      expect(updatedAt).to.equal(new Date(updatedAt).toISOString());
-      expect(createdAt).to.equal(new Date(createdAt).toISOString());
-      done();
-    });
-  });
-
-  it('update sample with relatedLinks', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.absolutePath}|${aspect.name}`,
-      relatedLinks: updatedRelatedLinks,
-    })
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.relatedLinks).to.have.length(2);
-      expect(res.body.relatedLinks).to.deep.equal(updatedRelatedLinks);
-      done();
-    });
-  });
-
-  it('update to relatedLinks with the same name fails', (done) => {
-    const withSameName = [relatedLinks[0], relatedLinks[0]];
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.absolutePath}|${aspect.name}`,
-      relatedLinks: withSameName,
-    })
-    .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.errors[0].description)
-      .to.equal('Name of the relatedlinks should be unique.');
-      done();
-    });
-  });
-
-  it('subject not found yields NOT FOUND', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `x|${aspect.name}`,
-      value: '2',
-    })
-    .expect(constants.httpStatus.NOT_FOUND)
-    .end(done);
-  });
-
-  it('aspect not found yields NOT FOUND', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.name}|xxxxx`,
-      value: '2',
-    })
-    .expect(constants.httpStatus.NOT_FOUND)
-    .end(done);
-  });
-
-  it('Incorrect sample name BAD_REQUEST', (done) => {
-    api.post(path)
-    .set('Authorization', token)
-    .send({
-      name: `${subject.name}xxxxx`,
-      value: '2',
-    })
-    .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.errors[0].description)
-      .to.be.equal('Incorrect sample name.');
-      done();
+    it('name refers to unpublished aspect', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${subject.absolutePath}|${updatedAspect.name}`,
+        value: '2',
+      })
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end(done);
     });
   });
 
@@ -357,8 +259,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
       .catch(done);
     });
 
-    it('name should match subject absolutePath,' +
-      ' aspect name', (done) => {
+    it('name should match subject absolutePath, aspect name', (done) => {
       const sampleName = `${subject.absolutePath}|${aspect.name}`;
       api.post(path)
       .set('Authorization', token)
@@ -379,6 +280,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
 
     it('value is updated', (done) => {
       api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
+      .set('Authorization', token)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -448,6 +350,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
       })
       .then(() => {
         api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);

@@ -16,10 +16,13 @@
 'use strict'; // eslint-disable-line strict
 const jobSetup = require('./setup');
 const jobQueue = jobSetup.jobQueue;
+const bulkDelSubQueue = jobSetup.bulkDelSubQueue;
 const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
 const conf = require('../config');
+const logJobCreate = require('./logJobCreate');
+const jobType = require('./setup').jobType;
 const queueTimeActivityLogs =
   require('../clock/scheduledJobs/queueStatsActivityLogs');
 
@@ -64,6 +67,34 @@ function mapJobResultsToLogObject(jobResultObj, logObject) {
   }
 }
 
+bulkDelSubQueue.on('completed', (job, jobResultObj) => {
+  const logObject = {
+    jobType: job.type,
+    jobId: job.id,
+  };
+
+  Object.assign(logObject, jobResultObj.requestInfo);
+
+  // when enableWorkerActivityLogs are enabled, update the logObject
+  if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs') &&
+    jobResultObj && logObject) {
+    mapJobResultsToLogObject(jobResultObj, logObject);
+
+    // Update queueStatsActivityLogs
+    if (featureToggles
+      .isFeatureEnabled('enableQueueStatsActivityLogs')) {
+      queueTimeActivityLogs
+        .update(jobResultObj.recordCount, jobResultObj.queueTime);
+    }
+
+    /*
+    * The second argument should match the activity logging type in
+    * /config/activityLog.js
+    */
+    activityLogUtil.printActivityLogString(logObject, 'worker');
+  }
+});
+
 /**
  * Listen for a job completion event. If activity logs are enabled,
  * update logObject and print log
@@ -98,6 +129,34 @@ function processJobOnComplete(job, logObject) {
 } // processJobOnComplete
 
 /**
+ * If req object is defined; extract the user name, token and ipaddress and
+ * return the object with details.
+ * @param req - Request object
+ */
+function getRequestInfo(req) {
+  const reqInfo = {};
+
+  /*
+  * If req object is defined; extract the user name, token and ipaddress and
+  * update the log object. Add "request_id" if available.
+  */
+  if (req) {
+    if (req.request_id) reqInfo.request_id = req.request_id;
+    reqInfo.ipAddress = req.locals.ipAddress;
+
+    /*
+     * we already set UserName and TokenName in req headers when verifying
+     * token
+     */
+    reqInfo.user = req.headers.UserName;
+    reqInfo.token = req.headers.TokenName;
+    reqInfo.process = req.process;
+  }
+
+  return reqInfo;
+}
+
+/**
  * Logs worker activity when complete.
  *
  * @param  {Object} req - Request object
@@ -108,6 +167,7 @@ function logJobOnComplete(req, job) {
   if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs')) {
     // create worker activity log object
     const logObject = {};
+
     if (job.type) {
       logObject.jobType = job.type;
     }
@@ -118,19 +178,19 @@ function logJobOnComplete(req, job) {
 
     /*
      * If req object is defined; extract the user name, token and ipaddress and
-     * update the log object. Add "request_id" if header is set by heroku.
+     * update the log object. Add "request_id" if available.
      */
     if (req) {
-      if (req.headers && req.headers['x-request-id']) {
-        logObject.request_id = req.headers['x-request-id'];
-      }
+      if (req.request_id) logObject.request_id = req.request_id;
+      logObject.ipAddress = req.locals.ipAddress;
 
-      logObject.ipAddress = activityLogUtil.getIPAddrFromReq(req);
-      jwtUtil.getTokenDetailsFromRequest(req)
-      .then((resObj) => {
-        logObject.user = resObj.username;
-        logObject.token = resObj.tokenname;
-      }).catch(() => {}); // no-op
+      /*
+       * we already set UserName and TokenName in req headers when verifying
+       * token
+       */
+      logObject.user = req.headers.UserName;
+      logObject.token = req.headers.TokenName;
+      logObject.process = req.process;
     }
 
     // continue to update and print logObject on job completion.
@@ -139,25 +199,41 @@ function logJobOnComplete(req, job) {
 }
 
 /**
- * Prioritize jobs based on job type, size, and ip address.
+ * Prioritize jobs based on user name, token name or ip address.
  *
- * @param {String} jobName - the type of the job
- * @param {Object} data - the job payload
+ * @param {Array} prioritize - array of user names, token names and/or ip
+ *  addresses to prioritize
+ * @param {Array} deprioritize - array of user names, token names and/or ip
+ *  addresses to deprioritize
  * @param {Object} req - the request object
- * @returns {String} kue priority
+ * @returns {String|Integer} kue priority or Bull priority
  */
-function calculateJobPriority(jobName, data, req) {
+function calculateJobPriority(prioritize, deprioritize, req) {
+  const jobPriority = {
+    high: 'high',
+    normal: 'normal',
+    low: 'low',
+  };
+
+  if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj')) {
+    // ranges from 1 (highest priority) to MAX_INT  (lowest priority)
+    jobPriority.high = 1;
+    jobPriority.normal = 50;
+    jobPriority.low = 100;
+  }
+
   // low=10, normal=0, medium=-5, high=-10, critical=-15
-  const ipAddress = activityLogUtil.getIPAddrFromReq(req);
-  if (conf.prioritizeJobsFrom.includes(ipAddress)) {
-    return 'high';
-  }
-
-  if (conf.deprioritizeJobsFrom.includes(ipAddress)) {
-    return 'low';
-  }
-
-  return 'normal';
+  if (!req) return jobPriority.normal;
+  const ip = req.locals.ipAddress;
+  const un = req.headers.UserName || '';
+  const tn = req.headers.TokenName || '';
+  if (prioritize.includes(ip) ||
+    prioritize.includes(un) ||
+    prioritize.includes(tn)) return jobPriority.high;
+  if (deprioritize.includes(ip) ||
+    deprioritize.includes(un) ||
+    deprioritize.includes(tn)) return jobPriority.low;
+  return jobPriority.normal;
 } // calculateJobPriority
 
 /**
@@ -168,31 +244,45 @@ function calculateJobPriority(jobName, data, req) {
  *  listening for this jobName to process the jobs.
  * @param {Object} data - Data for the job to work with.
  * @param {Object} req - Request object.
- * @returns {Object} - A job object. The job object will be null when the
- *  jobQueue is created in the test mode.
+ * @returns {Promise} - resolves to job object. The job object will be null
+ *  when the jobQueue is created in test mode.
  */
 function createPromisifiedJob(jobName, data, req) {
-  const jobPriority = calculateJobPriority(jobName, data, req);
-  if (featureToggles.isFeatureEnabled('instrumentKue')) {
-    console.log('[KJI] Entered ' + // eslint-disable-line no-console
-      `jobWrapper.js createPromisifiedJob: jobName=${jobName} ` +
-      `jobPriority=${jobPriority}`);
+  const startTime = Date.now();
+
+  if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
+    jobName === jobType.bulkDeleteSubjects) {
+    data.requestInfo = getRequestInfo(req);
+
+    const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
+      conf.deprioritizeJobsFrom, req);
+
+    return bulkDelSubQueue.add(data, { priority: jobPriority })
+      .then((job) => {
+        job.type = jobType.bulkDeleteSubjects;
+        logJobCreate(startTime, job);
+        return job;
+      });
   }
+
+  const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
+    conf.deprioritizeJobsFrom, req);
 
   return new Promise((resolve, reject) => {
     const job = jobQueue.create(jobName, data);
     job.ttl(TIME_TO_LIVE)
-    .priority(jobPriority)
-    .save((err) => {
-      if (err) {
-        const msg =
-          `Error adding ${jobName} job (id ${job.id}) to the worker queue`;
-        return reject(msg);
-      }
+      .priority(jobPriority)
+      .save((err) => {
+        if (err) {
+          const msg =
+            `Error adding ${jobName} job (id ${job.id}) to the worker queue`;
+          return reject(msg);
+        }
 
-      logJobOnComplete(req, job);
-      return resolve(job);
-    });
+        logJobOnComplete(req, job);
+        logJobCreate(startTime, job);
+        return resolve(job);
+      });
   });
 } // createPromisifiedJob
 
@@ -208,13 +298,9 @@ function createPromisifiedJob(jobName, data, req) {
  *  jobQueue is created in the test mode.
  */
 function createJob(jobName, data, req) {
-  const jobPriority = calculateJobPriority(jobName, data, req);
-  if (featureToggles.isFeatureEnabled('instrumentKue')) {
-    console.log('[KJI] Entered ' + // eslint-disable-line no-console
-      `jobWrapper.js createJob: jobName=${jobName} ` +
-      `jobPriority=${jobPriority}`);
-  }
-
+  const startTime = Date.now();
+  const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
+    conf.deprioritizeJobsFrom, req);
   const job = jobQueue.create(jobName, data);
   job.ttl(TIME_TO_LIVE)
   .priority(jobPriority)
@@ -226,15 +312,18 @@ function createJob(jobName, data, req) {
     }
 
     logJobOnComplete(req, job);
+    logJobCreate(startTime, job);
   });
 
   return job;
 } // createJob
 
 module.exports = {
-  jobQueue,
+  calculateJobPriority, // export for testing only
   createJob,
   createPromisifiedJob,
-  mapJobResultsToLogObject,
+  jobQueue,
   logJobOnComplete,
+  mapJobResultsToLogObject,
+  bulkDelSubQueue,
 }; // exports

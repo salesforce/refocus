@@ -118,7 +118,7 @@ class Dropdown extends React.Component {
     const keycode = event.keyCode || event.which;
     const { highlightedIndex } = this.state;
     const { getupdatedIndex } = this.constructor;
-    const { options } = this.props;
+    const { options, renderAsLink, customFilterOnKeyUp } = this.props;
     if (keycode === Key.UP) {
       this.setState({
         highlightedIndex: getupdatedIndex(
@@ -135,15 +135,23 @@ class Dropdown extends React.Component {
           false,
         ),
       });
-    } else if (keycode === Key.ENTER && this.props.renderAsLink) {
+    } else if (keycode === Key.ENTER && renderAsLink) {
       const persName = options[highlightedIndex];
       window.location.href = '/perspectives/' + persName;
     } else {
       const searchText = event.target.value || '';
       this.setState({ data: [] });
-      filterData(this.props.options, searchText, (data) => {
-        this.setState({ data, loading: false });
-      });
+      if (searchText && searchText.length) {
+        if (customFilterOnKeyUp) {
+          customFilterOnKeyUp(options, searchText, (data) => {
+            this.setState({ data, loading: false, open: true });
+          });
+        } else {
+          filterData(options, searchText, (data) => {
+            this.setState({ data, loading: false, open: true });
+          });
+        }
+      }
     }
   }
   componentWillReceiveProps(nextProps) {
@@ -221,7 +229,7 @@ class Dropdown extends React.Component {
       aria-expanded='true'
       aria-activedescendant=''
       placeholder={ placeholderText || '' }
-      onFocus={ this.handleFocus.bind(this) }
+      onFocus={ this.props.notOpenOnFocus ? false : this.handleFocus.bind(this) }
       onKeyUp={ this.handleKeyUp.bind(this) }
     />;
     // if there's child elements, render them

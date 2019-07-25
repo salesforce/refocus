@@ -11,13 +11,15 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
+const Aspect = tu.db.Aspect;
 const User = tu.db.User;
 const path = '/v1/samples';
+const Op = require('sequelize').Op;
 
 describe('tests/api/v1/samples/patchWithoutPerms.js, ' +
 `PATCH ${path} without permission >`, () => {
@@ -31,11 +33,11 @@ describe('tests/api/v1/samples/patchWithoutPerms.js, ' +
   });
 
   before((done) => {
-    u.doSetup()
-    .then((samp) => Sample.create(samp))
+    u.createBasic()
     .then((samp) => {
       sampleName = samp.name;
-      return samp.getAspect();
+      const aspectName = sampleName.split('|')[1].toLowerCase();
+      return Aspect.findOne({ where: { name: { [Op.iLike]: aspectName } } });
     })
     .then((asp) => {
       aspect = asp;
@@ -51,6 +53,7 @@ describe('tests/api/v1/samples/patchWithoutPerms.js, ' +
     .catch(done);
   });
 
+  before(u.populateRedis);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 

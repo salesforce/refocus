@@ -14,8 +14,6 @@ const expect = require('chai').expect;
 const tu = require('../../testUtils');
 const u = require('../model/subject/utils');
 const Subject = tu.db.Subject;
-const Aspect = tu.db.Aspect;
-const Sample = tu.db.Sample;
 const common = require('../../../db/helpers/common');
 
 describe('tests/db/helpers/common.js >', () => {
@@ -49,128 +47,69 @@ describe('tests/db/helpers/common.js >', () => {
     });
   });
 
-  describe('publishChange function >', () => {
-    it('create a model', (done) => {
-      const par = { name: `${tu.namePrefix}Alpha`, isPublished: true };
-      Subject.create(par)
-      .then((o) => {
-        const obj = common.publishChange(o, 'add');
-        expect(obj).to.have.property('add');
-        done();
-      })
-      .catch(done);
-    });
-
-    it('destory with a model', (done) => {
-      const par = { name: `${tu.namePrefix}Gamma`, isPublished: true };
-      Subject.create(par)
-      .then((o) => o.destroy())
-      .then((o) => {
-        const obj = common.publishChange(o, 'delete');
-        expect(obj).to.have.property('delete');
-        done();
-      })
-      .catch(done);
-    });
-
-    it('update a model instance', (done) => {
-      const par = { name: `${tu.namePrefix}Kappa`, isPublished: false };
-      Subject.create(par)
-      .then((o) => o.update({ isPublished: true }))
-      .then((o) => {
-        const changedKeys = Object.keys(o._changed);
-        const ignoreAttributes = ['isDeleted'];
-        const obj = common.publishChange(o, 'update', changedKeys,
-          ignoreAttributes);
-        expect(obj.update).to.have.property('new');
-        done();
-      })
-      .catch(done);
-    });
-
-    it('update a fields in a model that' +
-        ' is a part of ignoreAttributes ', (done) => {
-      const par = { name: `${tu.namePrefix}Delta`, isPublished: false };
-      Subject.create(par)
-      .then((o) => o.update({ isPublished: true }))
-      .then((o) => {
-        const changedKeys = Object.keys(o._changed);
-        const ignoreAttributes = changedKeys;
-        const obj = common.publishChange(o, 'update', changedKeys,
-          ignoreAttributes);
-        expect(obj.update).to.equal(null);
-        done();
-      })
-      .catch(done);
-    });
-
-    it('update a model instance field with the same field ' +
-      'in ignoreAttributes', (done) => {
-      const par = { name: `${tu.namePrefix}Eta`, isPublished: false };
-      Subject.create(par)
-      .then((o) => o.update({ isPublished: true }))
-      .then((o) => {
-        const changedKeys = Object.keys(o._changed);
-        const ignoreAttributes = changedKeys;
-        const obj = common.publishChange(o, 'update', changedKeys,
-          ignoreAttributes);
-        expect(obj.update).to.equal(null);
-        done();
-      })
-      .catch(done);
-    });
-  });
-  describe('test sampleAspectAndSubjectArePublished and ' +
-  'augmentSampleWithSubjectAspectInfo function >', () => {
+  describe('tagsChanged', () => {
     let sub;
-    before((done) => {
-      Aspect.create({
-        isPublished: true,
-        name: `${tu.namePrefix}Aspect`,
-        timeout: '30s',
-        valueType: 'NUMERIC',
-      })
-      .then(() => Subject.create({
-        isPublished: true,
-        name: `${tu.namePrefix}Subject`,
-      }))
-      .then((s) => {
-        sub = s;
-        done();
-      })
-      .catch(done);
+
+    beforeEach(() => {
+      const s = u.getSubjectPrototype(`${tu.namePrefix}1`, null);
+      s.tags = ['tag1', 'tag2'];
+      return Subject.create(s)
+      .then((s) => sub = s);
     });
 
-    it('sampleAspectAndSubjectArePublished : check for true', (done) => {
-      Sample.upsertByName({
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
-        value: '1',
-      })
-      .then((samp) =>
-        common.sampleAspectAndSubjectArePublished(tu.db.sequelize, samp))
-      .then((pub) => {
-        expect(pub).to.equal(true);
-      })
-      .then(() => done())
-      .catch(done);
+    afterEach(u.forceDelete);
+
+    it('not updated', () => {
+      sub.set({ description: '...' });
+      expect(common.tagsChanged(sub)).to.be.false;
     });
 
-    it('augmentSampleWithSubjectAspectInfo : returned sample should have' +
-        ' subject and aspect information', (done) => {
-      Sample.upsertByName({
-        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect`,
-        value: '1',
-      })
-      .then((samp) =>
-        common.augmentSampleWithSubjectAspectInfo(tu.db.sequelize, samp))
-      .then((sam) => {
-        expect(sam.subject.name).to.equal(`${tu.namePrefix}Subject`);
-        expect(sam.aspect.name).to.equal(`${tu.namePrefix}Aspect`);
-        expect(sam.subject.tags).to.be.instanceof(Array);
-        expect(sam.aspect.tags).to.to.be.instanceof(Array);
-      })
-      .then(() => done())
-      .catch(done);
+    it('exactly the same', () => {
+      sub.set({ tags: ['tag1', 'tag2'] });
+      expect(common.tagsChanged(sub)).to.be.false;
+    });
+
+    it('different order', () => {
+      sub.set({ tags: ['tag2', 'tag1'] });
+      expect(common.tagsChanged(sub)).to.be.false;
+    });
+
+    it('different capitalization', () => {
+      sub.set({ tags: ['Tag1', 'Tag2'] });
+      expect(common.tagsChanged(sub)).to.be.false;
+    });
+
+    it('changed', () => {
+      sub.set({ tags: ['tag1', 'tag3'] });
+      expect(common.tagsChanged(sub)).to.be.true;
+    });
+
+    it('appended', () => {
+      sub.set({ tags: ['tag1', 'tag2', 'tag3'] });
+      expect(common.tagsChanged(sub)).to.be.true;
+    });
+
+    it('set to empty', () => {
+      sub.set({ tags: [] });
+      expect(common.tagsChanged(sub)).to.be.true;
+    });
+
+    it('no previous tags', () => {
+      const s = u.getSubjectPrototype(`${tu.namePrefix}2`, null);
+      return Subject.create(s)
+      .then((sub) => {
+        sub.set({ tags: ['tag1', 'tag2'] });
+        expect(common.tagsChanged(sub)).to.be.true;
+      });
+    });
+
+    it('no previous tags, not updated', () => {
+      const s = u.getSubjectPrototype(`${tu.namePrefix}2`, null);
+      return Subject.create(s)
+      .then((sub) => {
+        sub.set({ description: '...' });
+        expect(common.tagsChanged(sub)).to.be.false;
+      });
     });
   });
 });

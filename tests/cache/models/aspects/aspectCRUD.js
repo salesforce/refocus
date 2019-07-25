@@ -18,7 +18,9 @@ const rcli = rtu.rcli;
 const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
 const expect = require('chai').expect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
+const redisOps = rtu.redisOps;
+const aspectUtils = require('../../../../db/helpers/aspectUtils');
 const subjectIndexName = redisStore.constants.indexKey.subject;
 const sampleIndexName = redisStore.constants.indexKey.sample;
 const aspectIndexName = redisStore.constants.indexKey.aspect;
@@ -26,9 +28,6 @@ const aspectIndexName = redisStore.constants.indexKey.aspect;
 describe('tests/cache/models/aspects/aspectCRUD.js, ' +
 'redis: aspect: create >', () => {
   const par = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
-
-  // const parUnPub =
-  //       { name: `${tu.namePrefix}SouthAmerica`, isPublished: false };
 
   const aspectTemp = {
     name: 'temperature',
@@ -55,7 +54,6 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
   let aspWCId;
 
   beforeEach((done) => {
-    tu.toggleOverride('enableRedisSampleStore', true);
     Subject.create(par)
     .then((subj) => {
       ipar = subj.id;
@@ -83,11 +81,11 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
   });
 
   afterEach(rtu.forceDelete);
-  after(() => tu.toggleOverride('enableRedisSampleStore', false));
+  after(tu.forceDeleteUser);
 
   it('time fields should have the expected format', (done) => {
     let aspKey;
-    Aspect.findById(aspHumdId)
+    Aspect.findByPk(aspHumdId)
     .then((asp) => {
       aspKey = redisStore.toKey('aspect', asp.name);
       return rcli.sismemberAsync(aspectIndexName, aspKey);
@@ -104,7 +102,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
   it('published aspects created should have an entry in aspectStore and ' +
   'the aspect hash should also be created', (done) => {
     let aspKey;
-    Aspect.findById(aspHumdId)
+    Aspect.findByPk(aspHumdId)
     .then((asp) => {
       aspKey = redisStore.toKey('aspect', asp.name);
       return rcli.sismemberAsync(aspectIndexName, aspKey);
@@ -123,19 +121,18 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .catch(done);
   });
 
-  it('unpublished aspect should not be found but should be found after it ' +
-  'is published', (done) => {
+  it('unpublished aspect should be found', (done) => {
     let aspect;
     let aspectKey;
-    Aspect.findById(aspWCId)
+    Aspect.findByPk(aspWCId)
     .then((asp) => {
       aspect = asp;
       aspectKey = redisStore.toKey('aspect', asp.name);
       return rcli.sismemberAsync(aspectIndexName, aspectKey);
     })
     .then((ok) => {
-      expect(ok).to.equal(0);
-      return aspect.update({ isPublished: true });
+      expect(ok).to.equal(1);
+      return aspect.update({ isPublished: false });
     })
     .then(() => rcli.sismemberAsync(aspectIndexName, aspectKey))
     .then((ok) => {
@@ -146,15 +143,15 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       expect(asp).to.not.equal(null);
       expect(asp.timeout).to.equal('30s');
       expect(asp.name).to.equal(aspWindChill.name);
-      expect(asp.isPublished).to.equal('true');
+      expect(asp.isPublished).to.equal('false');
       done();
     })
     .catch(done);
   });
 
-  it('when aspect is updated, the aspect hash should refelct this',
+  it('when aspect is updated, the aspect hash should reflect this',
   (done) => {
-    Aspect.findById(aspTempId)
+    Aspect.findByPk(aspTempId)
     .then((asp) => asp.update({
       tags: ['cold', 'verycold'],
       rank: 10,
@@ -183,7 +180,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     'reflect this change', (done) => {
     let oldName;
     let newName;
-    Aspect.findById(aspTempId)
+    Aspect.findByPk(aspTempId)
     .then((asp) => {
       oldName = asp.name;
       return asp.update({ name: asp.name + '_newName' });
@@ -205,20 +202,27 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       return rcli.keysAsync(newName + '*');
     })
     .then((ret) => {
-      // since sample store has not been popluated yet. rename should not
-      // create a new entry in sample store.
+      /*
+       * since sample store has not been popluated yet. rename should not
+       * create a new entry in sample store.
+       */
       expect(ret.length).to.equal(0);
       done();
     })
     .catch(done);
   });
 
-  it('when name changes, the sampleStore refelct this change', (done) => {
+  it('when name changes, the sampleStore reflect this change', (done) => {
     let oldName;
     let newName;
+    let subjectAbsPath;
 
     samstoinit.populate()
-    .then(() => Aspect.findById(aspHumdId))
+    .then(() => Subject.findByPk(ipar))
+    .then((s) => {
+      subjectAbsPath = s.absolutePath;
+      return Aspect.findByPk(aspHumdId);
+    })
     .then((asp) => {
       oldName = asp.name;
       return asp.update({ name: asp.name + '_newName' });
@@ -232,7 +236,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       // new key should be found
       expect(ok).to.equal(1);
       const oldKey = redisStore.toKey('aspect', oldName);
-      return rcli.sismemberAsync(subjectIndexName, oldKey);
+      return rcli.sismemberAsync(aspectIndexName, oldKey);
     })
     .then((ok) => {
       // old key should not be found
@@ -240,27 +244,50 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       return rcli.smembersAsync(sampleIndexName);
     })
     .then((members) => {
-      const oldNameWithPrefix = redisStore.toKey('sample', oldName);
-      const newNameWithPrefix = redisStore.toKey('sample', newName);
       const samplesWithOldName = [];
       const samplesWithNewName = [];
 
       // sample with old aspect name or new aspect name should not be found
       members.forEach((member) => {
         const nameParts = member.split('|');
-        if (nameParts[0] === oldNameWithPrefix) {
+        if (nameParts[1] === oldName) {
           samplesWithOldName.push(member);
-        } else if (nameParts[0] === newNameWithPrefix) {
+        } else if (nameParts[1] === newName) {
           samplesWithNewName.push(members);
         }
       });
 
-      // only samples with new name should be found
+      // sample should not be renamed with the new aspect name
       expect(samplesWithNewName.length).to.equal(0);
 
-      // all the samples related to the aspect should be deleted
+      // all the samples with the old aspect name should be deleted
       expect(samplesWithOldName.length).to.equal(0);
-      done();
+      const cmds = [];
+      /*
+       * 1. the aspect to subject mapping for the aspect with the old
+       * name should be deleted
+       *
+       * 2. the aspect to subject mapping for the aspect with the new
+       * name should be created
+       *
+       * 3. subject to aspect mappings should be updated
+       */
+      const aspSubjMapKeyOldName = redisStore.toKey('aspsubmap', oldName);
+      cmds.push(['keys', aspSubjMapKeyOldName]);
+
+      const aspSubjMapKeyNewAbsPath = redisStore.toKey('aspsubmap', newName);
+      cmds.push(['smembers', aspSubjMapKeyNewAbsPath]);
+
+      const subjAspMapKey = redisStore.toKey('subaspmap', subjectAbsPath);
+      cmds.push(['smembers', subjAspMapKey]);
+      return redisOps.executeBatchCmds(cmds);
+    })
+    .then((values) => {
+      expect(values[0]).to.be.empty;
+      expect(values[1]).to.be.deep.equal(['___northamerica']);
+      expect(values[2].length).to.be.equal(2);
+      expect(values[2]).to.include.members(['humidity_newname', 'temperature']);
+      return done();
     })
     .catch(done);
   });
@@ -268,10 +295,14 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
   it('once an aspect is destroyed no entry should be found in the ' +
   'aspectStore and the corresponding hash set should not be found', (done) => {
     let aspectKey;
-    Aspect.findById(aspHumdId)
-    .then((a) => a.destroy())
+    let found;
+    Aspect.findByPk(aspHumdId)
+    .then((a) => {
+      found = a;
+      return a.destroy();
+    })
     .then((asp) => {
-      aspectKey = redisStore.toKey('aspect', asp.name);
+      aspectKey = redisStore.toKey('aspect', found.name);
       return rcli.sismemberAsync(subjectIndexName, aspectKey);
     })
     .then((ok) => {
@@ -289,22 +320,95 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
   'removed from the samplestore', (done) => {
     // of the form samsto:samples:
     let aspectName;
+    let subjectAbsPath;
+    let found;
     samstoinit.populate()
-    .then(() => Aspect.findById(aspTempId))
-    .then((a) => a.destroy())
-    .then((a) => {
-      aspectName = a.name;
-      return Subject.findById(ipar);
+    .then(() => Subject.findByPk(ipar))
+    .then((s) => {
+      subjectAbsPath = s.absolutePath;
+      return redisOps.executeCommand(
+        redisOps.getSubjAspMapMembers(subjectAbsPath));
     })
-    .then((s) => s.destroy())
-    .then(() => rcli.smembersAsync(sampleIndexName))
+    .then((res) => {
+      expect(res.length).to.be.equal(2);
+      expect(res).to.include.members(['humidity', 'temperature']);
+      return Aspect.findByPk(aspTempId);
+    }) // temperature aspect deleted
+    .then((a) => {
+      found = a;
+      return a.destroy();
+    })
+    .then((a) => {
+      aspectName = found.name;
+      return rcli.smembersAsync(sampleIndexName);
+    })
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');
 
-        // all the samples related to the subject should be deleted
+        // all the samples related to the aspect should be deleted
         expect(nameParts[1]).not.equal(aspectName);
       });
+
+      // aspsubmap key is deleted
+      const aspSubMapKey = redisStore.toKey('aspsubmap', aspectName);
+      return rcli.smembersAsync(aspSubMapKey);
+    })
+    .then((members) => {
+      expect(members.length).to.equal(0);
+
+      // corresponding subaspmap should not have this aspect
+      return redisOps.executeCommand(
+        redisOps.getSubjAspMapMembers(subjectAbsPath));
+    })
+    .then((res) => {
+      // temperature aspect deleted from subaspmap
+      expect(res).to.deep.equal(['humidity']);
+      return done();
+    })
+    .catch(done);
+  });
+
+  it('when an aspect is unpublished it should' +
+  'remain in the samplestore', (done) => {
+    // of the form samsto:samples:
+    const aspectKey = redisStore.toKey('aspect', aspectHumid.name);
+    samstoinit.populate()
+    .then(() => Aspect.findByPk(aspHumdId))
+    .then((a) => a.update({ isPublished: false }))
+    .then((a) => rcli.sismemberAsync(aspectIndexName, aspectKey))
+    .then((ok) => {
+      expect(ok).to.equal(1);
+      return rcli.hgetallAsync(aspectKey);
+    })
+    .then((asp) => {
+      expect(asp).to.not.equal(null);
+      expect(asp.timeout).to.equal('30s');
+      expect(asp.name).to.equal(aspectHumid.name);
+      expect(asp.isPublished).to.equal('false');
+      done();
+    })
+    .catch(done);
+  });
+
+  it('when an aspect is updated but not unpublished its related samples ' +
+    'should remain in the samplestore', (done) => {
+    // of the form samsto:samples:
+    let aspectName;
+    samstoinit.populate()
+    .then(() => Aspect.findByPk(aspHumdId))
+    .then((a) => {
+      aspectName = a.name;
+      return a.update({ isPublished: true });
+    })
+    .then(() => rcli.smembersAsync(sampleIndexName))
+    .then((members) => {
+      let count = 0;
+      members.forEach((member) => {
+        const nameParts = member.split('|');
+        if (nameParts[1] === aspectName) count++;
+      });
+      expect(count).to.be.at.least(1);
       done();
     })
     .catch(done);
@@ -313,24 +417,239 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
   it('when an aspect is unpublished all its related samples should be ' +
   'removed from the samplestore', (done) => {
     // of the form samsto:samples:
+    let subjectAbsPath;
     let aspectName;
     samstoinit.populate()
-    .then(() => Aspect.findById(aspHumdId))
-    .then((a) => a.update({ isPublished: false }))
+    .then(() => Subject.findByPk(ipar))
+    .then((s) => {
+      subjectAbsPath = s.absolutePath;
+      return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subjectAbsPath));
+    })
+    .then((res) => {
+      expect(res.length).to.be.equal(2);
+      expect(res).to.include.members(['humidity', 'temperature']);
+      return Aspect.findByPk(aspTempId);
+    }) // temperature aspect deleted
     .then((a) => {
       aspectName = a.name;
-      return Subject.findById(ipar);
+      return a.update({ isPublished: false });
     })
-    .then((s) => s.destroy())
     .then(() => rcli.smembersAsync(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');
 
         // all the samples related to the aspect should be deleted
-        expect(nameParts[0]).not.equal(aspectName);
+        expect(nameParts[1]).not.equal(aspectName);
       });
-      done();
+
+      // aspsubmap key is deleted
+      const aspSubMapKey = redisStore.toKey('aspsubmap', aspectName);
+      return rcli.smembersAsync(aspSubMapKey);
+    })
+    .then((members) => {
+      expect(members.length).to.equal(0);
+
+      // corresponding subaspmap should not have this aspect
+      return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subjectAbsPath));
+    })
+    .then((res) => {
+      // temperature aspect deleted from subaspmap
+      expect(res).to.deep.equal(['humidity']);
+      return done();
+    })
+    .catch(done);
+  });
+
+  it('when an aspect status range changes all its related samples should be ' +
+  'removed from the samplestore', (done) => {
+    // of the form samsto:samples:
+    let subjectAbsPath;
+    let aspectName;
+    samstoinit.populate()
+    .then(() => Subject.findByPk(ipar))
+    .then((s) => {
+      subjectAbsPath = s.absolutePath;
+      return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subjectAbsPath));
+    })
+    .then((res) => {
+      expect(res.length).to.be.equal(2);
+      expect(res).to.include.members(['humidity', 'temperature']);
+      return Aspect.findByPk(aspTempId);
+    }) // temperature aspect deleted
+    .then((a) => {
+      aspectName = a.name;
+      return a.update({ okRange: [0, 0] });
+    })
+    .then(() => rcli.smembersAsync(sampleIndexName))
+    .then((members) => {
+      members.forEach((member) => {
+        const nameParts = member.split('|');
+
+        // all the samples related to the aspect should be deleted
+        expect(nameParts[1]).not.equal(aspectName);
+      });
+
+      // aspsubmap key is deleted
+      const aspSubMapKey = redisStore.toKey('aspsubmap', aspectName);
+      return rcli.smembersAsync(aspSubMapKey);
+    })
+    .then((members) => {
+      expect(members.length).to.equal(0);
+
+      // corresponding subaspmap should not have this aspect
+      return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subjectAbsPath));
+    })
+    .then((res) => {
+      // temperature aspect deleted from subaspmap
+      expect(res).to.deep.equal(['humidity']);
+      return done();
+    })
+    .catch(done);
+  });
+
+  it('Create, isPublished false, check tags and related links', (done) => {
+    Aspect.create({
+      name: `${tu.namePrefix}ASPECTNAME`,
+      isPublished: false,
+      timeout: '110s',
+      tags: ['tag1', 'tag2'],
+      relatedLinks: [
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ],
+    })
+    .then((asp) => {
+      expect(Array.isArray(asp.tags)).to.be.equal(true);
+      expect(Array.isArray(asp.relatedLinks)).to.be.equal(true);
+      expect(asp.tags).to.deep.equal(['tag1', 'tag2']);
+      expect(asp.relatedLinks).to.deep.equal([
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ]);
+      return done();
+    })
+    .catch(done);
+  });
+
+  it('Create, isPublished true, check tags and related links', (done) => {
+    Aspect.create({
+      name: `${tu.namePrefix}ASPECTNAME`,
+      isPublished: true,
+      timeout: '110s',
+      tags: ['tag1', 'tag2'],
+      relatedLinks: [
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ],
+    })
+    .then((asp) => {
+      expect(Array.isArray(asp.tags)).to.be.equal(true);
+      expect(Array.isArray(asp.relatedLinks)).to.be.equal(true);
+      expect(asp.tags).to.deep.equal(['tag1', 'tag2']);
+      expect(asp.relatedLinks).to.deep.equal([
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ]);
+      return done();
+    })
+    .catch(done);
+  });
+
+  it('Update, isPublished false, check tags and related links', (done) => {
+    Aspect.create({
+      name: `${tu.namePrefix}ASPECTNAME`,
+      isPublished: true,
+      timeout: '110s',
+      tags: ['tag1', 'tag2'],
+      relatedLinks: [
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ],
+    })
+    .then((asp) => asp.update({ isPublished: false }))
+    .then((asp) => {
+      expect(Array.isArray(asp.tags)).to.be.equal(true);
+      expect(Array.isArray(asp.relatedLinks)).to.be.equal(true);
+      expect(asp.tags).to.deep.equal(['tag1', 'tag2']);
+      expect(asp.relatedLinks).to.deep.equal([
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ]);
+      return done();
+    })
+    .catch(done);
+  });
+
+  it('Update, isPublished true, check tags and related links', (done) => {
+    Aspect.create({
+      name: `${tu.namePrefix}ASPECTNAME`,
+      isPublished: false,
+      timeout: '110s',
+      tags: ['tag1', 'tag2'],
+      relatedLinks: [
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ],
+    })
+    .then((asp) => asp.update({ isPublished: true }))
+    .then((asp) => {
+      expect(Array.isArray(asp.tags)).to.be.equal(true);
+      expect(Array.isArray(asp.relatedLinks)).to.be.equal(true);
+      expect(asp.tags).to.deep.equal(['tag1', 'tag2']);
+      expect(asp.relatedLinks).to.deep.equal([
+        { name: 'link name 1', url: 'http://abc.com' },
+        { name: 'link name 2', url: 'http://xyz.com' },
+      ]);
+      return done();
+    })
+    .catch(done);
+  });
+
+  it('removeAspectRelatedSamples removes all the related samples ' +
+    'from the samplestore', (done) => {
+    let aspectName;
+    let subjectAbsPath;
+    samstoinit.populate()
+    .then(() => Subject.findByPk(ipar))
+    .then((s) => {
+      subjectAbsPath = s.absolutePath;
+      return redisOps.executeCommand(
+        redisOps.getSubjAspMapMembers(subjectAbsPath));
+    })
+    .then((res) => {
+      expect(res.length).to.be.equal(2);
+      expect(res).to.include.members(['humidity', 'temperature']);
+      return Aspect.findByPk(aspTempId);
+    })
+    .then((asp) => {
+      aspectName = asp.name;
+      return aspectUtils.removeAspectRelatedSamples(asp);
+    })
+    .then(() => rcli.smembersAsync(sampleIndexName))
+    .then((members) => {
+      members.forEach((member) => {
+        const nameParts = member.split('|');
+
+        // all the samples related to the aspect should be deleted
+        expect(nameParts[1]).not.equal(aspectName);
+      });
+
+      // aspsubmap key is deleted
+      const aspSubMapKey = redisStore.toKey('aspsubmap', aspectName);
+      return rcli.smembersAsync(aspSubMapKey);
+    })
+    .then((members) => {
+      expect(members.length).to.equal(0);
+
+      // corresponding subaspmap should not have this aspect
+      return redisOps.executeCommand(
+        redisOps.getSubjAspMapMembers(subjectAbsPath));
+    })
+    .then((res) => {
+      // temperature aspect deleted from subaspmap
+      expect(res).to.deep.equal(['humidity']);
+      return done();
     })
     .catch(done);
   });

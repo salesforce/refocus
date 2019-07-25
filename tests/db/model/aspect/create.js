@@ -9,7 +9,7 @@
 /**
  * tests/db/model/aspect/create.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -32,7 +32,6 @@ describe('tests/db/model/aspect/create.js >', () => {
           o.helpEmail === null &&
           o.helpUrl === null &&
           o.id !== null &&
-          Number(o.isDeleted) === Number(0) &&
           o.imageUrl === null &&
           o.isPublished === false &&
           o.name === u.name &&
@@ -46,8 +45,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           /* TODO once we have users, expect createdBy to be populated */
           o.createdBy === null &&
           o.updatedAt !== null &&
-          o.createdAt !== null &&
-          o.deletedAt === null) {
+          o.createdAt !== null) {
           return;
         }
 
@@ -70,17 +68,7 @@ describe('tests/db/model/aspect/create.js >', () => {
 
         throw new Error('expecting relatedLinks to be empty array');
       })
-      .then(() => asp.getSamples())
-      .then((samples) => {
-        if (tu.gotArrayWithExpectedLength(samples, 0)) {
-          return;
-        }
-
-        throw new Error('expecting samples to be empty array');
-      })
-      .then(() => {
-        done();
-      })
+      .then(() => done())
       .catch(done);
     });
 
@@ -274,7 +262,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase())
-          .to.contain('validation isemail failed');
+          .to.contain('validation isemail on helpemail failed');
           done();
         })
         .catch(done);
@@ -289,7 +277,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase())
-          .to.contain('validation isemail failed');
+          .to.contain('validation isemail on helpemail failed');
           done();
         })
         .catch(done);
@@ -307,7 +295,7 @@ describe('tests/db/model/aspect/create.js >', () => {
               'object' &&
             err.errors[0].type === 'string violation' &&
             err.errors[0].path === 'helpEmail' &&
-            err.errors[1].message === 'Validation isEmail failed' &&
+            err.errors[1].message === 'Validation isEmail on helpEmail failed' &&
             err.errors[1].type === 'Validation error' &&
             err.errors[1].path === 'helpEmail') {
             return done();
@@ -329,7 +317,7 @@ describe('tests/db/model/aspect/create.js >', () => {
               'object' &&
             err.errors[0].type === 'string violation' &&
             err.errors[0].path === 'helpEmail' &&
-            err.errors[1].message === 'Validation isEmail failed' &&
+            err.errors[1].message === 'Validation isEmail on helpEmail failed' &&
             err.errors[1].type === 'Validation error' &&
             err.errors[1].path === 'helpEmail') {
             return done();
@@ -376,7 +364,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           x = `z${x}`;
         }
 
-        const url = `http://www.${x}.com`;
+        const url = `http://abc.com/${x}`;
         if (url.length !== ln) {
           throw new Error('must be 2082 characters');
         }
@@ -415,7 +403,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase())
-          .to.contain('validation isurl failed');
+          .to.contain('validation isurl on helpurl failed');
           done();
         }).catch(done);
       });
@@ -429,7 +417,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase())
-          .to.contain('validation isurl failed');
+          .to.contain('validation isurl on helpurl failed');
           done();
         }).catch(done);
       });
@@ -443,7 +431,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase())
-          .to.contain('validation isurl failed');
+          .to.contain('validation isurl on helpurl failed');
           done();
         }).catch(done);
       });
@@ -457,7 +445,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
           expect(err.message.toLowerCase())
-          .to.contain('validation isurl failed');
+          .to.contain('validation isurl on helpurl failed');
           done();
         }).catch(done);
       });
@@ -535,109 +523,6 @@ describe('tests/db/model/aspect/create.js >', () => {
       });
     });
 
-    describe('isDeleted >', () => {
-      it('provide an empty string', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = '';
-        Aspect.create(toCreate)
-        .then(() => done(u.dbError))
-        .catch((err) => {
-          if (err.name === tu.dbErrorName &&
-            err.message === 'invalid input syntax for integer: ""') {
-            return done();
-          }
-
-          done(err);
-        });
-      });
-
-      it('provide a null value', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = null;
-        Aspect.create(toCreate)
-        .then(() => done(tu.valError))
-        .catch((err) => {
-          if (err.name === tu.valErrorName &&
-            tu.gotArrayWithExpectedLength(err.errors, 1) &&
-            err.errors[0].message === 'isDeleted cannot be null' &&
-            err.errors[0].type === 'notNull Violation' &&
-            err.errors[0].path === 'isDeleted' &&
-            err.errors[0].value === null) {
-            return done();
-          }
-
-          done(err);
-        });
-      });
-
-      it('provide a string value', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = 'abcdefg';
-        Aspect.create(toCreate)
-        .then(() => done(u.dbError))
-        .catch((err) => {
-          if (err.name === tu.dbErrorName &&
-            err.message === 'invalid input syntax for integer: "abcdefg"') {
-            return done();
-          }
-
-          done(err);
-        });
-      });
-
-      it('provide a string value which is a number', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = '100';
-        Aspect.create(toCreate)
-        .then((o) => {
-          if (o.isDeleted === '100') {
-            return done();
-          }
-
-          done(new Error('should have accepted a number-ish string'));
-        })
-        .catch(done);
-      });
-
-      it('provide a number', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = 100000000;
-        Aspect.create(toCreate)
-        .then((o) => {
-          if (Number(o.isDeleted) === Number(100000000)) {
-            return done();
-          }
-
-          done(new Error('should have accepted a number'));
-        })
-        .catch(done);
-      });
-
-      it('provide an array', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = [0];
-        Aspect.create(toCreate)
-        .then(() => done(u.dbError))
-        .catch((err) => {
-          if (err.name === tu.dbErrorName &&
-            err.message === 'column "isDeleted" is of type bigint but ' +
-              'expression is of type integer[]') {
-            return done();
-          }
-
-          done(u.dbError);
-        });
-      });
-
-      it('provide an object', (done) => {
-        const toCreate = u.getSmall();
-        toCreate.isDeleted = { a: 0 };
-        Aspect.create(toCreate)
-        .then(() => done(u.dbError))
-        .catch(() => done());
-      });
-    });
-
     describe('imageUrl >', () => {
       it('provide an empty string, same as null', (done) => {
         const toCreate = u.getSmall();
@@ -674,7 +559,7 @@ describe('tests/db/model/aspect/create.js >', () => {
           x = `z${x}`;
         }
 
-        const url = `http://www.${x}.com`;
+        const url = `http://abc.com/${x}`;
         if (url.length !== ln) {
           throw new Error('must be 2082 characters');
         }
@@ -712,8 +597,9 @@ describe('tests/db/model/aspect/create.js >', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation isurl ' +
-            'failed');
+          expect(err.message.toLowerCase()).to.contain(
+            'validation isurl on imageurl failed'
+          );
           done();
         }).catch(done);
       });
@@ -726,8 +612,9 @@ describe('tests/db/model/aspect/create.js >', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation isurl ' +
-            'failed');
+          expect(err.message.toLowerCase()).to.contain(
+            'validation isurl on imageurl failed'
+          );
           done();
         }).catch(done);
       });
@@ -926,7 +813,9 @@ describe('tests/db/model/aspect/create.js >', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation is failed');
+          expect(err.message.toLowerCase()).to.contain(
+            'validation is on name failed'
+          );
           done();
         }).catch(done);
       });
@@ -976,7 +865,9 @@ describe('tests/db/model/aspect/create.js >', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation is failed');
+          expect(err.message.toLowerCase()).to.contain(
+            'validation is on name failed'
+          );
           done();
         }).catch(done);
       });
@@ -989,7 +880,9 @@ describe('tests/db/model/aspect/create.js >', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation is failed');
+          expect(err.message.toLowerCase()).to.contain(
+            'validation is on name failed'
+          );
           done();
         }).catch(done);
       });
@@ -1002,7 +895,9 @@ describe('tests/db/model/aspect/create.js >', () => {
         .catch((err) => {
           expect(err.name).to.equal(tu.valErrorName);
           expect(err.message.toLowerCase()).to.contain('validation error');
-          expect(err.message.toLowerCase()).to.contain('validation is failed');
+          expect(err.message.toLowerCase()).to.contain(
+            'validation is on name failed'
+          );
           done();
         }).catch(done);
       });
@@ -1219,6 +1114,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two ascending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.criticalRange = [100, 1000];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.criticalRange, 2) &&
@@ -1235,6 +1131,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two equal numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.criticalRange = [3.1415927, 3.1415927];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.criticalRange, 2) &&
@@ -1251,6 +1148,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two descending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.criticalRange = [99, 98];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then(() => done(tu.valError))
         .catch((err) => {
@@ -1455,6 +1353,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two ascending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.warningRange = [100, 1000];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.warningRange, 2) &&
@@ -1471,6 +1370,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two equal numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.warningRange = [3.1415927, 3.1415927];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.warningRange, 2) &&
@@ -1487,6 +1387,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two descending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.warningRange = [99, 98];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then(() => done(tu.valError))
         .catch((err) => {
@@ -1687,6 +1588,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two ascending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.infoRange = [100, 1000];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.infoRange, 2) &&
@@ -1703,6 +1605,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two equal numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.infoRange = [3.1415927, 3.1415927];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.infoRange, 2) &&
@@ -1719,6 +1622,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two descending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.infoRange = [99, 98];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then(() => done(tu.valError))
         .catch((err) => {
@@ -1911,6 +1815,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two ascending numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.okRange = [100, 1000];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.okRange, 2) &&
@@ -1927,6 +1832,7 @@ describe('tests/db/model/aspect/create.js >', () => {
       it('provide an array with two equal numeric elements', (done) => {
         const toCreate = u.getSmall();
         toCreate.okRange = [3.1415927, 3.1415927];
+        toCreate.valueType = 'NUMERIC';
         Aspect.create(toCreate)
         .then((o) => {
           if (tu.gotArrayWithExpectedLength(o.okRange, 2) &&
@@ -2197,8 +2103,8 @@ describe('tests/db/model/aspect/create.js >', () => {
         .then(() => done(tu.valError))
         .catch((err) => {
           if (err.name === tu.dbErrorName &&
-            err.message === 'column "valueType" is of type ' +
-              '"enum_Aspects_valueType" but expression is of type text[]') {
+            err.message === 'invalid input value for enum ' +
+            '"enum_Aspects_valueType": "{"BOOLEAN","PERCENT"}"') {
             done();
           } else {
             done(tu.valError);
@@ -2283,23 +2189,6 @@ describe('tests/db/model/aspect/create.js >', () => {
         expect(err.name).to.equal(tu.uniErrorName);
         done();
       });
-    });
-
-    it('provide a name already in use by a soft-deleted aspect', (done) => {
-      Aspect.create(u.getSmall())
-      .then((o) => o.destroy())
-      .then(() => Aspect.create(u.getSmall()))
-      .then(() => done())
-      .catch(() => done(tu.uniError));
-    });
-
-    it('provide a name already in use, other aspect is hard-deleted',
-    (done) => {
-      Aspect.create(u.getSmall())
-      .then((o) => o.destroy({ force: true }))
-      .then(() => Aspect.create(u.getSmall()))
-      .then(() => done())
-      .catch(() => done(tu.uniError));
     });
   }); // duplicate names
 

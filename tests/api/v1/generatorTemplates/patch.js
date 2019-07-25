@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -21,7 +21,7 @@ const expect = require('chai').expect;
 
 describe('tests/api/v1/generatorTemplates/patch.js > ', () => {
   let i = 0;
-  const generatorTemplateToCreate = u.getGeneratorTemplate();
+  const sgt = u.getGeneratorTemplate();
   let token;
 
   before((done) => {
@@ -33,8 +33,8 @@ describe('tests/api/v1/generatorTemplates/patch.js > ', () => {
     .catch(done);
   });
 
-  beforeEach((done) => {
-    GeneratorTemplate.create(generatorTemplateToCreate)
+  before((done) => {
+    GeneratorTemplate.create(sgt)
     .then((gen) => {
       i = gen.id;
       done();
@@ -42,63 +42,25 @@ describe('tests/api/v1/generatorTemplates/patch.js > ', () => {
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('simple patching: ok', (done) => {
-    const newName = {
+  it('patch anything other than isPublished should fail', (done) => {
+    api.patch(`${path}/${sgt.name}`)
+    .set('Authorization', token)
+    .send({
       name: 'template1',
-    };
-    api.patch(`${path}/${i}`)
-    .set('Authorization', token)
-    .send(newName)
-    .expect(constants.httpStatus.OK)
+      isPublished: true,
+    })
+    .expect(constants.httpStatus.BAD_REQUEST)
     .expect((res) => {
-      expect(res.body.name).to.equal(newName.name);
+      expect(res.body.errors[0])
+      .to.have.property('type', 'ValidationError');
     })
     .end(done);
   });
 
-  it('simple patching using name in the url: ok', (done) => {
-    const newName = {
-      name: 'template1',
-    };
-    api.patch(`${path}/${generatorTemplateToCreate.name}`)
-    .set('Authorization', token)
-    .send(newName)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.name).to.equal(newName.name);
-    })
-    .end(done);
-  });
-
-  it('patch complex json schema', (done) => {
-    const toPatch = {
-      contextDefiniton: {
-        okValue: {
-          required: true,
-          default: '1',
-          description: 'An ok sample\'s value, e.g. \'0\'',
-        },
-        criticalValue: {
-          required: true,
-          default: '2',
-          description: 'A critical sample\'s value, e.g. \'1\'',
-        },
-      },
-    };
-    api.patch(`${path}/${i}`)
-    .set('Authorization', token)
-    .send(toPatch)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.contexDefinition).to.deep.equal(toPatch.context);
-    })
-    .end(done);
-  });
-
-  it('switch isPublished from true to false', (done) => {
+  it('patch isPublished ok', (done) => {
     api.patch(`${path}/${i}`)
     .set('Authorization', token)
     .send({ isPublished: false })

@@ -12,7 +12,7 @@
 
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -59,7 +59,7 @@ describe('tests/api/v1/generatorTemplates/putPatchWithoutPerms.js > ', () => {
   it('PATCH without permission: should return 403', (done) => {
     api.patch(`${path}/${generatorTemplate.id}`)
     .set('Authorization', otherValidToken)
-    .send({ name: 'template2' })
+    .send({ isPublished: false })
     .expect(constants.httpStatus.FORBIDDEN)
     .end((err, res) => {
       const errorArray = JSON.parse(res.text).errors;

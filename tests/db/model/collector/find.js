@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -15,28 +15,77 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Collector = tu.db.Collector;
+const CollectorGroup = tu.db.CollectorGroup;
+const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
+const sgUtils = require('../generator/utils');
+const gtUtil = sgUtils.gtUtil;
 
 describe('tests/db/model/collector/find.js >', () => {
   let userId;
-  let collectorDb;
-  beforeEach((done) => {
-    tu.createUser('testUser')
+  let collectorInst1;
+  let collectorInst2;
+  let collectorInst3;
+  let generator1;
+  let generator2;
+  let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+
+  const generatorTemplate = gtUtil.getGeneratorTemplate();
+  before((done) => {
+    GeneratorTemplate.create(generatorTemplate)
+    .then(() => tu.createUser('testUser'))
     .then((user) => {
       userId = user.id;
-      u.collectorObj.createdBy = user.id;
-      return Collector.create(u.collectorObj);
+      const c = u.getCollectorObj();
+      c.createdBy = user.id;
+      return Collector.create(c);
     })
     .then((c) => {
-      collectorDb = c;
-      done();
+      collectorInst1 = c;
+      collectorGroup1.collectors = [collectorInst1.name];
+      return CollectorGroup.createCollectorGroup(collectorGroup1);
+    })
+    .then((cg) => {
+      collectorGroup1 = cg;
+      const gen = sgUtils.getGenerator();
+      gen.name += 'generator-1';
+      gen.collectorGroup = collectorGroup1.name;
+      return Generator.createWithCollectors(gen);
+    })
+    .then((g1) => {
+      generator1 = g1;
+      const gen = sgUtils.getGenerator();
+      gen.name += 'generator-2';
+      gen.collectorGroup = collectorGroup1.name;
+      return Generator.createWithCollectors(gen);
+    })
+    .then((g2) => {
+      generator2 = g2;
+      const c = u.getCollectorObj();
+      c.name += 'secondCollector';
+      c.status = 'Running';
+      c.lastHeartbeat = new Date('2018-05-22T14:51:00');
+      return Collector.create(c);
+    })
+    .then((c) => {
+      collectorInst2 = c;
+      const c3 = u.getCollectorObj();
+      c3.name += 'thirdCollector';
+      c3.status = 'Running';
+      c3.lastHeartbeat = new Date('2018-05-22T14:51:05');
+      return Collector.create(c3);
+    })
+    .then((c) => {
+      collectorInst3 = c;
+      return done();
     })
     .catch(done);
   });
 
-  afterEach(u.forceDelete);
+  after(u.forceDelete);
 
   it('Find by Id', (done) => {
-    Collector.findById(collectorDb.id)
+    Collector.findByPk(collectorInst1.id)
     .then((obj) => {
       expect(obj.name).to.be.equal('___Collector');
       expect(obj.registered).to.be.equal(true);
@@ -56,8 +105,32 @@ describe('tests/db/model/collector/find.js >', () => {
     .catch(done);
   });
 
+  it('Collector Instance with related generators', (done) => {
+    collectorInst1.reload(collectorInst1._modelOptions.defaultScope)
+    .then((coll) => coll.collectorGroup.getGenerators())
+    .then((generators) => {
+      expect(generators).to.have.lengthOf(2);
+      const sg1 = generators.filter((gen) =>
+        gen.dataValues.name === generator1.name)[0].dataValues;
+      const sg2 = generators.filter((gen) =>
+        gen.dataValues.name === generator2.name)[0].dataValues;
+      expect(sg1.id).to.include(generator1.id);
+      expect(sg2.id).to.include(generator2.id);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('Collector Instance without collector group ', (done) => {
+    collectorInst2.reload()
+    .then((coll) => {
+      expect(coll.collectorGroup).to.not.exist;
+      done();
+    });
+  });
+
   it('Find, using where', (done) => {
-    Collector.findOne({ where: { id: collectorDb.id } })
+    Collector.findOne({ where: { id: collectorInst1.id } })
     .then((obj) => {
       expect(obj.name).to.be.equal('___Collector');
       expect(obj.registered).to.be.equal(true);
@@ -79,9 +152,10 @@ describe('tests/db/model/collector/find.js >', () => {
 
   it('Find all', (done) => {
     Collector.findAll()
-    .then((objs) => {
-      expect(objs.length).to.be.equal(1);
-      const obj = objs[0];
+    .then((collectors) => {
+      expect(collectors.length).to.be.equal(3);
+      const obj = collectors.filter((c) => c.name === '___Collector')[0]
+        .dataValues;
       expect(obj.name).to.be.equal('___Collector');
       expect(obj.registered).to.be.equal(true);
       expect(obj.status).to.be.equal('Stopped');
@@ -110,6 +184,21 @@ describe('tests/db/model/collector/find.js >', () => {
       expect(obj.updatedAt).to.not.be.null;
       expect(obj.createdAt).to.not.be.null;
       done();
+    })
+    .catch(done);
+  });
+
+  it('scope = running', (done) => {
+    Collector.scope('defaultScope', 'running').findAll()
+    .then((collectors) => {
+      expect(collectors).to.have.lengthOf(2);
+      expect(collectors[0])
+        .to.have.property('name', `${tu.namePrefix}CollectorsecondCollector`);
+      expect(collectors[0]).to.have.property('status', 'Running');
+      expect(collectors[1])
+        .to.have.property('name', `${tu.namePrefix}CollectorthirdCollector`);
+      expect(collectors[1]).to.have.property('status', 'Running');
+      return done();
     })
     .catch(done);
   });

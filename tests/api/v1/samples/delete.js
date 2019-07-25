@@ -11,11 +11,11 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/samples';
 const allDeletePath = '/v1/samples/{key}/relatedLinks';
 const oneDeletePath = '/v1/samples/{key}/relatedLinks/{akey}';
@@ -38,8 +38,7 @@ describe('tests/api/v1/samples/delete.js >', () => {
     });
 
     beforeEach((done) => {
-      u.doSetup()
-      .then((samp) => Sample.create(samp))
+      u.createBasic()
       .then((samp) => {
         sampleName = samp.name;
         done();
@@ -47,6 +46,7 @@ describe('tests/api/v1/samples/delete.js >', () => {
       .catch(done);
     });
 
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
 
@@ -118,9 +118,8 @@ describe('tests/api/v1/samples/delete.js >', () => {
     });
 
     beforeEach((done) => {
-      u.doSetup()
-      .then((samp) => {
-        samp.relatedLinks = [
+      u.createBasic({
+        relatedLinks: [
           {
             name: 'rlink0',
             url: 'https://samples.com',
@@ -129,10 +128,7 @@ describe('tests/api/v1/samples/delete.js >', () => {
             name: 'rlink1',
             url: 'https://samples.com',
           },
-        ];
-        return Sample.create(
-          samp
-        );
+        ],
       })
       .then((samp) => {
         sampleName = samp.name;
@@ -141,6 +137,7 @@ describe('tests/api/v1/samples/delete.js >', () => {
       .catch(done);
     });
 
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
 

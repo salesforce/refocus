@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -20,13 +20,10 @@ const expect = require('chai').expect;
 const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
-const jwtUtil = require('../../../../utils/jwtUtil');
-const adminUser = require('../../../../config').db.adminUser;
 
 describe('tests/api/v1/tokens/revokeRestore.js, ' +
 `api: POST ${path}/:id/revoke and POST ${path}/:id/restore >`, () => {
-  const predefinedAdminUserToken =
-    jwtUtil.createToken(adminUser.name, adminUser.name);
+  const predefinedAdminUserToken = tu.createAdminToken();
   let usr;
   let tid;
 

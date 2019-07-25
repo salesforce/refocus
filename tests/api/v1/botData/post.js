@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const path = '/v1/botData';
 const expect = require('chai').expect;
@@ -61,6 +61,31 @@ describe('tests/api/v1/botData/post.js >', () => {
   after(tu.forceDeleteUser);
 
   it('Pass, post botData', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(testBotData)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(u.name);
+      expect(res.body).to.have.property('createdBy');
+      expect(res.body.user).to.have.property('email');
+      expect(res.body.user.email).to.equal('___testUser@refocus.com');
+      done();
+    });
+  });
+
+  it('Pass, post large botData', (done) => {
+    testBotData.value =
+      'yeDqFOAvhPjCBpZ67YdoNZZRRQFFQjbsf0yNVtxjKHe7C25FYX' +
+      'e6DAyMVA7Y2RQ5Q6vJrYrufPLcQKy7ZYWycI01IZa4bv23Abxf' +
+      'MlXkFmAOx51wV7Hg3yVeNYVMkoTLxPu8bmlCUnSLvVxD9a7j5g' +
+      '60EZwhh3m3MlqXnXq5qPdhGfysaKjAKpA3EnRQAxmFI3vd0GbM' +
+      'aHLPF33ZcYpsDz35tixhDc3tAm4AHh4Wu3LjTQlgWV9vuFUAmE' +
+      'UHIFfrkE3LmadNGzPgzebGPQvsgMshHqnecaRp42OR6LYivS3Q';
     api.post(`${path}`)
     .set('Authorization', token)
     .send(testBotData)

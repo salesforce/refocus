@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -107,7 +107,6 @@ describe('tests/api/v1/userTokens/get.js, ' +
       }
 
       expect(res.body).to.have.property('name', tname1);
-      expect(res.body.isDeleted).to.not.equal(0);
       done();
     });
   });
@@ -122,7 +121,6 @@ describe('tests/api/v1/userTokens/get.js, ' +
       }
 
       expect(res.body).to.have.property('name', tname1);
-      expect(res.body.isDeleted).to.not.equal(0);
       done();
     });
   });
@@ -193,8 +191,8 @@ describe('tests/api/v1/userTokens/get.js, ' +
       }
 
       expect(res.body).to.have.length(2);
-      expect(res.body[0].User).to.have.property('name', uname);
-      expect(res.body[1].User).to.have.property('name', uname);
+      expect(res.body[0].user).to.have.property('name', uname);
+      expect(res.body[1].user).to.have.property('name', uname);
       done();
     });
   });

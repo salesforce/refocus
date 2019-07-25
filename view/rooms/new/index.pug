@@ -1,0 +1,31 @@
+//
+  Copyright (c) 2017, salesforce.com, inc.
+  All rights reserved.
+  Licensed under the BSD 3-Clause license.
+  For full license text, see LICENSE.txt file in the repo root or
+  https://opensource.org/licenses/BSD-3-Clause
+
+doctype html
+html
+  head
+    title Refocus Room | Create Room
+    link(rel='shortcut icon', href='favicon.ico')
+    link(rel='stylesheet', type='text/css', href='/static/css/salesforce-lightning-design-system.2.4.3.min.css')
+    block container
+      div#formContainer
+    block spinner
+      div#loading_spinner
+        .slds-spinner_container
+          .slds-spinner--brand.slds-spinner.slds-spinner--medium(role='alert')
+            span.slds-assistive-text Loading
+            .slds-spinner__dot-a
+            .slds-spinner__dot-b
+
+  script(src='/static/scripts/socket.io.js')
+  script(src='/static/scripts/jquery-1.11.1.min.js')
+  script(src='/static/scripts/moment.min.js')
+  script.
+    var trackingId = '#{trackingId}';
+    var user = '#{user}';
+  script(src='/static/analytics/app.js')
+  script(src='/static/rooms/new/app.js')

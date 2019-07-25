@@ -10,13 +10,61 @@
  * ./realTime/redisPublisher.js
  */
 'use strict'; // eslint-disable-line strict
-const rtUtils = require('./utils');
-const pubPerspective = require('../cache/redisCache').client.pubPerspective;
-const pubBot = require('../cache/redisCache').client.pubBot;
-const perspectiveChannelName = require('../config').redis.perspectiveChannelName;
-const botChannelName = require('../config').redis.botChannelName;
-const sampleEvent = require('./constants').events.sample;
+const logger = require('winston');
 const featureToggles = require('feature-toggles');
+const rtUtils = require('./utils');
+const config = require('../config');
+const client = require('../cache/redisCache').client;
+const pubPerspectives = client.pubPerspectives;
+const perspectiveChannelName = config.redis.perspectiveChannelName;
+const sampleEvent = require('./constants').events.sample;
+const pubSubStats = require('./pubSubStats');
+const ONE = 1;
+
+/**
+ * Returns a random integer between min (inclusive) and max (inclusive).
+ * The value is no lower than min (or the next integer greater than min
+ * if min isn't an integer) and no greater than max (or the next integer
+ * lower than max if max isn't an integer).
+ * Using Math.round() will give you a non-uniform distribution!
+ */
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * Store pub stats in redis cache, tracking count and publish time by key. Note
+ * that we're using the async redis command here; we don't require the hincrby
+ * command to complete before moving on to other work, so we're not wrapping it
+ * in a promise.
+ *
+ * @param {String} key - The event type
+ * @param {Object} obj - The object being published
+ */
+function trackStats(key, obj) {
+  let elapsed = 0;
+  if (obj.hasOwnProperty('updatedAt')) {
+    elapsed = Date.now() - new Date(obj.updatedAt);
+  } else if (obj.hasOwnProperty('new') &&
+    obj.new.hasOwnProperty('updatedAt')) {
+    elapsed = Date.now() - new Date(obj.new.updatedAt);
+  } else {
+    console.trace('Where is updatedAt? ' + JSON.stringify(obj));
+  }
+
+  rcache.hincrbyAsync(pubKeys.count, key, ONE)
+    .catch((err) => {
+      console.error('redisPublisher.trackStats HINCRBY', pubKeys.count, key,
+        ONE);
+    });
+  rcache.hincrbyAsync(pubKeys.time, key, elapsed)
+    .catch((err) => {
+      console.error('redisPublisher.trackStats HINCRBY', pubKeys.time, key,
+        elapsed, err);
+    });
+} // trackStats
 
 /**
  * When passed an sample object, either a sequelize sample object or
@@ -67,11 +115,29 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
  * that were changed
  * @param  {[Array]} ignoreAttributes An array containing the fields of the
  * model that should be ignored
+ * @param  {Object} opts - Options for which client and channel to publish with
  * @returns {Object} - object that was published
  */
-function publishObject(inst, event, changedKeys, ignoreAttributes) {
+function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
+  if (!inst || !event) return false;
   const obj = {};
-  obj[event] = inst;
+  obj[event] = inst.get ? inst.get() : inst;
+
+  /*
+   * Set pub client and channel to perspective unless there are overrides opts.
+   * There may be multiple publishers for perspectives to spread the load, so
+   * pick one at random.
+   */
+  const len = pubPerspectives.length;
+  const whichPubsub = len === 1 ? 0 : getRandomInt(0, (len - 1));
+  let pubClient = pubPerspectives[whichPubsub];
+  let channelName = perspectiveChannelName;
+  if (opts) {
+    obj[event].pubOpts = opts;
+    pubClient = opts.client ? client[opts.client] : pubClient;
+    channelName = opts.channel ? config.redis[opts.channel] : channelName;
+  }
+
   /**
    * The shape of the object required for update events are a bit different.
    * changedKeys and ignoreAttributes are passed in as arrays by the
@@ -79,67 +145,100 @@ function publishObject(inst, event, changedKeys, ignoreAttributes) {
    * to get the object just for update events.
    */
   if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
-    obj[event] = prepareToPublish(inst, changedKeys, ignoreAttributes);
+    const prepared = prepareToPublish(obj[event], changedKeys,
+      ignoreAttributes);
+    if (!prepared) return false;
+    obj[event] = prepared;
   }
 
-  if (obj[event]) {
-    if (rtUtils.isRoom(inst)) {
-      pubBot.publish(botChannelName, JSON.stringify(obj));
-    } else {
-      pubPerspective.publish(perspectiveChannelName, JSON.stringify(obj));
+  if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
+    try {
+      pubSubStats.track('pub', event, obj[event]);
+    } catch (err) {
+      console.error(err);
     }
   }
 
-  return obj;
-} // publishChange
-
-/**
- * Publishes the sample without attaching the related subject and the aspect to
- * the redis channel
- * @param  {Object} sampleInst - The sample instance to be published
- * @param  {String} event - The event type that is being published.
- * @returns {Object} - the sample object
- */
-function publishPartialSample(sampleInst, event) {
-  const eventType = event || getSampleEventType(sampleInst);
-
-  // will be over written when unwrapping json.stringified fields
-  const sample = sampleInst.get ? sampleInst.get() : sampleInst;
-
-  delete sample.aspect;
-  delete sample.subject;
-
-  publishObject(sample, eventType);
-  return sample;
-} // publishPartialSample
+  return pubClient.publishAsync(channelName, JSON.stringify(obj))
+    .then((numClients) => obj);
+} // publishObject
 
 /**
  * The sample object needs to be attached its subject object and it also needs
  * a absolutePath field added to it before the sample is published to the redis
  * channel.
+ *
  * @param  {Object} sampleInst - The sample instance to be published
  * @param  {Model} subjectModel - The subject model to get the related
- * subject instance
+ *  subject instance
  * @param  {String} event  - Type of the event that is being published
  * @param  {Model} aspectModel  - The aspect model to get the related
- * aspect instance
+ *  aspect instance
  * @returns {Promise} - which resolves to a sample object
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
+  if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
+    return publishSampleNoChange(sampleInst);
+  }
+
   const eventType = event || getSampleEventType(sampleInst);
-  const useSampleStore =
-    featureToggles.isFeatureEnabled('enableRedisSampleStore');
-  return rtUtils.attachAspectSubject(sampleInst, useSampleStore, subjectModel,
-    aspectModel)
-  .then((sample) => {
-    publishObject(sample, eventType);
-    return sample;
-  });
+  let prom;
+
+  // No need to attachAspectSubject if subject and aspect are already attached
+  if (sampleInst.hasOwnProperty('subject') &&
+    sampleInst.hasOwnProperty('aspect')) {
+    prom = Promise.resolve(sampleInst);
+  } else {
+    prom = rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel);
+  }
+
+  return prom
+    .then((sample) => {
+      if (sample) {
+        sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
+        return publishObject(sample, eventType)
+          .then(() => sample);
+      }
+    })
+    .catch((err) => {
+      // Any failure on publish sample must not stop the next promise.
+      logger.error('publishSample error', err);
+      return Promise.resolve();
+    });
 } // publishSample
+
+/**
+ * Publish a sample when nothing changed except last update timestamp.
+ *
+ * @param  {Object} sample - The sample to be published
+ * @returns {Promise} - which resolves to the object that was published
+ */
+function publishSampleNoChange(sample) {
+  const s = {
+    name: sample.name,
+    status: sample.status, // for socket.io perspective filtering
+    absolutePath: sample.absolutePath, // used for persp filtering
+    updatedAt: sample.updatedAt,
+    subject: {
+      absolutePath: sample.absolutePath,
+      tags: sample.subjectTags, // for socket.io perspective filtering
+    },
+    aspect: {
+      name: sample.aspectName, // for socket.io perspective filtering
+      tags: sample.aspectTags, // for socket.io perspective filtering
+      /*
+       * aspect.timeout is needed by perspective to track whether page is still
+       * getting real-time events
+       */
+      timeout: sample.aspectTimeout,
+    },
+  };
+  return publishObject(s, sampleEvent.nc)
+    .then(() => sample);
+} // publishSampleNoChange
 
 module.exports = {
   publishObject,
   publishSample,
-  publishPartialSample,
   getSampleEventType,
 }; // exports

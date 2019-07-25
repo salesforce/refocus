@@ -181,11 +181,13 @@ class Detail extends React.Component {
           name={name}
           goBackUrl={ `/${resource}s` }
         >
+        {/* Disable editing subjects/samples/aspects in UI
           <ButtonRowWhenRead
             setFormFieldToEdit={this.toggleEdit}
             addChildLink={addChildLink}
             deleteResource={deleteFunc}
           />
+       */}
         </PageHeader>
         <div className='slds-p-vertical--x-small slds-p-horizontal--large'>
           <Form

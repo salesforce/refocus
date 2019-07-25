@@ -13,14 +13,9 @@
 
 const featureToggles = require('feature-toggles');
 const u = require('./utils');
-const patchUtils = require('./patchUtils');
-const publisher = u.publisher;
-const event = u.realtimeEvents;
-const httpStatus = require('../../constants').httpStatus;
-const constants = require('../../../../cache/sampleStore').constants;
-const redisModelSample = require('../../../../cache/models/samples');
 const helper = require('../nouns/perspectives');
-const redisCache = require('../../../../cache/redisCache').client.cache;
+const validateAtLeastOneFieldPresent =
+    require('../../../../utils/common').validateAtLeastOneFieldPresent;
 
 /**
  * Updates a record and sends the udpated record back in the json response
@@ -38,12 +33,11 @@ const redisCache = require('../../../../cache/redisCache').client.cache;
 function doPatch(req, res, next, props) {
   const resultObj = { reqStartTime: req.timestamp };
   const requestBody = req.swagger.params.queryBody.value;
-  const patchPromise = u.findByKey(
-    props, req.swagger.params
-  )
+
+  u.findByKey(props, req.swagger.params)
+  .then((o) => u.setOwner(requestBody, req, o))
   .then((o) => u.isWritable(req, o))
   .then((o) => {
-
     /*
      * To avoid timeouts when patching samples; force the update, even if
      * the value has not changed. Adding this to the "before update hook"
@@ -52,7 +46,6 @@ function doPatch(req, res, next, props) {
     if (props.modelName === 'Sample') {
       o.changed('value', true);
     } else if (props.modelName === 'Perspective') {
-
       /*
        * Clone the object so that we can copy the new request object values
        * in memory and validate them, instead of updating the db object in
@@ -66,16 +59,24 @@ function doPatch(req, res, next, props) {
       );
     }
 
+    if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl') &&
+      props.requireAtLeastOneFields) {
+      try {
+        // check if at least one field present in db
+        validateAtLeastOneFieldPresent(o.get(), props.requireAtLeastOneFields);
+      } catch (err) {
+        // No field in db, check if at least one field present in request
+        validateAtLeastOneFieldPresent(req.body, props.requireAtLeastOneFields);
+      }
+    }
+
     u.patchJsonArrayFields(o, requestBody, props);
     u.patchArrayFields(o, requestBody, props);
 
-    return (props.modelName === 'Generator') ?
-      o.updateWithCollectors(requestBody, u.whereClauseForNameInArr) :
-      o.update(requestBody);
-  });
+    return o.update(requestBody).then((o) => o.reload());
+  })
 
-  patchPromise
-  .then((retVal) => patchUtils.handlePatchPromise(resultObj, req, retVal, props, res))
+  .then((retVal) => u.handleUpdatePromise(resultObj, req, retVal, props, res))
   .catch((err) => u.handleError(next, err, props.modelName));
 }
 

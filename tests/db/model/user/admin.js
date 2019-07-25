@@ -15,6 +15,7 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const Profile = tu.db.Profile;
 const User = tu.db.User;
+const Op = require('sequelize').Op;
 
 describe('tests/db/model/user/admin.js, Admin User Tests >', () => {
   let au = null;
@@ -24,7 +25,7 @@ describe('tests/db/model/user/admin.js, Admin User Tests >', () => {
     Profile.findOne({
       where: {
         name: {
-          $iLike: conf.db.adminProfile.name,
+          [Op.iLike]: conf.db.adminProfile.name,
         },
       },
     })
@@ -35,7 +36,7 @@ describe('tests/db/model/user/admin.js, Admin User Tests >', () => {
     .then(() => User.findOne({
       where: {
         name: {
-          $iLike: conf.db.adminUser.name,
+          [Op.iLike]: conf.db.adminUser.name,
         },
       },
     }))

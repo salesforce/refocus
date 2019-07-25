@@ -12,33 +12,31 @@
 'use strict'; // eslint-disable-line strict
 
 const featureToggles = require('feature-toggles');
-const authUtils = require('../helpers/authUtils');
 const apiErrors = require('../apiErrors');
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/samples');
 const subHelper = require('../helpers/nouns/subjects');
 const doDelete = require('../helpers/verbs/doDelete');
-const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
-const doPatch = require('../helpers/verbs/doPatch');
-const doPost = require('../helpers/verbs/doPost');
-const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
-const sampleStore = require('../../../cache/sampleStore');
-const sampleStoreConstants = sampleStore.constants;
-const redisModelSample = require('../../../cache/models/samples');
+const sampleModel = require('../../../cache/models/samples');
 const utils = require('./utils');
-const patchUtils = require('../helpers/verbs/patchUtils');
 const publisher = u.publisher;
+const realtimeEvents = u.realtimeEvents;
 const kueSetup = require('../../../jobQueue/setup');
 const kue = kueSetup.kue;
 const getSamplesWildcardCacheInvalidation = require('../../../config')
   .getSamplesWildcardCacheInvalidation;
 const redisCache = require('../../../cache/redisCache').client.cache;
+const RADIX = 10;
+const COUNT_HEADER_NAME = require('../constants').COUNT_HEADER_NAME;
+const logger = require('winston');
+const generators = require('../helpers/nouns/generators');
 
 /**
- * Find sample from samplestore. If cache is on then
- * cache the response as well.
+ * Find sample (from redis sample store). If cache is on then cache the
+ * response as well.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
@@ -47,10 +45,19 @@ const redisCache = require('../../../cache/redisCache').client.cache;
  * @param {String} cacheKey - Cache Key
  * @param {Integer} cacheExpiry -  Cache expiry time
  */
-function doFindSampleStoreResponse(req, res, next, resultObj, cacheKey, cacheExpiry) {
-  redisModelSample.findSamples(req, res, resultObj)
+function doFindSample(req, res, next, resultObj, cacheKey, cacheExpiry) {
+  sampleModel.findSamples(req, res)
   .then((response) => {
-    // loop through remove values to delete property
+    /*
+     * Record the "dbTime" (time spent retrieving the records from the sample
+     * store).
+     */
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+    /* Add response header with record count. */
+    res.set(COUNT_HEADER_NAME, response.length);
+
+    /* Delete any attributes designated for exclusion from the response. */
     if (helper.fieldsToExclude) {
       for (let i = response.length - 1; i >= 0; i--) {
         u.removeFieldsFromResponse(helper.fieldsToExclude, response[i]);
@@ -66,7 +73,53 @@ function doFindSampleStoreResponse(req, res, next, resultObj, cacheKey, cacheExp
     u.logAPI(req, resultObj, response); // audit log
     res.status(httpStatus.OK).json(response);
   })
-  .catch((err) => u.handleError(next, err, helper.modelName));
+  .catch((err) => {
+    // Tracking invalid sample name problems, e.g. missing name
+    if (err.name === 'ResourceNotFoundError') {
+      logger.error('api/v1/controllers/samples.doFindSample|', err);
+    }
+
+    return u.handleError(next, err, helper.modelName);
+  });
+} // doFindSample
+
+/**
+ * Avoid non-running Collectors to send in Samples.
+ *
+ * Rejects if it's a Generator request (header.IsGenerator) and its current
+ * Collector has status != RUNNING - response back as 403 Forbidden.
+ *
+ * Resolves when it's a valid Generator or request is not from a Generator.
+ *
+ * @param req
+ * @returns {Promise}
+ */
+function validateNonRunningCollectors(req) {
+  if (!req.headers.IsGenerator) return Promise.resolve();
+
+  const param = { key: { value: req.headers.TokenName } };
+  return u.findByKey(generators, param)
+    .then((generator) => {
+      if (!generator.currentCollector) {
+        const noCurrentCollector = 'Cannot accept Generator ' +
+          generator.name + ' samples without current collector';
+        return Promise.reject(
+          new apiErrors.ForbiddenError(
+            { explanation: noCurrentCollector, }
+          ));
+      } else if (generator.currentCollector &&
+        generator.currentCollector.status !== 'Running') {
+        const notRunning = 'Cannot accept samples from Collector ' +
+          generator.currentCollector.name + ' with status "' +
+          generator.currentCollector.status + '"';
+        return Promise.reject(new apiErrors.ForbiddenError(
+          { explanation: notRunning, })
+        );
+      }
+
+      // Track activity. Skip hooks so this doesn't get tracked for the heartbeat
+      return generator.update({ lastUpsert: Date.now() }, { hooks: false });
+    });
 }
 
 module.exports = {
@@ -81,47 +134,54 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSample(req, res, next) {
-    doDelete(req, res, next, helper);
+    doDelete(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
    * GET /samples
    *
-   * Finds zero or more samples and sends them back in the response.
+   * Finds zero or more samples and sends them back in the response. Sample
+   * response for wildcard name query may be cached.
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   findSamples(req, res, next) {
-    // Check if Cache is on for Wildcard Sample query
-    if (featureToggles.isFeatureEnabled('cacheGetSamplesByNameWildcard')) {
-      const query = req.query.name;
-      helper.cacheEnabled = query && (query.indexOf('*') > -1);
-      helper.cacheKey =  helper.cacheEnabled ? query : null;
-      helper.cacheExpiry = helper.cacheEnabled ?
-        parseInt(getSamplesWildcardCacheInvalidation) : null;
+    // Use cache for wildcard sample query
+    const query = req.query.name;
+    helper.cacheEnabled = query && (query.indexOf('*') > -1);
+    helper.cacheKey = helper.cacheEnabled ? query : null;
+
+    /*
+     * Include field list as part of cache key so that we only use a cached
+     * response if it has the same field list.
+     */
+    if (helper.cacheKey && req.query.fields) {
+      helper.cacheKey += '|' + req.query.fields;
     }
 
+    helper.cacheExpiry = helper.cacheEnabled ?
+      parseInt(getSamplesWildcardCacheInvalidation, RADIX) : null;
+
     // Check if Sample Store is on or not
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      const resultObj = { reqStartTime: req.timestamp }; // for logging
-      if (helper.cacheEnabled) {
-        redisCache.get(helper.cacheKey, (cacheErr, reply) => {
-          if (cacheErr || !reply) {
-            doFindSampleStoreResponse(req, res,
-             next, resultObj, helper.cacheKey, helper.cacheExpiry);
-          } else {
-            u.logAPI(req, resultObj, reply); // audit log
-            res.status(httpStatus.OK).json(JSON.parse(reply));
-          }
-        });
-      } else {
-        doFindSampleStoreResponse(req, res,
-          next, resultObj);
-      }
+    const resultObj = { reqStartTime: req.timestamp }; // for logging
+    if (helper.cacheEnabled) {
+      redisCache.get(helper.cacheKey, (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          doFindSample(req, res, next, resultObj, helper.cacheKey,
+            helper.cacheExpiry);
+        } else {
+          u.logAPI(req, resultObj, reply); // audit log
+          res.status(httpStatus.OK).json(JSON.parse(reply));
+        }
+      });
     } else {
-      doFind(req, res, next, helper);
+      doFindSample(req, res, next, resultObj);
     }
   },
 
@@ -135,7 +195,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSample(req, res, next) {
-    doGet(req, res, next, helper);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -148,14 +212,17 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSampleBulkUpsertStatus(req, res, next) {
+    const resultObj = { reqStartTime: req.timestamp };
     const reqParams = req.swagger.params;
     const jobId = reqParams.key.value;
     kue.Job.get(jobId, (_err, job) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
       /*
        * throw the "ResourceNotFoundError" if there is an error in getting the
        * job or the job is not a bulkUpsert job
        */
-      if (_err || !job || job.type !== kueSetup.jobType.BULKUPSERTSAMPLES) {
+      if (_err || !job || job.type !== kueSetup.jobType.bulkUpsertSamples) {
         const err = new apiErrors.ResourceNotFoundError();
         return u.handleError(next, err, helper.modelName);
       }
@@ -164,6 +231,7 @@ module.exports = {
       const ret = {};
       ret.status = job._state;
       ret.errors = job.result ? job.result.errors : [];
+      u.logAPI(req, resultObj, ret);
       return res.status(httpStatus.OK).json(ret);
     });
   },
@@ -181,24 +249,22 @@ module.exports = {
    */
   patchSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      const resultObj = { reqStartTime: new Date() };
-      const requestBody = req.swagger.params.queryBody.value;
-      const rLinks = requestBody.relatedLinks;
-      if (rLinks) {
-        u.checkDuplicateRLinks(rLinks);
+    const resultObj = { reqStartTime: req.timestamp };
+    const requestBody = req.swagger.params.queryBody.value;
+    const rLinks = requestBody.relatedLinks;
+    if (rLinks) u.checkDuplicateRLinks(rLinks);
+    const userName = req.user ? req.user.name : undefined;
+    sampleModel.patchSample(req.swagger.params, userName)
+    .then((retVal) =>
+      u.handleUpdatePromise(resultObj, req, retVal, helper, res))
+    .catch((err) => { // e.g. the sample is write protected
+      // Tracking invalid sample name problems, e.g. missing name
+      if (err.name === 'ResourceNotFoundError') {
+        logger.error('api/v1/controllers/samples.patchSample|', err);
       }
 
-      u.getUserNameFromToken(req)
-      .then((user) => redisModelSample.patchSample(req.swagger.params, user))
-      .then((retVal) => patchUtils
-        .handlePatchPromise(resultObj, req, retVal, helper, res))
-      .catch((err) => // the sample is write protected
-        u.handleError(next, err, helper.modelName)
-      );
-    } else {
-      doPatch(req, res, next, helper);
-    }
+      return u.handleError(next, err, helper.modelName);
+    });
   },
 
   /**
@@ -211,9 +277,34 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSample(req, res, next) {
+    const resultObj = { reqStartTime: req.timestamp };
+    const reqParams = req.swagger.params;
+    const toPost = reqParams.queryBody.value;
+    let s;
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    doPost(req, res, next, helper);
-  },
+    u.checkDuplicateRLinks(toPost.relatedLinks);
+    sampleModel.postSample(toPost, req.user)
+    .then((sample) => {
+      s = sample;
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      return publisher.publishSample(sample, helper.associatedModels.subject,
+        realtimeEvents.sample.add, helper.associatedModels.aspect);
+    })
+    .then(() => {
+      if (s.hasOwnProperty('aspect')) delete s.aspect;
+      u.logAPI(req, resultObj, s);
+      return res.status(httpStatus.CREATED)
+        .json(u.responsify(s, helper, req.method));
+    })
+    .catch((err) => {
+      // Tracking invalid sample name problems, e.g. missing name
+      if (err.name === 'ResourceNotFoundError') {
+        logger.error('api/v1/controllers/samples.postSample|', err);
+      }
+
+      return u.handleError(next, err, helper.modelName);
+    });
+  }, // postSample
 
   /**
    * PUT /samples/{key}
@@ -227,7 +318,22 @@ module.exports = {
    */
   putSample(req, res, next) {
     utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
-    doPut(req, res, next, helper);
+    const resultObj = { reqStartTime: req.timestamp };
+    const toPut = req.swagger.params.queryBody.value;
+    const rLinks = toPut.relatedLinks;
+    if (rLinks) u.checkDuplicateRLinks(rLinks);
+    const userName = req.user ? req.user.name : undefined;
+    sampleModel.putSample(req.swagger.params, userName)
+    .then((retVal) =>
+      u.handleUpdatePromise(resultObj, req, retVal, helper, res))
+    .catch((err) => {
+      // Tracking invalid sample name problems, e.g. missing name
+      if (err.name === 'ResourceNotFoundError') {
+        logger.error('api/v1/controllers/samples.putSample|', err);
+      }
+
+      return u.handleError(next, err, helper.modelName);
+    });
   },
 
   /**
@@ -268,51 +374,34 @@ module.exports = {
       }
 
       const upsertSamplePromise =
-          featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
-          redisModelSample.upsertSample(
-              sampleQueryBody, user) :
-          helper.model.upsertByName(sampleQueryBody, user);
-
+        sampleModel.upsertSample(sampleQueryBody, user);
+      let dataValues;
+      let sample;
       return upsertSamplePromise
       .then((samp) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        const dataValues = samp.dataValues ? samp.dataValues : samp;
+        dataValues = samp.dataValues ? samp.dataValues : samp;
+        sample = samp;
 
         // loop through remove values to delete property
-        if (helper.fieldsToExclude) {
-          u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
-        }
+        u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
 
         /*
-         *send the upserted sample to the client by publishing it to the redis
-         *channel
+         * Send the upserted sample to the client by publishing it to the redis
+         * channel.
          */
-        if (featureToggles.isFeatureEnabled('publishPartialSample')) {
-          publisher.publishPartialSample(samp);
-        } else {
-          publisher.publishSample(samp, subHelper.model);
-        }
-
+        return publisher.publishSample(samp, subHelper.model);
+      })
+      .then(() => {
         u.logAPI(req, resultObj, dataValues);
         return res.status(httpStatus.OK)
-          .json(u.responsify(samp, helper, req.method));
+          .json(u.responsify(sample, helper, req.method));
       });
-    }
+    } // doUpsert
 
-    return authUtils.getUser(req)
-    .then((user) => // upsert with found user
-      doUpsert(user)
-      .catch((err) => // user does not have write permission for the sample
-        u.handleError(next, err, helper.modelName)
-      )
-    )
-    .catch(() => // user is not found. upsert anyway with no user
-      doUpsert(false)
-      .catch((err) => // the sample is write protected
-        u.handleError(next, err, helper.modelName)
-      )
-    );
-  },
+    return doUpsert(req.user)
+      .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // upsertSample
 
   /**
    * POST /samples/upsert/bulk
@@ -330,7 +419,6 @@ module.exports = {
    */
   bulkUpsertSample(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
-    const reqStartTime = Date.now();
     const value = req.swagger.params.queryBody.value;
     const body = { status: 'OK' };
     const readOnlyFields = helper.readOnlyFields.filter((field) =>
@@ -346,18 +434,15 @@ module.exports = {
      */
     function bulkUpsert(user) {
       if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
-
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');
-
         const wrappedBulkUpsertData = {};
         wrappedBulkUpsertData.upsertData = value;
         wrappedBulkUpsertData.user = user;
-        wrappedBulkUpsertData.reqStartTime = reqStartTime;
+        wrappedBulkUpsertData.reqStartTime = resultObj.reqStartTime;
         wrappedBulkUpsertData.readOnlyFields = readOnlyFields;
-
         const jobPromise = jobWrapper
-          .createPromisifiedJob(jobType.BULKUPSERTSAMPLES,
+          .createPromisifiedJob(jobType.bulkUpsertSamples,
             wrappedBulkUpsertData, req);
         return jobPromise.then((job) => {
           // set the job id in the response object before it is returned
@@ -366,45 +451,26 @@ module.exports = {
           return res.status(httpStatus.OK).json(body);
         })
         .catch((err) => u.handleError(next, err, helper.modelName));
-      } else {
-        const sampleModel =
-        featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) ?
-          redisModelSample : helper.model;
-
-        /*
-         * Send the upserted sample to the client by publishing it to the redis
-         * channel
-         */
-        sampleModel.bulkUpsertByName(value, user, readOnlyFields)
-        .then((samples) => {
-          samples.forEach((sample) => {
-            if (!sample.isFailed) {
-              if (featureToggles.isFeatureEnabled('publishPartialSample')) {
-                publisher.publishPartialSample(sample);
-              } else {
-                publisher.publishSample(sample, subHelper.model);
-              }
-            }
-          });
-        });
-        u.logAPI(req, resultObj, body, value.length);
-        return Promise.resolve(res.status(httpStatus.OK).json(body));
       }
-    }
 
-    return authUtils.getUser(req)
-    .then((user) => // upsert with found user
-      bulkUpsert(user)
-      .catch((err) => // user does not have write permission for the sample
-        u.handleError(next, err, helper.modelName)
-      )
-    ).catch(() => // user is not found. upsert anyway with no user
-      bulkUpsert(false)
-      .catch((err) => // the sample is write protected
-        u.handleError(next, err, helper.modelName)
-      )
-    );
-  },
+      /*
+       * Send the upserted sample to the client by publishing it to the
+       * redis channel
+       */
+      sampleModel.bulkUpsertByName(value, user, readOnlyFields)
+      .then((samples) => samples.forEach((sample) => {
+        if (!sample.isFailed) {
+          publisher.publishSample(sample, subHelper.model);
+        }
+      }));
+      u.logAPI(req, resultObj, body, value.length);
+      return Promise.resolve(res.status(httpStatus.OK).json(body));
+    } // bulkUpsert
+
+    return validateNonRunningCollectors(req)
+      .then(() => bulkUpsert(req.user))
+      .catch((err) => u.handleError(next, err, helper.modelName));
+  }, // bulkUpsertSample
 
   /**
    * DELETE /v1/samples/{key}/relatedLinks/
@@ -420,44 +486,27 @@ module.exports = {
   deleteSampleRelatedLinks(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
-    let delRlinksPromise;
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName)) {
-      delRlinksPromise = u.getUserNameFromToken(req)
-      .then((user) => redisModelSample.deleteSampleRelatedLinks(params, user));
-    } else {
-      delRlinksPromise = u.findByKey(helper, params)
-        .then((o) => u.isWritable(req, o))
-        .then((o) => {
-          let jsonData = [];
-          if (params.relName) {
-            jsonData =
-              u.deleteAJsonArrayElement(o.relatedLinks, params.relName.value);
-          }
-
-          return o.update({ relatedLinks: jsonData });
-        });
-    }
+    const userName = req.user ? req.user.name : undefined;
+    const delRlinksPromise =
+      sampleModel.deleteSampleRelatedLinks(params, userName);
+    let retval;
 
     delRlinksPromise.then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      const retval = u.responsify(o, helper, req.method);
+      retval = u.responsify(o, helper, req.method);
 
       // loop through remove values to delete property
-      if (helper.fieldsToExclude) {
-        u.removeFieldsFromResponse(helper.fieldsToExclude, retval);
-      }
+      u.removeFieldsFromResponse(helper.fieldsToExclude, retval);
 
-      /* send the updated sample to the client by publishing it to the redis
-      channel */
-      publisher.publishSample(
+      return publisher.publishSample(
         o, helper.associatedModels.subject, u.realtimeEvents.sample.upd,
         helper.associatedModels.aspect
       );
-
-      u.logAPI(req, resultObj, retval);
-      res.status(httpStatus.OK).json(retval);
     })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+      .then(() => {
+        u.logAPI(req, resultObj, retval);
+        res.status(httpStatus.OK).json(retval);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
   },
-
 }; // exports

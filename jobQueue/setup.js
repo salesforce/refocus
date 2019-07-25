@@ -18,24 +18,73 @@ const conf = require('../config');
 const featureToggles = require('feature-toggles');
 const urlParser = require('url');
 const kue = require('kue');
+const BullQueue = require('bull');
+const Promise = require('bluebird');
+const activityLogUtil = require('../utils/activityLog');
+
 const redisOptions = {
   redis: conf.redis.instanceUrl.queue,
 };
+
+let redisUrlForBull = redisOptions.redis;
+
 const redisInfo = urlParser.parse(redisOptions.redis, true);
 if (redisInfo.protocol !== PROTOCOL_PREFIX) {
   redisOptions.redis = 'redis:' + redisOptions.redis;
+  redisUrlForBull = 'redis:' + redisUrlForBull;
 }
 
 const jobQueue = kue.createQueue(redisOptions);
+const bulkDelSubQueue = new BullQueue(
+  conf.jobType.bulkDeleteSubjects, redisUrlForBull);
 
-/*
- * calling watchStuckJobs as per Kue's recommendation, here
- * https://github.com/Automattic/kue#unstable-redis-connections
+function resetJobQueue() {
+  return Promise.map(jobQueue.workers, (w) =>
+    new Promise((resolve) => w.shutdown(resolve))
+  )
+  .then(() => jobQueue.workers = [])
+    .then(() => bulkDelSubQueue.empty());
+}
+
+/**
+ * Kue's Queue graceful shutdown.
  */
-jobQueue.watchStuckJobs(conf.WATCH_STUCK_JOBS_INTERVAL_MILLISECONDS);
+function gracefulShutdown() {
+  const start = Date.now();
+  function printLog(status) {
+    const logWrapper = {
+      status,
+      totalTime: `${Date.now() - start}ms`,
+    };
+    activityLogUtil.printActivityLogString(logWrapper, 'sigterm');
+  }
+
+  bulkDelSubQueue.close()
+    .then(() => {
+      if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
+        const status = '"Bull Job queue shutdown: OK"';
+        printLog(status);
+      }
+
+      return jobQueue.shutdown(conf.kueShutdownTimeout, (err) => {
+        if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
+          const status = '"Kue Job queue shutdown: ' + (err || 'OK') + '"';
+          printLog(status);
+        }
+      });
+    })
+    .catch((err) => {
+      if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
+        const status = '"Kue Job queue shutdown: ' + err + '"';
+        printLog(status);
+      }
+    });
+}
+
 jobQueue.on('error', (err) => {
   console.error('Kue Error!', err); // eslint-disable-line no-console
 });
+
 if (featureToggles.isFeatureEnabled('instrumentKue')) {
   jobQueue.on('job enqueue', (id, type) => {
     console.log('[KJI] enqueued: ' + // eslint-disable-line no-console
@@ -44,23 +93,13 @@ if (featureToggles.isFeatureEnabled('instrumentKue')) {
 }
 
 module.exports = {
-  jobConcurrency: {
-    BULKUPSERTSAMPLES: conf.bulkUpsertSampleJobConcurrency,
-    GET_HIERARCHY: conf.getHierarchyJobConcurrency,
-    JOB_CLEANUP: 1,
-    PERSIST_SAMPLE_STORE: 1,
-    SAMPLE_TIMEOUT: 1,
-  },
+  jobType: conf.jobType,
   jobQueue,
-  jobType: {
-    BULKUPSERTSAMPLES: 'bulkUpsertSamples',
-    GET_HIERARCHY: 'GET_HIERARCHY',
-    JOB_CLEANUP: 'JOB_CLEANUP',
-    PERSIST_SAMPLE_STORE: 'PERSIST_SAMPLE_STORE',
-    SAMPLE_TIMEOUT: 'SAMPLE_TIMEOUT',
-  },
+  resetJobQueue,
+  gracefulShutdown,
   ttlForJobsAsync: conf.JOB_QUEUE_TTL_SECONDS_ASYNC,
   ttlForJobsSync: conf.JOB_QUEUE_TTL_SECONDS_SYNC,
   delayToRemoveJobs: conf.JOB_REMOVAL_DELAY_SECONDS,
   kue,
+  bulkDelSubQueue,
 }; // exports

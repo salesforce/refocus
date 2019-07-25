@@ -28,6 +28,7 @@ describe('tests/db/model/user/update.js, db: user: update >', () => {
       name: `${tu.namePrefix}1`,
       email: 'user@example.com',
       password: 'user123password',
+      fullName: 'user fullName',
     }))
     .then((createdUser) => {
       user = createdUser;
@@ -57,6 +58,17 @@ describe('tests/db/model/user/update.js, db: user: update >', () => {
         expect(res).to.be.true;  // eslint-disable-line no-unused-expressions
       });
 
+      done();
+    })
+    .catch(done);
+  });
+
+  it('setLastLogin', (done) => {
+    let orig = user.lastLogin;
+    user.setLastLogin()
+    .then(() => User.findByPk(user.id))
+    .then((found) => {
+      expect(found.lastLogin).to.be.greaterThan(orig);
       done();
     })
     .catch(done);

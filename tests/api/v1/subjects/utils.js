@@ -11,16 +11,46 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
-
+const Promise = require('bluebird');
 const testStartTime = new Date();
+const samstoinit = require('../../../../cache/sampleStoreInit');
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
+
+const basic = {
+  name: `${tu.namePrefix}TEST_SUBJECT`,
+  isPublished: true,
+};
 
 module.exports = {
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Sample, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Tag, testStartTime))
+  getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
+    const defaultProps = JSON.parse(JSON.stringify(basic));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.Subject.create(toCreate);
+  },
+
+  forceDelete(done, startTime=testStartTime) {
+    Promise.join(
+      samstoinit.eradicate(),
+      tu.forceDelete(tu.db.Aspect, startTime)
+      .then(() => tu.forceDelete(tu.db.Subject, startTime))
+    )
     .then(() => done())
     .catch(done);
   },
+
+  populateRedis(done) {
+    samstoinit.populate()
+    .then(() => done())
+    .catch(done);
+  },
+
 };
+

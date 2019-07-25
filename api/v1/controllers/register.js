@@ -10,13 +10,14 @@
  * api/v1/controllers/register.js
  */
 
-const configuredPassport = require('../../../index').passportModule;
+const configuredPassport = require('../../../express').passportModule;
 const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
 const helper = require('../helpers/nouns/users');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
-
+const Profile = require('../helpers/nouns/profiles').model;
+const featureToggles = require('feature-toggles');
 const resourceName = 'register';
 
 module.exports = {
@@ -29,6 +30,13 @@ module.exports = {
    *
    */
   registerUser(req, res, next) {
+    if (featureToggles.isFeatureEnabled('rejectLocalUserRegistration')) {
+      const forbidden = new apiErrors.ForbiddenError({
+        explanation: 'New user registration is not permitted.',
+      });
+      return u.handleError(next, forbidden, resourceName);
+    }
+
     const resultObj = { reqStartTime: req.timestamp };
     configuredPassport.authenticate('local-signup', (err, user) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -43,20 +51,29 @@ module.exports = {
         return u.handleError(next, loginErr, resourceName);
       }
 
-      // Create token
-      const tokenToReturn = jwtUtil.createToken(user.name, user.name);
-      req.logIn(user, (_err) => {
+      return req.logIn(user, (_err) => {
         if (_err) {
           return u.handleError(next, _err, resourceName);
         }
 
-        const userObj = u.responsify(user, helper, req.method);
-        userObj.token = tokenToReturn;
-        req.session.token = tokenToReturn;
-        u.logAPI(req, resultObj, userObj);
-        return res.status(httpStatus.CREATED).json(userObj);
+        return Profile.isAdmin(user.profileId)
+        .then((isAdmin) => {
+          // update token payload if user is admin
+          const payloadObj = {
+            ProfileName: user.profile.name,
+            IsAdmin: isAdmin,
+          };
+
+          // Create token
+          const tokenToReturn =
+            jwtUtil.createToken(user.name, user.name, payloadObj);
+          const userObj = u.responsify(user, helper, req.method);
+          userObj.token = tokenToReturn;
+          req.session.token = tokenToReturn;
+          u.logAPI(req, resultObj, userObj);
+          return res.status(httpStatus.CREATED).json(userObj);
+        }).catch((e) => u.handleError(next, e, helper.modelName));
       });
     })(req, res, next);
   },
-
 }; // exports

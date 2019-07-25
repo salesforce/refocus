@@ -12,12 +12,16 @@
 
 const tu = require('../testUtils');
 const testStartTime = new Date();
+const rcli = require('../../cache/redisCache').client.sampleStore;
+const Promise = require('bluebird');
 
 module.exports = {
   forceDelete(done) {
-    tu.forceDelete(tu.db.Sample, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+    Promise.join(
+      rcli.flushallAsync(),
+      tu.forceDelete(tu.db.Aspect, testStartTime)
+      .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+    )
     .then(() => done())
     .catch(done);
   },

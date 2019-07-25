@@ -10,6 +10,7 @@
  * api/v1/constants.js
  */
 'use strict';
+const Op = require('sequelize').Op;
 
 module.exports = {
   httpStatus: {
@@ -17,11 +18,13 @@ module.exports = {
     CREATED: 201,
     NO_CONTENT: 204,
     REDIRECT: 301,
+    FOUND: 302,
     BAD_REQUEST: 400,
     UNAUTHORIZED: 401,
     FORBIDDEN: 403,
     NOT_FOUND: 404,
     NOT_ALLOWED: 405,
+    TOO_MANY_REQUESTS: 429,
   },
   ALL_PERCENTS_RE: /%/g,
   ALL_UNDERSCORES_RE: /_/g,
@@ -38,14 +41,9 @@ module.exports = {
   POSTGRES_UUID_RE:
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
   QUERY_PARAM_REPLACE_ALL_REGEX: /\*/g,
+  BASE_SCOPE: 'baseScope',
   SEQ_DEFAULT_SCOPE: 'defaultScope',
   SEQ_DESC: 'DESC',
-  SEQ_LIKE: '$iLike',
-  SEQ_CONTAINS: '$contains',
-  SEQ_OVERLAP: '$overlap',
-  SEQ_IN: '$in',
-  SEQ_OR: '$or',
-  SEQ_NOT: '$not',
   SEQ_WILDCARD: '%',
   SEQ_MATCH: '_',
   SLASH: '/',

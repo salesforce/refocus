@@ -9,30 +9,130 @@
 /**
  * api/v1/helpers/verbs/utils.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
-const NOT_FOUND = -1;
 const apiErrors = require('../../apiErrors');
 const constants = require('../../constants');
 const commonDbUtil = require('../../../../db/helpers/common');
-const jwtUtil = require('../../../../utils/jwtUtil');
 const common = require('../../../../utils/common');
 const logAPI = require('../../../../utils/apiLog').logAPI;
 const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
+const redisCache = require('../../../../cache/redisCache').client.cache;
+const userProps = require('../nouns/users');
+const Op = require('sequelize').Op;
+const md5 = require('md5');
+const ADMIN_OVERRIDE_KEYWORD = 'admin';
+
+/**
+ * @param {Object} o Sequelize instance
+ * @param {Object} puttableFields from API
+ * @param {Object} toPut from request.body
+ * @returns {Promise} the updated instance
+ */
+function updateInstance(o, puttableFields, toPut) {
+  const keys = Object.keys(puttableFields);
+  for (let i = 0; i < keys.length; i++) {
+    let key = keys[i];
+    const fieldDef = puttableFields[key];
+    if (key === 'owner') key = 'ownerId';
+    if (toPut[key] === undefined) {
+      if (key !== 'ownerId') {
+        let nullish = null;
+        if (fieldDef.default) { // could be enum | array etc
+          nullish = fieldDef.default;
+        } else if (fieldDef.type === 'boolean') {
+          nullish = false;
+        }
+
+        o.set(key, nullish);
+      }
+    } else {
+      /*
+       * value may be set but not changed. set changed to true to
+       * trigger checks in the model. This is the only way to differentiate between
+       * PUT and PATCH in certain cases.
+       */
+      o.changed(key, true);
+      o.set(key, toPut[key]);
+    }
+  }
+
+  return o.save().then((o) => o.reload());
+}
+
+/**
+ * Sorts the array field of an object or an array of objects alphabetically.
+ *
+ * @param {Object} props - The helpers/nouns module for the given DB model
+ * @param  {Object|Array} instArrayOrObject  - The instance object or an array
+ *   of instance object with fields containing an array of objects that needs
+ *   to be sorted alphabetically.
+ */
+function sortArrayObjectsByField(props, instArrayOrObject) {
+  if (props.sortArrayObjects) {
+    const instArray = Array.isArray(instArrayOrObject) ? instArrayOrObject :
+     [instArrayOrObject];
+    instArray.forEach((inst) => {
+      Object.keys(props.sortArrayObjects).forEach((key) => {
+        if (Array.isArray(inst[key])) {
+          const fieldName = props.sortArrayObjects[key];
+          inst[key].sort((a, b) => a[fieldName].localeCompare(b[fieldName]));
+        }
+      });
+    });
+  }
+} // sortArrayObjectsByField
+
+/**
+ * Sends the udpated record back in the json response with status code 200.
+ *
+ * @param {Object} resultObj - For logging
+ * @param {Object} req - The request object
+ * @param {Object} retVal - The updated instance
+ * @param {Object} props - The helpers/nouns module for the given DB model
+ * @param {Object} res - The response object
+ * @returns {Object} JSON succcessful response
+ */
+function handleUpdatePromise(resultObj, req, retVal, props, res) {
+  const returnObj = retVal.get ? retVal.get() : retVal;
+  sortArrayObjectsByField(props, returnObj);
+
+  // publish the update event to the redis channel
+  if (props.publishEvents) {
+    publisher.publishSample(returnObj, props.associatedModels.subject,
+      realtimeEvents.sample.upd);
+  }
+
+  // update the cache
+  if (props.cacheEnabled) {
+    const getCacheKey = req.swagger.params.key.value;
+    const findCacheKey = '{"where":{}}';
+    redisCache.del(getCacheKey);
+    redisCache.del(findCacheKey);
+  }
+
+  resultObj.dbTime = new Date() - resultObj.reqStartTime;
+  logAPI(req, resultObj, returnObj);
+  return res.status(constants.httpStatus.OK)
+    .json(responsify(returnObj, props, req.method));
+} // handleUpdatePromise
 
 /**
  * In-place removal of certain keys from the input object
  *
- * @oaram {Array} fieldsArr The fields to remove from the following obj
- * @oaram {Object} responseObj The dataValues object, may have fields for removal
- * @oaram {Object} The input object without the keys in fieldsArr
+ * @param {Array} fieldsToExclude - The fields to remove from the following obj
+ * @param {Object} responseObj - The dataValues object, may have fields for
+ * removal
+ * @param {Object} The input object without the keys in fieldsArr
  */
 function removeFieldsFromResponse(fieldsToExclude, responseObj) {
-  for (let i = fieldsToExclude.length - 1; i >= 0; i--) {
-    delete responseObj[fieldsToExclude[i]];
+  if (fieldsToExclude) {
+    for (let i = fieldsToExclude.length - 1; i >= 0; i--) {
+      delete responseObj[fieldsToExclude[i]];
+    }
   }
-}
+} // removeFieldsFromResponse
 
 /**
  * This function adds the association scope name to the as the to all
@@ -145,19 +245,65 @@ function handleAssociations(reqObj, inst, props, method) {
 } // handleAssociations
 
 /**
+ * When more than one association is required, Sequelize creates inner query
+ * but doesn't expose FK causing SQL failure.
+ *
+ * This method, in order to avoid Sequelize issue, will add all
+ * the foreign keys to the query when more than one association is required.
+ */
+function multipleAssociations(helperModule, requestedAttributes) {
+  const model = helperModule.model;
+
+  // Filters all association just when requested
+  const associations = requestedAttributes
+    .filter((attribute) => model.associations[attribute]);
+
+  // Detect nested associations
+  const getNested = (model) => model._scope && model._scope.include || [];
+  const hasNested = ({ model }) => getNested(model).length;
+  const isRequested = ({ as: fieldName }) => associations.includes(fieldName);
+  const hasNestedAssociations = getNested(model).filter(isRequested).some(hasNested);
+
+  if (associations.length > 1 || hasNestedAssociations) {
+    /*
+     Transform association names (User, currentCollector, etc) to
+     model.fk_names (createdBy, collectorId, etc)
+     */
+    const extraForeignKeys = associations
+      .filter((association) => {
+        // filter all associations with respective fk in the model attributes
+
+        const foreignKey = model.associations[association].foreignKey;
+        return model.rawAttributes[foreignKey] !== undefined;
+      })
+      .map((association) => {
+        const foreignKey = model.associations[association].foreignKey;
+        return model.rawAttributes[foreignKey].fieldName;
+      });
+
+    if (extraForeignKeys.length > 0) {
+      requestedAttributes.push(...extraForeignKeys);
+    }
+  }
+}
+
+/**
  * Generates sequelize options object with all the appropriate attributes
  * (fields) and includes, and taking virtual fields into account as well.
  * Always include the "id" field even if it was not explicitly requested.
  *
  * @param {Object} params - The request parameters
+ * @param {Object} props - The helpers/nouns module for the given DB model
  * @returns {Object} - Sequelize options
  */
-function buildFieldList(params) {
+function buildFieldList(params, props) {
   const opts = {};
   if (params.fields && params.fields.value) {
     opts.attributes = params.fields.value;
-    if (!opts.attributes.includes('id')) {
-      opts.attributes.push('id');
+    if (!opts.attributes.includes('id')) opts.attributes.push('id');
+
+    if (props.model) {
+      multipleAssociations(props, opts.attributes);
     }
   }
 
@@ -165,9 +311,11 @@ function buildFieldList(params) {
 } // buildFieldList
 
 /**
- * Checks if the model instance is writable by a user. The username is extracted
- * from the header if present, if not the user name of the logged in user is
- * used.
+ * Checks if the model instance is writable by a user. The username is
+ * extracted from the header if present, if not the user name of the logged in
+ * user is used. An admin user can edit/delete any record, even write-protected
+ * records, as long as they include query param override=admin in the request.
+ *
  * @param {Object} req  - The request object
  * @param {Object}  modelInst - DB Model instance
  * @returns {Promise} - A promise which resolves to the modle instance when
@@ -179,59 +327,28 @@ function isWritable(req, modelInst) {
       resolve(modelInst);
     }
 
-    if (req.headers && req.headers.authorization) {
-      jwtUtil.getTokenDetailsFromRequest(req)
-      .then((resObj) => modelInst.isWritableBy(resObj.username))
-      .then((ok) => ok ? resolve(modelInst) :
-        reject(new apiErrors.ForbiddenError(
-          'Resource not writable for provided token'))
-      )
-      .catch(reject);
+    if (req.user && req.headers && req.headers.IsAdmin && req.query &&
+      req.query.override === ADMIN_OVERRIDE_KEYWORD) {
+      resolve(modelInst);
     } else if (req.user) {
-      // try to use the logged-in user
       modelInst.isWritableBy(req.user.name)
-      .then((ok) => ok ? resolve(modelInst) :
-        reject(new apiErrors.ForbiddenError(
-          'Resource not writable by this user'))
-      )
+      .then((ok) => ok ? resolve(modelInst) : reject(new apiErrors
+        .ForbiddenError('Insufficient Privileges')))
       .catch(reject);
     } else {
-      // check if isWritable with no user
-      // when not passed a user, isWritable will return true if
-      // the resource is not write protected, false if it is
+      /*
+       * check if isWritable with no user
+       * when not passed a user, isWritable will return true if
+       * the resource is not write protected, false if it is
+       */
       modelInst.isWritableBy()
       .then((ok) => ok ? resolve(modelInst) :
-        reject(new apiErrors.ForbiddenError('Resource is write protected'))
+        reject(new apiErrors.ForbiddenError('Insufficient Privileges'))
       )
       .catch(reject);
     }
   });
-}
-
-/**
- * This is a wrapper for the function with the same name in jwtUtil.
- * @param  {Object} req  - The request object
- * @param  {Boolean} doDecode - A flag to decide if the username has to be coded
- * from the token.
- * @returns {Promise} - A promise object which resolves to a username if the
- * doDecode flag is set
- */
-function getUserNameFromToken(req) {
-  return new Promise((resolve, reject) => {
-    if (req.headers && req.headers.authorization) {
-      jwtUtil.getTokenDetailsFromRequest(req)
-      .then((resObj) => {
-        resolve(resObj.username);
-      })
-      .catch((err) => reject(err));
-    } else if (req.user) {
-      // try to use the logged-in user
-      resolve(req.user.name);
-    } else {
-      resolve(false);
-    }
-  });
-} // getUserNameFromToken
+} // isWritable
 
 /**
  * Builds the API links to send back in the response.
@@ -286,7 +403,7 @@ function whereClauseForNameOrId(nameOrId) {
 function whereClauseForNameInArr(arr) {
   const whr = {};
   whr.name = {};
-  whr.name[constants.SEQ_IN] = arr;
+  whr.name[Op.in] = arr;
   return whr;
 } // whereClauseForNameInArr
 
@@ -325,6 +442,7 @@ function findByName(model, key, opts) {
       } else {
         const err = new apiErrors.ResourceNotFoundError();
         err.resource = model.name;
+        err.description = model.name + ' not found.';
         err.key = key;
         throw err;
       }
@@ -334,23 +452,34 @@ function findByName(model, key, opts) {
 } // findByName
 
 /**
- * Tries calling findById but falls back to findByName (or
+ * Tries calling findByPk but falls back to findByName (or
  * subject.absolutePath) if no record is found by id.
  *
  * @param {Model} model - The DB model being searched
  * @param {String} key - The id or name to search for
  * @param {Object} opts - The Sequelize options to send with the find
  *  operation
+ * @param {Object} props - The helpers/nouns module for the given DB model
  * @returns {Promise} which resolves to the record found, or rejects with
  *  ResourceNotFoundError if record not found
  */
-function findByIdThenName(model, key, opts) {
+function findByPkThenName(model, key, opts, props) {
   return new Promise((resolve, reject) => {
     const wh = opts.where;
     delete opts.where;
-    model.findById(key, opts)
+    model.findByPk(key, opts)
     .then((found) => found)
-    .catch(() => {
+    .catch((err) => {
+
+      /* The resource has non-unique name and hence GET /{resource}/$name is
+      not allowed */
+      if (props && props.hasMultipartKey) {
+        const err = new apiErrors.InvalidKey();
+        err.resource = model.name;
+        err.key = key;
+        throw err;
+      }
+
       opts.where = wh;
       return findByName(model, key, opts);
     })
@@ -366,7 +495,7 @@ function findByIdThenName(model, key, opts) {
     })
     .catch((err) => reject(err));
   });
-} // findByIdThenName
+} // findByPkThenName
 
 /**
  * Duplicate elements in an Array of strings are removed and the request object
@@ -493,11 +622,8 @@ function deleteAJsonArrayElement(jsonArray, elementName) {
  * Retrieves the appropriately-scoped model for the given DB model and the
  * list of fields requested.
  *
- * If a model specifies a "fieldAbsenceScopeMap" then apply the designated
- * scope if the mapped field is NOT in the list of fields to retrieve.
- * If the model does NOT specify a "fieldAbsenceScopeMap" then check for a
- * "fieldScopeMap" and apply the designated scope if the mapped field is
- * included in the list of fields to retrieve.
+ * Check for a "fieldScopeMap" and apply the designated scope if the mapped
+ * field is included in the list of fields to retrieve.
  *
  * @param {Object} props - The helpers/nouns module for the given DB model
  * @param {Array} fields - The list of fields to return
@@ -506,32 +632,27 @@ function deleteAJsonArrayElement(jsonArray, elementName) {
  */
 function getScopedModel(props, fields) {
   const scopes = [];
+  const toRemove = [];
 
   if (fields && Array.isArray(fields) && fields.length) {
-    if (props.fieldAbsenceScopeMap) {
-      const keys = Object.keys(props.fieldAbsenceScopeMap);
-      for (let i = 0; i < keys.length; i++) {
-        const fieldName = keys[i];
-        if (fields.indexOf(fieldName) === NOT_FOUND) {
-          const scopeName = props.fieldAbsenceScopeMap[fieldName];
-          if (scopeName) {
-            scopes.push(scopeName);
-          }
-        }
-      }
-    } else {
-      scopes.push(constants.SEQ_DEFAULT_SCOPE);
-      for (let i = 0; i < fields.length; i++) {
-        const f = fields[i];
-        if (props.fieldScopeMap && props.fieldScopeMap[f]) {
-          scopes.push(props.fieldScopeMap[f]);
-        }
-      }
+    if (props.model.options.scopes.hasOwnProperty(constants.BASE_SCOPE)) {
+      scopes.push(constants.BASE_SCOPE);
     }
 
-    if (scopes.length) {
-      return props.model.scope(scopes);
+    for (let i = 0; i < fields.length; i++) {
+      const f = fields[i];
+      if (props.fieldScopeMap && props.fieldScopeMap[f]) {
+        toRemove.push(f);
+        scopes.push(props.fieldScopeMap[f]);
+      }
     }
+  } else {
+    scopes.push(constants.SEQ_DEFAULT_SCOPE);
+  }
+
+  if (scopes.length) {
+    toRemove.forEach((f) => fields.splice(fields.indexOf(f), 1));
+    return props.model.scope(scopes);
   }
 
   return props.model;
@@ -572,7 +693,7 @@ function cleanAndStripNulls(obj) {
 }
 
 /**
- * If the key looks like a postgres uuid, tries calling findById first, but
+ * If the key looks like a postgres uuid, tries calling findByPk first, but
  * falls back to find by name (or subject.absolutePath) if none found. If
  * the key does not look like a postgres uuid, just tries to find by name
  * (or subject.absolutePath).
@@ -585,22 +706,19 @@ function cleanAndStripNulls(obj) {
  */
 function findByKey(props, params, extraAttributes) {
   const key = params.key.value;
-  const opts = buildFieldList(params);
+  const opts = buildFieldList(params, props);
   const keyClause = {};
-  keyClause[constants.SEQ_LIKE] = key;
+  keyClause[Op.iLike] = key;
   opts.where = {};
   opts.where[props.nameFinder || 'name'] = keyClause;
 
-  const attrArr = [];
-  if (opts.attributes && Array.isArray(opts.attributes)) {
-    for (let i = 0; i < opts.attributes.length; i++) {
-      attrArr.push(opts.attributes[i]);
-    }
-  }
-
-  if (extraAttributes && Array.isArray(extraAttributes)) {
-    for (let i = 0; i < extraAttributes.length; i++) {
-      attrArr.push(extraAttributes[i]);
+  let attrArr = opts.attributes;
+  if (extraAttributes && Array.isArray(extraAttributes) &&
+    extraAttributes.length) {
+    if (attrArr) {
+      attrArr.push(...extraAttributes);
+    } else {
+      attrArr = extraAttributes;
     }
   }
 
@@ -610,12 +728,21 @@ function findByKey(props, params, extraAttributes) {
   // If the models key auto-increments then the key will be an
   // integer and still should find records by ID.
   if (common.looksLikeId(key)) {
-    return findByIdThenName(scopedModel, key, opts);
+    return findByPkThenName(scopedModel, key, opts, props);
   } else if ((typeof key === 'number') && (key % 1 === 0)) {
-    return findByIdThenName(scopedModel, key, opts);
+    return findByPkThenName(scopedModel, key, opts, props);
   }
 
-  return findByName(scopedModel, key, opts);
+  /* The resource has non-unique name and hence GET /{resource}/$name is
+  not allowed */
+  if (props && props.hasMultipartKey) {
+    const err = new apiErrors.InvalidKey();
+    err.resource = scopedModel.name;
+    err.key = key;
+    throw err;
+  }
+
+  return findByName(scopedModel, key, opts, props);
 } // findByKey
 
 /**
@@ -635,7 +762,8 @@ function findAssociatedInstances(props, params, association, options) {
       if (o) {
         const getAssocfuncName = `get${capitalizeFirstLetter(association)}`;
         o[getAssocfuncName](options)
-        .then((assocArry) => resolve(assocArry));
+        .then((assocArry) => resolve(assocArry))
+        .catch((err) => reject(err));
       }
     })
     .catch((err) => reject(err));
@@ -677,8 +805,7 @@ function handleError(next, err, modelName) {
 }
 
 /**
- * Attaches the resource type to the error and passes it on to the next
- * handler.
+ * Handles forbidden errors.
  *
  * @param {Function} next - The next middleware function in the stack
  * @param {String} modelName - The DB model name, used to disambiguate field
@@ -686,7 +813,7 @@ function handleError(next, err, modelName) {
  */
 function forbidden(next, modelName) {
   const err = new apiErrors.ForbiddenError({
-    explanation: 'Forbidden.',
+    explanation: 'Insufficient Privileges',
   });
   handleError(next, err, modelName);
 } // forbidden
@@ -697,66 +824,134 @@ function forbidden(next, modelName) {
  * @throws {Error} If duplcate related link is found
  */
 function checkDuplicateRLinks(rLinkArr) {
-  const uniqlinks = [];
+  if (!rLinkArr) {
+    return;
+  }
+
+  const uniqlinks = new Set();
   rLinkArr.forEach((rLinkObj) => {
-    if (rLinkObj.name && uniqlinks.includes(rLinkObj.name.toLowerCase())) {
+    if (rLinkObj.name && uniqlinks.has(rLinkObj.name.toLowerCase())) {
       throw new apiErrors.ValidationError({
-        explanation: 'Name of the relatedlinks should be unique.',
+        message: 'Name of the relatedlinks should be unique.',
       });
     }
 
-    uniqlinks.push(rLinkObj.name.toLowerCase());
+    uniqlinks.add(rLinkObj.name.toLowerCase());
   });
 } // checkDuplicateRLinks
 
 /**
- * Checks if the user has the permission to create the sample and creates the
- * sample if so.
- * @param  {Object} req  - The request object
+ * Prepares the object to be sent back in the response ("cleans" the object,
+ * strips out nulls, adds API links).
+ *
+ * @param {Instance|Array} rec - The record or records to return in the
+ *  response
  * @param {Object} props - The helpers/nouns module for the given DB model
- * @returns {Promise}  which resolves to the created sample instance
+ * @param {String} method - The request method, used to help build the API
+ *  links
+ * @returns {Object} the "responsified" cleaned up object to send back in
+ *  the response
  */
-function createSample(req, props) {
-  const toCreate = req.swagger.params.queryBody.value;
-  const aspectModel = props.associatedModels.aspect;
-  const options = {};
-  options.where = whereClauseForNameOrId(toCreate.aspectId);
-  let user;
+function responsify(rec, props, method) {
+  const o = cleanAndStripNulls(rec);
+  let key = o.id;
 
-  // get the user name from the request object
-  return getUserNameFromToken(req)
-  .then((usr) => {
-    user = usr;
+  // if do not return id, use name instead and delete id field
+  if (props.fieldsToExclude && props.fieldsToExclude.indexOf('id') > -1) {
+    key = o.name;
+    delete o.id;
+  }
 
-    // find the aspect related to the sample being created
-    return aspectModel.findOne(options);
-  })
-  .then((aspect) => {
-    if (!aspect) {
-      throw new apiErrors.ResourceNotFoundError({
-        explanation: 'Aspect not found.',
-      });
+  removeFieldsFromResponse(props.fieldsToExclude, o);
+
+  o.apiLinks = getApiLinks(key, props, method);
+  if (props.stringify) {
+    props.stringify.forEach((f) => {
+      o[f] = `${o[f]}`;
+    });
+  }
+
+  return o;
+} // responsify
+
+/**
+ * Hashes input string with the md5 algorithm and prefixes the hash
+ * with the resource type we are storing (i.e. perspective, subject, etc.)
+ *
+ * @param {String} resource - type of resource that is being cached
+ * @param {String} url - url string including query params
+ *
+ * @returns {String} hashed url prefixed with resource
+ */
+function getHash(resource, url) {
+  return (resource + md5(url));
+} // getHash
+
+/**
+ * Set the owner id. Default to createdBy, also allow specifying a user name in
+ * the request body.
+ *
+ * @param {Object} requestBody - the request body
+ * @param {Object} req - the request object
+ * @param {Object} existing - the existing sequelize instance, if any
+ *
+ * @returns {Promise<Object>} - resolves to the existing instance
+ */
+function setOwner(requestBody, req, existing) {
+  const ownerKey = requestBody.owner;
+  delete requestBody.owner;
+
+  // check permissions to change existing owner
+  if (existing && ownerKey) {
+    const userName = req.user && req.user.name;
+    const ownerName = existing.owner && existing.owner.name;
+    const isAdmin = req.headers && req.headers.IsAdmin && req.query
+      && req.query.override === ADMIN_OVERRIDE_KEYWORD;
+    if (userName !== ownerName && !isAdmin) {
+      throw new apiErrors.ForbiddenError(
+        'Only the existing owner or an admin user can change the owner'
+      );
+    }
+  }
+
+  if (ownerKey) { // explicitly set owner
+    const params = { key: { value: ownerKey } };
+    return findByKey(userProps, params)
+    .then((user) => {
+      requestBody.ownerId = user.id;
+      return existing;
+    })
+    .catch((err) => {
+      if (err instanceof apiErrors.ResourceNotFoundError) {
+        throw new apiErrors.ValidationError(
+          'Attempted to set the owner to a nonexistent user.'
+        );
+      } else {
+        throw err;
+      }
+    });
+  } else {
+    if (!existing) { // default owner to createdBy on new record
+      requestBody.ownerId = req.user ? req.user.id : undefined;
     }
 
-    // check if the user has permission to create the sample
-    return aspect.isWritableBy(user);
-  })
-  .then((ok) => {
-    if (!ok) {
-      throw new apiErrors.ForbiddenError({
-        explanation: `The user: ${user}, does not have write permission` +
-            'on the sample',
-      });
-    }
-
-    // create the sample if the user has write permission
-    return props.model.create(toCreate);
-  });
-}
+    return Promise.resolve(existing);
+  }
+} // setOwner
 
 // ----------------------------------------------------------------------------
 
 module.exports = {
+
+  getHash,
+
+  sortArrayObjectsByField,
+
+  updateInstance,
+
+  responsify,
+
+  handleUpdatePromise,
 
   realtimeEvents,
 
@@ -765,38 +960,6 @@ module.exports = {
   logAPI,
 
   buildFieldList,
-
-  /**
-   * Prepares the object to be sent back in the response ("cleans" the object,
-   * strips out nulls, adds API links).
-   *
-   * @param {Instance|Array} rec - The record or records to return in the
-   *  response
-   * @param {Object} props - The helpers/nouns module for the given DB model
-   * @param {String} method - The request method, used to help build the API
-   *  links
-   * @returns {Object} the "responsified" cleaned up object to send back in
-   *  the response
-   */
-  responsify(rec, props, method) {
-    const o = cleanAndStripNulls(rec);
-    let key = o.id;
-
-    // if do not return id, use name instead and delete id field
-    if (props.fieldsToExclude && props.fieldsToExclude.indexOf('id') > -1) {
-      key = o.name;
-      delete o.id;
-    }
-
-    o.apiLinks = getApiLinks(key, props, method);
-    if (props.stringify) {
-      props.stringify.forEach((f) => {
-        o[f] = `${o[f]}`;
-      });
-    }
-
-    return o;
-  }, // responsify
 
   findAssociatedInstances,
 
@@ -809,8 +972,6 @@ module.exports = {
   includeAssocToCreate,
 
   isWritable,
-
-  getUserNameFromToken,
 
   handleAssociations,
 
@@ -846,6 +1007,8 @@ module.exports = {
 
   checkDuplicateRLinks,
 
-  createSample,
+  setOwner,
+
+  findByPkThenName,
 
 }; // exports

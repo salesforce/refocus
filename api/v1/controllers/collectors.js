@@ -10,7 +10,11 @@
  * api/v1/controllers/collectors.js
  */
 'use strict'; // eslint-disable-line strict
-const utils = require('./utils');
+const featureToggles = require('feature-toggles');
+const Promise = require('bluebird');
+const get = require('just-safe-get');
+const apiLogUtils = require('../../../utils/apiLog');
+const activityLogUtils = require('../../../utils/activityLog');
 const jwtUtil = require('../../../utils/jwtUtil');
 const apiErrors = require('../apiErrors');
 const helper = require('../helpers/nouns/collectors');
@@ -22,14 +26,16 @@ const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const u = require('../helpers/verbs/utils');
+const heartbeatUtils = require('../helpers/verbs/heartbeatUtils');
 const httpStatus = require('../constants').httpStatus;
+const status = require('../../../db/constants').collectorStatuses;
 const decryptSGContextValues = require('../../../utils/cryptUtils')
   .decryptSGContextValues;
 const encrypt = require('../../../utils/cryptUtils').encrypt;
 const GlobalConfig = require('../helpers/nouns/globalconfig').model;
 const config = require('../../../config');
+const Generator = require('../../../db/index').Generator;
 const encryptionAlgoForCollector = config.encryptionAlgoForCollector;
-const ZERO = 0;
 const MINUS_ONE = -1;
 
 /**
@@ -40,7 +46,7 @@ const MINUS_ONE = -1;
  * attribute.
  * @param  {String}   authToken - Collector authentication token
  * @param  {String}   timestamp - Timestamp sent by collector in heartbeat
- * @return {Object} Sample generator with reencrypted context values.
+ * @returns {Promise<Generator>} Sample generator with reencrypted context values.
  */
 function reEncryptSGContextValues(sg, authToken, timestamp) {
   if (!authToken || !timestamp) {
@@ -56,6 +62,10 @@ function reEncryptSGContextValues(sg, authToken, timestamp) {
       explanation: 'Sample generator template not found in sample generator.',
     });
     return Promise.reject(err);
+  }
+
+  if (!sg.context || !sg.generatorTemplate.contextDefinition) {
+    return Promise.resolve(sg);
   }
 
   const sgt = sg.generatorTemplate;
@@ -79,36 +89,8 @@ function reEncryptSGContextValues(sg, authToken, timestamp) {
 }
 
 /**
- * Register a collector. Access restricted to Refocus Collector only.
+ * GET /collectors
  *
- * @param {IncomingMessage} req - The request object
- * @param {ServerResponse} res - The response object
- * @param {Function} next - The next middleware function in the stack
- */
-function postCollector(req, res, next) {
-  const collectorToPost = req.swagger.params.queryBody.value;
-  const resultObj = { reqStartTime: req.timestamp };
-  const toPost = req.swagger.params.queryBody.value;
-  helper.model.create(toPost)
-  .then((o) => {
-    if (helper.loggingEnabled) {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      utils.logAPI(req, resultObj, o);
-    }
-
-    /*
-     * When a collector registers itself with Refocus, Refocus sends back a
-     * special token for that collector to use for all further communication
-     */
-    o.dataValues.token = jwtUtil
-      .createToken(collectorToPost.name, collectorToPost.name);
-    return res.status(httpStatus.CREATED)
-      .json(u.responsify(o, helper, req.method));
-  })
-  .catch((err) => u.handleError(next, err, helper.modelName));
-} // postCollector
-
-/**
  * Find a collector or collectors. You may query using field filters with
  * asterisk (*) wildcards. You may also optionally specify sort, limit, offset,
  * and a list of fields to include in the response.
@@ -122,6 +104,8 @@ function findCollectors(req, res, next) {
 } // findCollectors
 
 /**
+ * GET /collectors/{key}
+ *
  * Retrieve the specified collector metadata by the collector's id or name. You
  * may also optionally specify a list of fields to include in the response.
  *
@@ -130,10 +114,37 @@ function findCollectors(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function getCollector(req, res, next) {
-  doGet(req, res, next, helper);
+  doGet(req, res, next, helper)
+    .then(() => {
+      apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+      res.status(httpStatus.OK).json(res.locals.retVal);
+    });
 } // getCollector
 
 /**
+ * GET /collectors/{key}/status
+ *
+ * Get the status for the collector specified by id or name.
+ *
+ * @param {IncomingMessage} req - The request object
+ * @param {ServerResponse} res - The response object
+ * @param {Function} next - The next middleware function in the stack
+ */
+function getCollectorStatus(req, res, next) {
+  const resultObj = { reqStartTime: req.timestamp };
+  u.findByKey(helper, req.swagger.params, ['status'])
+  .then((o) => {
+    const returnObj = o.get ? o.get() : o;
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    u.logAPI(req, resultObj, returnObj);
+    res.status(httpStatus.OK).json(returnObj);
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
+} // getCollectorStatus
+
+/**
+ * PATCH /collectors/{key}
+ *
  * Update the specified collector's config data. If a field is not included in
  * the querybody, that field will not be updated.
  * Some fields are only writable by the collector itself. So, if any of those
@@ -145,11 +156,9 @@ function getCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function patchCollector(req, res, next) {
-  // verify controller token if atleast one field is writable by collector
   let verifyCtrToken = false;
   const reqBodyKeys = Object.keys(req.body);
   const cltrWritableFields = helper.fieldsWritableByCollectorOnly;
-
   for (let i = 0; i < cltrWritableFields.length; i++) {
     const fieldName = cltrWritableFields[i];
     if (reqBodyKeys.indexOf(fieldName) > MINUS_ONE) {
@@ -158,24 +167,35 @@ function patchCollector(req, res, next) {
     }
   }
 
-  if (verifyCtrToken) { // verify that token belongs to collector
-    return jwtUtil.verifyCollectorToken(req)
-    .then(() => doPatch(req, res, next, helper))
-    .catch((err) => u.handleError(next, err, helper.modelName));
+  // If patching restricted fields, make sure this is collector token.
+  if (verifyCtrToken && !req.headers.IsCollector) {
+    const err = new apiErrors.ForbiddenError({
+      explanation: 'Authentication Failed',
+    });
+    return u.handleError(next, err, helper.modelName);
   }
 
-  return doPatch(req, res, next, helper);
+  const requestBody = req.swagger.params.queryBody.value;
+  return u.findByKey(helper, req.swagger.params)
+  .then((o) =>
+    o.updateCollectorGroup(requestBody)
+  )
+  .then(() =>
+    doPatch(req, res, next, helper)
+  )
+  .catch((err) => u.handleError(next, err, helper.modelName));
 } // patchCollector
 
 /**
- * Deregister a collector. Access restricted to Refocus Collector only.
+ * POST /collectors/{key}/deregister
+ *
+ * Deregister a collector.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
  */
 function deregisterCollector(req, res, next) {
-  // TODO reject if caller's token is not a collector token
   req.swagger.params.queryBody = {
     value: { registered: false },
   };
@@ -184,6 +204,35 @@ function deregisterCollector(req, res, next) {
 } // deregisterCollector
 
 /**
+ * POST /collectors/{key}/reregister
+ *
+ * Reregister a collector.
+ *
+ * @param {IncomingMessage} req - The request object
+ * @param {ServerResponse} res - The response object
+ * @param {Function} next - The next middleware function in the stack
+ */
+function reregisterCollector(req, res, next) {
+  return u.findByKey(helper, req.swagger.params)
+  .then((collector) => {
+    if (collector.registered) {
+      throw new apiErrors.ForbiddenError({ explanation:
+        'Cannot reregister--this collector is already registered.',
+      });
+    }
+
+    req.swagger.params.queryBody = {
+      value: { registered: true },
+    };
+
+    return doPatch(req, res, next, helper);
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
+} // reregisterCollector
+
+/**
+ * POST /collectors/{key}/heartbeat
+ *
  * Send heartbeat from collector. Access restricted to Refocus Collector only.
  *
  * @param {IncomingMessage} req - The request object
@@ -191,63 +240,222 @@ function deregisterCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function heartbeat(req, res, next) {
-  // TODO reject if caller's token is not a collector token
+  const resultObj = { reqStartTime: req.timestamp };
+  if (!req.headers.IsCollector) {
+    throw new apiErrors.ForbiddenError({
+      explanation: 'Authentication Failed',
+    });
+  }
+
+  const authToken = req.headers.authorization;
+  const timestamp = req.body.timestamp;
+  const collectorNameFromToken = req.headers.TokenName;
+  let collectorName;
+  const hblog = {};
+
   const retval = {
-    collectorConfig: config.collector,
+    collectorConfig: JSON.parse(JSON.stringify(config.collector)),
+    encryptionAlgorithm: encryptionAlgoForCollector,
     generatorsAdded: [],
     generatorsDeleted: [],
     generatorsUpdated: [],
   };
 
-  /*
-   * TODO update the lastHeartbeat column for this collector
-   */
+  return u.findByKey(helper, req.swagger.params)
+  .then((o) => {
+    collectorName = o.name;
+    hblog.name = collectorName;
 
-  /*
-   * TODO Populate collectorConfig
-   * - look up any changes made to this collector since the last heartbeat
-   */
+    /*
+     * TODO: remove this 'if block', once spoofing between collectors can be
+     * detected and rejected in the middleware.
+     */
+    if (collectorNameFromToken !== o.name) {
+      throw new apiErrors.ForbiddenError({
+        explanation: 'Authentication Failed',
+      });
+    }
 
-  /*
-   * TODO populate generatorsAdded
-   * - look up any new generators assigned to this collector since the last
-   *   heartbeat
-   * - reEncrypt context values using reEncryptSGContextValues function
-   */
+    if (o.status === status.MissedHeartbeat) {
+      o.set('status', status.Running);
+    }
 
-  /*
-   * TODO populate generatorsDeleted
-   * - look up any generators UNassigned from this collector since the last
-   *   heartbeat
-   */
+    retval.collectorConfig.status = o.status;
+    o.set('lastHeartbeat', timestamp);
 
-  /*
-   * TODO populate generatorsUpdated
-   * - for generators which were already assigned to this collector, look up
-   *   any changes made to the generator since the last heartbeat
-   * - reEncrypt context values using reEncryptSGContextValues function
-   */
+    // update metadata
+    const hbConfig = req.body.collectorConfig;
+    if (hbConfig) {
+      o.set('osInfo', hbConfig.osInfo);
+      o.set('processInfo', hbConfig.processInfo);
+      o.set('version', hbConfig.version);
+      hblog.memExternal = get(hbConfig.processInfo, 'memoryUsage.external');
+      hblog.memHeapTotal = get(hbConfig.processInfo, 'memoryUsage.heapTotal');
+      hblog.memHeapUsed = get(hbConfig.processInfo, 'memoryUsage.heapUsed');
+      hblog.memRss = get(hbConfig.processInfo, 'memoryUsage.rss');
+      hblog.nodeVersion = get(hbConfig.processInfo, 'version');
+      hblog.uptime = get(hbConfig.processInfo, 'uptime');
+      hblog.version = hbConfig.version;
+    }
 
-  res.status(httpStatus.OK).json(retval);
+    return o.save();
+  })
+
+  // get the ids for changed generators
+  .then(() => heartbeatUtils.getChangedIds(collectorName))
+
+  // find the generator objects for the changed ids
+  .then((changedIds) => Promise.all(
+    ['added', 'deleted', 'updated'].map((changeType) => {
+      const ids = changedIds[changeType];
+      const where = { where: { id: ids } };
+      return ids.length ? Generator.findForHeartbeat(where) :
+        Promise.resolve([]);
+    })
+  ))
+
+  // assign the changed generators to retval
+  .then((generators) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    retval.generatorsAdded = generators[0];
+    retval.generatorsDeleted = generators[1];
+    retval.generatorsUpdated = generators[2];
+    hblog.generatorsAdded = retval.generatorsAdded.length;
+    hblog.generatorsDeleted = retval.generatorsDeleted.length;
+    hblog.generatorsUpdated = retval.generatorsUpdated.length;
+  })
+
+  // reset the tracked changes for this collector
+  .then(() => heartbeatUtils.resetChanges(collectorName))
+
+  // re-encrypt context values for added and updated generators
+  .then(() => Promise.map(
+    retval.generatorsAdded,
+    (gen) => reEncryptSGContextValues(gen, authToken, timestamp)
+  ))
+  .then((added) => retval.generatorsAdded = added)
+  .then(() => Promise.map(
+    retval.generatorsUpdated,
+    (gen) => reEncryptSGContextValues(gen, authToken, timestamp)
+  ))
+  .then((updated) => retval.generatorsUpdated = updated)
+  .then(() => {
+    u.logAPI(req, resultObj, retval);
+
+    if (featureToggles.isFeatureEnabled('enableCollectorHeartbeatLogs')) {
+      activityLogUtils.printActivityLogString(hblog, 'collectorHeartbeat');
+    }
+
+    return res.status(httpStatus.OK).json(u.cleanAndStripNulls(retval));
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
 } // heartbeat
 
 /**
- * Change collector status to Running. Invalid if the collector's status is
- * not Stopped.
+ * POST /collectors/start
+ *
+ * Starts a collector by setting the status to "Running". If the collector is
+ * not found, a new collector is created.
  *
  * @param {IncomingMessage} req - The request object
  * @param {ServerResponse} res - The response object
  * @param {Function} next - The next middleware function in the stack
+ * @returns {Object} - Response of the start endpoint
  */
 function startCollector(req, res, next) {
-  // TODO reject if caller's token is not a collector token
-  req.swagger.params.queryBody = {
-    value: { status: 'Running' },
-  };
-  doPatch(req, res, next, helper);
+  const resultObj = { reqStartTime: req.timestamp };
+  const body = req.swagger.params.queryBody.value;
+  body.status = status.Running;
+  body.createdBy = req.user.id;
+
+  // Set lastHeartbeat to make collector alive for generators to be assigned
+  body.lastHeartbeat = Date.now();
+  let collToReturn;
+  return helper.model.findOne({ where: { name: body.name } })
+
+  /* Already exists? Verify that this user has write permission. */
+  .then((coll) => {
+    if (coll) return u.isWritable(req, coll);
+    return coll;
+  })
+
+  /* Already exists and is running or paused? Error! */
+  .then((coll) => {
+    if (coll) {
+      if (coll.status === status.Running || coll.status === status.Paused) {
+        throw new apiErrors.ForbiddenError({
+          explanation: 'Cannot start--only a stopped collector can start',
+        });
+      }
+
+      if (!coll.registered) {
+        throw new apiErrors.ForbiddenError({
+          explanation: 'You must reregister this collector before you can ' +
+            'start it',
+        });
+      }
+    }
+
+    return coll;
+  })
+
+  /* Update or create. Generators will be assigned in db hooks */
+  .then((coll) => u.setOwner(body, req, coll))
+  .then((coll) => coll ? coll.update(body) :
+    helper.model.create(body, helper.model.options.defaultScope))
+  .then((coll) => coll.reload())
+
+  /* Format assigned generators to send back to collector */
+  .then((coll) => {
+    collToReturn = coll;
+    return coll.getCurrentGenerators();
+  })
+
+  /* Add all the attributes necessary to send back to collector. */
+  .map((g) => g.updateForHeartbeat())
+  .then((gens) => {
+    resultObj.dbTime = new Date() - resultObj.reqStartTime;
+    collToReturn.dataValues.generatorsAdded = gens.map((g) => {
+      delete g.GeneratorCollectors;
+      return g;
+    });
+
+    /*
+     * When a collector registers itself with Refocus, Refocus sends back a
+     * special token for that collector to use for all subsequent heartbeats.
+     */
+    collToReturn.dataValues.token = jwtUtil.createToken(body.name,
+      req.headers.UserName, { IsCollector: true });
+
+    collToReturn.dataValues.collectorConfig = config.collector;
+    collToReturn.dataValues.collectorConfig.status = collToReturn.status;
+    collToReturn.dataValues.timestamp = Date.now();
+  })
+
+  // re-encrypt context values for added generators
+  .then(() => Promise.map(
+    collToReturn.dataValues.generatorsAdded,
+    (gen) => reEncryptSGContextValues(gen, collToReturn.dataValues.token,
+      collToReturn.dataValues.timestamp)
+  ))
+  .then((added) => collToReturn.dataValues.generatorsAdded = added)
+
+  // reset the tracked changes so we don't send them again in the heartbeat
+  .then(() => heartbeatUtils.resetChanges(collToReturn.name))
+
+  // send response
+  .then(() => {
+    collToReturn.dataValues.encryptionAlgorithm = encryptionAlgoForCollector;
+    u.logAPI(req, resultObj, collToReturn);
+    return res.status(httpStatus.OK)
+      .json(u.responsify(collToReturn, helper, req.method));
+  })
+  .catch((err) => u.handleError(next, err, helper.modelName));
 } // startCollector
 
 /**
+ * POST /collectors/{key}/stop
+ *
  * Change collector status to Stopped. Invalid if the collector's status is
  * Stopped.
  *
@@ -257,12 +465,14 @@ function startCollector(req, res, next) {
  */
 function stopCollector(req, res, next) {
   req.swagger.params.queryBody = {
-    value: { status: 'Stopped' },
+    value: { status: status.Stopped },
   };
   doPatch(req, res, next, helper);
 } // stopCollector
 
 /**
+ * POST /collectors/{key}/pause
+ *
  * Change collector status to Paused. Invalid if the collector's status is not
  * Running.
  *
@@ -272,12 +482,14 @@ function stopCollector(req, res, next) {
  */
 function pauseCollector(req, res, next) {
   req.swagger.params.queryBody = {
-    value: { status: 'Paused' },
+    value: { status: status.Paused },
   };
   doPatch(req, res, next, helper);
 } // pauseCollector
 
 /**
+ * POST /collectors/{key}/resume
+ *
  * Change collector status from Paused to Running. Invalid if the collector's
  * status is not Paused.
  *
@@ -287,12 +499,14 @@ function pauseCollector(req, res, next) {
  */
 function resumeCollector(req, res, next) {
   req.swagger.params.queryBody = {
-    value: { status: 'Running' },
+    value: { status: status.Running },
   };
   doPatch(req, res, next, helper);
 } // resumeCollector
 
 /**
+ * GET /collectors/{key}/writers
+ *
  * Returns a list of users permitted to modify this collector. DOES NOT use
  * wildcards.
  *
@@ -301,10 +515,16 @@ function resumeCollector(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function getCollectorWriters(req, res, next) {
-  doGetWriters.getWriters(req, res, next, helper);
+  doGetWriters.getWriters(req, res, next, helper)
+    .then(() => {
+      apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+      res.status(httpStatus.OK).json(res.locals.retVal);
+    });
 } // getCollectorWriters
 
 /**
+ * POST /collectors/{key}/writers
+ *
  * Add one or more users to a collector's list of authorized writers.
  *
  * @param {IncomingMessage} req - The request object
@@ -316,6 +536,8 @@ function postCollectorWriters(req, res, next) {
 } // postCollectorWriters
 
 /**
+ * GET /collectors/{key}/writers/{userNameOrId}
+ *
  * Determine whether a user is an authorized writer for a Collector. If user is
  * unauthorized, there is no writer by this name for this collector.
  *
@@ -324,10 +546,16 @@ function postCollectorWriters(req, res, next) {
  * @param {Function} next - The next middleware function in the stack
  */
 function getCollectorWriter(req, res, next) {
-  doGetWriters.getWriter(req, res, next, helper);
+  doGetWriters.getWriter(req, res, next, helper)
+    .then(() => {
+      apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+      res.status(httpStatus.OK).json(res.locals.retVal);
+    });
 }
 
 /**
+ * DELETE /collectors/{key}/writers/{userNameOrId}
+ *
  * Remove a user from a collector’s list of authorized writers.
  *
  * @param {IncomingMessage} req - The request object
@@ -354,11 +582,12 @@ function deleteCollectorWriters(req, res, next) {
 } // deleteCollectorWriters
 
 module.exports = {
-  postCollector,
   findCollectors,
   getCollector,
+  getCollectorStatus,
   patchCollector,
   deregisterCollector,
+  reregisterCollector,
   heartbeat,
   startCollector,
   stopCollector,

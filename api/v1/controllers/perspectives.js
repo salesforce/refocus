@@ -10,6 +10,7 @@
  * api/v1/controllers/perspectives.js
  */
 'use strict';
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/perspectives');
 const userProps = require('../helpers/nouns/users');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
@@ -27,6 +28,14 @@ const doPut = require('../helpers/verbs/doPut');
 const featureToggles = require('feature-toggles');
 const config = require('../../../config');
 const fu = require('../helpers/verbs/findUtils');
+const redisCache = require('../../../cache/redisCache').client.cache;
+const perspectivesHash = u.getHash(helper.resourceType, '/v1/perspectives');
+
+function clearCacheKey(key) {
+  if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
+    redisCache.del(key);
+  }
+} // clearCacheKey
 
 module.exports = {
 
@@ -40,7 +49,12 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deletePerspective(req, res, next) {
-    doDelete(req, res, next, helper);
+    doDelete(req, res, next, helper)
+      .then(() => clearCacheKey(perspectivesHash))
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -81,11 +95,10 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findPerspectives(req, res, next) {
-    // Caching perspective
-    if (featureToggles.isFeatureEnabled('enableCachePerspective') &&
-      Object.keys(req.query).length === 0) {
+    // Caching perspective, set cache key as hashed url, prefixed with 'perspective'
+    if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
       helper.cacheEnabled = true;
-      helper.cacheKey = req.url;
+      helper.cacheKey = u.getHash(helper.resourceType, req.originalUrl);
       helper.cacheExpiry = config.CACHE_EXPIRY_IN_SECS;
     }
 
@@ -102,9 +115,15 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getPerspective(req, res, next) {
-    helper.cacheEnabled = featureToggles
-    .isFeatureEnabled('enableCachePerspective');
-    doGet(req, res, next, helper);
+    /* Add userId to response to make it available from perspective page. */
+    res.cookie('userId', req.user.id, { maxAge: 1000 });
+    helper.cacheEnabled =
+      featureToggles.isFeatureEnabled('enableCachePerspective');
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -117,7 +136,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getPerspectiveWriters(req, res, next) {
-    doGetWriters.getWriters(req, res, next, helper);
+    doGetWriters.getWriters(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getPerspectiveWriters
 
   /**
@@ -131,7 +154,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getPerspectiveWriter(req, res, next) {
-    doGetWriters.getWriter(req, res, next, helper);
+    doGetWriters.getWriter(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getPerspectivesWriter
 
   /**
@@ -160,6 +187,7 @@ module.exports = {
    */
   patchPerspective(req, res, next) {
     doPatch(req, res, next, helper);
+    clearCacheKey(perspectivesHash);
   },
 
   /**
@@ -174,6 +202,7 @@ module.exports = {
   postPerspective(req, res, next) {
     helper.validateFilterAndThrowError(req.body);
     doPost(req, res, next, helper);
+    clearCacheKey(perspectivesHash);
   },
 
   /**
@@ -190,6 +219,6 @@ module.exports = {
   putPerspective(req, res, next) {
     helper.validateFilterAndThrowError(req.body);
     doPut(req, res, next, helper);
+    clearCacheKey(perspectivesHash);
   },
-
 }; // exports

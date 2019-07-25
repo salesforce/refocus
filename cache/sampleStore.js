@@ -1,4 +1,3 @@
-
 /**
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -19,7 +18,10 @@ const PFX = 'samsto';
 const SEP = ':';
 const ONE = 1;
 const constants = {
-  ISOfields: ['updatedAt', 'createdAt', 'statusChangedAt'],
+  ISOfields: {
+    sample: ['updatedAt', 'createdAt', 'statusChangedAt'],
+    aspect: ['updatedAt', 'createdAt'],
+  },
   featureName: 'enableRedisSampleStore',
   fieldsToStringify: {
     aspect: [
@@ -30,9 +32,19 @@ const constants = {
       'infoRange',
       'okRange',
       'writers',
+      'user', // an object
+      'owner',
     ],
     sample: ['relatedLinks', 'user'],
-    subject: ['aspectNames', 'tags', 'relatedLinks', 'geolocation'],
+    subject: [
+      'aspectNames',
+      'children',
+      'geolocation',
+      'relatedLinks',
+      'tags',
+      'user',
+      'owner',
+    ],
   },
   indexKey: {
     aspect: PFX + SEP + 'aspects',
@@ -40,7 +52,7 @@ const constants = {
     subject: PFX + SEP + 'subjects',
   },
   objectType: { aspect: 'aspect', sample: 'sample', subject: 'subject',
-    subAspMap: 'subaspmap', },
+    subAspMap: 'subaspmap', aspSubMap: 'aspsubmap', },
   prefix: PFX,
   separator: SEP,
   previousStatusKey: PFX + SEP + 'previousSampleStoreStatus',
@@ -74,39 +86,93 @@ function getNameFromKey(key) {
 } // getNameFromKey
 
 /**
- * Convert array strings to json from redis object. For each array field,
- * if that field exists in obj and its and array, then json parse.
+ * Convert array and object strings to json from redis object. For each array
+ * and object field, if that field exists in obj and it is not an array or an
+ * object, then json parse.
  * @param  {Object} obj - Object to convert
- * @param  {Object} arrayFields - List of array fields which were stringified.
+ * @param  {Object} arrObjfields - List of array or object fields which were
+ * stringified.
  * @returns {Object} - Converted object
  */
-function arrayStringsToJson(obj, arrayFields) {
-  arrayFields.forEach((field) => {
-    if (obj && obj[field] && !Array.isArray(obj[field])) {
+function arrayObjsStringsToJson(obj, arrObjfields) {
+  arrObjfields.forEach((field) => {
+    if (obj && obj[field] && !Array.isArray(obj[field]) &&
+     typeof obj[field] !== 'object') {
       obj[field] = JSON.parse(obj[field]);
     }
   });
   return obj;
-} // arrayStringsToJson
+} // arrayObjsStringsToJson
 
 /**
- * Remove null fields; stringify array fields.
+ * Convert subject fields to the correct type. Performs update in place.
+ *
+ * @param {Object} subject
+ * @returns {Object} the modified subject
+ */
+function convertSubjectStrings(subject) {
+  // convert the strings into numbers
+  subject.childCount = parseInt(subject.childCount, 10) || 0;
+  subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10) || 0;
+
+  // convert strings into booleans
+  try {
+    subject.isPublished = JSON.parse(subject.isPublished);
+  } catch (err) {
+    subject.isPublished = true;
+  }
+
+  // convert strings into arrays
+  if (!Array.isArray(subject.tags)) {
+    try {
+      subject.tags =  JSON.parse(subject.tags);
+    } catch (err) {
+      subject.tags = [];
+    }
+  }
+
+  if (!Array.isArray(subject.relatedLinks)) {
+    try {
+      subject.relatedLinks = JSON.parse(subject.relatedLinks);
+    } catch (err) {
+      subject.relatedLinks = [];
+    }
+  }
+
+  return subject;
+} // convertSubjectStrings
+
+/**
+ * Convert aspect fields to the correct type
+ *
+ * @param {Object} aspect
+ */
+function convertAspectStrings(aspect) {
+  // convert the strings into numbers
+  aspect.rank = parseInt(aspect.rank, 10) || undefined;
+
+  // convert strings into booleans
+  aspect.isPublished = JSON.parse(aspect.isPublished);
+}
+
+/**
+ * Remove null fields; stringify array and object fields.
  *
  * @param {Object} obj - The object to clean.
- * @param {Array} arrayFields - List of array fields to stringify.
- * @returns {Object} the object with no nulls and stringified arrays.
+ * @param {Array} arrObjFields - List of array and object fields to stringify.
+ * @returns {Object} the object with no nulls and stringified arrays/objects.
  */
-function removeNullsAndStringifyArrays(obj, arrayFields) {
+function removeNullsAndStringifyArraysObjs(obj, arrObjFields) {
   Object.keys(obj).forEach((key) => {
     if (obj[key] === null) {
       delete obj[key];
-    } else if (arrayFields.includes(key)) {
+    } else if (arrObjFields.includes(key)) {
       obj[key] = JSON.stringify(obj[key]);
     }
   });
 
   return obj;
-} // removeNullsAndStringifyArrays
+} // removeNullsAndStringifyArraysObjs
 
 /**
  * Returns the ISO formatted date
@@ -115,13 +181,13 @@ function removeNullsAndStringifyArrays(obj, arrayFields) {
  * output value: 2017-03-14T02:22:42.255Z
  *
  * @param {Object} obj - Contains keys whose values need be converted
+ * @param {String} resourceType - Ie. sample, aspect.
  * If value is provided, return the ISO formatted date.
  * If no value, return the ISO formatted date with now time.
  * @returns {String} The date string in ISO format.
-
  */
-function convertToISO(obj) {
-  constants.ISOfields.forEach((field) => {
+function convertToISO(obj, resourceType) {
+  constants.ISOfields[resourceType].forEach((field) => {
     if (!obj[field]) {
       obj[field] = new Date().toISOString();
     } else if (obj[field] && obj[field].toISOString) {
@@ -140,7 +206,7 @@ function convertToISO(obj) {
  */
 function cleanSubject(subj) {
   let retval = subj.get ? subj.get() : subj;
-  retval = removeNullsAndStringifyArrays(retval,
+  retval = removeNullsAndStringifyArraysObjs(retval,
     constants.fieldsToStringify.subject);
   return retval;
 } // cleanSubject
@@ -154,11 +220,11 @@ function cleanSubject(subj) {
  */
 function cleanAspect(a) {
   let retval = a.get ? a.get() : a;
-  retval = removeNullsAndStringifyArrays(retval,
+  retval = removeNullsAndStringifyArraysObjs(retval,
     constants.fieldsToStringify.aspect);
 
   // convert date time fields to proper format
-  convertToISO(retval);
+  convertToISO(retval, 'aspect');
 
   return retval;
 } // cleanAspect
@@ -173,11 +239,11 @@ function cleanAspect(a) {
 function cleanSample(s) {
   let retval = s.get ? s.get() : s;
   delete retval.aspect;
-  retval = removeNullsAndStringifyArrays(retval,
+  retval = removeNullsAndStringifyArraysObjs(retval,
     constants.fieldsToStringify.sample);
 
   // convert date time fields to proper format
-  convertToISO(retval);
+  convertToISO(retval, 'sample');
 
   return retval;
 } // cleanSample
@@ -188,6 +254,8 @@ module.exports = {
   cleanSample,
   constants,
   toKey,
-  arrayStringsToJson,
+  arrayObjsStringsToJson,
+  convertSubjectStrings,
+  convertAspectStrings,
   getNameFromKey,
 };

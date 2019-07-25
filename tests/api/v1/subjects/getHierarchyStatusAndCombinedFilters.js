@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -53,6 +53,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
   };
   const aspectTemp = {
     criticalRange: [3, 5],
+    valueType: 'NUMERIC',
     name: 'temperature',
     timeout: '60s',
     isPublished: true,
@@ -118,10 +119,10 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
     })
     .then((a) => {
       sample1.aspectId = a.id;
-      return tu.db.Sample.create(sample1);
+      return tu.Sample.create(sample1);
     })
-    .then(() => tu.db.Sample.create(sample2))
-    .then(() => tu.db.Sample.create(sample3))
+    .then(() => tu.Sample.create(sample2))
+    .then(() => tu.Sample.create(sample3))
     .then(() => tu.db.Subject.create(parOther1))
     .then((subj) => {
       parOther1 = subj;
@@ -134,11 +135,13 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
     .then((a) => {
       sample4.aspectId = a.id;
       sample4.subjectId = grn.id;
-      return tu.db.Sample.create(sample4);
+      return tu.Sample.create(sample4);
     })
     .then(() => done())
     .catch(done);
   });
+
+  before(u.populateRedis);
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -157,7 +160,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
           .to.equal('temperature');
         expect(res.body.children[0].samples[0].status)
           .to.equal('Critical');
-        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -183,7 +186,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         expect(res.body.children[0].children[0].samples).to.have.length(1);
         expect(res.body.children[0].children[0].samples[0].status)
         .to.equal('Info');
-        expect(res.body.children[0].children[0].children).to.have.length(0);
+        expect(res.body.children[0].children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -253,7 +256,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         expect(res.body.children[0].children[0].samples).to.have.length(1);
         expect(res.body.children[0].children[0].samples[0].status)
         .to.equal('Info');
-        expect(res.body.children[0].children[0].children).to.have.length(0);
+        expect(res.body.children[0].children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -274,7 +277,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         expect(res.body.children[0].children[0].samples).to.have.length(1);
         expect(res.body.children[0].children[0].samples[0].status)
         .to.equal('Info');
-        expect(res.body.children[0].children[0].children).to.have.length(0);
+        expect(res.body.children[0].children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -340,7 +343,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         expect(res.body.children[0].samples).to.have.length(1);
         expect(res.body.children[0].samples[0].aspect.name)
         .to.equal('temperature');
-        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -362,7 +365,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         .to.equal('temperature');
         expect(res.body.children[0].samples[0].aspect.tags[0])
         .to.equal('temp');
-        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -397,7 +400,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         .to.equal('temperature');
         expect(res.body.children[0].samples[0].aspect.tags[0])
         .to.equal('temp');
-        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -412,7 +415,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .expect((res) => {
-        expect(res.body.children).to.have.length(0);
+        expect(res.body.children).to.not.exist;
       })
       .end(done);
     });
@@ -442,7 +445,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         expect(res.body.children[0].children[0].samples).to.have.length(1);
         expect(res.body.children[0].children[0].samples[0].status)
         .to.equal('Info');
-        expect(res.body.children[0].children[0].children).to.have.length(0);
+        expect(res.body.children[0].children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -482,7 +485,7 @@ describe('tests/api/v1/subjects/getHierarchyStatusAndCombinedFilters.js, ' +
         .to.equal('temperature');
         expect(res.body.children[0].samples[0].aspect.tags[0])
         .to.equal('temp');
-        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].children).to.not.exist;
       })
       .end(done);
     });

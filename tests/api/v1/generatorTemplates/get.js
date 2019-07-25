@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -22,6 +22,7 @@ const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
 const THREE = 3;
+const RADIX = 10;
 
 describe('tests/api/v1/generatorTemplates/get.js > ', () => {
   let token;
@@ -31,8 +32,10 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
   let o4;
   const template1 = u.getGeneratorTemplate();
   template1.name = 'template1';
+  template1.version = '1.0.0';
   const template2 = u.getGeneratorTemplate();
-  template2.name = 'template2';
+  template2.name = 'template1';
+  template2.version = '1.0.2';
   template2.tags.push('tag2');
   const template3 = u.getGeneratorTemplate();
   template3.name = 'template3';
@@ -136,39 +139,104 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+      if (err) return done(err);
 
       expect(res.body.name).to.equal(template1.name);
       done();
     });
   });
 
-  it('Simple GET with name', (done) => {
+  it('Must GET a single GT when valid name and version', (done) => {
+    api.get(`${path}/${template1.name}/${template1.version}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) return done(err);
+
+        expect(res.body.name).to.equal(template1.name);
+        expect(res.body.version).to.equal(template1.version);
+        done();
+      });
+  });
+
+  it('Must not GET when incorrect version', (done) => {
+    api.get(`${path}/${template1.name}/1.0.3`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err) => {
+        if (err) return done(err);
+        done();
+      });
+  });
+
+  it('Must not GET by incorrect name', (done) => {
+    api.get(`${path}/foo/${template1.version}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err) => {
+        if (err) return done(err);
+        done();
+      });
+  });
+
+  it('Must not GET by incorrect name and version', (done) => {
+    api.get(`${path}/foo/aa`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.NOT_FOUND)
+      .end((err) => {
+        if (err) return done(err);
+        done();
+      });
+  });
+
+  it('error, Simple GET with name, 400', (done) => {
     api.get(`${path}/${template1.name}`)
     .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
+    .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.name).to.equal(template1.name);
+      if (err) return done(err);
+      expect(res.body.errors[0].source).to.be.equal('GeneratorTemplate');
+      expect(res.body.errors[0].message).to
+        .include('This resource has a multipart key');
       done();
     });
   });
 
-  it('Simple GET with name in lowercase', (done) => {
+  it('error, Simple GET with name in lowercase, 400', (done) => {
     api.get(`${path}/${template1.name.toLowerCase()}`)
     .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
+    .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+      if (err) return done(err);
+      expect(res.body.errors[0].source).to.be.equal('GeneratorTemplate');
+      expect(res.body.errors[0].message).to
+        .include('This resource has a multipart key');
+      done();
+    });
+  });
 
-      expect(res.body.name).to.equal(template1.name);
+  it('error, Simple GET with name which does not exist, 400', (done) => {
+    api.get(`${path}/notExist`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) return done(err);
+      expect(res.body.errors[0].source).to.be.equal('GeneratorTemplate');
+      expect(res.body.errors[0].message).to
+        .include('This resource has a multipart key');
+      done();
+    });
+  });
+
+  it('error, Simple GET with name which looks like id, 400', (done) => {
+    api.get(`${path}/1234567890`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) return done(err);
+      expect(res.body.errors[0].source).to.be.equal('GeneratorTemplate');
+      expect(res.body.errors[0].message).to
+        .include('This resource has a multipart key');
       done();
     });
   });
@@ -178,9 +246,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+      if (err) return done(err);
 
       expect(res.body).to.have.length(THREE);
       done();
@@ -192,9 +258,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+      if (err) return done(err);
 
       expect(res.body).to.have.length(ONE);
       expect(res.body[ZERO]).to.have.property('name', template2.name);
@@ -207,9 +271,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+      if (err) return done(err);
 
       expect(res.body).to.have.length(ZERO);
       done();
@@ -225,15 +287,18 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+        if (err) return done(err);
 
         if (res.body.errors) {
           return done(res.body.errors[0]);
         }
 
         expect(res.body).to.have.length(4);
+        expect(res.body[0]).to.have.property('id', template1.id);
+        expect(res.body[1]).to.have.property('id', template2.id);
+        expect(res.body[2]).to.have.property('id', template3.id);
+        expect(res.body[3]).to.have.property('id', template4.id);
+
         const templates = [template1, template2, template3, template4];
         for (let i = 0; i < 4; i++) {
           const template = templates[i];
@@ -256,9 +321,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
       .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+        if (err) return done(err);
 
         fields.forEach((field) => {
           expect(res.body[field]).to.deep.equal(template1[field]);
@@ -318,7 +381,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
           return done(err);
         }
 
-        if (parseInt(expected)) {
+        if (parseInt(expected, RADIX)) {
           expect(res.body).to.have.length(expected);
         }
 
@@ -351,7 +414,7 @@ describe('tests/api/v1/generatorTemplates/get.js > ', () => {
     });
 
     it('find by name', (done) => {
-      findByField(done, 'name', 'template2', 1);
+      findByField(done, 'name', 'template1', 2);
     });
 
     it('find by name wildcard', (done) => {

@@ -40,7 +40,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     GeneratorTemplate.create(gt)
     .then((o) => {
       expect(o.id).to.not.equal(undefined);
-      expect(o.isPublished).to.equal(false);
+      expect(o.isPublished).to.equal(true);
       expect(o.version).to.equal('1.0.0');
       expect(o.name).to.equal(gt.name);
       expect(o.description).to.equal(gt.description);
@@ -122,6 +122,28 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     .catch();
   });
 
+  it('ok, can create templates without errorHandlers', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    delete _gt.transform.errorHandlers;
+    GeneratorTemplate.create(_gt)
+    .then((o) => {
+      expect(o.transform).to.deep.equal(_gt.transform);
+      done();
+    })
+    .catch(done);
+  });
+
+  it('ok, can create templates without responseSchema', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    delete _gt.transform.responseSchema;
+    GeneratorTemplate.create(_gt)
+    .then((o) => {
+      expect(o.transform).to.deep.equal(_gt.transform);
+      done();
+    })
+    .catch(done);
+  });
+
   it('not ok, create with additional properties not part of the schema ' +
     'error', (done) => {
     const _gt = u.getGeneratorTemplate();
@@ -158,11 +180,11 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     const _gt = u.getGeneratorTemplate();
     _gt.version = '11';
     GeneratorTemplate.create(_gt)
-    .then(() => {
-      done(' Error: Expecting validation error');
-    })
+    .then(() => done('Error: Expecting validation error'))
     .catch((err) => {
-      expect(err.message).to.contain('Validation error: Validation is failed');
+      expect(err.message).to.contain(
+        'Validation error: Validation is on version failed'
+      );
       expect(err.name).to.contain('SequelizeValidationError');
       done();
     });
@@ -172,11 +194,11 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     const _gt = u.getGeneratorTemplate();
     _gt.version = '1.1.2a';
     GeneratorTemplate.create(_gt)
-    .then(() => {
-      done(' Error: Expecting validation error');
-    })
+    .then(() => done('Error: Expecting validation error'))
     .catch((err) => {
-      expect(err.message).to.contain('Validation error: Validation is failed');
+      expect(err.message).to.contain(
+        'Validation error: Validation is on version failed'
+      );
       expect(err.name).to.contain('SequelizeValidationError');
       done();
     });
@@ -187,11 +209,11 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     _gt.name = 'Name$$$';
     _gt.helpEmail = 'email.com';
     GeneratorTemplate.create(_gt)
-    .then(() => {
-      done(' Error: Expecting validation error');
-    })
+    .then(() => done('Error: Expecting validation error'))
     .catch((err) => {
-      expect(err.message).to.contain('Validation error: Validation is failed');
+      expect(err.message).to.contain(
+        'Validation error: Validation is on name failed'
+      );
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors.length).to.equal(2);
       done();
@@ -205,13 +227,9 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     _gt.author.email = 'notanemail';
     _gt.author.url = 'invalid url';
     GeneratorTemplate.create(_gt)
-    .then(() => {
-      done(' Error: Expecting validation error');
-    })
+    .then(() => done('Error: Expecting validation error'))
     .catch((err) => {
-      expect(err.message).to.contain('maximum is 60 characters');
-      expect(err.message).to.contain('is not a valid email');
-      expect(err.message).to.contain('is not a valid url');
+      expect(err.message).to.contain('url');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('author');
       done();
@@ -222,11 +240,9 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     const _gt = u.getGeneratorTemplate();
     _gt.repository.type = 'ty'.repeat(constants.fieldlen.normalName);
     GeneratorTemplate.create(_gt)
-    .then(() => {
-      done(' Error: Expecting validation error');
-    })
+    .then(() => done('Error: Expecting validation error'))
     .catch((err) => {
-      expect(err.message).to.contain('maximum is 60 characters');
+      expect(err.message).to.contain('60 characters');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('repository');
       done();
@@ -237,11 +253,9 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     const _gt = u.getGeneratorTemplate();
     _gt.connection.method = 'SPY';
     GeneratorTemplate.create(_gt)
-    .then(() => {
-      done(' Error: Expecting validation error');
-    })
+    .then((x) => done('Error: Expecting validation error'))
     .catch((err) => {
-      expect(err.message).to.contain('must be present in given enumerator');
+      expect(err.message).to.contain('DELETE, GET, PATCH, POST, PUT');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('connection');
       done();
@@ -256,9 +270,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     };
 
     GeneratorTemplate.create(_gt)
-    .then(() => {
-      done(' Error: Expecting validation error');
-    })
+    .then(() => done('Error: Expecting validation error'))
     .catch((err) => {
       expect(err.message)
         .to.contain('Only one of ["url", "toUrl"] is required');
@@ -273,9 +285,7 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     delete _gt.connection.url;
     delete _gt.connection.toUrl;
     GeneratorTemplate.create(_gt)
-    .then(() => {
-      done(' Error: Expecting validation error');
-    })
+    .then(() => done('Error: Expecting validation error'))
     .catch((err) => {
       expect(err.message)
         .to.contain('Only one of ["url", "toUrl"] is required');
@@ -289,13 +299,80 @@ describe('tests/db/model/generatortemplate/create.js >', () => {
     const _gt = u.getGeneratorTemplate();
     _gt.contextDefinition.pod = { required: true };
     GeneratorTemplate.create(_gt)
-    .then(() => {
-      done(' Error: Expecting validation error');
-    })
+    .then(() => done('Error: Expecting validation error'))
     .catch((err) => {
       expect(err.message).to.contain('description is required');
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors[0].path).to.equal('contextDefinition');
+      done();
+    });
+  });
+
+  it('not ok, transform as a string instead of object', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    _gt.transform = 'return { name: S1|A1, value: 1 }';
+    GeneratorTemplate.create(_gt)
+    .then(() => done('Error: Expecting validation error'))
+    .catch((err) => {
+      expect(err.message).to.contain('must be an object');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors[0].path).to.equal('transform');
+      done();
+    });
+  });
+
+  it('not ok, transform without the default key', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    delete _gt.transform.default;
+    GeneratorTemplate.create(_gt)
+    .then(() => done('Error: Expecting validation error'))
+    .catch((err) => {
+      expect(err.message).to.contain('"default" is required');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors[0].path).to.equal('transform');
+      done();
+    });
+  });
+
+  it('not ok, when default key is not a string', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    _gt.transform.default = { return: [{ name: 'S1|A1', value: 10 },
+       { name: 'S2|A2', value: 10 },
+       ],
+    };
+    GeneratorTemplate.create(_gt)
+    .then(() => done('Error: Expecting validation error'))
+    .catch((err) => {
+      expect(err.message).to.contain('"default" must be a string');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors[0].path).to.equal('transform');
+      done();
+    });
+  });
+
+  it('not ok, when errorHandler is not an object', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    _gt.transform.errorHandlers = 'return: [{ name: S1|A1, messageBody: ' +
+    'NOT FOUND }, { name: S2|A2, messageBody: NOT FOUND }] ';
+    GeneratorTemplate.create(_gt)
+    .then(() => done('Error: Expecting validation error'))
+    .catch((err) => {
+      expect(err.message).to.contain('"errorHandlers" must be an object');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors[0].path).to.equal('transform');
+      done();
+    });
+  });
+
+  it('not ok, when responseSchema is not an object', (done) => {
+    const _gt = u.getGeneratorTemplate();
+    _gt.transform.responseSchema = '...';
+    GeneratorTemplate.create(_gt)
+    .then(() => done('Error: Expecting validation error'))
+    .catch((err) => {
+      expect(err.message).to.contain('"responseSchema" must be an object');
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors[0].path).to.equal('transform');
       done();
     });
   });

@@ -21,7 +21,7 @@ describe('tests/api/v1/collectors/getWithLimit.js >', () => {
 
   before((done) => {
     for (let i = 0; i < 10; i++) {
-      const toCreate = JSON.parse(JSON.stringify(u.toCreate));
+      const toCreate = u.getCollectorToCreate();
       toCreate.name += `-limitTest${i}-${i % 2 ? 'odd' : 'even'}`;
       modelList.push(toCreate);
     }

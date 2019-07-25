@@ -9,14 +9,14 @@
 /**
  * tests/cache/jobQueue/getHierarchy.js
  */
-'use strict';
-const jobQueue = require('../../../jobQueue/setup').jobQueue;
-const jobType = require('../../../jobQueue/setup').jobType;
-const getHierarchyJob = require('../../../worker/jobs/getHierarchyJob');
+'use strict'; // eslint-disable-line strict
+const jobSetup = require('../../../jobQueue/setup');
+const jobQueue = jobSetup.jobQueue;
+const jobType = jobSetup.jobType;
+const getHierarchyJob = require('../../../worker/jobs/getHierarchy');
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const api = supertest(require('../../../index').app);
-const samstoinit = require('../../../cache/sampleStoreInit');
+const api = supertest(require('../../../express').app);
 const tu = require('../../testUtils');
 const rtu = require('../models/redisTestUtil');
 const constants = require('../../../api/v1/constants');
@@ -24,28 +24,47 @@ const Subject = tu.db.Subject;
 const path = '/v1/subjects/{key}/hierarchy';
 const logger = require('../../../utils/activityLog').logger;
 const featureToggles = require('feature-toggles');
+const RADIX = 10;
+let enableCacheInitial;
 let enableWorkerProcessInitial;
 let enqueueHierarchyInitial;
 
 describe('tests/cache/jobQueue/getHierarchy.js, ' +
 `api: GET using worker process ${path} >`, () => {
+  before(() => jobSetup.resetJobQueue());
+  after(() => jobSetup.resetJobQueue());
+
   before(() => {
+    enableCacheInitial = featureToggles.isFeatureEnabled('enableRedisSampleStore');
     enableWorkerProcessInitial = featureToggles.isFeatureEnabled('enableWorkerProcess');
     enqueueHierarchyInitial = featureToggles.isFeatureEnabled('enqueueHierarchy');
+    tu.toggleOverride('enableRedisSampleStore', true);
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enqueueHierarchy', true);
-    jobQueue.process(jobType.GET_HIERARCHY, getHierarchyJob);
+    jobQueue.process(jobType.getHierarchy, getHierarchyJob);
     jobQueue.testMode.enter(true);
     jobQueue.testMode.clear();
+  });
+
+  after(() => {
+    tu.toggleOverride('enableRedisSampleStore', enableCacheInitial);
+    tu.toggleOverride('enableWorkerProcess', enableWorkerProcessInitial);
+    tu.toggleOverride('enqueueHierarchy', enqueueHierarchyInitial);
   });
 
   afterEach(() => jobQueue.testMode.clear());
   after(() => jobQueue.testMode.exit());
 
-  //run normal getHierarchy tests with worker enabled
-  require('../models/subjects/getHierarchy');
-  require('../models/subjects/getHierarchyAspectAndTagsFilters');
-  require('../models/subjects/getHierarchyStatusAndCombinedFilters');
+  /*
+   * Run normal getHierarchy tests with cache and worker enabled.
+   * Note that this must be run in a separate command from the api tests,
+   * and from the cache subject tests (which also require these files),
+   * otherwise these tests will not run because files can't be required
+   * twice in the same process.
+   */
+  require('../../api/v1/subjects/getHierarchy');
+  require('../../api/v1/subjects/getHierarchyAspectAndTagsFilters');
+  require('../../api/v1/subjects/getHierarchyStatusAndCombinedFilters');
 
   describe(`api: GET using worker process ${path} >`, () => {
     let token;
@@ -72,12 +91,6 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
 
     let nonWorkerResponse;
 
-    // enable sample store
-    before((done) => {
-      tu.toggleOverride('enableRedisSampleStore', true);
-      done();
-    });
-
     // setup hierarchy
     before((done) => {
       Subject.create(par)
@@ -100,11 +113,10 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
       })
       .then((a) => {
         sample1.aspectId = a.id;
-        return tu.db.Sample.create(sample1);
+        return tu.Sample.create(sample1);
       })
       .then((samp) => {
         sample1.id = samp.id;
-        return samstoinit.populate();
       })
       .then(() => done())
       .catch(done);
@@ -139,7 +151,7 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
     });
 
     after(rtu.forceDelete);
-    after(() => tu.toggleOverride('enableRedisSampleStore', false));
+    after(tu.forceDeleteUser);
 
     it('examine enqueued data', (done) => {
       api.get(path.replace('{key}', ipar))
@@ -154,7 +166,7 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
         expect(jobQueue.testMode.jobs.length).to.equal(1);
 
         // make sure the job type is correct
-        expect(jobQueue.testMode.jobs[0].type).to.equal(jobType.GET_HIERARCHY);
+        expect(jobQueue.testMode.jobs[0].type).to.equal(jobType.getHierarchy);
 
         // make sure the queue has the right data inside it
         expect(jobQueue.testMode.jobs[0].data.params.key.value).to.equal(ipar);
@@ -216,11 +228,11 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
             expect(logObj.recordCount).to.equal('1');
             expect(logObj.errorCount).to.equal('0');
 
-            const totalTime = parseInt(logObj.totalTime);
-            const queueTime = parseInt(logObj.queueTime);
-            const queueResponseTime = parseInt(logObj.queueResponseTime);
-            const workTime = parseInt(logObj.workTime);
-            const dbTime = parseInt(logObj.dbTime);
+            const totalTime = parseInt(logObj.totalTime, RADIX);
+            const queueTime = parseInt(logObj.queueTime, RADIX);
+            const queueResponseTime = parseInt(logObj.queueResponseTime, RADIX);
+            const workTime = parseInt(logObj.workTime, RADIX);
+            const dbTime = parseInt(logObj.dbTime, RADIX);
 
             expect(workTime).to.be.at.least(dbTime);
             expect(totalTime).to.be.at.least(workTime);
@@ -240,8 +252,8 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
             expect(logObj.dbTime).to.match(/\d+ms/);
             expect(logObj.recordCount).to.equal('1');
             expect(logObj.responseBytes).to.match(/\d+/);
-            const totalTime = parseInt(logObj.totalTime);
-            const dbTime = parseInt(logObj.dbTime);
+            const totalTime = parseInt(logObj.totalTime, RADIX);
+            const dbTime = parseInt(logObj.dbTime, RADIX);
             expect(totalTime).to.be.above(dbTime);
             apiLogged = true;
           } catch (err) {
@@ -297,8 +309,4 @@ describe('tests/cache/jobQueue/getHierarchy.js, ' +
     });
   });
 
-  after(() => {
-    tu.toggleOverride('enableWorkerProcess', enableWorkerProcessInitial);
-    tu.toggleOverride('enqueueHierarchy', enqueueHierarchyInitial);
-  });
 });

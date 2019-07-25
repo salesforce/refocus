@@ -12,7 +12,7 @@
 
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const tu = require('../../../testUtils');
@@ -36,6 +36,7 @@ describe('tests/api/v1/register/registerUser.js >', () => {
 
         expect(res.body.email).to.be.equal(u.toCreate.email);
         expect(res.body.name).to.be.equal(u.toCreate.username);
+        expect(new Date(res.body.lastLogin)).to.be.instanceof(Date);
         Token.findAll({ where: { name: res.body.name } })
         .then((tokens) => {
           expect(tokens.length).to.be.equal(0);
@@ -66,6 +67,7 @@ describe('tests/api/v1/register/registerUser.js >', () => {
       .expect(/Missing required property: password/)
       .end(done);
     });
+
     it('user already exists', (done) => {
       api.post(path)
       .send(u.toCreate)
@@ -125,7 +127,26 @@ describe('tests/api/v1/register/registerUser.js >', () => {
         expect(res.body.name).to.be.equal(`${tu.namePrefix}1`);
         expect(res.body.email).to.be.equal('user@example.com');
         expect(res.body.sso).to.be.equal(false);
+        expect(new Date(res.body.lastLogin)).to.be.instanceof(Date);
         done();
+      });
+    });
+  });
+
+  describe('rejectLocalUserRegistration >', () => {
+    before(() => tu.toggleOverride('rejectLocalUserRegistration', true));
+    after(() => tu.toggleOverride('rejectLocalUserRegistration', false));
+    after(u.forceDelete);
+
+    it('forbidden', (done) => {
+      api.post(path)
+      .send(u.toCreate)
+      .expect(constants.httpStatus.FORBIDDEN)
+      .end((err, res) => {
+        if (err) return done(err);
+        expect(res.body.errors[0]).to.have.property('description',
+          'New user registration is not permitted.');
+        return done();
       });
     });
   });

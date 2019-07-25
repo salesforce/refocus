@@ -9,15 +9,20 @@
 /**
  * tests/api/v1/aspects/delete.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const gu = require('../generators/utils');
+const gtu = require('../generatorTemplates/utils');
 const Aspect = tu.db.Aspect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
+const Generator = tu.db.Generator;
+const GeneratorTemplate = tu.db.GeneratorTemplate;
 const path = '/v1/aspects';
+const samplePath = '/v1/samples';
 const allDeletePath = '/v1/aspects/{key}/relatedLinks';
 const oneDeletePath = '/v1/aspects/{key}/relatedLinks/{akey}';
 const expect = require('chai').expect;
@@ -30,20 +35,11 @@ describe('tests/api/v1/aspects/delete.js >', () => {
     let token;
 
     /**
-     * Throws error if response object's
-     * isDeleted value <= 0
-     * @param {Object} res THe response object
-     */
-    function bodyCheckIfDeleted(res) {
-      expect(res.body.isDeleted).to.be.above(ZERO);
-    }
-
-    /**
      * Throws error if aspect created for test
      * was returned.
      */
     function notFound() {
-      Aspect.findById(aspectId)
+      Aspect.findByPk(aspectId)
       .then((aspect) => {
         expect(aspect).to.equal(null);
       });
@@ -74,7 +70,6 @@ describe('tests/api/v1/aspects/delete.js >', () => {
       api.delete(`${path}/${u.toCreate.name.toLowerCase()}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .expect(bodyCheckIfDeleted)
       .expect(notFound)
       .end((err, res) => {
         if (err) {
@@ -90,7 +85,6 @@ describe('tests/api/v1/aspects/delete.js >', () => {
       api.delete(`${path}/${aspectId}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .expect(bodyCheckIfDeleted)
       .expect(notFound)
       .end(done);
     });
@@ -99,7 +93,6 @@ describe('tests/api/v1/aspects/delete.js >', () => {
       api.delete(`${path}/${u.toCreate.name}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .expect(bodyCheckIfDeleted)
       .expect(notFound)
       .end(done);
     });
@@ -231,6 +224,7 @@ describe('tests/api/v1/aspects/delete.js >', () => {
       .catch(done);
     });
 
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
     after(tu.forceDeleteUser);
 
@@ -238,12 +232,109 @@ describe('tests/api/v1/aspects/delete.js >', () => {
       api.delete(`${path}/${aspectId}`)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
-      .expect(() => {
-        Sample.findAll()
-        .then((samp) => {
-          expect(samp).to.have.length(ZERO);
-        })
-        .catch(done);
+      .end((err) => {
+        if (err) done(err);
+        api.get(samplePath)
+        .set('Authorization', token)
+        .expect(constants.httpStatus.OK)
+        .expect((res) => expect(res.body).to.have.length(ZERO))
+        .end(done);
+      });
+    });
+  });
+
+  describe('referenced by a generator >', () => {
+    let token;
+    const asp1 = {
+      name: `${tu.namePrefix}ASPECT1`,
+      isPublished: true,
+      timeout: '60s',
+    };
+    const asp2 = {
+      name: `${tu.namePrefix}ASPECT2`,
+      isPublished: true,
+      timeout: '60s',
+    };
+    const asp3 = {
+      name: `${tu.namePrefix}ASPECT3`,
+      isPublished: true,
+      timeout: '60s',
+    };
+    const sgt1 = gtu.getGeneratorTemplate();
+    const gen1 = gu.getGenerator();
+    gen1.name = 'sample-generator-1';
+    gen1.generatorTemplate.name = sgt1.name;
+    gen1.generatorTemplate.version = sgt1.version;
+    gen1.aspects = [asp1.name, asp2.name];
+    const gen2 = gu.getGenerator();
+    gen2.name = 'sample-generator-2';
+    gen2.generatorTemplate.name = sgt1.name;
+    gen2.generatorTemplate.version = sgt1.version;
+    gen2.aspects = [asp2.name, asp3.name.toLowerCase()];
+
+    before((done) => {
+      tu.createToken()
+      .then((returnedToken) => {
+        token = returnedToken;
+        done();
+      })
+      .catch(done);
+    });
+
+    beforeEach((done) => {
+      Aspect.create(asp1)
+      .then(() => Aspect.create(asp2))
+      .then(() => Aspect.create(asp3))
+      .then(() => GeneratorTemplate.create(sgt1))
+      .then(() => Generator.create(gen1))
+      .then(() => Generator.create(gen2))
+      .then(() => done())
+      .catch(done);
+    });
+    afterEach(u.forceDelete);
+    after(tu.forceDeleteUser);
+
+    it('delete fails (single generator)', (done) => {
+      api.delete(`${path}/${asp1.name}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body.errors).to.be.an('array').with.lengthOf(1);
+        expect(res.body.errors[0].type).to.equal('ReferencedByGenerator');
+        expect(res.body.errors[0].message).to.equal(
+          'Cannot delete Aspect ___ASPECT1. It is currently in use by a ' +
+          'Sample Generator: sample-generator-1'
+        );
+      })
+      .end(done);
+    });
+
+    it('delete fails (multiple generators)', (done) => {
+      api.delete(`${path}/${asp2.name}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body.errors).to.be.an('array').with.lengthOf(1);
+        expect(res.body.errors[0].type).to.equal('ReferencedByGenerator');
+        expect(res.body.errors[0].message).to.equal(
+          'Cannot delete Aspect ___ASPECT2. It is currently in use by 2 ' +
+          'Sample Generators: sample-generator-1,sample-generator-2'
+        );
+      })
+      .end(done);
+    });
+
+    it('delete fails (case insensitive)', (done) => {
+      api.delete(`${path}/${asp3.name}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => {
+        expect(res.body.errors).to.be.an('array').with.lengthOf(1);
+        expect(res.body.errors[0].type).to.equal('ReferencedByGenerator');
+        expect(res.body.errors[0].message).to.equal(
+          'Cannot delete Aspect ___ASPECT3. It is currently in use by a ' +
+          'Sample Generator: sample-generator-2'
+        );
       })
       .end(done);
     });

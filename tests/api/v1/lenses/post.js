@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -37,7 +37,7 @@ describe('tests/api/v1/lenses/post.js >', () => {
 
   describe('post duplicate fails >', () => {
     beforeEach((done) => {
-      u.doSetup()
+      u.createBasic()
       .then(() => done())
       .catch(done);
     });
@@ -47,7 +47,7 @@ describe('tests/api/v1/lenses/post.js >', () => {
       .set('Authorization', token)
       .field('name', u.name)
       .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -64,7 +64,7 @@ describe('tests/api/v1/lenses/post.js >', () => {
       .set('Authorization', token)
       .field('name', u.name)
       .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -84,6 +84,11 @@ describe('tests/api/v1/lenses/post.js >', () => {
     .field('description', 'test description')
     .attach('library', 'tests/api/v1/apiTestsUtils/lens.zip')
     .expect(constants.httpStatus.CREATED)
+    .expect((res) => {
+      expect(res.body).to.have.property('user');
+      expect(res.body.user).to.have.property('name', '___testUser');
+      expect(res.body).to.have.property('lensEventApiVersion', 1);
+    })
     .end(done);
   });
 
@@ -203,5 +208,39 @@ describe('tests/api/v1/lenses/post.js >', () => {
       })
       .then(() => done());
     });
+  });
+
+  it('lens.json sets integer lensEventApiVersion', (done) => {
+    api.post(path)
+      .set('Authorization', token)
+      .field('name', 'testLens')
+      .field('description', 'test description')
+      .attach('library',
+        'tests/api/v1/lenses/lensZips/withValidLensEventApiVersion.zip')
+      .expect(constants.httpStatus.CREATED)
+      .expect((res) => {
+        expect(res.body).to.have.property('user');
+        expect(res.body.user).to.have.property('name', '___testUser');
+        expect(res.body).to.have.property('lensEventApiVersion', 2);
+      })
+      .end(done);
+  });
+
+  it('lens.json sets invalid non-integer lensEventApiVersion', (done) => {
+    api.post(path)
+      .set('Authorization', token)
+      .field('name', 'testLens')
+      .attach('library',
+        'tests/api/v1/lenses/lensZips/withInvalidLensEventApiVersion.zip')
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0]).has.property('message',
+          'Validation isInt on lensEventApiVersion failed');
+        done();
+      });
   });
 });

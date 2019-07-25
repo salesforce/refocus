@@ -14,6 +14,7 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Bot = tu.db.Bot;
+const constants = require('../../../../db/constants');
 const invalidValue = '^thisValueisAlwaysInvalid#';
 
 describe('tests/db/model/bot/create.js >', () => {
@@ -32,6 +33,10 @@ describe('tests/db/model/bot/create.js >', () => {
       expect(o.data.length).to.equal(5);
       expect(o).to.have.property('settings');
       expect(o.settings.length).to.equal(1);
+      expect(o).to.have.property('version').to.equal('1.0.0');
+      expect(o).to.have.property('displayName').to.equal(u.displayName);
+      expect(o).to.have.property('helpUrl').to.equal(u.standard.helpUrl);
+      expect(o).to.have.property('ownerUrl').to.equal(u.standard.ownerUrl);
       done();
     })
   .catch(done);
@@ -42,12 +47,15 @@ describe('tests/db/model/bot/create.js >', () => {
       name: '',
       url: 'http://www.bar.com',
       active: true,
+      version: '1.0.0',
     })
     .then(() => done(tu.valError))
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
       expect(err.message.toLowerCase()).to.contain('validation error');
-      expect(err.message.toLowerCase()).to.contain('validation is failed');
+      expect(err.message.toLowerCase()).to.contain(
+        'validation is on name failed'
+      );
       expect(err.errors[0].path).to.equal('name');
       done();
     })
@@ -58,7 +66,6 @@ describe('tests/db/model/bot/create.js >', () => {
     Promise.all([Bot.create(u.getStandard()), Bot.create(u.getStandard())])
     .then(() => done(tu.uniError))
     .catch((err) => {
-      debugger;
       expect(err.name).to.equal(tu.uniErrorName);
       expect(err.message.toLowerCase()).to.contain('validation error');
       expect(err.errors[0].message).to.contain('name must be unique');
@@ -73,13 +80,15 @@ describe('tests/db/model/bot/create.js >', () => {
       name: u.name,
       url: 'notURL',
       active: true,
+      version: '1.0.0',
     })
     .then(() => done(tu.valError))
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
       expect(err.message.toLowerCase()).to.contain('validation error');
-      expect(err.message.toLowerCase()).to.contain('validation isurl ' +
-          'failed');
+      expect(err.message.toLowerCase()).to.contain(
+        'validation isurl on url failed'
+      );
       done();
     })
   .catch(done);
@@ -90,6 +99,7 @@ describe('tests/db/model/bot/create.js >', () => {
       name: invalidValue,
       url: 'http://www.test.com',
       active: true,
+      version: '1.0.0',
     })
     .then(() => done(tu.valError))
     .catch((err) => {
@@ -251,6 +261,31 @@ describe('tests/db/model/bot/create.js >', () => {
     .catch((err) => {
       expect(err.name).to.equal(tu.valErrorName);
       expect(err.message.toLowerCase()).to.contain('validation error');
+      done();
+    })
+  .catch(done);
+  });
+
+  it('fail, no version specified', (done) => {
+    let bot = u.getStandard();
+    delete bot.version;
+    Bot.create(bot)
+    .then(() => done(tu.valError))
+    .catch((err) => {
+      expect(err.name).to.equal(tu.valErrorName);
+      expect(err.message.toLowerCase()).to.contain('version cannot be null');
+      done();
+    })
+  .catch(done);
+  });
+
+  it('fail, bot displayName too long', (done) => {
+    let bot = u.getStandard();
+    bot.displayName = 'Name'.repeat(constants.fieldlen.normalName);
+    Bot.create(bot)
+    .then((res) => done(tu.valError))
+    .catch((err) => {
+      expect(err.message).to.contain('value too long');
       done();
     })
   .catch(done);

@@ -15,7 +15,18 @@ const constants = require('../constants');
 const redisCache = require('../../cache/redisCache').client.cache;
 const lensUtil = require('../../utils/lensUtil');
 const featureToggles = require('feature-toggles');
+const dbErrors = require('../dbErrors');
 const assoc = {};
+
+/**
+ * @param {Object} _inst - a sequelize Lens instance.
+ */
+function setLensObjectInCache(_inst) {
+  const lensObj = lensUtil.cleanAndCreateLensJson(_inst);
+  const stringifiedLens = JSON.stringify(lensObj);
+  redisCache.set(`${constants.lensesRoute}/${lensObj.id}`, stringifiedLens);
+  redisCache.set(`${constants.lensesRoute}/${lensObj.name}`, stringifiedLens);
+}
 
 module.exports = function lens(seq, dataTypes) {
   const Lens = seq.define('Lens', {
@@ -39,15 +50,16 @@ module.exports = function lens(seq, dataTypes) {
       type: dataTypes.BOOLEAN,
       defaultValue: true,
     },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
-    },
     isPublished: {
       type: dataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
+    },
+    lensEventApiVersion: {
+      type: dataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      validate: { isInt: true },
     },
     library: {
       type: dataTypes.BLOB,
@@ -75,51 +87,54 @@ module.exports = function lens(seq, dataTypes) {
       type: dataTypes.STRING,
     },
   }, {
-    classMethods: {
-      getLensAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'lensAccess';
-      },
-
-      postImport(models) {
-        assoc.user = Lens.belongsTo(models.User, {
-          foreignKey: 'installedBy',
-          as: 'user',
-        });
-        assoc.writers = Lens.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'LensWriters',
-          foreignKey: 'lensId',
-        });
-
-        Lens.addScope('lensLibrary', {
-          attributes: { include: ['name', 'library'] },
-        }, {
-          override: true,
-        });
-
-        Lens.addScope('defaultScope', {
-          include: [
-            {
-              association: assoc.user,
-              attributes: ['name', 'email'],
-            },
-          ],
-          attributes: { exclude: ['library'] },
-          order: ['Lens.name'],
-        }, {
-          override: true,
-        });
-      },
-    },
 
     hooks: {
+      /**
+       * Prohibit deleting a lens if perspectives are using it.
+       */
       beforeDestroy(inst /* , opts */) {
-        return common.setIsDeleted(seq.Promise, inst);
-      },
+        return seq.models.Perspective.findAll({
+          where: {
+            lensId: inst.id,
+          },
+          attributes: ['id', 'lensId', 'name'],
+        })
+        .then((perspectives) => {
+          if (perspectives && perspectives.length) {
+            throw new dbErrors.ValidationError({
+              message:
+                `Cannot delete ${inst.name} because it is still in use by the ` +
+                'following perspectives: ' + perspectives.map((p) => p.name),
+            });
+          }
+
+          return seq.Promise.resolve();
+        });
+      }, // beforeDestroy
+
+      /**
+       * Prohibit unpublishing a lens if perspectives are using it.
+       */
+      beforeUpdate(inst /* , opts */) {
+        if (inst.changed('isPublished') && inst.isPublished === false) {
+          return seq.models.Perspective.findAll({
+            where: {
+              lensId: inst.id,
+            },
+            attributes: ['id', 'lensId', 'name'],
+          })
+          .then((perspectives) => {
+            if (perspectives && perspectives.length) {
+              throw new dbErrors.ValidationError({
+                message:
+                  `Cannot unpublish ${inst.name} because it is still in use ` +
+                  'by the following perspectives: ' +
+                  perspectives.map((p) => p.name),
+              });
+            }
+          });
+        }
+      }, // beforeUpdate
 
       /**
        * Makes sure isUrl/isEmail validations will handle empty strings
@@ -149,22 +164,37 @@ module.exports = function lens(seq, dataTypes) {
       },
 
       afterDestroy(inst /* , opts */) {
-        redisCache.del(inst.id);
-        redisCache.del(inst.name);
+        redisCache.del(`${constants.lensesRoute}/${inst.id}`);
+        redisCache.del(`${constants.lensesRoute}/${inst.name}`);
       },
 
+      /**
+       *  If installedBy is valid, reload to attach user object.
+       */
       afterCreate(inst /* , opts */) {
-        const lensObj = lensUtil.cleanAndCreateLensJson(inst);
-        redisCache.set(lensObj.id, JSON.stringify(lensObj));
-        redisCache.set(lensObj.name, JSON.stringify(lensObj));
+        if (inst.installedBy) {
+          const library = inst.library; // reload removes the library
+          inst.reload(Lens.options.defaultScope)
+          .then((reloadedInstance) => {
+            reloadedInstance.library = library;
+            setLensObjectInCache(reloadedInstance);
+          });
+        } else {
+          setLensObjectInCache(inst);
+        }
       },
 
+      /**
+       * Clear this record from the cache so that a fresh entry is populated
+       * from the API layer when the lens is fetched.
+       * Note: we don't just add inst to the cache from here because default
+       * scope excludes the "library" attribute, which obviously needs to be
+       * cached.
+       */
       afterUpdate(inst /* , opts */) {
-        // the inst object here does not include library field because of
-        // default scope. So, we delete the cache entry on update so that
-        // fresh entry is populated on API layer when lens is fetched.
-        redisCache.del(inst.id);
-        redisCache.del(inst.name);
+        // Clear the lens from the cache whether it's stored by id or by name.
+        redisCache.del(`${constants.lensesRoute}/${inst.id}`);
+        redisCache.del(`${constants.lensesRoute}/${inst.name}`);
       },
     },
     name: {
@@ -173,31 +203,111 @@ module.exports = function lens(seq, dataTypes) {
     },
     indexes: [
       {
-        name: 'LensUniqueLowercaseNameIsDeleted',
+        name: 'LensUniqueLowercaseName',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('name')),
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('name'))],
       },
     ],
-    instanceMethods: {
-      isWritableBy(who) {
-        return new seq.Promise((resolve /* , reject */) =>
-          this.getWriters()
-          .then((writers) => {
-            if (!writers.length) {
-              resolve(true);
-            }
-
-            const found = writers.filter((w) =>
-              w.name === who || w.id === who);
-            resolve(found.length === 1);
-          }));
-      }, // isWritableBy
-    },
-    paranoid: true,
     tableName: 'Lenses',
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Lens.getLensAssociations = function () {
+    return assoc;
+  };
+
+  Lens.getProfileAccessField = function () {
+    return 'lensAccess';
+  };
+
+  Lens.postImport = function (models) {
+    assoc.owner = Lens.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+    assoc.user = Lens.belongsTo(models.User, {
+      foreignKey: 'installedBy',
+      as: 'user',
+    });
+    assoc.writers = Lens.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'LensWriters',
+      foreignKey: 'lensId',
+    });
+
+    Lens.addScope('lensLibrary', {
+      attributes: { include: ['name', 'library'] },
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['id', 'name', 'email'],
+        },
+      ],
+    }, {
+      override: true,
+    });
+
+    Lens.addScope('baseScope', {
+      attributes: { exclude: ['library'] },
+      order: seq.col('name'),
+    });
+
+    Lens.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['id', 'name', 'email'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['id', 'name', 'email', 'fullName'],
+        },
+      ],
+      attributes: { exclude: ['library'] },
+      order: seq.col('name'),
+    }, {
+      override: true,
+    });
+
+    Lens.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['id', 'name', 'email'],
+        },
+      ],
+    });
+
+    Lens.addScope('user', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['id', 'name', 'email'],
+        },
+      ],
+    });
+  };
+
+  /**
+   * Instance Methods:
+   */
+
+  Lens.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getWriters()
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
   return Lens;
 };

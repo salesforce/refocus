@@ -26,6 +26,7 @@ module.exports = {
   sampleNameSeparator: '|',
   defaultJsonArrayValue: [],
   defaultArrayValue: [],
+  defaultJSONValue: {},
   statuses: {
     Critical: 'Critical',
     Invalid: 'Invalid',
@@ -35,10 +36,13 @@ module.exports = {
     OK: 'OK',
   },
   collectorStatuses: {
-    Stopped: 'Stopped',
-    Running: 'Running',
+    MissedHeartbeat: 'MissedHeartbeat',
     Paused: 'Paused',
+    Running: 'Running',
+    Stopped: 'Stopped',
   },
   SGEncryptionKey: 'SampleGeneratorEncryptionKey',
   SGEncryptionAlgorithm: 'SampleGeneratorEncryptionAlgorithm',
+  botsRoute: '/v1/bots',
+  lensesRoute: '/v1/lenses',
 };

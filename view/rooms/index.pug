@@ -10,27 +10,73 @@ html
   head
     title Refocus Room
     link(rel='shortcut icon', href='favicon.ico')
-    link(rel='stylesheet', type='text/css', href='../static/css/salesforce-lightning-design-system.min.css')
-  body
-    div.slds-page-header
-      div.slds-grid
-        div.slds-cols.slds-has-flexi-truncate
-          div.slds-media.slds-no-space.slds-grow
-            div.slds-media__body
-              h1#title.slds-page-header__title.slds-m-right--small.slds-align-middle
-              p#subTitle.slds-text-body_small.slds-line-height_reset
-    div
+    link(rel='stylesheet', type='text/css', href='/static/css/salesforce-lightning-design-system.2.4.3.min.css')
+    link(rel='stylesheet' type='text/css' href='../static/css/room.css')
+    block page-header
+      div.slds-page-header.slds-page-header_vertical.slds-theme_shade
+        div.slds-grid
+          div.slds-cols.slds-has-flexi-truncate
+            div.slds-media.slds-no-space.slds-grow
+              div.slds-media__body
+                div.slds-form-element(style='float: right')
+                  label.slds-checkbox_toggle.slds-grid
+                    input#activeToggle(type='checkbox', checked)
+                    span.slds-checkbox_faux_container
+                      span.slds-checkbox_faux
+                      span.slds-checkbox_on.slds-text-align--center Active
+                      span.slds-checkbox_off.slds-text-align--center Inactive
+                div.slds-grid.slds-grid_vertical-align-center
+                  div(style='vertical-align: middle')#backButton
+                    span.slds-icon_container.slds-icon-utility-change_owner.slds-chat-icon
+                      svg.slds-icon.slds-m-right_x-small.slds-icon_x-small(aria-hidden='true' style="fill: #000;")
+                        use(xlink:href='../static/icons/utility-sprite/svg/symbols.svg#left')
+                  div
+                    h1#title.slds-page-header__title.slds-m-right--small.slds-align-middle
+                    p#subTitle.slds-text-body_small.slds-line-height_reset
+    block container
       div#botsContainer.slds-grid.slds-grid_align-space.slds-wrap
-    div#loading_spinner
-      .slds-spinner_container
-        .slds-spinner--brand.slds-spinner.slds-spinner--medium(role='alert')
-          span.slds-assistive-text Loading
-          .slds-spinner__dot-a
-          .slds-spinner__dot-b
-
+        div#botsLeftColumn.slds-col.slds-large-size--1-of-3.slds-size--1-of-1
+        div#botsMiddleColumn.slds-col.slds-large-size--1-of-3.slds-size--1-of-1
+        div#botsRightColumn.slds-col.slds-large-size--1-of-3.slds-size--1-of-1
+    block spinner
+      div#loading_spinner
+        .slds-spinner_container
+          .slds-spinner--brand.slds-spinner.slds-spinner--medium(role='alert')
+            span.slds-assistive-text Loading
+            .slds-spinner__dot-a
+            .slds-spinner__dot-b
+    block activeToggleConfirmation
+      div#active_confirmation_modal(style='display: none')
+        section.slds-modal.slds-fade-in-open.slds-modal_prompt
+          div.slds-modal__container
+            header.slds-modal__header.slds-theme_info.slds-theme_alert-texture
+              h2.slds-text-heading_medium Confirmation Required
+            div.slds-modal__content.slds-p-around_medium
+              p#active_confirmation_text
+            footer.slds-modal__footer.slds-theme_default
+              button#confirm_button.slds-button.slds-button_neutral Yes
+              button#decline_button.slds-button.slds-button_neutral Cancel
+        div.slds-backdrop.slds-backdrop_open
+    block roomNotFoundNotification
+      div#room_not_found_modal(style='display: none;')
+        section.slds-modal.slds-fade-in-open.slds-modal_prompt
+          div.slds-modal__container
+            header.slds-modal__header.slds-theme_info.slds-theme_alert-texture
+              h2.slds-text-heading_medium Room Not Found
+            div.slds-modal__content.slds-p-around_medium
+              p#room_not_found_text
+            footer.slds-modal__footer.slds-theme_default
+              button#create_room_button.slds-button.slds-button_brand Create Room
+              button#room_list_button.slds-button.slds-button_neutral Go To Rooms List
+        div.slds-backdrop.slds-backdrop_open
+  script(src='/static/scripts/socket.io.js')
   script(src='/static/scripts/jquery-1.11.1.min.js')
   script(src='/static/scripts/moment.min.js')
   script.
+    var realtimeApplication = '#{realtimeApplicationImc}';
     var trackingId = '#{trackingId}';
+    var user = '#{user}';
+    var userSession = '#{userSession}';
+    var useNewNamespaceFormat = #{useNewNamespaceFormatImc};
   script(src='/static/analytics/app.js')
   script(src='/static/rooms/app.js')

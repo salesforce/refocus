@@ -11,15 +11,29 @@
  */
 const apiErrors = require('../api/v1/apiErrors');
 const constants = require('../api/v1/constants');
+const featureToggles = require('feature-toggles');
 
 /**
- * Given an array, return true if there
- * are duplicates. False otherwise.
+ * Logs with stack trace if toggle is on and there are invalid values in hmset
+ * object, otherwise has no effect.
  *
- * @param {Array} tagsArr The input array
- * @returns {Boolean} whether input array
- * contains duplicates
+ * @param {String} key The redis key to hmset the object
+ * @param {Object} obj The object from hmset
  */
+function logInvalidHmsetValues(key, obj) {
+  if (featureToggles.isFeatureEnabled('logInvalidHmsetValues')) {
+    for (const _key in obj) {
+      if (_key === null || obj[_key] === null ||
+        (obj[_key] === undefined) || Array.isArray(obj[_key])) {
+        // eslint-disable-next-line no-console
+        const stringified = JSON.stringify(obj, (k, v) => v === undefined ? 'undefined' : v);
+        console.trace('Invalid hmset params: key ' + key +
+          ' with invalid field: ' + _key + ', received: ' + stringified);
+        break;
+      }
+    }
+  }
+}
 
 /**
  * Check if read only field exists in given object
@@ -69,7 +83,47 @@ function looksLikeId(key) {
   return constants.POSTGRES_UUID_RE.test(key);
 }
 
+/**
+ * Validates that at least one of the given fields is present in object.
+ * @param  {Object} reqBody - Request body
+ * @param  {Array} fieldsArr - Fields array
+ * @throws {ValidationError} - If none of the given fields are present in object
+ */
+function validateAtLeastOneFieldPresent(reqBody, fieldsArr) {
+  if (!reqBody || !fieldsArr) {
+    throw new apiErrors.ValidationError(
+      { explanation: 'The arguments cannot be null or undefined' }
+    );
+  }
+
+  // reqBody should be object and fieldsArr should be a list
+  if ((typeof reqBody !== 'object' || Array.isArray(reqBody))  ||
+   !Array.isArray(fieldsArr)) {
+    throw new apiErrors.ValidationError(
+      { explanation: 'Invalid argument type' }
+    );
+  }
+
+  if (fieldsArr.length === 0) {
+    throw new apiErrors.ValidationError(
+      { explanation: 'Fields array cannot be empty' }
+    );
+  }
+
+  for (let i = 0; i < fieldsArr.length; i++) {
+    if (reqBody[fieldsArr[i]]) {
+      return;
+    }
+  }
+
+  throw new apiErrors.ValidationError(
+    { explanation: `At least one these attributes are required: ${fieldsArr}` }
+  );
+}
+
 module.exports = {
+  logInvalidHmsetValues,
   looksLikeId,
   noReadOnlyFieldsInReq,
+  validateAtLeastOneFieldPresent,
 };

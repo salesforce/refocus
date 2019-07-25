@@ -11,15 +11,19 @@
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
+require('chai').use(require('chai-as-promised')).should();
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const sinon = require('sinon');
 const gtUtil = u.gtUtil;
 const Generator = tu.db.Generator;
 const Collector = tu.db.Collector;
+const CollectorGroup = tu.db.CollectorGroup;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const GlobalConfig = tu.db.GlobalConfig;
 const cryptUtils = require('../../../../utils/cryptUtils');
 const constants = require('../../../../db/constants');
+const collectorStatuses = require('../../../../db/constants').collectorStatuses;
 
 describe('tests/db/model/generator/update.js >', () => {
   const generator = u.getGenerator();
@@ -29,35 +33,52 @@ describe('tests/db/model/generator/update.js >', () => {
   gtWithEncryption.contextDefinition.password.encrypted = true;
   gtWithEncryption.contextDefinition.token.encrypted = true;
 
+  const gtWithRequiredContextDef = gtUtil.getGeneratorTemplate();
+  gtWithRequiredContextDef.name = 'gtWithRequiredContextDef';
+  gtWithRequiredContextDef.contextDefinition.newRequireField = {
+    required: true,
+    description: 'New field for contextDefinition',
+  };
+
   let generatorDBInstance;
   let sgtDBInstance;
-  const collectorObj1 = {
+  let collectorObj1 = {
     name: 'collector1',
     version: '1.0.0',
   };
-  const collectorObj2 = {
+  let collectorObj2 = {
     name: 'collector2',
     version: '1.0.0',
   };
+  let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+
   before((done) => {
     GeneratorTemplate.create(gtWithEncryption)
+    .then(() => GeneratorTemplate.create(gtWithRequiredContextDef))
     .then(() => GeneratorTemplate.create(generatorTemplate))
     .then((o) => {
       sgtDBInstance = o;
-      return Generator.create(generator);
+      return Generator.create(generator, Generator.options.defaultScope);
     })
     .then((o) => {
       generatorDBInstance = o;
     })
     .then(() => Collector.create(collectorObj1))
     .then((c) => {
-      generatorDBInstance.addCollector(c.id);
+      collectorObj1 = c;
       return Collector.create(collectorObj2);
     })
     .then((c) => {
-      generatorDBInstance.addCollector(c.id);
-      done();
-    }).catch(done);
+      collectorObj2 = c;
+      collectorGroup1.collectors = [collectorObj1.name, collectorObj2.name];
+      return CollectorGroup.createCollectorGroup(collectorGroup1);
+    })
+    .then((cg) => {
+      collectorGroup1 = cg;
+      return generatorDBInstance.setCollectorGroup(collectorGroup1);
+    })
+    .then(() => done())
+    .catch(done);
   });
 
   after(u.forceDelete);
@@ -65,7 +86,7 @@ describe('tests/db/model/generator/update.js >', () => {
 
   it('ok, simple update should be fine', (done) => {
     generatorDBInstance.update({ name: 'New_Name' })
-    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => Generator.findByPk(generatorDBInstance.id))
     .then((o) => {
       expect(o.name).to.equal('New_Name');
       done();
@@ -76,7 +97,7 @@ describe('tests/db/model/generator/update.js >', () => {
   it('ok, context should not be encrypted when global config is not ' +
     'found', (done) => {
     generatorDBInstance.update({ context: { password: 'newPassword' } })
-    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => Generator.findByPk(generatorDBInstance.id))
     .then((o) => {
       expect(o.context.password).to.equal('newPassword');
       done();
@@ -93,13 +114,33 @@ describe('tests/db/model/generator/update.js >', () => {
         version: '^1.0.0',
       },
     }))
-    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => Generator.findByPk(generatorDBInstance.id))
     .then((o) => {
       expect(o.generatorTemplate.version).to.equal('^1.0.0');
       expect(o.generatorTemplate.name).to.equal('newName');
       done();
     })
     .catch(done);
+  });
+
+  it('not ok, generator cannot be updated without the required context ' +
+    'definition attribute defined in the generator template', (done) => {
+    generatorDBInstance.update({
+      generatorTemplate: {
+        name: gtWithRequiredContextDef.name,
+        version: '1.0.0',
+      },
+    })
+    .then(() => Generator.findByPk(generatorDBInstance.id))
+    .then(() => {
+      done('Expecting GeneratorTemplate not found error');
+    })
+    .catch((err) => {
+      expect(err.name).to.equal('MissingRequiredFieldError');
+      expect(err.explanation).to.equal('Missing the required generator ' +
+        'context field newRequireField');
+      done();
+    });
   });
 
   it('not ok, generator cannot be updated when generator template ' +
@@ -110,7 +151,7 @@ describe('tests/db/model/generator/update.js >', () => {
         version: '^99.0.0',
       },
     })
-    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => Generator.findByPk(generatorDBInstance.id))
     .then(() => {
       done('Expecting GeneratorTemplate not found error');
     })
@@ -131,7 +172,7 @@ describe('tests/db/model/generator/update.js >', () => {
         version: '>=1.1.0',
       },
     }))
-    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => Generator.findByPk(generatorDBInstance.id))
     .then((o) => {
       expect(o.generatorTemplate.version).to.equal('>=1.1.0');
       expect(o.generatorTemplate.name).to.equal('newName');
@@ -149,7 +190,7 @@ describe('tests/db/model/generator/update.js >', () => {
         version: '^1.2.3-alpha.10.beta',
       },
     }))
-    .then(() => Generator.findById(generatorDBInstance.id))
+    .then(() => Generator.findByPk(generatorDBInstance.id))
     .then((o) => {
       expect(o.generatorTemplate.version).to.equal('^1.2.3-alpha.10.beta');
       expect(o.generatorTemplate.name).to.equal('newName');
@@ -159,9 +200,9 @@ describe('tests/db/model/generator/update.js >', () => {
   });
 
   it('ok, generators should have the associated collectors', (done) => {
-    Generator.findById(generatorDBInstance.id)
-    .then((o) => o.getCollectors())
-    .then((collectors) => {
+    Generator.findByPk(generatorDBInstance.id)
+    .then((o) => {
+      const collectors = o.collectorGroup.collectors;
       expect(collectors.length).to.equal(2);
       expect(collectors[0].name).to.contain('collector');
       expect(collectors[1].name).to.contain('collector');
@@ -194,9 +235,41 @@ describe('tests/db/model/generator/update.js >', () => {
       done('Expecting Validation Error');
     })
     .catch((err) => {
-      expect(err.message).to.contain('Validation error: Validation is failed');
+      expect(err.message).to.contain(
+        'Validation error: Validation is on name failed'
+      );
       expect(err.name).to.contain('SequelizeValidationError');
       expect(err.errors.length).to.equal(2);
+      done();
+    });
+  });
+
+  it('not ok, invalid negative intervalSecs', (done) => {
+    generatorDBInstance.update({
+      intervalSecs: -1,
+    })
+    .then(() => done(new Error('Expecting Validation Error')))
+    .catch((err) => {
+      expect(err.message).to.contain(
+        'Validation error: Validation min on intervalSecs failed'
+      );
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors.length).to.equal(1);
+      done();
+    });
+  });
+
+  it('not ok, invalid non-integer intervalSecs', (done) => {
+    generatorDBInstance.update({
+      intervalSecs: 'abcd',
+    })
+    .then(() => done(new Error('Expecting Validation Error')))
+    .catch((err) => {
+      expect(err.message).to.contain(
+        'Validation error: Validation isInt on intervalSecs failed'
+      );
+      expect(err.name).to.contain('SequelizeValidationError');
+      expect(err.errors.length).to.equal(1);
       done();
     });
   });
@@ -223,7 +296,128 @@ describe('tests/db/model/generator/update.js >', () => {
     });
   });
 
-  describe('with GlobalConfig for SG/SGT added', () => {
+  describe('changing isActive reassigns collector > ', () => {
+    let clock;
+    let now = Date.now();
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers(now);
+      return collectorObj1.update({
+        lastHeartbeat: now,
+        status: collectorStatuses.Running,
+      });
+    });
+
+    afterEach(() => clock.restore());
+
+    it('turning on isActive assigns to a collector', () => {
+      const gen = generatorDBInstance;
+      return gen.reload()
+      .then(() => gen.update({ isActive: false }, { validate: false, hooks: false }))
+      .then(() => expect(gen.currentCollector).to.equal(null))
+      .then(() => gen.update({ isActive: true }))
+      .then(() => expect(gen.currentCollector.name).to.equal(collectorObj1.name))
+      .then(() => expect(gen.currentCollector.id).to.equal(collectorObj1.id));
+    });
+
+    it('turning off isActive unassigns the generator', () => {
+      const gen = generatorDBInstance;
+      return gen.reload()
+      .then(() => gen.update({ isActive: true }, { validate: false, hooks: false }))
+      .then(() => expect(gen.currentCollector.name).to.equal(collectorObj1.name))
+      .then(() => expect(gen.currentCollector.id).to.equal(collectorObj1.id))
+      .then(() => gen.update({ isActive: false }))
+      .then(() => expect(gen.currentCollector).to.equal(null));
+    });
+  });
+
+  describe('isActive validation', () => {
+    function doUpdate(changes) {
+      const initialCollectorsValue = changes.collectors.initial;
+      const initialIsActiveValue = {
+        isActive: changes.isActive.initial,
+      };
+      const updateValues = {
+        collectors: changes.collectors.update,
+        isActive: changes.isActive.update,
+      };
+
+      return Promise.resolve()
+      .then(() => Generator.findByPk(generatorDBInstance.id))
+      .then((gen) => gen.update(initialIsActiveValue, { validate: false }))
+      .then(() => Generator.findByPk(generatorDBInstance.id))
+      .then((gen) => gen.collectorGroup.setCollectors(initialCollectorsValue))
+      .then(() => Generator.findByPk(generatorDBInstance.id))
+      .then((gen) => {
+        if (updateValues.isActive !== undefined) {
+          return gen.update({ isActive: updateValues.isActive });
+        } else if (updateValues.collectors !== undefined) {
+          return gen.collectorGroup.setCollectors(updateValues.collectors);
+        }
+      });
+    }
+
+    it('existing collectors, set isActive', () =>
+      doUpdate({
+        collectors: { initial: [collectorObj1], },
+        isActive: { initial: false, update: true, },
+      }).should.eventually.be.fulfilled
+    );
+
+    it('existing collectors, unset isActive', () =>
+      doUpdate({
+        collectors: { initial: [collectorObj1], },
+        isActive: { initial: true, update: false, },
+      }).should.eventually.be.fulfilled
+    );
+
+    it('no existing collectors, set isActive', () =>
+      doUpdate({
+        collectors: { initial: [], },
+        isActive: { initial: false, update: true, },
+      }).should.eventually.be.rejectedWith(
+        'isActive can only be turned on if a collector group is specified ' +
+        'with at least one collector.'
+      )
+    );
+
+    it('no existing collectors, unset isActive', () =>
+      doUpdate({
+        collectors: { initial: [], },
+        isActive: { initial: true, update: false, },
+      }).should.eventually.be.fulfilled
+    );
+
+    it('isActive=false, set collectors', () =>
+      doUpdate({
+        isActive: { initial: false },
+        collectors: { initial: [], update: [collectorObj1] },
+      }).should.eventually.be.fulfilled
+    );
+
+    it('isActive=false, unset collectors', () =>
+      doUpdate({
+        isActive: { initial: false },
+        collectors: { initial: [collectorObj1], update: [] },
+      }).should.eventually.be.fulfilled
+    );
+
+    it('isActive=true, set collectors', () =>
+      doUpdate({
+        isActive: { initial: true },
+        collectors: { initial: [], update: [collectorObj1] },
+      }).should.eventually.be.fulfilled
+    );
+
+    it('isActive=true, unset collectors', () =>
+      doUpdate({
+        isActive: { initial: true },
+        collectors: { initial: [collectorObj1], update: [] },
+      }).should.eventually.be.fulfilled
+    );
+  });
+
+  describe('with GlobalConfig for SG/SGT added > ', () => {
     const secretKey = 'mySecretKey';
     const algorithm = 'aes-256-cbc';
     before((done) => {
@@ -257,7 +451,7 @@ describe('tests/db/model/generator/update.js >', () => {
           token: 'newToken',
         },
       }))
-      .then(() => Generator.findById(generatorDBInstance.id))
+      .then(() => Generator.findByPk(generatorDBInstance.id))
       .then((o) => {
         expect(o.generatorTemplate.version).to.equal('1.0.0');
         expect(o.generatorTemplate.name).to.equal(gtWithEncryption.name);

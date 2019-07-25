@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const path = '/v1/samples';
@@ -59,11 +59,12 @@ describe(`tests/cache/models/samples/put.js, api: cache: PUT ${path}`, () => {
   });
 
   afterEach(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   describe('unpublished subject/aspect fails >', () => {
     it('on unpublish subject, sample is removed from cache', (done) => {
-      tu.db.Subject.findById(subjectId).then((subject) =>
+      tu.db.Subject.findByPk(subjectId).then((subject) =>
         subject.update({ isPublished: false }))
       .then(() => redisOps.getHashPromise(redisOps.sampleType, sampleName))
       .then((sample) => {
@@ -73,7 +74,7 @@ describe(`tests/cache/models/samples/put.js, api: cache: PUT ${path}`, () => {
     });
 
     it('update to unpublished aspect fails', (done) => {
-      tu.db.Aspect.findById(aspectId).then((aspect) =>
+      tu.db.Aspect.findByPk(aspectId).then((aspect) =>
         aspect.update({ isPublished: false }))
       .then(() => {
         api.put(`${path}/${sampleName}`)
@@ -87,7 +88,7 @@ describe(`tests/cache/models/samples/put.js, api: cache: PUT ${path}`, () => {
 
           const _err = res.body.errors[ZERO];
           expect(_err.type).to.equal('ResourceNotFoundError');
-          expect(_err.description).to.equal('Aspect not found.');
+          expect(_err.description).to.equal('Sample not found.');
           done();
         });
       });
@@ -260,7 +261,7 @@ describe(`tests/cache/models/samples/put.js, api: cache: PUT ${path}`, () => {
         }
 
         expect(res.body).to.have.property('errors');
-        expect(res.body.errors[ZERO].description)
+        expect(res.body.errors[ZERO].message)
         .to.contain('Name of the relatedlinks should be unique');
         done();
       });

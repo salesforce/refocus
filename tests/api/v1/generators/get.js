@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -154,6 +154,21 @@ describe('tests/api/v1/generators/get.js >', () => {
       }
 
       expect(res.body.name).to.equal(generatorCritical.name);
+      done();
+    });
+  });
+
+  it('Simple GET with name and fields=intervalSecs', (done) => {
+    api.get(`${path}/${generatorCritical.name}?fields=intervalSecs`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body).to.have.keys('intervalSecs', 'id', 'apiLinks');
+      expect(res.body).to.have.property('intervalSecs', 60);
       done();
     });
   });

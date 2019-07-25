@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const path = '/v1/events';
@@ -25,19 +25,39 @@ const Event = tu.db.Event;
 const b = require('../../../db/model/bot/utils');
 const r = require('../../../db/model/room/utils');
 const rt = require('../../../db/model/roomType/utils');
+const DEFAULT_LIMIT = 100;
+const TOTAL_EVENTS = 150;
+const PRE_BUILT_EVENTS = 3;
 
 describe('tests/api/v1/events/get.js >', () => {
   let testEvent = u.getStandard();
   let testEventOutput;
-  let testEvent2 = u.getStandard();
-  let testEvent3 = u.getStandard();
+  const testEvent2 = u.getStandard();
+  testEvent2.context.type = 'Comment';
+  testEvent2.actionType = 'sendEmail';
+  testEvent2.log = 'Sample Event 2';
+  const testEvent3 = u.getStandard();
+  testEvent3.context.type = 'Comment';
+  testEvent3.log = 'Sample Event 3';
   let token;
 
+  // Figured out events being made elsewhere and not getting deleted.
+  // This gets a count of any events before the tests are run.
+  // We can then check our gets + this amount to get amount of events.
+  // That will be returned.
+  let OLD_EVENTS;
+
   before((done) => {
+    u.forceDelete(null, new Date());
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
-      done();
+    }).then(() => {
+      api.get(`${path}`)
+      .set('Authorization', token)
+      .then((res) => {
+        OLD_EVENTS = res.body.length;
+      }).then(() => done());
     })
     .catch(done);
   });
@@ -68,7 +88,6 @@ describe('tests/api/v1/events/get.js >', () => {
     .then(() => done())
     .catch(done);
   });
-
   afterEach(u.forceDelete);
   after(tu.forceDeleteToken);
 
@@ -81,7 +100,93 @@ describe('tests/api/v1/events/get.js >', () => {
         return done(err);
       }
 
-      expect(res.body.length).to.equal(THREE);
+      expect(res.body.length).to.equal(OLD_EVENTS + THREE);
+      done();
+    });
+  });
+
+  it('Pass, hit default limit', (done) => {
+    testEvent = u.getStandard();
+    const arrayofPromises = [];
+    for (let i = 0; i < TOTAL_EVENTS - PRE_BUILT_EVENTS; i++) {
+      arrayofPromises.push(Event.create(testEvent));
+    }
+
+    Promise.all(arrayofPromises)
+    .then((events) => {
+      api.get(`${path}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(DEFAULT_LIMIT);
+        done();
+      });
+    });
+  });
+
+  it('Pass, offset events', (done) => {
+    testEvent = u.getStandard();
+    const arrayofPromises = [];
+    for (let i = 0; i < TOTAL_EVENTS - PRE_BUILT_EVENTS; i++) {
+      arrayofPromises.push(Event.create(testEvent));
+    }
+
+    Promise.all(arrayofPromises)
+    .then((events) => {
+      api.get(`${path}?offset=${DEFAULT_LIMIT}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(OLD_EVENTS +
+         TOTAL_EVENTS - DEFAULT_LIMIT);
+        done();
+      });
+    });
+  });
+
+  it('Pass, set limit', (done) => {
+    testEvent = u.getStandard();
+    const arrayofPromises = [];
+    for (let i = 0; i < TOTAL_EVENTS - PRE_BUILT_EVENTS; i++) {
+      arrayofPromises.push(Event.create(testEvent));
+    }
+
+    Promise.all(arrayofPromises)
+    .then((events) => {
+      api.get(`${path}?limit=${TOTAL_EVENTS}`)
+      .set('Authorization', token)
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.length).to.equal(TOTAL_EVENTS);
+        done();
+      });
+    });
+  });
+
+  it('Pass, events should be sorted by createdAt', (done) => {
+    api.get(`${path}?sort=-createdAt`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body[0].log).to.equal(testEvent3.log);
+      expect(res.body[1].log).to.equal(testEvent2.log);
+      expect(res.body[2].log).to.equal(testEvent.log);
       done();
     });
   });
@@ -138,6 +243,49 @@ describe('tests/api/v1/events/get.js >', () => {
       }
 
       expect(res.body.log).to.equal(u.log);
+      expect(res.body.actionType).to.equal('EventType');
+      done();
+    });
+  });
+
+  it('Pass, get by context type', (done) => {
+    api.get(`${path}?type=Comment`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(TWO);
+      done();
+    });
+  });
+
+  it('Pass, get by actionType', (done) => {
+    api.get(`${path}?actionType=sendEmail`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(ONE);
+      done();
+    });
+  });
+
+  it('Pass, get by context type is not case sensitive', (done) => {
+    api.get(`${path}?type=comment`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(TWO);
       done();
     });
   });

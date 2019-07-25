@@ -13,10 +13,9 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const pub = require('../../cache/redisCache').client.pubPerspective;
 const dbconf = require('../../config').db;
 const channelName = require('../../config').redis.perspectiveChannelName;
-const revalidator = require('revalidator');
+const joi = require('joi');
 const ValidationError = require('../dbErrors').ValidationError;
 
 // jsonSchema keys for relatedLink
@@ -49,64 +48,6 @@ function checkDuplicatesInStringArray(arr) {
   const _set = new Set(arr);
   return _set.size !== arr.length;
 }
-
-/**
- * Takes a sample instance and enhances it with the subject instance and
- * aspect instance
- * @param {Sequelize} seq - A reference to Sequelize to have access to the
- * the Promise class.
- * @param {Instance} inst - The Sample Instance.
- * @returns {Promise} - Returns a promise which resolves to sample instance
- * enhanced with subject instance and aspect instance information.
- */
-function augmentSampleWithSubjectAspectInfo(seq, inst) {
-  return new seq.Promise((resolve, reject) => {
-    inst.getSubject()
-    .then((sub) => {
-      inst.dataValues.subject = sub;
-
-      // adding absolutePath to sample instance
-      if (sub) {
-        inst.dataValues.absolutePath = sub.absolutePath;
-      }
-
-      inst.subject = sub;
-    }).then(() => inst.getAspect())
-    .then((asp) => {
-      inst.dataValues.aspect = asp;
-      resolve(inst);
-    })
-    .catch((err) => reject(err));
-  });
-} // augmentSampleWithSubjectAspectInfo
-
-/**
- * This function checks if the aspect and subject associated with the sample
- * are published or not. It resolves to true when both the aspect and
- * the subject are published or false otherwise.
- *
- * @param {Sequelize} seq - A reference to Sequelize to have access to the
- * the Promise class.
- * @param {Instance} inst - The Sample Instance.
- * @returns {Promise} - Returns  a promise which resolves to true when both the
- * aspect and the subject are published or false otherwise.
- */
-function sampleAspectAndSubjectArePublished(seq, inst) {
-  return new seq.Promise((resolve, reject) => {
-    let asp;
-    let sub;
-    inst.getSubject()
-    .then((s) => {
-      sub = s;
-    })
-    .then(() => inst.getAspect())
-    .then((a) => {
-      asp = a;
-    })
-    .then(() => resolve(sub && asp && sub.isPublished && asp.isPublished))
-    .catch((err) => reject(err));
-  });
-} // sampleAspectAndSubjectArePublished
 
 /**
  * Create db log. Changed values will be empty in case of post.
@@ -154,64 +95,6 @@ function createDBLog(inst, eventType, changedKeys, ignoreAttributes) {
   // TODO: revisit this to fix logDB
   // logDB(instance, eventType, changedVals);
 }
-
-/**
- * This function returns an object to be published via redis channel
- * @param  {Object} inst  -  Model instance
-  @param  {[Array]} changedKeys - An array containing the fields of the model
- * that were changed
- * @param  {[Array]} ignoreAttributes An array containing the fields of the
- * model that should be ignored
- * @returns {Object} - Returns an object that is ready to be published Or null
- * if there are no changedfields.
- */
-function prepareToPublish(inst, changedKeys, ignoreAttributes) {
-  // prepare the data iff changed fields are not in ignoreAttributes
-  const ignoreSet = new Set(ignoreAttributes);
-  for (let i = 0; i < changedKeys.length; i++) {
-    if (!ignoreSet.has(changedKeys[i])) {
-      return {
-        old: inst._previousDataValues,
-        new: inst.get(),
-      };
-    }
-  }
-
-  return null;
-} // prepareToPublish
-
-/**
- * This function publishes an created, updated or a deleted model instance to
- * the redis channel and returns the object that was published
- *
- * @param  {Object} inst - Model instance to be published
- * @param  {String} event  - Type of the event that is being published
- * @param  {[Array]} changedKeys - An array containing the fields of the model
- * that were changed
- * @param  {[Array]} ignoreAttributes An array containing the fields of the
- * model that should be ignored
- * @returns {Object} - object that was published
- */
-function publishChange(inst, event, changedKeys, ignoreAttributes) {
-  const obj = {};
-  obj[event] = inst.get();
-
-  /**
-   * The shape of the object required for update events are a bit different.
-   * changedKeys and ignoreAttributes are passed in as arrays by the
-   * afterUpdate hooks of the models, which are passed to the prepareToPublish
-   * to get the object just for update events.
-   */
-  if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
-    obj[event] = prepareToPublish(inst, changedKeys, ignoreAttributes);
-  }
-
-  if (obj[event]) {
-    pub.publish(channelName, JSON.stringify(obj));
-  }
-
-  return obj;
-} // publishChange
 
 /**
  * The Json format of the relatedLink is validated against a pre-defined
@@ -264,11 +147,13 @@ function setIsDeleted(Promise, inst) {
  * @throws {ValidationError} If the object does not conform to the schema
  */
 function validateObject(object, schema) {
-  const options = { additionalProperties: false };
-  const result = revalidator.validate(object, schema, options);
-  if (!result.valid) {
-    // convert the error message to a readable string before throwing the error
-    throw new ValidationError(JSON.stringify(result.errors));
+  if (object === null || object === undefined) {
+    return;
+  }
+
+  const result = joi.validate(object, schema);
+  if (result.error) {
+    throw new ValidationError(result.error.message);
   }
 } // validateObject
 
@@ -279,6 +164,10 @@ function validateObject(object, schema) {
  * @throws {ValidationError} If the object does not pass the validation.
  */
 function validateContextDef(contextDef, requiredProps) {
+  if (contextDef === null || contextDef === undefined) {
+    return;
+  }
+
   const message = requiredProps.join(' and ');
   const keys = Object.keys(contextDef);
   for (let i = 0; i < keys.length; i++) {
@@ -291,16 +180,33 @@ function validateContextDef(contextDef, requiredProps) {
   }
 } // validateContextDef
 
+/**
+ * Determine whether the tags have changed by doing a deep comparison
+ * @param  {Object} inst - db instance
+ * @returns {Boolean}
+ */
+function tagsChanged(inst) {
+  let prevTags = inst.previous('tags') || [];
+  let currTags = inst.get('tags') || [];
+  if (!inst.changed('tags')) {
+    return false;
+  } else if (prevTags.length !== currTags.length) {
+    return true;
+  } else {
+    prevTags = prevTags.map(t => t.toLowerCase()).sort();
+    currTags = currTags.map(t => t.toLowerCase()).sort();
+    return !prevTags.every((prevVal, i) => prevVal === currTags[i]);
+  }
+} // tagsChanged
+
 module.exports = {
   checkDuplicatesInStringArray,
   dbconf,
   setIsDeleted,
-  publishChange,
-  sampleAspectAndSubjectArePublished,
-  augmentSampleWithSubjectAspectInfo,
   validateJsonSchema,
   createDBLog,
   changeType,
   validateObject,
   validateContextDef,
+  tagsChanged,
 }; // exports

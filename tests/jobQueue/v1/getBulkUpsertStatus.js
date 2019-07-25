@@ -14,7 +14,7 @@ const jobSetup = require('../../../jobQueue/setup');
 const jobQueue = jobSetup.jobQueue;
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const api = supertest(require('../../../index').app);
+const api = supertest(require('../../../express').app);
 const tu = require('../../testUtils');
 const u = require('./utils');
 const constants = require('../../../api/v1/constants');
@@ -23,18 +23,21 @@ const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 const getStatusPath = '/v1/samples/upsert/bulk/{jobId}/status';
 const bulkUpsertSamplesJob =
-  require('../../../worker/jobs/bulkUpsertSamplesJob');
+  require('../../../worker/jobs/bulkUpsertSamples');
+const timeoutMillis = 500;
 
 describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
 `api: GET ${getStatusPath} >`, () => {
-  let token;
+  before(() => jobSetup.resetJobQueue());
+  after(() => jobSetup.resetJobQueue());
 
+  let token;
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
-      done();
+      return done();
     })
     .catch((err) => done(err));
   });
@@ -51,7 +54,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
       isPublished: true,
       name: `${tu.namePrefix}Aspect2`,
       timeout: '10m',
-      valueType: 'BOOLEAN',
+      valueType: 'NUMERIC',
       okRange: [10, 100],
     }))
     .then(() => Subject.create({
@@ -62,6 +65,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     .catch((err) => done(err));
   });
 
+  before(u.populateRedis);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => {
@@ -93,15 +97,16 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULKUPSERTSAMPLES,
+      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
 
       /*
-       * the bulk api is asynchronous. The delay is used to give sometime for
-       * the upsert operation to complete
+       * Bulk API is asynchronous. The delay is used to give time for upsert
+       * operation to complete.
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -111,7 +116,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
           expect(res.body.errors.length).to.equal(0);
           done();
         });
-      }, 400);
+      }, timeoutMillis);
     });
   });
 
@@ -148,7 +153,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULKUPSERTSAMPLES,
+      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
 
       /*
@@ -157,6 +162,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -169,12 +175,11 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
 
           return done();
         });
-      }, 500);
+      }, timeoutMillis);
     });
   });
 
-  it('Even when lots of upserts fail, the valid upsert should ' +
-    ' be successful', (done) => {
+  it('Partial success', (done) => {
     let jobId;
     const toUpsert = [];
 
@@ -221,7 +226,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.BULKUPSERTSAMPLES,
+      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
 
       /*
@@ -230,6 +235,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
        */
       setTimeout(() => {
         api.get(getStatusPath.replace('{jobId}', jobId))
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -239,7 +245,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
           expect(res.body.errors.length).to.equal(40);
           return done();
         });
-      }, 500);
+      }, timeoutMillis);
     });
   });
 
@@ -247,7 +253,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
    * NOTE: this is an api test and it does not matter if cache is enabled or
    * not. So, this test does not need to be carried over to test/cache/jobQueue
    */
-  it('return 400 when getting a job not found', (done) => {
+  it('return 400 when job not found', (done) => {
     const someReallyLargeJobId = 99999;
     api.get(getStatusPath.replace('{jobId}', someReallyLargeJobId))
     .set('Authorization', token)

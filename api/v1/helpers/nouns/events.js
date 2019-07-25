@@ -22,4 +22,5 @@ module.exports = {
   baseUrl: '/v1/events',
   model: Events,
   modelName: 'events',
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const path = '/v1/samples';
@@ -44,6 +44,7 @@ describe('tests/cache/models/samples/delete.js >', () => {
 
     beforeEach(rtu.populateRedis);
     afterEach(rtu.forceDelete);
+    after(tu.forceDeleteUser);
     after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
     it('basic delete', (done) => {
@@ -64,12 +65,14 @@ describe('tests/cache/models/samples/delete.js >', () => {
         cmds.push(redisOps.getHashCmd(objectType.sample, sampleName));
         cmds.push(redisOps.keyExistsInIndexCmd(objectType.sample, sampleName));
         cmds.push(redisOps.aspExistsInSubjSetCmd(subjAspArr[0], subjAspArr[1]));
+        cmds.push(redisOps.subjAbsPathExistsInAspSetCmd(subjAspArr[1], subjAspArr[0]));
 
         redisOps.executeBatchCmds(cmds)
         .then((response) => {
           expect(response[0]).to.be.equal(null);
           expect(response[1]).to.be.equal(0);
           expect(response[2]).to.be.equal(0);
+          expect(response[3]).to.be.equal(0);
         });
         done();
       });
@@ -84,6 +87,7 @@ describe('tests/cache/models/samples/delete.js >', () => {
           return done(err);
         }
 
+        expect(res.body.updatedAt).to.be.gt(res.body.createdAt);
         expect(res.body.aspect).to.be.an('object');
         expect(tu.looksLikeId(res.body.aspectId)).to.be.true;
         expect(tu.looksLikeId(res.body.subjectId)).to.be.true;
@@ -191,6 +195,7 @@ describe('tests/cache/models/samples/delete.js >', () => {
     });
 
     afterEach(rtu.forceDelete);
+    after(tu.forceDeleteUser);
     after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
     it('delete all related links', (done) => {

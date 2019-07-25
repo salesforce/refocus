@@ -11,7 +11,7 @@
  *
  */
 'use strict'; // eslint-disable-line strict
-const jwtUtil = require('./jwtUtil');
+const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('./activityLog');
 
@@ -34,7 +34,8 @@ function getSize(obj) {
  * @param {Integer} [recordCountOverride] - override the
  * default recordCount. optional
  */
-function mapApiResultsToLogObject(resultObj, logObject, retval, recordCountOverride) {
+function mapApiResultsToLogObject(resultObj, logObject, retval,
+                                  recordCountOverride) {
   const { reqStartTime, dbTime } = resultObj;
 
   // set the totalTime: duration in ms between start time and now
@@ -89,38 +90,40 @@ function combineAndLog(resultObj, logObject, retval, recordCountOverride) {
  * @param {Object} req - the request object
  * @param {Object} resultObj - Object with the rest of the fields to print
  * @param {Object or Array} retval - the returned object
- * @param {Integer} [recordCountOverride] - override the
+ * @param {Integer} recordCountOverride - override the
  * default recordCount. optional
  */
 function logAPI(req, resultObj, retval, recordCountOverride) {
-  if (req && featureToggles.isFeatureEnabled('enableApiActivityLogs')) {
+  if (req && retval &&
+    featureToggles.isFeatureEnabled('enableApiActivityLogs')) {
     const obj = retval.get ? retval.get({ plain: true }) : retval;
 
     // create api activity log object
     const logObject = {
-      ipAddress: activityLogUtil.getIPAddrFromReq(req),
+      ipAddress: req.locals.ipAddress,
+      method: req.method,
+      process: req.process,
       requestBytes: getSize(req.body),
       uri: req.url,
-      method: req.method,
     };
 
-    // Add "request_id" if header is set by heroku.
-    if (req.headers && req.headers['x-request-id']) {
-      logObject.request_id = req.headers['x-request-id'];
+    // Add "request_id" if header is available
+    if (req.request_id) {
+      logObject.request_id = req.request_id;
     }
 
-    // If API token enabled, extract user, token to update log object
-    jwtUtil.getTokenDetailsFromRequest(req)
-    .then((resObj) => {
-      logObject.user = resObj.username;
-      logObject.token = resObj.tokenname;
+    // get user/token from headers
+    logObject.user = req.headers.UserName;
+    logObject.token = req.headers.TokenName;
 
-      // log with the token
-      combineAndLog(resultObj, logObject, obj, recordCountOverride);
-    })
-    .catch(() => combineAndLog(resultObj, logObject, obj, recordCountOverride));
+    // Add collector name when available (included in collector upsert)
+    if (req.headers['collector-name']) {
+      logObject.collector = req.headers['collector-name'];
+    }
+
+    combineAndLog(resultObj, logObject, obj, recordCountOverride);
   }
-}
+} // logAPI
 
 module.exports = {
   mapApiResultsToLogObject,

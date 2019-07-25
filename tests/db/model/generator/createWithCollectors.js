@@ -11,10 +11,12 @@
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
+require('chai').use(require('chai-as-promised')).should();
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const gtUtil = u.gtUtil;
 const Collector = tu.db.Collector;
+const CollectorGroup = tu.db.CollectorGroup;
 const Generator = tu.db.Generator;
 const GeneratorTemplate = tu.db.GeneratorTemplate;
 const ZERO = 0;
@@ -32,6 +34,8 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
   const generator = JSON.parse(JSON.stringify(u.getGenerator()));
   const generatorTemplate = gtUtil.getGeneratorTemplate();
 
+  let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+
   before((done) => {
     tu.createUser('GeneratorOwner')
     .then((user) => {
@@ -48,6 +52,10 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       collector1 = collectors[ZERO];
       collector2 = collectors[ONE];
       collector3 = collectors[TWO];
+      return CollectorGroup.create(collectorGroup1);
+    })
+    .then((cg) => {
+      collectorGroup1 = cg;
       done();
     })
     .catch(done);
@@ -65,16 +73,17 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
 
   it('ok, create with all fields', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
-    localGenerator.collectors = [
-      collector1.name,
-      collector2.name,
-      collector3.name,
-    ];
+    localGenerator.collectorGroup = collectorGroup1.name;
+    localGenerator.isActive = true;
 
-    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
+    // make collector1 alive
+    collectorGroup1.setCollectors([collector1, collector2, collector3])
+    .then(() => collector1.update({ status: 'Running', lastHeartbeat: Date.now() }))
+    .then(() => Generator.createWithCollectors(localGenerator))
     .then((o) => {
-      expect(o.collectors.length).to.equal(THREE);
-      const collectorNames = o.collectors.map((collector) => collector.name);
+      expect(o.collectorGroup.collectors.length).to.equal(THREE);
+      const collectorNames =
+        o.collectorGroup.collectors.map((collector) => collector.name);
       expect(collectorNames).to.contain(collector1.name);
       expect(collectorNames).to.contain(collector2.name);
       expect(collectorNames).to.contain(collector3.name);
@@ -89,56 +98,79 @@ describe('tests/db/model/generator/createWithCollectors.js >', () => {
       expect(o.helpUrl).to.equal(generator.helpUrl);
       expect(o.helpEmail).to.equal(generator.helpEmail);
       expect(o.createdBy).to.equal(generator.createdBy);
-      expect(o.isActive).to.equal(false);
+      expect(o.isActive).to.equal(true);
       expect(o.generatorTemplate.name).to.equal('refocus-ok-template');
       expect(o.generatorTemplate.version).to.equal('1.0.0');
       expect(typeof o.getWriters).to.equal('function');
-      expect(typeof o.getCollectors).to.equal('function');
+      expect(typeof o.getCollectorGroup).to.equal('function');
+      expect(o.currentCollector.name).to.equal(collector1.name);
+      expect(o.currentCollector.id).to.equal(collector1.id);
       done();
     })
     .catch(done);
   });
 
-  it('400 error with duplicate collectors in request body', (done) => {
+  it('404 error for request body with a non-existant collectorGroup', (done) => {
     const localGenerator = JSON.parse(JSON.stringify(generator));
-    localGenerator.collectors = [collector1.name, collector1.name];
-    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
-    .then((o) => done(new Error('Expected DuplicateCollectorError, received', o)))
+    localGenerator.collectorGroup = 'iDontExist';
+    Generator.createWithCollectors(localGenerator)
+    .then((o) => done(new Error('Expected ResourceNotFoundError, ' +
+      'received', o)))
     .catch((err) => {
-      expect(err.status).to.equal(u.BAD_REQUEST_STATUS_CODE);
-      expect(err.name).to.equal('DuplicateCollectorError');
-      expect(err.resourceType).to.equal('Collector');
-      expect(err.resourceKey).to.deep.equal(localGenerator.collectors);
+      expect(err.status).to.equal(u.NOT_FOUND_STATUS_CODE);
+      expect(err.name).to.equal('ResourceNotFoundError');
+      expect(err.resourceType).to.equal('CollectorGroup');
+      expect(err.resourceKey).to.deep.equal(localGenerator.collectorGroup);
       done();
     });
   });
 
-  it('404 error for request body with an non-existant collector', (done) => {
-    const localGenerator = JSON.parse(JSON.stringify(generator));
-    localGenerator.collectors = ['iDontExist'];
-    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
-    .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
-    .catch((err) => {
-      expect(err.status).to.equal(u.NOT_FOUND_STATUS_CODE);
-      expect(err.name).to.equal('ResourceNotFoundError');
-      expect(err.resourceType).to.equal('Collector');
-      expect(err.resourceKey).to.deep.equal(localGenerator.collectors);
-      done();
-    });
-  });
+  describe('isActive validation', () => {
+    it('collectors specified, isActive=false', () => {
+      const gen = u.getGenerator();
+      gen.collectorGroup = collectorGroup1.name;
+      gen.isActive = false;
 
-  it('404 error for request body with an existing and a ' +
-    'non-existant collector', (done) => {
-    const localGenerator = JSON.parse(JSON.stringify(generator));
-    localGenerator.collectors = [collector1.name, 'iDontExist'];
-    Generator.createWithCollectors(localGenerator, u.whereClauseForNameInArr)
-    .then((o) => done(new Error('Expected ResourceNotFoundError, received', o)))
-    .catch((err) => {
-      expect(err.status).to.equal(u.NOT_FOUND_STATUS_CODE);
-      expect(err.name).to.equal('ResourceNotFoundError');
-      expect(err.resourceType).to.equal('Collector');
-      expect(err.resourceKey).to.deep.equal(localGenerator.collectors);
-      done();
+      return collectorGroup1.setCollectors([collector1, collector2])
+        .then(() => Generator.createWithCollectors(gen))
+        .should.eventually.be.fulfilled;
+    });
+
+    it('collectors specified, isActive=true', () => {
+      const gen = u.getGenerator();
+      gen.collectorGroup = collectorGroup1.name;
+      gen.isActive = true;
+
+      return collectorGroup1.setCollectors([collector1, collector2])
+        .then(() => Generator.createWithCollectors(gen))
+        .should.eventually.be.fulfilled;
+    });
+
+    it('no collectors, isActive=false', () => {
+      const gen = u.getGenerator();
+      gen.collectorGroup = collectorGroup1.name;
+      gen.isActive = false;
+
+      return collectorGroup1.setCollectors([])
+        .then(() => Generator.createWithCollectors(gen))
+        .should.eventually.be.fulfilled;
+    });
+
+    it('no collectors, isActive=true (validation fails)', () => {
+      const gen = u.getGenerator();
+      gen.collectorGroup = collectorGroup1.name;
+      gen.isActive = true;
+
+      return collectorGroup1.setCollectors([])
+      .then(() => Generator.createWithCollectors(gen))
+      .should.eventually.be.rejectedWith(
+        'isActive can only be turned on if a collector group is specified ' +
+        'with at least one collector.'
+      )
+
+      // make sure that when validation fails the generator is not created
+      .then(() => Generator.findOne({ where: { name: gen.name } }))
+      .should.eventually.not.exist;
     });
   });
 });

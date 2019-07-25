@@ -11,12 +11,12 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert';
@@ -59,6 +59,7 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
     .catch(done);
   });
 
+  beforeEach(u.populateRedis);
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -117,7 +118,7 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
 
     // unpublish the subject
     beforeEach((done) => {
-      Subject.findById(subject.id)
+      Subject.findByPk(subject.id)
       .then((subjectOne) => subjectOne.update({
         isPublished: false,
       }))
@@ -151,7 +152,7 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
 
     // unpublish the aspects
     beforeEach((done) => {
-      Aspect.findById(aspect.id)
+      Aspect.findByPk(aspect.id)
       .then((aspectOne) => aspectOne.update({
         isPublished: false,
       }))
@@ -292,8 +293,8 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
           return done(err);
         }
 
-        const { source, description } = res.body.errors[0];
-        expect(description)
+        const { source, message } = res.body.errors[0];
+        expect(message)
           .to.contain('Name of the relatedlinks should be unique');
         expect(source).to.equal('Sample');
         done();
@@ -446,7 +447,8 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
         value: '2',
       })
       .then(() => {
-        api.get('/v1/samples?name=' + `${subject.absolutePath}|${aspect.name}`)
+        api.get(`/v1/samples?name=${subject.absolutePath}|${aspect.name}`)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -476,25 +478,6 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
 
           expect(res.body.errors[0].description)
           .to.contain('You cannot modify the read-only field: status');
-          return done();
-        });
-      });
-
-      it('isDeleted', (done) => {
-        api.post(path)
-        .set('Authorization', token)
-        .send({
-          name: `${subject.absolutePath}|${aspect.name}`,
-          isDeleted: 0,
-        })
-        .expect(constants.httpStatus.BAD_REQUEST)
-        .end((err, res) => {
-          if (err) {
-            return done(err);
-          }
-
-          expect(res.body.errors[0].description)
-          .to.contain('You cannot modify the read-only field: isDeleted');
           return done();
         });
       });

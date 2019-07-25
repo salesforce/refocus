@@ -20,21 +20,10 @@ describe('tests/db/model/generatortemplate/delete.js >', () => {
 
   afterEach(u.forceDelete);
 
-  it('ok, soft delete successful', (done) => {
-    GeneratorTemplate.create(gt)
-    .then((o) => o.destroy())
-    .then((o) => {
-      expect(o.deletedAt).to.not.equal(null);
-      expect(o.isDeleted).to.not.equal(null);
-      done();
-    })
-    .catch(done);
-  });
-
   it('ok, should not be able to find a template once deleted', (done) => {
     GeneratorTemplate.create(gt)
     .then((o) => o.destroy())
-    .then((o) => GeneratorTemplate.findById(o.id))
+    .then((o) => GeneratorTemplate.findByPk(o.id))
     .then((o) => {
       expect(o).to.equal(null);
       done();
@@ -47,10 +36,8 @@ describe('tests/db/model/generatortemplate/delete.js >', () => {
     GeneratorTemplate.create(gt)
     .then((o) => o.destroy())
     .then(() => GeneratorTemplate.create(gt))
-    .then((o) => {
-      expect(o.isDeleted).to.equal('0');
-      done();
-    })
+    .then((created) => expect(created).to.have.property('id'))
+    .then(() => done())
     .catch(done);
   });
 });

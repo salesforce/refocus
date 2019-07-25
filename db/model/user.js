@@ -17,6 +17,7 @@ const AdminUpdateDeleteForbidden = require('../dbErrors')
   .AdminUpdateDeleteForbidden;
 
 const usernameLength = 254;
+const fullNameLength = 256;
 const assoc = {};
 
 // TODO implement "decryptPassword" functions
@@ -40,6 +41,10 @@ module.exports = function user(seq, dataTypes) {
       defaultValue: 0,
       allowNull: false,
     },
+    lastLogin: {
+      type: dataTypes.DATE,
+      defaultValue: Date.now(),
+    },
     name: {
       type: dataTypes.STRING(usernameLength),
       allowNull: false,
@@ -52,96 +57,11 @@ module.exports = function user(seq, dataTypes) {
       type: dataTypes.BOOLEAN,
       defaultValue: false,
     },
-  }, {
-    classMethods: {
-      getUserAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'userAccess';
-      },
-
-      postImport(models) {
-        assoc.createdBy = User.belongsTo(models.User, {
-          foreignKey: 'createdBy',
-        });
-        assoc.profile = User.belongsTo(models.Profile, {
-          as: 'profile',
-          foreignKey: {
-            name: 'profileId',
-            allowNull: false,
-          },
-          hooks: true,
-        });
-
-        assoc.writableGeneratorTemplates =
-          User.belongsToMany(models.GeneratorTemplate, {
-            as: 'writableGeneratorTemplates',
-            through: 'GeneratorTemplateWriters',
-            foreignKey: 'userId',
-          });
-        assoc.writableGenerators =
-          User.belongsToMany(models.Generator, {
-            as: 'writableGenerators',
-            through: 'GeneratorWriters',
-            foreignKey: 'userId',
-          });
-        assoc.writableAspects = User.belongsToMany(models.Aspect, {
-          as: 'writableAspects',
-          through: 'AspectWriters',
-          foreignKey: 'userId',
-        });
-        assoc.writableLenses = User.belongsToMany(models.Lens, {
-          as: 'writableLenses',
-          through: 'LensWriters',
-          foreignKey: 'userId',
-        });
-        assoc.writablePerspectives = User.belongsToMany(models.Perspective, {
-          as: 'writablePerspectives',
-          through: 'PerspectiveWriters',
-          foreignKey: 'userId',
-        });
-        assoc.writableSubjects = User.belongsToMany(models.Subject, {
-          as: 'writableSubjects',
-          through: 'SubjectWriters',
-          foreignKey: 'userId',
-        });
-        assoc.writableCollectors = User.belongsToMany(models.Collector, {
-          as: 'writableCollectors',
-          through: 'CollectorWriters',
-          foreignKey: 'userId',
-        });
-        assoc.tokens = User.hasMany(models.Token, {
-          as: 'tokens',
-          foreignKey: 'createdBy',
-          hooks: true,
-        });
-        User.addScope('defaultScope', {
-          attributes: {
-            exclude: ['password'],
-          },
-          include: [
-            {
-              association: assoc.profile,
-              attributes: ['name'],
-            },
-          ],
-          order: ['User.name'],
-        }, {
-          override: true,
-        });
-        User.addScope('withSensitiveInfo', {
-          include: [
-            {
-              association: assoc.profile,
-              attributes: ['name'],
-            },
-          ],
-          order: ['User.name'],
-        });
-      },
+    fullName: {
+      type: dataTypes.STRING(fullNameLength),
+      allowNull: true,
     },
+  }, {
     hooks: {
 
       /**
@@ -155,7 +75,7 @@ module.exports = function user(seq, dataTypes) {
         return new seq.Promise((resolve, reject) =>
           u.hashPassword(seq, inst.get('password'))
           .then((hash) => inst.set('password', hash))
-          .then(() => seq.models.Profile.findById(inst.profileId))
+          .then(() => seq.models.Profile.findByPk(inst.profileId))
           .then((p) => p.increment('userCount'))
           .then(() => resolve(inst))
           .catch((err) => reject(err))
@@ -215,7 +135,7 @@ module.exports = function user(seq, dataTypes) {
             inst.getProfile()
             .then((p) => p.increment('userCount'))
             .then(() => inst.previous('profileId'))
-            .then((v) => seq.models.Profile.findById(v))
+            .then((v) => seq.models.Profile.findByPk(v))
             .then((prev) => prev.decrement('userCount'))
             .then(() => resolve(inst))
             .catch((err) => reject(err))
@@ -275,7 +195,7 @@ module.exports = function user(seq, dataTypes) {
         } else {
           const _this = this;
           return new seq.Promise((resolve, reject) =>
-            seq.models.Profile.findById(_this.profileId)
+            seq.models.Profile.findByPk(_this.profileId)
             .then((p) => {
               if (p) {
                 if (Number(p.isDeleted) === 0) {
@@ -295,5 +215,147 @@ module.exports = function user(seq, dataTypes) {
 
     },
   });
+
+  /**
+   * Class Methods:
+   */
+
+  User.getUserAssociations = function () {
+    return assoc;
+  };
+
+  User.getProfileAccessField = function () {
+    return 'userAccess';
+  };
+
+  User.postImport = function (models) {
+    assoc.createdBy = User.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+    });
+    assoc.profile = User.belongsTo(models.Profile, {
+      as: 'profile',
+      foreignKey: {
+        name: 'profileId',
+        allowNull: false,
+      },
+      hooks: true,
+    });
+
+    assoc.writableGeneratorTemplates =
+      User.belongsToMany(models.GeneratorTemplate, {
+        as: 'writableGeneratorTemplates',
+        through: 'GeneratorTemplateWriters',
+        foreignKey: 'userId',
+      });
+    assoc.writableGenerators =
+      User.belongsToMany(models.Generator, {
+        as: 'writableGenerators',
+        through: 'GeneratorWriters',
+        foreignKey: 'userId',
+      });
+    assoc.writableAspects = User.belongsToMany(models.Aspect, {
+      as: 'writableAspects',
+      through: 'AspectWriters',
+      foreignKey: 'userId',
+    });
+    assoc.writableLenses = User.belongsToMany(models.Lens, {
+      as: 'writableLenses',
+      through: 'LensWriters',
+      foreignKey: 'userId',
+    });
+    assoc.writablePerspectives = User.belongsToMany(models.Perspective, {
+      as: 'writablePerspectives',
+      through: 'PerspectiveWriters',
+      foreignKey: 'userId',
+    });
+    assoc.writableSubjects = User.belongsToMany(models.Subject, {
+      as: 'writableSubjects',
+      through: 'SubjectWriters',
+      foreignKey: 'userId',
+    });
+    assoc.writableCollectors = User.belongsToMany(models.Collector, {
+      as: 'writableCollectors',
+      through: 'CollectorWriters',
+      foreignKey: 'userId',
+    });
+    assoc.writableCollectorGroups = User.belongsToMany(models.CollectorGroup, {
+      as: 'writableCollectorGroups',
+      through: 'CollectorGroupWriters',
+      foreignKey: 'userId',
+    });
+    assoc.writableBots = User.belongsToMany(models.Bot, {
+      as: 'writableBots',
+      through: 'BotWriters',
+      foreignKey: 'UserId',
+    });
+    assoc.writableRoomTypes = User.belongsToMany(models.RoomType, {
+      as: 'writableRoomTypes',
+      through: 'RoomTypeWriters',
+      foreignKey: 'UserId',
+    });
+    assoc.writableRooms = User.belongsToMany(models.Room, {
+      as: 'writableRooms',
+      through: 'RoomWriters',
+      foreignKey: 'UserId',
+    });
+    assoc.writableBotDatas = User.belongsToMany(models.BotData, {
+      as: 'writableBotDatas',
+      through: 'BotDataWriters',
+      foreignKey: 'UserId',
+    });
+    assoc.tokens = User.hasMany(models.Token, {
+      as: 'tokens',
+      foreignKey: 'createdBy',
+      hooks: true,
+    });
+
+    User.addScope('baseScope', {
+      attributes: {
+        exclude: ['password'],
+      },
+      order: seq.col('name'),
+    });
+
+    User.addScope('defaultScope', {
+      attributes: {
+        exclude: ['password'],
+      },
+      include: [
+        {
+          association: assoc.profile,
+          attributes: ['id', 'name'],
+        },
+      ],
+      order: seq.col('name'),
+    }, {
+      override: true,
+    });
+
+    User.addScope('profile', {
+      include: [
+        {
+          association: assoc.profile,
+          attributes: ['id', 'name'],
+        },
+      ],
+    });
+    User.addScope('withSensitiveInfo', {
+      include: [
+        {
+          association: assoc.profile,
+          attributes: ['id', 'name'],
+        },
+      ],
+      order: seq.col('name'),
+    });
+  };
+
+  User.prototype.setLastLogin = function (lastLogin) {
+    return new Promise((resolve, reject) =>
+      this.update({ lastLogin: lastLogin || Date.now() })
+      .then(resolve)
+      .catch(reject));
+  }; // setLastLogin
+
   return User;
 };

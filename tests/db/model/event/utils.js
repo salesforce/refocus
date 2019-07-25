@@ -13,12 +13,14 @@
 const tu = require('../../../testUtils');
 const testStartTime = new Date();
 const logLine = 'Sample Event';
+const Op = require('sequelize').Op;
 
 const standard = {
   log: logLine,
   context: {
     Sample: 'DATA',
   },
+  actionType: 'EventType',
 };
 
 module.exports = {
@@ -36,8 +38,8 @@ module.exports = {
     tu.db.Event.destroy({
       where: {
         createdAt: {
-          $lt: new Date(),
-          $gte: testStartTime,
+          [Op.lt]: new Date(),
+          [Op.gte]: testStartTime,
         },
       },
       force: true,

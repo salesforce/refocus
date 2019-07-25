@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -58,6 +58,7 @@ describe('tests/cache/models/samples/patchWithoutPerms.js, ' +
   });
 
   after(rtu.forceDelete);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('patching without permission should return 403 status', (done) => {

@@ -9,13 +9,17 @@
 /**
  * api/v1/helpers/verbs/findUtils.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const u = require('./utils');
 const get = require('just-safe-get');
 const constants = require('../../constants');
 const defaults = require('../../../../config').api.defaults;
 const ZERO = 0;
 const ONE = 1;
+const MINUS_ONE = -1;
+const RADIX = 10;
+const Op = require('sequelize').Op;
+const ms = require('ms');
 
 /**
  * Escapes all percent literals so they're not treated as wildcards.
@@ -74,20 +78,20 @@ function convertArrayElementsToCamelCase(arr) {
 }
 
 /**
- * Transforms the value into a Sequelize where clause using "$ilike" for
+ * Transforms the value into a Sequelize where clause using "$iLike" for
  *  case-insensitive string matching
  *
  * @param {String} val - The value to transform into a Sequelize where clause
  * @param {Object} props - The helpers/nouns module for the given DB model.
- * @returns {Object} a Sequelize where clause using "$ilike" for
+ * @returns {Object} a Sequelize where clause using "$iLike" for
  *  case-insensitive string matching
  */
 function toWhereClause(val, props) {
 
-  // given array, return { $in: array }
+  // given array, return { [Op.in]: array }
   if (Array.isArray(val) && props.isEnum) {
     const inClause = {};
-    inClause[constants.SEQ_IN] = val;
+    inClause[Op.in] = val;
     return inClause;
   }
 
@@ -115,11 +119,11 @@ function toWhereClause(val, props) {
     const whereClause = {};
     if (INCLUDE) {
       whereClause[tags] = {};
-      whereClause[tags][constants.SEQ_CONTAINS] = val;
+      whereClause[tags][Op.contains] = val;
     } else { // EXCLUDE
-      whereClause[constants.SEQ_NOT] = {};
-      whereClause[constants.SEQ_NOT][tags] = {};
-      whereClause[constants.SEQ_NOT][tags][constants.SEQ_OVERLAP] = val;
+      whereClause[Op.not] = {};
+      whereClause[Op.not][tags] = {};
+      whereClause[Op.not][tags][Op.overlap] = val;
     }
 
     return whereClause;
@@ -134,7 +138,7 @@ function toWhereClause(val, props) {
   val = escapePercentLiterals(val);
   val = escapeUnderscoreLiterals(val);
   val = toSequelizeWildcards(val);
-  clause[constants.SEQ_LIKE] = val;
+  clause[Op.iLike] = val;
   return clause;
 } // toWhereClause
 
@@ -152,69 +156,81 @@ function toSequelizeWhere(filter, props) {
 
   for (let i = ZERO; i < keys.length; i++) {
     const key = keys[i];
-    if (filter[key] !== undefined) {
-      if (!Array.isArray(filter[key])) {
-        filter[key] = [filter[key]];
-      }
-
-      const values = [];
-
-      /*
-       * If enum filter is enabled and key is an enumerable field
-       * then create an "in"
-       * clause and add it to where clause, e.g.
-       * {
-       *  where: {
-            valueType: { $in: ["PERCENT", "BOOLEAN"] },
-          },
-       * }
-       */
-      if (Array.isArray(props.fieldsWithEnum) &&
-        props.fieldsWithEnum.indexOf(key) > -ONE) {
-
-        // if specified in props, convert the array in query to camelcase.
-        const enumArr = (props.fieldsToCamelCase &&
-          props.fieldsToCamelCase.indexOf(key) > -ONE) ?
-          convertArrayElementsToCamelCase(filter[key]) : filter[key];
-
-        // to use $in instead of $contains in toWhereClause
-        props.isEnum = true;
-        values.push(toWhereClause(enumArr, props));
-        where[key] = values[ZERO];
-      }
-
-      /*
-       * If tag filter is enabled and key is "tags":
-       * If it's an inclusion, create a "contains" clause:
-       * { where : { tags: { '$contains': ['tag1', 'tag2'] }}}
-       * If it's an exclusion, create a "not" "overlap" clause:
-       * { where : { '$not': { tags: { '$overlap': ['tag1', 'tag2'] }}}}}
-       */
-      else if (props.tagFilterName && key === props.tagFilterName) {
-        const tagArr = filter[key];
-        Object.assign(where, toWhereClause(tagArr, props));
+    let filterKeyValue = filter[key];
+    if (filterKeyValue !== undefined) {
+      if (props.timePeriodFilters &&
+        props.timePeriodFilters.includes(key)) {
+        const whereClause = {};
+        whereClause[Op.lte] = new Date();
+        whereClause[Op.gte] = new Date(Date.now() + ms(filterKeyValue));
+        where[key] = whereClause;
       } else {
-        for (let j = ZERO; j < filter[key].length; j++) {
-          const v = filter[key][j];
-          if (typeof v === 'boolean') {
-            values.push(v);
-          } else if (typeof v === 'number') {
-            values.push(v);
-          } else if (u.looksLikeId(v)) {
-            values.push(v);
-          } else if (typeof v === 'string') {
-            const arr = v.split(constants.COMMA);
-            for (let k = ZERO; k < arr.length; k++) {
-              values.push(toWhereClause(arr[k]));
-            }
-          }
+        if (!Array.isArray(filterKeyValue)) {
+          filterKeyValue = [filterKeyValue];
         }
 
-        if (values.length === ONE) {
+        const values = [];
+
+        /*
+         * If enum filter is enabled and key is an enumerable field
+         * then create an "in"
+         * clause and add it to where clause, e.g.
+         * {
+         *  where: {
+              valueType: { [Op.in]: ["PERCENT", "BOOLEAN"] },
+            },
+         * }
+         */
+        if (Array.isArray(props.fieldsWithEnum) &&
+          props.fieldsWithEnum.indexOf(key) > -ONE) {
+          // if specified in props, convert the array in query to camelcase.
+          const enumArr = (props.fieldsToCamelCase &&
+            props.fieldsToCamelCase.indexOf(key) > -ONE) ?
+            convertArrayElementsToCamelCase(filterKeyValue) : filterKeyValue;
+
+          // to use $in instead of $contains in toWhereClause
+          props.isEnum = true;
+          values.push(toWhereClause(enumArr, props));
           where[key] = values[ZERO];
-        } else if (values.length > ONE) {
-          where[key] = {};
-          where[key][constants.SEQ_OR] = values;
+        }
+
+        /*
+         * If tag filter is enabled and key is "tags":
+         * If it's an inclusion, create a "contains" clause:
+         * { where : { tags: { '$contains': ['tag1', 'tag2'] }}}
+         * If it's an exclusion, create a "not" "overlap" clause:
+         * { where : { '$not': { tags: { '$overlap': ['tag1', 'tag2'] }}}}}
+         */
+        else if (props.tagFilterName && key === props.tagFilterName) {
+          const tagArr = filterKeyValue;
+          Object.assign(where, toWhereClause(tagArr, props));
+        } else {
+          for (let j = ZERO; j < filterKeyValue.length; j++) {
+            const v = filterKeyValue[j];
+            if (typeof v === 'boolean') {
+              values.push(v);
+            } else if (typeof v === 'number') {
+              values.push(v);
+            } else if (u.looksLikeId(v)) {
+              values.push(v);
+            } else if (typeof v === 'string') {
+              const arr = v.split(constants.COMMA);
+              for (let k = ZERO; k < arr.length; k++) {
+                values.push(toWhereClause(arr[k]));
+              }
+            } else if (typeof v === 'object') {
+              for (const p in v) {
+                values.push({ [p]: toWhereClause(v[p]) });
+              }
+            }
+          }
+
+          if (values.length === ONE) {
+            where[key] = values[ZERO];
+          } else if (values.length > ONE) {
+            where[key] = {};
+            where[key][Op.or] = values;
+          }
         }
       }
     }
@@ -247,7 +263,83 @@ function toSequelizeOrder(sortOrder) {
 } // toSequelizeOrder
 
 /**
- * Builds the "options" object to pass intto the Sequelize find command.
+ * Check for unique field in opts.
+ *
+ * Unique field is 'name' by default and can be overwrite via
+ * adding attribute nameFinder into the respective noun. see /noun/subject.
+ *
+ * If unique field is present and the noun does require SQL limit, there are
+ * the following cases:
+ *
+ * 1) Unique field has single value without wildcard: set limit to 1.
+ *    Eg: opts = { where: { [Op.iLike]: { UniqueFieldName: 'someValue' } } };
+ *    Limit: 1
+ *
+ * 2) Unique field can have multiple values - set limit to the number of values
+ *    Eg: opts = {
+ *      where:
+ *      {
+ *        UniqueFieldName: {
+ *          [Op.or]: [
+ *            { [Op.iLike]: 'someName1' }, { [Op.iLike]: 'someName2' },
+ *          ],
+ *        },
+ *      }
+ *    };
+ *    limit = 2.
+ *
+ * 3) Unique field has single value with wildcard: limit unchanged.
+ *    Eg: opts = { where: { [Op.iLike]: { UniqueFieldName: '%someValue%' } } };
+ *
+ * 4) Unique field has multiple values of which has wildcard: limit unchanged
+ *    Eg: opts = {
+ *        where: {
+ *          UniqueFieldName: {
+ *            [Op.or]: [
+ *              { [Op.iLike]: 'someName1' }, { [Op.iLike]: '%someName%' },
+ *            ] },
+ *        }
+ *      };
+ *
+ * It is assumed that each field value will have $iLike operator applied.
+ * @param  {Object} opts - Query options object
+ * @param  {Object} props - The helpers/nouns module for the given DB model
+ */
+function applyLimitIfUniqueField(opts, props) {
+  /*
+   * Attribute hasMultipartKey is a temp workaround until we define
+   * the best way to NOT change/restrict limit when unique field is the default
+   * (name) for some nouns.
+   */
+  if (props.hasMultipartKey) return;
+
+  const uniqueFieldName = props.nameFinder || 'name';
+  if (opts.where && opts.where[uniqueFieldName]) {
+    const optsWhereOR = opts.where[uniqueFieldName][Op.or];
+    if (optsWhereOR && Array.isArray(optsWhereOR)) { // multiple values
+      let isWildCardExp = false;
+      optsWhereOR.forEach((orObj) => {
+        if (orObj[Op.iLike] &&
+         orObj[Op.iLike].indexOf('%') > MINUS_ONE) {
+          isWildCardExp = true;
+        }
+      });
+
+      if (!isWildCardExp) { // if no wildcard value, set limit to no. of values
+        opts.limit = optsWhereOR.length;
+      }
+    }
+
+    // single value
+    const optsWhereFieldLike = opts.where[uniqueFieldName][Op.iLike];
+    if (optsWhereFieldLike && optsWhereFieldLike.indexOf('%') < ZERO) {
+      opts.limit = 1; // set limit to 1 if no wildcard value
+    }
+  }
+}
+
+/**
+ * Builds the "options" object to pass into the Sequelize find command.
  *
  * @param {Object} params - The request params
  * @param {Object} props - The helpers/nouns module for the given DB model
@@ -255,7 +347,7 @@ function toSequelizeOrder(sortOrder) {
  *  command
  */
 function options(params, props) {
-  const opts = u.buildFieldList(params);
+  const opts = u.buildFieldList(params, props);
 
   // Specify the sort order. If defaultOrder is defined in props or sort value
   // then update sort order otherwise take value from model defination
@@ -264,13 +356,18 @@ function options(params, props) {
     opts.order = toSequelizeOrder(ord, props.modelName);
   }
 
-  // Specify the limit
+  // Specify the limit (must not be greater than default)
+  opts.limit = defaults.limit;
   if (get(params, 'limit.value')) {
-    opts.limit = parseInt(params.limit.value, defaults.limit);
+    const lim = parseInt(params.limit.value, RADIX);
+    if (lim < defaults.limit) {
+      opts.limit = lim;
+    }
   }
 
+  opts.offset = defaults.offset;
   if (get(params, 'offset.value')) {
-    opts.offset = parseInt(params.offset.value, defaults.offset);
+    opts.offset = parseInt(params.offset.value, RADIX);
   }
 
   const filter = {};
@@ -284,9 +381,12 @@ function options(params, props) {
     }
   }
 
-  if (filter) {
-    opts.where = toSequelizeWhere(filter, props);
+  opts.where = toSequelizeWhere(filter, props);
+  if (props.modifyWhereClause) {
+    props.modifyWhereClause(params, opts);
   }
+
+  applyLimitIfUniqueField(opts, props);
 
   return opts;
 } // options
@@ -310,4 +410,5 @@ module.exports = {
   getNextUrl,
   options,
   toSequelizeWildcards, // for testing
+  applyLimitIfUniqueField, // for testing
 }; // exports

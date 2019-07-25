@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const path = '/v1/botData';
 const expect = require('chai').expect;
@@ -122,7 +122,7 @@ describe('tests/api/v1/botData/patch.js >', () => {
       api.patch(`${path}/${saveBotData.id}`)
       .set('Authorization', token)
       .send({ name: newName })
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);

@@ -12,8 +12,10 @@
  * Used by the Sample model to compute a sample's status.
  */
 'use strict'; // eslint-disable-line strict
+
 const constants = require('../constants');
 const dbErrors = require('../dbErrors');
+const Op = require('sequelize').Op;
 const fourByteBase = 2;
 const fourByteExponent = 31;
 const fourByteLimit = Math.pow(fourByteBase, fourByteExponent);
@@ -188,14 +190,14 @@ function getSubjectAndAspectBySampleName(seq, sampleName, idsOnly) {
     const subjectFinder = {
       where: {
         absolutePath: {
-          $iLike: parsedName.subject.absolutePath,
+          [Op.iLike]: parsedName.subject.absolutePath,
         },
       },
     };
     const aspectFinder = {
       where: {
         name: {
-          $iLike: parsedName.aspect.name,
+          [Op.iLike]: parsedName.aspect.name,
         },
       },
     };

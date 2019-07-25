@@ -9,125 +9,166 @@
 /**
  * tests/api/v1/helpers/utils.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const tu = require('../../../testUtils');
+const adminUser = require('../../../../config').db.adminUser;
 const Subject = tu.db.Subject;
 const expect = require('chai').expect;
 const apiUtils = require('../../../../api/v1/helpers/verbs/utils.js');
 
 describe('tests/api/v1/helpers/utils.js >', () => {
-  let token;
-  let subject;
-  let user;
+  const subjects = {
+    na: {},
+    eu: {},
+  };
   const na = {
     name: `${tu.namePrefix}NorthAmerica`,
     description: 'continent',
   };
+  const eu = {
+    name: `${tu.namePrefix}Europe`,
+    description: 'continent',
+  };
+  let regularUser;
+  let regularUserToken;
+  let secondUser;
+  let adminUserToken;
+
   before((done) => {
-    Subject.create(na)
-    .then((sub) => {
-      subject = sub;
-      return tu.createUser('myUNiqueUser');
-    })
-    .then((usr) => {
-      user = usr;
-      return tu.createTokenFromUserName(usr.name);
-    })
-    .then((tkn) => {
-      token = tkn;
-      done();
-    })
-    .catch(done);
+    tu.createUserAndToken()
+      .then((ut) => {
+        regularUser = ut.user;
+        regularUserToken = ut.token;
+      })
+      .then(() => tu.createSecondUser())
+      .then((u2) => {
+        secondUser = u2;
+      })
+      .then(() => tu.createAdminToken())
+      .then((a) => {
+        adminUserToken = a;
+      })
+      .then(() => Subject.bulkCreate([na, eu]))
+      .then((created) => {
+        subjects.na = created[0];
+        subjects.eu = created[1];
+      })
+      .then(() => subjects.eu.addWriter(regularUser))
+      .then(() => done())
+      .catch(done);
   });
 
   after(tu.forceDeleteSubject);
   after(tu.forceDeleteUser);
+
   describe('isWritable >', () => {
-    it('return the instance no writers are added to the object', (done) => {
-      const fakeReq = { headers: { authorization: token } };
-      apiUtils.isWritable(fakeReq, subject)
-      .then((ok) => {
-        expect(ok).to.equal(subject);
-        done();
-      })
-      .catch(done);
-    });
+    describe('object has no writers >', () => {
+      it('with req object containing username', (done) => {
+        const fakeReq = { user: { name: 'myUserName' } };
+        apiUtils.isWritable(fakeReq, subjects.na)
+          .then((ok) => {
+            expect(ok).to.equal(subjects.na);
+            done();
+          })
+          .catch(done);
+      });
 
-    it('with req object containing username', (done) => {
-      const fakeReq = { user: { name: 'myUserName' } };
-      apiUtils.isWritable(fakeReq, subject)
-      .then((ok) => {
-        expect(ok).to.equal(subject);
-        done();
-      })
-      .catch(done);
-    });
-
-    it('must throw an error for invalid tokens', (done) => {
-      const fakeReq = { headers: { authorization: 'invalidtoken' } };
-      apiUtils.isWritable(fakeReq, subject)
-      .then(() => done(tu.malFormedTokenError))
-      .catch((err) => {
-        expect(err).to.not.equal('undefined');
-        done();
+      it('req object does not contain the user', (done) => {
+        const fakeReq = {};
+        apiUtils.isWritable(fakeReq, subjects.na)
+          .then((ok) => {
+            expect(ok).to.equal(subjects.na);
+            done();
+          })
+          .catch(done);
       });
     });
 
-    it('no token required if requireAccessToken is false and the resource is not' +
-      ' write-protected', (done) => {
-      tu.toggleOverride('requireAccessToken', false);
-      const fakeReq = { headers: {} };
-      apiUtils.isWritable(fakeReq, subject)
-      .then((ok) => {
-        expect(ok).to.equal(subject);
-        done();
-      })
-      .catch(done);
-    });
-
-    it('token required if requireAccessToken is false and the resource is' +
-      ' write-protected', (done) => {
-      tu.toggleOverride('requireAccessToken', false);
-      const fakeReq = { headers: {} };
-      subject.addWriters([user])
-      .then(() => apiUtils.isWritable(fakeReq, subject))
-      .then(() => done('expecting error'))
-      .catch((err) => {
-        expect(err.name).to.equal('ForbiddenError');
-        done();
+    describe('object has writer >', () => {
+      it('authorized user is authorized', (done) => {
+        const fakeReq = { user: { name: regularUser.name } };
+        apiUtils.isWritable(fakeReq, subjects.eu)
+          .then((w) => done())
+          .catch((err) => done(err));
       });
-    });
 
-  });
+      it('regular user not authorized', (done) => {
+        const fakeReq = { user: { name: secondUser.name } };
+        apiUtils.isWritable(fakeReq, subjects.eu)
+          .then((w) => {
+            done(new Error('expecting ForbiddenError'));
+          })
+          .catch((err) => {
+            expect(err).to.have.property('status', 403);
+            expect(err).to.have.property('name', 'ForbiddenError');
+            done();
+          });
+      });
 
-  describe('getUserNameFromToken >', () => {
-    it('doDecode is true: should return the username', (done) => {
-      const fakeReq = { headers: { authorization: token } };
-      apiUtils.getUserNameFromToken(fakeReq)
-      .then((ok) => {
-        expect(ok).to.equal('___myUNiqueUser');
-        done();
-      })
-      .catch(done);
-    });
+      it('admin user not authorized', (done) => {
+        const fakeReq = {
+          user: { name: adminUser },
+          headers: {
+            IsAdmin: true,
+          },
+        };
+        apiUtils.isWritable(fakeReq, subjects.eu)
+          .then((w) => {
+            done(new Error('expecting ForbiddenError'));
+          })
+          .catch((err) => {
+            expect(err).to.have.property('status', 403);
+            expect(err).to.have.property('name', 'ForbiddenError');
+            done();
+          });
+      });
 
-    it('with req object containing username', (done) => {
-      const fakeReq = { user: { name: 'myUserName' } };
-      apiUtils.getUserNameFromToken(fakeReq)
-      .then((ok) => {
-        expect(ok).to.equal('myUserName');
-        done();
-      })
-      .catch(done);
-    });
+      it('regular user not authorized even if query has override=admin',
+        (done) => {
+          const fakeReq = {
+            user: { name: secondUser.name },
+            query: { override: 'admin' },
+          };
+          apiUtils.isWritable(fakeReq, subjects.eu)
+            .then((w) => {
+              done(new Error('expecting ForbiddenError'));
+            })
+            .catch((err) => {
+              expect(err).to.have.property('status', 403);
+              expect(err).to.have.property('name', 'ForbiddenError');
+              done();
+            });
+        });
 
-    it('must throw an error for invalid tokens', (done) => {
-      const fakeReq = { headers: { authorization: 'invalidtoken' } };
-      apiUtils.getUserNameFromToken(fakeReq)
-      .then(() => done(tu.malFormedTokenError))
-      .catch((err) => {
-        expect(err).to.not.equal('undefined');
-        done();
+      it('admin user not authorized when query has bad override param',
+        (done) => {
+          const fakeReq = {
+            user: { name: adminUser },
+            headers: { IsAdmin: true },
+            query: { override: true },
+          };
+          apiUtils.isWritable(fakeReq, subjects.eu)
+            .then((w) => {
+              done(new Error('expecting ForbiddenError'));
+            })
+            .catch((err) => {
+              expect(err).to.have.property('status', 403);
+              expect(err).to.have.property('name', 'ForbiddenError');
+              done();
+            });
+        });
+
+      it('admin user is authorized when query has override=admin', (done) => {
+        const fakeReq = {
+          user: { name: adminUser },
+          headers: {
+            IsAdmin: true,
+          },
+          query: { override: 'admin' },
+        };
+        apiUtils.isWritable(fakeReq, subjects.eu)
+          .then((w) => done())
+          .catch((err) => done(err));
       });
     });
   });

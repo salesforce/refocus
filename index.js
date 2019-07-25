@@ -9,138 +9,40 @@
 /**
  * ./index.js
  *
- * Main module to start the express server (web process). To just start the
- * web process use "node index.js". To start both the web and the clock process
- * use "heroku local"
+ * Main module to start the web process. To just start the web process use
+ * "node index.js". To start both the web and the clock process use "heroku local"
  */
 
 /* eslint-disable global-require */
 /* eslint-disable no-process-env */
-
 const throng = require('throng');
+const featureToggles = require('feature-toggles');
 const DEFAULT_WEB_CONCURRENCY = 1;
 const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
-const sampleStore = require('./cache/sampleStoreInit');
+const conf = require('./config');
+const logEnvVars = require('./utils/logEnvVars');
 
 /**
  * Entry point for each clustered process.
+ *
+ * @param {Number} clusterProcessId - process id if called from throng,
+ *  otherwise 0
  */
-function start() { // eslint-disable-line max-statements
-  const SegfaultHandler = require('segfault-handler');
-  SegfaultHandler.registerHandler('crash.log');
-
-  const featureToggles = require('feature-toggles');
-  const conf = require('./config');
-  if (conf.newRelicKey) {
-    require('newrelic');
-  }
-
-  const helmet = require('helmet');
-  const swaggerTools = require('swagger-tools');
-
-  const errorHandler = require('./api/v1/errorHandler');
-  const path = require('path');
-  const fs = require('fs');
-  const yaml = require('js-yaml');
-  const ipfilter = require('express-ipfilter');
-  const bodyParser = require('body-parser');
-  const env = conf.environment[conf.nodeEnv];
-  const ENCODING = 'utf8';
-  const compress = require('compression');
-  const cors = require('cors');
-
-  // set up server side socket.io and redis publisher
-  const express = require('express');
-  const enforcesSSL = require('express-enforces-ssl');
-
-  const app = express();
-
-  // redis client to for request limiter
-  const limiterRedisClient = require('./cache/redisCache').client.limiter;
-
-  // request limiter setting
-  const limiter = require('express-limiter')(app, limiterRedisClient);
-  limiter({
-    path: conf.endpointToLimit,
-    method: conf.httpMethodToLimit,
-    lookup: ['headers.x-forwarded-for'],
-    total: conf.rateLimit,
-    expire: conf.rateWindow,
-  });
+function start(clusterProcessId = 0) { // eslint-disable-line max-statements
+  console.log(`Started node process ${clusterProcessId}`);
 
   /*
-   * Call this *before* the static pages and the API routes so that both the
-   * static pages *and* the API responses are compressed (gzip).
+   * Express app
    */
-  app.use(compress());
-
-  const httpServer = require('http').Server(app);
-  const io = require('socket.io')(httpServer);
-  const socketIOSetup = require('./realtime/setupSocketIO');
-
-  // modules for authentication
-  const passportModule = require('passport');
-  const cookieParser = require('cookie-parser');
-  const session = require('express-session');
-  const RedisStore = require('connect-redis')(session);
-  const rstore = new RedisStore({ url: conf.redis.instanceUrl.session });
-  socketIOSetup.init(io, rstore);
-  require('./realtime/redisSubscriber')(io);
-
-  // pass passport for configuration
-  require('./config/passportconfig')(passportModule);
-
-  // middleware for checking api token
-  const jwtUtil = require('./utils/jwtUtil');
-
-  // set up httpServer params
-  const listening = 'Listening on port';
-  const isDevelopment = (process.env.NODE_ENV === 'development');
-  const PORT = process.env.PORT || conf.port;
-  app.set('port', PORT);
+  const app = require('./express').app;
 
   /*
-   * If http is disabled, if a GET request comes in over http, automatically
-   * attempt to do a redirect 301 to https. Reject all other requests (DELETE,
-   * PATCH, POST, PUT, etc.) with a 403.
+   * Sample store
    */
-  if (featureToggles.isFeatureEnabled('requireHttps')) {
-    app.enable('trust proxy');
-    app.use(enforcesSSL());
-  }
-
-  // Set the IP restricitions defined in config.js
-  app.use(ipfilter(env.ipWhitelist, { mode: 'allow', log: false }));
-
-  if (isDevelopment) {
-    const webpack = require('webpack');
-    const webpackConfig = require('./webpack.config');
-    const compiler = webpack(webpackConfig);
-
-    app.use(require('webpack-dev-middleware')(compiler, {
-      noInfo: true,
-      publicPath: webpackConfig.output.publicPath,
-    }));
-
-    app.use(require('webpack-hot-middleware')(compiler));
-
-    app.listen(PORT, () => {
-      console.log(listening, PORT); // eslint-disable-line no-console
-    });
-  } else {
-    httpServer.listen(PORT, () => {
-      console.log(listening, PORT); // eslint-disable-line no-console
-    });
-  }
+  require('./cache/sampleStoreInit').init();
 
   /*
-   * Based on the change of state of the "enableSampleStore" feature flag
-   * populate the data into the cache or dump the data from the cache into the
-   * db
-   */
-  sampleStore.init();
-
-  /*
+   * Clock jobs
    * If the clock dyno is NOT enabled, schedule all the scheduled jobs right
    * from here.
    */
@@ -148,119 +50,50 @@ function start() { // eslint-disable-line max-statements
     require('./clock/index'); // eslint-disable-line global-require
   }
 
-  // View engine setup
-  app.set('views', path.join(__dirname, 'view'));
-  app.set('view engine', 'pug');
+  /*
+   * Logging
+   */
 
-  // Initialize the Swagger middleware
-  const swaggerFile = fs // eslint-disable-line no-sync
-    .readFileSync(conf.api.swagger.doc, ENCODING);
-  const swaggerDoc = yaml.safeLoad(swaggerFile);
+  const processName = (process.env.DYNO ? process.env.DYNO + ':' : '') +
+    clusterProcessId;
 
-  // Filter out hidden routes
-  if (!featureToggles.isFeatureEnabled('enableRooms')) {
-    for (let i = 0; i < conf.hiddenRoutes.length; i++) {
-      delete swaggerDoc.paths[conf.hiddenRoutes[i]];
-    }
+  if (conf.newRelicKey) {
+    require('newrelic');
   }
 
-  swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
-    app.use((req, res, next) => { // add timestamp to request
-      req.timestamp = Date.now();
-      next();
-    });
+  if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
+    const logPubSubStats = require('./realtime/pubSubStats').log;
+    setInterval(() => logPubSubStats(processName),
+      conf.pubSubStatsLoggingInterval);
+  }
 
-    app.use('/static', express.static(path.join(__dirname, 'public')));
+  // Log env vars. Only log once when there are multiple processes.
+  // Process id is 0 for a single process, 1-n for multiple throng workers.
+  if (clusterProcessId < 2) logEnvVars.log(process.env);
 
-    // Set the X-XSS-Protection HTTP header as a basic protection against XSS
-    app.use(helmet.xssFilter());
+  // Custom middleware to add process info to the request (for use in logging)
+  app.use((req, res, next) => {
+    // process id (0 for a single process, 1-n for multiple throng workers)
+    req.clusterProcessId = clusterProcessId;
 
-    /*
-     * Allow specified routes to be accessed from Javascript outside of Refocus
-     * through cross-origin resource sharing
-     * e.g. A bot that needs to get current botData from Refocus
-     */
-    conf.corsRoutes.forEach((rte) => app.use(rte, cors()));
+    // process name (dyno + process id)
+    req.process = processName;
 
-    // Only let me be framed by people of the same origin
-    app.use(helmet.frameguard());  // Same-origin by default
-
-    // Remove the X-Powered-By header (which is on by default in Express)
-    app.use(helmet.hidePoweredBy());
-
-    // Keep browsers from sniffing mimetypes
-    app.use(helmet.noSniff());
-
-    /*
-     * Redirect '/' to the application landing page, which right now is the
-     * default perspective (or the first perspective in alphabetical order if
-     * no perspective is defined as the default).
-     */
-    app.get('/', (req, res) => res.redirect('/perspectives'));
-
-    // Set the JSON payload limit.
-    app.use(bodyParser.json({ limit: conf.payloadLimit }));
-
-    /*
-     * Interpret Swagger resources and attach metadata to request - must be
-     * first in swagger-tools middleware chain.
-     */
-    app.use(mw.swaggerMetadata());
-
-    // Use token security in swagger api routes
-    if (featureToggles.isFeatureEnabled('requireAccessToken')) {
-      app.use(mw.swaggerSecurity({
-        jwt: (req, authOrSecDef, scopes, cb) => {
-          jwtUtil.verifyToken(req, cb);
-        },
-      }));
-    }
-
-    // Validate Swagger requests
-    app.use(mw.swaggerValidator(conf.api.swagger.validator));
-
-    /*
-     * Route validated requests to appropriate controller. Since Swagger Router
-     * will actually return a response, it should be as close to the end of your
-     * middleware chain as possible.
-     */
-    app.use(mw.swaggerRouter(conf.api.swagger.router));
-
-    // Serve the Swagger documents and Swagger UI
-    app.use(mw.swaggerUi({
-      apiDocs: swaggerDoc.basePath + '/api-docs', // API documetation as JSON
-      swaggerUi: swaggerDoc.basePath + '/docs', // API documentation as HTML
-    }));
-
-    // Handle Errors
-    app.use(errorHandler);
+    next();
   });
-
-  // Setup for session
-  app.use(cookieParser());
-  app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(session({
-    store: rstore,
-    secret: conf.api.sessionSecret,
-    resave: false,
-    saveUninitialized: false,
-  }));
-
-  // Initialize passport and use passport for session
-  app.use(passportModule.initialize());
-  app.use(passportModule.session());
-
-  // create app routes
-  require('./view/loadView')(app, passportModule, '/v1');
-
-  module.exports = { app, passportModule };
 }
+
+function startMaster() {
+  console.log('Started node cluster master');
+} // startMaster
 
 const isProd = (process.env.NODE_ENV === 'production');
 if (isProd) {
-  throng(start, {
-    workers: WORKERS,
+  throng({
     lifetime: Infinity,
+    master: startMaster,
+    start,
+    workers: WORKERS,
   });
 } else {
   start();

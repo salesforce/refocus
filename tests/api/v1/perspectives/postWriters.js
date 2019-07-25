@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -36,9 +36,9 @@ describe('tests/api/v1/perspectives/postWriters.js', () => {
 
   before((done) => {
     u.doSetup()
-    .then((createdLens) => tu.db.Perspective.create({
+    .then(({ lensId }) => tu.db.Perspective.create({
       name: `${tu.namePrefix}testPersp`,
-      lensId: createdLens.id,
+      lensId,
       rootSubject: 'myMainSubject',
       aspectFilter: ['temperature', 'humidity'],
       aspectTagFilter: ['temp', 'hum'],

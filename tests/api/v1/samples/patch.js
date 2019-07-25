@@ -11,14 +11,17 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
+const Aspect = tu.db.Aspect;
+const Subject = tu.db.Subject;
 const path = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
+const Op = require('sequelize').Op;
 
 describe('tests/api/v1/samples/patch.js >', () => {
   let token;
@@ -31,14 +34,15 @@ describe('tests/api/v1/samples/patch.js >', () => {
     .catch(done);
   });
 
+  after(tu.forceDeleteUser);
+
   describe(`PATCH ${path} >`, () => {
     let sampleName;
     let sampUpdatedAt;
     let sampleValue;
 
     beforeEach((done) => {
-      u.doSetup()
-      .then((samp) => Sample.create(samp))
+      u.createBasic()
       .then((samp) => {
         sampleName = samp.name;
         sampUpdatedAt = samp.updatedAt;
@@ -48,8 +52,8 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .catch(done);
     });
 
+    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
-    after(tu.forceDeleteUser);
 
     it('reject if name field in request', (done) => {
       api.patch(`${path}/${sampleName}`)
@@ -66,8 +70,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
       });
     });
 
-    it('apiLinks"s href ends with sample name' +
-      'updatedAt', (done) => {
+    it('apiLinks"s href ends with sample name updatedAt', (done) => {
       api.patch(`${path}/${sampleName}`)
       .set('Authorization', token)
       .send({})
@@ -94,8 +97,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
     });
 
     describe('UpdatedAt tests >', () => {
-      it('without value does not increment ' +
-        'updatedAt', (done) => {
+      it('without value does not increment updatedAt', (done) => {
         api.patch(`${path}/${sampleName}`)
         .set('Authorization', token)
         .send({})
@@ -105,15 +107,12 @@ describe('tests/api/v1/samples/patch.js >', () => {
             return done(err);
           }
 
-          const result = res.body;
-          const dateToInt = new Date(result.updatedAt).getTime();
-          expect(dateToInt).to.be.equal(sampUpdatedAt.getTime());
-          done();
+          expect(res.body.updatedAt).to.be.equal(sampUpdatedAt);
+          return done();
         });
       });
 
-      it('with only identical value increments ' +
-        'updatedAt', (done) => {
+      it('with only identical value increments updatedAt', (done) => {
         api.patch(`${path}/${sampleName}`)
         .set('Authorization', token)
         .send({ value: sampleValue })
@@ -125,8 +124,8 @@ describe('tests/api/v1/samples/patch.js >', () => {
 
           const result = res.body;
           const dateToInt = new Date(result.updatedAt).getTime();
-          expect(dateToInt).to.be.above(sampUpdatedAt.getTime());
-          done();
+          expect(dateToInt).to.be.above(new Date(sampUpdatedAt).getTime());
+          return done();
         });
       });
     });
@@ -162,10 +161,10 @@ describe('tests/api/v1/samples/patch.js >', () => {
       });
     });
 
-    //
-    // The relatedlinks are named differently in each of the tests to avoid
-    // turning the before and after hooks to beforeEach and afterEach
-    //
+    /*
+     * The relatedlinks are named differently in each of the tests to avoid
+     * turning the before and after hooks to beforeEach and afterEach
+     */
     describe('Patch Related Links >', () => {
       it('single related link', (done) => {
         api.patch(`${path}/${sampleName}`)
@@ -185,7 +184,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
           expect(res.body.relatedLinks).to.have.length(1);
           expect(res.body.relatedLinks)
           .to.have.deep.property('[0].name', 'link');
-          done();
+          return done();
         });
       });
 
@@ -224,7 +223,7 @@ describe('tests/api/v1/samples/patch.js >', () => {
               .to.have.property('name', 'link' + i);
             }
 
-            done();
+            return done();
           });
         });
       });
@@ -243,10 +242,20 @@ describe('tests/api/v1/samples/patch.js >', () => {
           expect(res.body).to.have.property('errors');
           expect(res.body.errors[ZERO].message)
           .to.contain('Name of the relatedlinks should be unique');
-          expect(res.body.errors[ZERO].source)
-          .to.contain('relatedLinks');
         })
         .end(done);
+      });
+
+      it('related links set to empty array if not provided', (done) => {
+        api.patch(`${path}/${sampleName}`)
+          .set('Authorization', token)
+          .send({
+            value: '2',
+          })
+          .expect((res) => {
+            expect(res.body.relatedLinks).to.eql([]);
+          })
+          .end(done);
       });
 
       it('patching with readOnly field id should fail', (done) => {
@@ -329,29 +338,37 @@ describe('tests/api/v1/samples/patch.js >', () => {
 
   describe(`PATCH ${path} subject isPublished false >`, () => {
     let sampleName;
+    let token2;
+
     before((done) => {
-      u.doSetup()
-      .then((samp) => Sample.create(samp))
-      .then((samp) => {
-        sampleName = samp.name;
-        samp.getSubject()
-        .then((sub) => {
-          sub.update({ isPublished: false });
-          done();
-        })
-        .catch((err) => {
-          throw err;
-        });
+      tu.createSecondUser()
+      .then((u) => tu.createTokenFromUserName(u.name))
+      .then((returnedToken) => {
+        token2 = returnedToken;
+        done();
       })
       .catch(done);
     });
 
-    afterEach(u.forceDelete);
-    after(tu.forceDeleteUser);
+    before((done) => {
+      u.createBasic()
+      .then((samp) => {
+        const subjectName = samp.name.split('|')[0].toLowerCase();
+        return Subject.findOne({ where: { name: { [Op.iLike]: subjectName } } });
+      })
+      .then((sub) => {
+        sub.update({ isPublished: false });
+        return done();
+      })
+      .catch(done);
+    });
+
+    before(u.populateRedis);
+    after(u.forceDelete);
 
     it('cannot patch sample if subject not published', (done) => {
       api.patch(`${path}/${sampleName}`)
-      .set('Authorization', token)
+      .set('Authorization', token2)
       .send({ value: '3' })
       .expect(constants.httpStatus.NOT_FOUND)
       .end(done);
@@ -360,29 +377,38 @@ describe('tests/api/v1/samples/patch.js >', () => {
 
   describe(`PATCH ${path} aspect isPublished false >`, () => {
     let sampleName;
+    let token3;
+
     before((done) => {
-      u.doSetup()
-      .then((samp) => Sample.create(samp))
-      .then((samp) => {
-        sampleName = samp.name;
-        samp.getAspect()
-        .then((asp) => {
-          asp.update({ isPublished: false });
-          done();
-        })
-        .catch((err) => {
-          throw err;
-        });
+      tu.createThirdUser()
+      .then((u) => tu.createTokenFromUserName(u.name))
+      .then((returnedToken) => {
+        token3 = returnedToken;
+        done();
       })
       .catch(done);
     });
 
-    afterEach(u.forceDelete);
-    after(tu.forceDeleteUser);
+    before((done) => {
+      u.createBasic()
+      .then((samp) => {
+        sampleName = samp.name;
+        const aspectName = sampleName.split('|')[1].toLowerCase();
+        return Aspect.findOne({ where: { name: { [Op.iLike]: aspectName } } });
+      })
+      .then((asp) => {
+        asp.update({ isPublished: false });
+        return done();
+      })
+      .catch(done);
+    });
+
+    before(u.populateRedis);
+    after(u.forceDelete);
 
     it('cannot patch sample if aspect not published', (done) => {
       api.patch(`${path}/${sampleName}`)
-      .set('Authorization', token)
+      .set('Authorization', token3)
       .send({ value: '3' })
       .expect(constants.httpStatus.NOT_FOUND)
       .end(done);

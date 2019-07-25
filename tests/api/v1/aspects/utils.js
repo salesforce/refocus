@@ -11,7 +11,9 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
-
+const samstoinit = require('../../../../cache/sampleStoreInit');
+const rcli = require('../../../../cache/redisCache').client.sampleStore;
+const Promise = require('bluebird');
 const testStartTime = new Date();
 
 const subjectToCreate = {
@@ -25,23 +27,48 @@ const subjectToCreate = {
   name: `${tu.namePrefix}TEST_SUBJECT`,
 };
 
+const basic = {
+  name: `${tu.namePrefix}ASPECTNAME`,
+  isPublished: true,
+  timeout: '110s',
+  status0range: [0, 0],
+  status1range: [1, 2],
+  valueType: 'NUMERIC',
+};
+
 module.exports = {
-  toCreate: {
-    name: `${tu.namePrefix}ASPECTNAME`,
-    isPublished: true,
-    timeout: '110s',
-    status0range: [0, 0],
-    status1range: [1, 2],
-    valueType: 'NUMERIC',
-  },
+  toCreate: basic,
 
   subjectToCreate,
 
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Sample, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Tag, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
+  getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
+    const defaultProps = JSON.parse(JSON.stringify(basic));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.Aspect.create(toCreate);
+  },
+
+  forceDelete(done, startTime=testStartTime) {
+    Promise.join(
+      samstoinit.eradicate(),
+      tu.forceDelete(tu.db.Aspect, startTime)
+      .then(() => tu.forceDelete(tu.db.Subject, startTime))
+      .then(() => tu.forceDelete(tu.db.Generator, startTime))
+      .then(() => tu.forceDelete(tu.db.GeneratorTemplate, startTime))
+    )
+    .then(() => done())
+    .catch(done);
+  },
+
+  populateRedis(done) {
+    samstoinit.populate()
     .then(() => done())
     .catch(done);
   },

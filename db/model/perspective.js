@@ -12,10 +12,13 @@
 'use strict'; // eslint-disable-line strict
 
 const common = require('../helpers/common');
+const publishObject = require('../../realtime/redisPublisher').publishObject;
 const MissingRequiredFieldError = require('../dbErrors')
   .MissingRequiredFieldError;
 const constants = require('../constants');
 const assoc = {};
+
+// OLD - remove along with namespace toggles
 const eventName = 'refocus.internal.realtime.perspective.namespace.initialize';
 
 module.exports = function perspective(seq, dataTypes) {
@@ -24,11 +27,6 @@ module.exports = function perspective(seq, dataTypes) {
       type: dataTypes.UUID,
       primaryKey: true,
       defaultValue: dataTypes.UUIDV4,
-    },
-    isDeleted: {
-      type: dataTypes.BIGINT,
-      defaultValue: 0,
-      allowNull: false,
     },
     name: {
       type: dataTypes.STRING,
@@ -46,7 +44,7 @@ module.exports = function perspective(seq, dataTypes) {
     aspectFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       defaultValue: constants.defaultArrayValue,
-      allowNull: true,
+      allowNull: false,
     },
     aspectTagFilterType: {
       type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
@@ -56,7 +54,7 @@ module.exports = function perspective(seq, dataTypes) {
     aspectTagFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       defaultValue: constants.defaultArrayValue,
-      allowNull: true,
+      allowNull: false,
     },
     subjectTagFilterType: {
       type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
@@ -66,7 +64,7 @@ module.exports = function perspective(seq, dataTypes) {
     subjectTagFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING(constants.fieldlen.normalName)),
       defaultValue: constants.defaultArrayValue,
-      allowNull: true,
+      allowNull: false,
     },
     statusFilterType: {
       type: dataTypes.ENUM('INCLUDE', 'EXCLUDE'),
@@ -76,67 +74,12 @@ module.exports = function perspective(seq, dataTypes) {
     statusFilter: {
       type: dataTypes.ARRAY(dataTypes.STRING),
       defaultValue: constants.defaultArrayValue,
-      allowNull: true,
+      allowNull: false,
     },
   }, {
-    classMethods: {
-      getPerspectiveAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'perspectiveAccess';
-      },
-
-      postImport(models) {
-        assoc.createdBy = Perspective.belongsTo(models.User, {
-          foreignKey: 'createdBy',
-        });
-        assoc.lens = Perspective.belongsTo(models.Lens, {
-          as: 'lens',
-          foreignKey: {
-            name: 'lensId',
-            allowNull: false,
-          },
-        });
-        assoc.writers = Perspective.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'PerspectiveWriters',
-          foreignKey: 'perspectiveId',
-        });
-        Perspective.addScope('defaultScope', {
-          include: [
-
-            // assoc.createdBy,
-            {
-              association: assoc.lens,
-              attributes: [
-                'helpEmail',
-                'helpUrl',
-                'id',
-                'name',
-                'thumbnailUrl',
-                'version',
-              ],
-            },
-          ],
-          order: ['Perspective.name'],
-        }, {
-          override: true,
-        });
-
-        Perspective.addScope('withoutLensAssociation', {
-          include: [],
-          order: ['Perspective.name'],
-        });
-      },
-    },
     hooks: {
 
-      beforeDestroy(inst /* , opts */) {
-        return common.setIsDeleted(seq.Promise, inst);
-      },
-
+      // OLD - remove along with namespace toggles
       /**
        * Publishes the created prespective to the redis channel, to initialize
        * a socketio namespace if required
@@ -145,11 +88,10 @@ module.exports = function perspective(seq, dataTypes) {
        */
       afterCreate(inst /* , opts */) {
         const changedKeys = Object.keys(inst._changed);
-        const ignoreAttributes = ['isDeleted'];
-        return common.publishChange(inst, eventName, changedKeys,
-              ignoreAttributes);
+        return publishObject(inst, eventName, changedKeys, []);
       },
 
+      // OLD - remove along with namespace toggles
       /**
        * Publishes the updated prespective to the redis channel, to initialize
        * a socketio namespace if required
@@ -158,43 +100,16 @@ module.exports = function perspective(seq, dataTypes) {
        */
       afterUpdate(inst /* , opts */) {
         const changedKeys = Object.keys(inst._changed);
-        const ignoreAttributes = ['isDeleted'];
-        return common.publishChange(inst, eventName, changedKeys,
-              ignoreAttributes);
+        return publishObject(inst, eventName, changedKeys, []);
       },
-
-      /*
-       * TODO: socketio namespace object is garbage collected when there are
-       * no references to it. We still have to check, if deleting the namespace
-       * object manually in the afterDelete hook will help.
-       */
     },
     indexes: [
       {
-        name: 'PerspectiveUniqueLowercaseNameIsDeleted',
+        name: 'PerspectiveUniqueLowercaseName',
         unique: true,
-        fields: [
-          seq.fn('lower', seq.col('name')),
-          'isDeleted',
-        ],
+        fields: [seq.fn('lower', seq.col('name'))],
       },
     ],
-    instanceMethods: {
-      isWritableBy(who) {
-        return new seq.Promise((resolve /* , reject */) =>
-          this.getWriters()
-          .then((writers) => {
-            if (!writers.length) {
-              resolve(true);
-            }
-
-            const found = writers.filter((w) =>
-              w.name === who || w.id === who);
-            resolve(found.length === 1);
-          }));
-      }, // isWritableBy
-    },
-    paranoid: true,
     validate: {
       lensIdNotNull() {
         if (!this.lensId) {
@@ -205,5 +120,140 @@ module.exports = function perspective(seq, dataTypes) {
       }, // lensIdNotNull
     },
   });
+
+  /**
+   * Class Methods:
+   */
+
+  Perspective.getPerspectiveAssociations = function () {
+    return assoc;
+  };
+
+  Perspective.getProfileAccessField = function () {
+    return 'perspectiveAccess';
+  };
+
+  Perspective.postImport = function (models) {
+    assoc.owner = Perspective.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+    assoc.user = Perspective.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'user',
+    });
+    assoc.lens = Perspective.belongsTo(models.Lens, {
+      as: 'lens',
+      foreignKey: {
+        name: 'lensId',
+        allowNull: false,
+      },
+    });
+    assoc.writers = Perspective.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'PerspectiveWriters',
+      foreignKey: 'perspectiveId',
+    });
+
+    Perspective.addScope('baseScope', {
+      order: seq.col('name'),
+    });
+
+    Perspective.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['id', 'name', 'email'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['id', 'name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.lens,
+          attributes: [
+            'helpEmail',
+            'helpUrl',
+            'id',
+            'name',
+            'thumbnailUrl',
+            'version',
+          ],
+        },
+      ],
+      order: seq.col('name'),
+    }, {
+      override: true,
+    });
+
+    Perspective.addScope('owner', {
+      include: [
+        {
+          association: assoc.owner,
+          attributes: ['id', 'name', 'email'],
+        },
+      ],
+    });
+
+    Perspective.addScope('user', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['id', 'name', 'email'],
+        },
+      ],
+    });
+
+    Perspective.addScope('lens', {
+      include: [
+        {
+          association: assoc.lens,
+          attributes: [
+            'helpEmail',
+            'helpUrl',
+            'id',
+            'name',
+            'thumbnailUrl',
+            'version',
+          ],
+        },
+      ],
+    });
+
+    Perspective.addScope('namespace', {
+      attributes: [
+        'id',
+        'name',
+        'rootSubject',
+        'aspectFilterType',
+        'aspectFilter',
+        'aspectTagFilterType',
+        'aspectTagFilter',
+        'subjectTagFilterType',
+        'subjectTagFilter',
+        'statusFilterType',
+        'statusFilter',
+      ],
+    });
+  };
+
+  /**
+   * Instance Methods:
+   */
+
+  Perspective.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getWriters()
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
   return Perspective;
 };

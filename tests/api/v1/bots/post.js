@@ -11,21 +11,24 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const path = '/v1/bots';
 const expect = require('chai').expect;
 const ZERO = 0;
 const tu = require('../../../testUtils');
+const jwtUtil = require('../../../../utils/jwtUtil');
 
 describe('tests/api/v1/bots/post.js >', () => {
   let token;
+  let userId;
 
   before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      token = obj.token;
       done();
     })
     .catch(done);
@@ -38,7 +41,11 @@ describe('tests/api/v1/bots/post.js >', () => {
     api.post(`${path}`)
     .set('Authorization', token)
     .field('name', u.name)
+    .field('displayName', u.displayName)
+    .field('helpUrl', u.standard.helpUrl)
+    .field('ownerUrl', u.standard.ownerUrl)
     .field('url', 'https://www.foo.com')
+    .field('version', '1.0.0')
     .attach('ui', 'tests/api/v1/bots/uiBlob')
     .expect(constants.httpStatus.CREATED)
     .end((err, res) => {
@@ -46,19 +53,30 @@ describe('tests/api/v1/bots/post.js >', () => {
         return done(err);
       }
 
+      const fakeToken = jwtUtil
+        .createToken(u.name + 'Fail', u.name + 'Fail');
+
+      // since createToken uses current timestamp, the token value is not fixed.
+      expect(res.body.token).to.not.equal(undefined);
+      expect(res.body.token).to.not.equal(fakeToken);
       expect(res.body.name).to.equal(u.name);
       expect(res.body.ui.name).to.equal('uiBlob');
+      expect(res.body.version).to.equal('1.0.0');
+      expect(res.body.displayName).to.equal(u.displayName);
+      expect(res.body.helpUrl).to.equal(u.standard.helpUrl);
+      expect(res.body.ownerUrl).to.equal(u.standard.ownerUrl);
+      expect(res.body).to.have.property('installedBy');
       done();
     });
   });
 
   it('Fail, duplicate bot', (done) => {
-    u.createStandard()
+    u.createStandard(userId)
     .then(() => {
       api.post(`${path}`)
       .set('Authorization', token)
       .send(u.getStandard())
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -79,6 +97,46 @@ describe('tests/api/v1/bots/post.js >', () => {
     api.post(`${path}`)
     .set('Authorization', token)
     .send(testBot)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].type)
+      .to.contain(tu.valErrorName);
+      done();
+    });
+  });
+
+  it('Fail, Bot displayName is too long', (done) => {
+    const longName = 'L'.repeat(61);
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .field('name', u.name)
+    .field('displayName', longName)
+    .field('url', 'https://www.foo.com')
+    .field('version', '1.0.0')
+    .attach('ui', 'tests/api/v1/bots/uiBlob')
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[ZERO].message).to.contain('too long');
+      done();
+    });
+  });
+
+  it('Fail, helpUrl field is an invalid url', (done) => {
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .field('name', u.name)
+    .field('url', 'https://www.foo.com')
+    .field('helpUrl', 'Not A Url')
+    .field('version', '1.0.0')
+    .attach('ui', 'tests/api/v1/bots/uiBlob')
     .expect(constants.httpStatus.BAD_REQUEST)
     .end((err, res) => {
       if (err) {

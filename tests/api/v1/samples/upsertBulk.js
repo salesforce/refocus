@@ -12,13 +12,13 @@
 'use strict';
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const constants = require('../../../../api/v1/constants');
 const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/samples/upsert/bulk';
 const URL1 = 'https://samples.com';
 const relatedLinks = [
@@ -54,7 +54,7 @@ describe(`tests/api/v1/samples/upsertBulk.js, POST ${path} >`, () => {
         isPublished: true,
         name: `${tu.namePrefix}Aspect2`,
         timeout: '10m',
-        valueType: 'BOOLEAN',
+        valueType: 'NUMERIC',
         okRange: [10, 100],
       });
     })
@@ -69,6 +69,7 @@ describe(`tests/api/v1/samples/upsertBulk.js, POST ${path} >`, () => {
     .catch(done);
   });
 
+  before(u.populateRedis);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
@@ -85,6 +86,22 @@ describe(`tests/api/v1/samples/upsertBulk.js, POST ${path} >`, () => {
       },
     ])
     .expect(constants.httpStatus.OK)
+    .end(done);
+  });
+
+  it('fail without token', (done) => {
+    api.post(path)
+    .send([
+      {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+        value: '2',
+      }, {
+        name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
+        value: '4',
+      },
+    ])
+    .expect(constants.httpStatus.FORBIDDEN)
+    .expect(/ForbiddenError/)
     .end(done);
   });
 
@@ -285,11 +302,11 @@ describe(`tests/api/v1/samples/upsertBulk.js, POST ${path} >`, () => {
   describe('aspect isPublished false >', () => {
     // unpublish the aspects
     before((done) => {
-      Aspect.findById(aspectIdOne)
+      Aspect.findByPk(aspectIdOne)
       .then((aspectOne) => aspectOne.update({
         isPublished: false,
       }))
-      .then(() => Aspect.findById(aspectIdTwo))
+      .then(() => Aspect.findByPk(aspectIdTwo))
       .then((aspectOne) => aspectOne.update({
         isPublished: false,
       }))

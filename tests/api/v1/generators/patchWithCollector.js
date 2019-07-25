@@ -11,10 +11,11 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
+const sinon = require('sinon');
 const gtUtil = u.gtUtil;
 const path = '/v1/generators';
 const Generator = tu.db.Generator;
@@ -29,12 +30,21 @@ const testStartTime = new Date();
 describe('tests/api/v1/generators/patchWithCollector.js >', () => {
   let token;
   let generatorId;
+  let generatorInst;
   let collector1 = { name: 'hello', version: '1.0.0' };
   let collector2 = { name: 'beautiful', version: '1.0.0' };
   let collector3 = { name: 'world', version: '1.0.0' };
+  const sortedNames = [collector1, collector2, collector3]
+  .map((col) => col.name)
+  .sort();
   const generator = u.getGenerator();
   const generatorTemplate = gtUtil.getGeneratorTemplate();
   u.createSGtoSGTMapping(generatorTemplate, generator);
+  let collectorGroup1 = { name: `${tu.namePrefix}-cg1`, description: 'test' };
+  let collectorGroup2 = { name: `${tu.namePrefix}-cg2`, description: 'test' };
+  collectorGroup1.collectors = [collector1.name];
+  collectorGroup2.collectors = [collector2.name];
+  generator.collectorGroup = collectorGroup1.name;
 
   before((done) => {
     Promise.all([
@@ -52,113 +62,81 @@ describe('tests/api/v1/generators/patchWithCollector.js >', () => {
       token = returnedToken;
       return GeneratorTemplate.create(generatorTemplate);
     })
+    .then(() => tu.db.CollectorGroup.createCollectorGroup(collectorGroup1))
+    .then(() => tu.db.CollectorGroup.createCollectorGroup(collectorGroup2))
     .then(() => done())
     .catch(done);
   });
 
   beforeEach((done) => {
-    Generator.create(generator)
+    Generator.createWithCollectors(generator)
     .then((gen) => {
       generatorId = gen.id;
-      return gen.addCollectors([collector1]);
+      generatorInst = gen;
+      done();
     })
-    .then(() => done())
     .catch(done);
   });
 
   // delete generator after each test
   afterEach(() => tu.forceDelete(tu.db.Generator, testStartTime));
+  after(u.forceDelete);
   after(gtUtil.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('ok: PATCH to a collector that is already attached to the generator', (done) => {
-    const _name = 'hello';
+  it('ok: empty patch doesnt replace collector group', (done) => {
     api.patch(`${path}/${generatorId}`)
     .set('Authorization', token)
-    .send({ name: _name })
+    .send({ description: '...' })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);
       }
 
-      const { name, collectors } = res.body;
-      expect(name).to.equal(_name);
-      expect(collectors.length).to.equal(ONE);
-      expect(collectors[ZERO].name).to.equal(collector1.name);
+      const { collectorGroup } = res.body;
+      expect(collectorGroup.name).to.equal(collectorGroup1.name);
+      expect(collectorGroup.description).to.equal(collectorGroup1.description);
+      expect(collectorGroup.collectors.length).to.equal(ONE);
+      expect(collectorGroup.collectors[0].name).to.equal(collector1.name);
+      expect(collectorGroup.collectors[0].status).to.equal(collector1.status);
       done();
     });
   });
 
-  it('ok: PATCH to add new collectors', (done) => {
+  it('ok: PATCH collectorGroup', (done) => {
     api.patch(`${path}/${generatorId}`)
     .set('Authorization', token)
-    .send({ collectors: [collector2.name] })
+    .send({ collectorGroup: collectorGroup2.name })
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
         return done(err);
       }
 
-      const { collectors } = res.body;
-      expect(Array.isArray(collectors)).to.be.true;
-      expect(collectors.length).to.equal(TWO);
-      const collectorNames = collectors.map((collector) => collector.name);
-      expect(collectorNames).to.contain(collector1.name);
-      expect(collectorNames).to.contain(collector2.name);
+      const { collectorGroup } = res.body;
+      expect(collectorGroup.name).to.equal(collectorGroup2.name);
+      expect(collectorGroup.description).to.equal(collectorGroup2.description);
+      expect(collectorGroup.collectors.length).to.equal(ONE);
+      expect(collectorGroup.collectors[0].name).to.equal(collector2.name);
+      expect(collectorGroup.collectors[0].status).to.equal(collector2.status);
       done();
     });
   });
 
-  it('ok: PATCH to a collector that is already attached to the generator', (done) => {
+  it('error: nonexistent collector group', (done) => {
     api.patch(`${path}/${generatorId}`)
     .set('Authorization', token)
-    .send({ collectors: [collector1.name] })
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      const { collectors } = res.body;
-      expect(collectors.length).to.equal(ONE);
-      expect(collectors[ZERO].name).to.equal(collector1.name);
-      done();
-    });
-  });
-
-  it('400 error with duplicate collectors in request body', (done) => {
-    const _collectors = [collector1.name, collector1.name];
-    api.patch(`${path}/${generatorId}`)
-    .set('Authorization', token)
-    .send({ collectors: _collectors })
-    .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.errors[0].type).to.equal('DuplicateCollectorError');
-      expect(res.body.errors[0].source).to.equal('Generator');
-      done();
-    });
-  });
-
-  it('404 error for request body with an existing and a ' +
-    'non-existant collector', (done) => {
-    const _collectors = [collector1.name, 'iDontExist'];
-    api.patch(`${path}/${generatorId}`)
-    .set('Authorization', token)
-    .send({ collectors: _collectors })
+    .send({ collectorGroup: 'aaa' })
     .expect(constants.httpStatus.NOT_FOUND)
     .end((err, res) => {
       if (err) {
         return done(err);
       }
 
-      expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
-      expect(res.body.errors[0].source).to.equal('Generator');
+      expect(res.body.errors[0].message).to.equal('CollectorGroup "aaa" not found.');
       done();
     });
   });
+
 });

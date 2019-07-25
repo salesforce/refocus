@@ -12,17 +12,11 @@
 'use strict';
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = require('../../../../cache/sampleStoreInit');
-const rcli = require('../../../../cache/redisCache').client.sampleStore;
-const u = require('./utils');
-const Aspect = tu.db.Aspect;
-const Subject = tu.db.Subject;
-const Sample = tu.db.Sample;
 const path = '/v1/samples/upsert/bulk';
-const sampleName = '___Subject1.___Subject2|___Aspect1';
 
 describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
 `api: POST ${path} >`, () => {
@@ -38,18 +32,20 @@ describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
     .catch(done);
   });
 
-  beforeEach(rtu.populateRedis);
-  beforeEach((done) => {
+  before(rtu.populateRedis);
+  before((done) => {
     samstoinit.eradicate()
     .then(() => samstoinit.init())
     .then(() => done())
     .catch(done);
   });
 
-  afterEach(rtu.forceDelete);
+  after(rtu.forceDeleteAspSampSubj);
+  after(rtu.flushRedis);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
-  it('exiting sample: different case name should NOT modify sample name',
+  it('existing sample: different case name should NOT modify sample name',
   (done) => {
     const path = '/v1/samples/upsert/bulk';
     const sampleName = '___Subject1.___Subject2|___Aspect1';
@@ -64,6 +60,7 @@ describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
        */
       setTimeout(() => {
         api.get('/v1/samples?name=' + sampleName)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -77,7 +74,8 @@ describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
     });
   });
 
-  it('new sample: different case name should NOT modify sample name', (done) => {
+  it('new sample: different case name should NOT modify sample name',
+  (done) => {
     const path = '/v1/samples/upsert/bulk';
     const sampleName = '___Subject1|___Aspect2';
 
@@ -91,6 +89,7 @@ describe('tests/cache/models/samples/upsertBulkCaseSensitive.js, ' +
        */
       setTimeout(() => {
         api.get('/v1/samples?name=' + sampleName)
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);

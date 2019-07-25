@@ -11,9 +11,9 @@
  */
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
+const apiLogUtils = require('../../../utils/apiLog');
 const utils = require('./utils');
 const helper = require('../helpers/nouns/subjects');
-const userProps = require('../helpers/nouns/users');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doPostWriters = require('../helpers/verbs/doPostWriters');
@@ -29,14 +29,16 @@ const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const apiErrors = require('../apiErrors');
 const redisSubjectModel = require('../../../cache/models/subject');
-const sampleStore = require('../../../cache/sampleStore');
-const sampleStoreConstants = sampleStore.constants;
-const sampleStoreFeature = sampleStoreConstants.featureName;
 const jobType = require('../../../jobQueue/setup').jobType;
 const jobWrapper = require('../../../jobQueue/jobWrapper');
 const jobSetup = require('../../../jobQueue/setup');
+const common = require('../../../utils/common');
 const WORKER_TTL = 1000 * jobSetup.ttlForJobsSync;
 const ZERO = 0;
+const Op = require('sequelize').Op;
+const queueSetup = require('../../../jobQueue/setup');
+const kue = queueSetup.kue;
+const bulkDelSubQueue = queueSetup.bulkDelSubQueue;
 
 /**
  * If both parentAbsolutePath and parentId are provided,
@@ -60,7 +62,7 @@ function validateParentFields(req, res, next, callback) {
    */
   if (parentId && parentAbsolutePath) {
     helper.model.findOne(
-      { where: { absolutePath: { $iLike: parentAbsolutePath } } }
+      { where: { absolutePath: { [Op.iLike]: parentAbsolutePath } } }
     )
     .then((parent) => {
       if (parent && parent.id !== parentId) {
@@ -145,7 +147,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSubject(req, res, next) {
-    doDelete(req, res, next, helper);
+    doDelete(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -209,18 +215,16 @@ module.exports = {
    */
   findSubjects(req, res, next) {
     validateTags(null, req.swagger.params);
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
-      featureToggles.isFeatureEnabled('getSubjectFromCache')) {
+    if (featureToggles.isFeatureEnabled('getSubjectFromCache')) {
       const resultObj = { reqStartTime: req.timestamp }; // for logging
       redisSubjectModel.findSubjects(req, res, resultObj)
       .then((response) => {
-
-        u.logAPI(req, resultObj, response); // audit log
+        u.logAPI(req, resultObj, response);
         res.status(httpStatus.OK).json(response);
       })
       .catch((err) => u.handleError(next, err, helper.modelName));
     } else {
-      doFind(req, res, next, helper);
+      return doFind(req, res, next, helper);
     }
   },
 
@@ -228,24 +232,32 @@ module.exports = {
    * GET /subjects/{key}
    *
    * Retrieves the subject and sends it back in the response.
+   * If the cache is enabled for subjects and the key is an absolutePath, get
+   * from the cache. The cache is keyed by absolutePath, so if the key is an id
+   * we need to get it from the db
    *
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
   getSubject(req, res, next) {
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
-    featureToggles.isFeatureEnabled('getSubjectFromCache')) {
-      const resultObj = { reqStartTime: req.timestamp }; // for logging
-      redisSubjectModel.getSubject(req, res, resultObj)
+    if (featureToggles.isFeatureEnabled('getSubjectFromCache') &&
+      !common.looksLikeId(req.swagger.params.key.value)
+    ) {
+      res.locals.resultObj = { reqStartTime: req.timestamp };
+      redisSubjectModel.getSubject(req, res, res.locals.resultObj)
       .then((response) => {
-
-        u.logAPI(req, resultObj, response); // audit log
-        res.status(httpStatus.OK).json(response);
+        res.locals.retVal = response;
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
       })
       .catch((err) => u.handleError(next, err, helper.modelName));
     } else {
-      doGet(req, res, next, helper);
+      doGet(req, res, next, helper)
+        .then(() => {
+          apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+          res.status(httpStatus.OK).json(res.locals.retVal);
+        });
     }
   },
 
@@ -278,7 +290,7 @@ module.exports = {
 
     if (featureToggles.isFeatureEnabled('enableWorkerProcess')
     && featureToggles.isFeatureEnabled('enqueueHierarchy')) {
-      jobWrapper.createJob(jobType.GET_HIERARCHY, resultObj, req)
+      jobWrapper.createJob(jobType.getHierarchy, resultObj, req)
       .ttl(WORKER_TTL)
       .on('complete', (resultObj) => {
         u.logAPI(req, resultObj, resultObj.retval);
@@ -344,7 +356,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectWriters(req, res, next) {
-    doGetWriters.getWriters(req, res, next, helper);
+    doGetWriters.getWriters(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getSubjectWriters
 
   /**
@@ -358,7 +374,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectWriter(req, res, next) {
-    doGetWriters.getWriter(req, res, next, helper);
+    doGetWriters.getWriter(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // getSubjectWriter
 
   /**
@@ -387,10 +407,7 @@ module.exports = {
    */
   patchSubject(req, res, next) {
     validateRequest(req);
-    validateParentFields(req, res, next,
-    () => {
-      doPatch(req, res, next, helper);
-    });
+    validateParentFields(req, res, next, () => doPatch(req, res, next, helper));
   },
 
   /**
@@ -404,18 +421,24 @@ module.exports = {
    */
   postSubject(req, res, next) {
     validateRequest(req);
+
+    // check that at least one of the given fields is present in request
+    if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
+      utils.validateAtLeastOneFieldPresent(
+        req.body, helper.requireAtLeastOneFields
+      );
+    }
+
     const { name, parentId, parentAbsolutePath } =
       req.swagger.params.queryBody.value;
 
     /*
-     * Fast fail: if cache is on AND parentId
+     * if cache is on AND parentId
      * is not provided, check whether the subject exists in cache.
      * Else if parentId is provided OR cache is off,
      * do normal post.
      */
-    if (featureToggles.isFeatureEnabled(sampleStoreConstants.featureName) &&
-      featureToggles.isFeatureEnabled('getSubjectFromCache') &&
-      featureToggles.isFeatureEnabled('fastFailDuplicateSubject') &&
+    if (featureToggles.isFeatureEnabled('getSubjectFromCache') &&
       !u.looksLikeId(parentId)) {
       const absolutePath = parentAbsolutePath ?
         (parentAbsolutePath + '.' + name) : name;
@@ -448,6 +471,14 @@ module.exports = {
    */
   postChildSubject(req, res, next) {
     validateRequest(req);
+
+    // check that at least one of the given fields is present in request
+    if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
+      utils.validateAtLeastOneFieldPresent(
+        req.body, helper.requireAtLeastOneFields
+      );
+    }
+
     const key = req.swagger.params.key.value;
     if (u.looksLikeId(key)) {
       req.swagger.params.queryBody.value.parentId = key;
@@ -476,10 +507,15 @@ module.exports = {
    */
   putSubject(req, res, next) {
     validateRequest(req);
-    validateParentFields(req, res, next,
-    () => {
-      doPut(req, res, next, helper);
-    });
+
+    // check that at least one of the given fields is present in request
+    if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
+      utils.validateAtLeastOneFieldPresent(
+        req.body, helper.requireAtLeastOneFields
+      );
+    }
+
+    validateParentFields(req, res, next, () => doPut(req, res, next, helper));
   },
 
   /**
@@ -548,5 +584,116 @@ module.exports = {
       res.status(httpStatus.OK).json(retval);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
+  },
+
+  /**
+   * POST /subjects/delete/bulk
+   *
+   * Executes asynchronous bulk subject deletion.
+   *
+   * Create a job for a worker process to delete the specified subjects.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   * @returns {Promise} - A promise that resolves to the response object,
+   *  indicating that the bulk subject delete request has been received.
+   */
+  deleteSubjects(req, res, next) {
+    const subjectDataWrapper = {};
+    subjectDataWrapper.subjects = req.swagger.params.queryBody.value;
+    subjectDataWrapper.user = req.user;
+    subjectDataWrapper.reqStartTime = Date.now();
+    subjectDataWrapper.readOnlyFields = helper.readOnlyFields
+      .filter((field) => field !== 'name');
+    const jobPromise = jobWrapper.createPromisifiedJob(
+      jobType.bulkDeleteSubjects,
+      subjectDataWrapper,
+      req);
+    return jobPromise
+      .then((job) => {
+        const body = { status: 'OK' };
+        const resultObj = { reqStartTime: req.timestamp };
+
+        // gives the jobId back to the client
+        body.jobId = parseInt(job.id, 10);
+        u.logAPI(req, resultObj, body,
+          req.swagger.params.queryBody.value.length);
+        return res.status(httpStatus.OK).json(body);
+      })
+      .catch((err) => {
+        u.handleError(next, err, helper.modelName);
+      });
+  },
+
+  /**
+   * GET /subjects/delete/bulk/{key}/status
+   *
+   * Retrieves the status of the bulk subject delete job and
+   * sends it back in the response
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getSubjectBulkDeleteStatus(req, res, next) {
+    const resultObj = { reqStartTime: new Date() };
+    const reqParams = req.swagger.params;
+    const jobId = reqParams.key.value;
+
+    if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj')) {
+      let bulkDelSubJob;
+      bulkDelSubQueue.getJobFromId(jobId)
+        .then((job) => {
+          bulkDelSubJob = job;
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+          if (!job ||
+            job.queue.name !== queueSetup.jobType.bulkDeleteSubjects) {
+            const err = new apiErrors.ResourceNotFoundError();
+            throw err;
+          }
+
+          return job.getState();
+        })
+        .then((jobState) => {
+          const ret = {};
+          ret.status = jobState;
+
+          if (jobState === 'completed' && bulkDelSubJob.returnvalue.errors) {
+            ret.errors = bulkDelSubJob.returnvalue.errors;
+          } else if (jobState === 'failed') {
+            ret.error = bulkDelSubJob.failedReason;
+          }
+
+          u.logAPI(req, resultObj, ret);
+          return res.status(httpStatus.OK).json(ret);
+        })
+        .catch(() => {
+          const err = new apiErrors.ResourceNotFoundError();
+          return u.handleError(next, err, helper.modelName);
+        });
+    } else {
+      kue.Job.get(jobId, (_err, job) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+        if (_err || !job || job.type !== queueSetup.jobType.bulkDeleteSubjects) {
+          const err = new apiErrors.ResourceNotFoundError();
+          return u.handleError(next, err, helper.modelName);
+        }
+
+        const ret = {};
+        ret.status = job._state;
+
+        if (job._state === 'complete' && job.result.errors) {
+          ret.errors = job.result.errors;
+        } else if (job._state === 'failed') {
+          ret.error = job._error;
+        }
+
+        u.logAPI(req, resultObj, ret);
+        return res.status(httpStatus.OK).json(ret);
+      });
+    }
   },
 }; // exports

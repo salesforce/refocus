@@ -48,9 +48,21 @@ describe('tests/db/model/event/create.js >', () => {
       expect(o).to.have.property('id');
       expect(o).to.have.property('botId');
       expect(o).to.have.property('roomId');
+      expect(o.actionType).to.equal('EventType');
       done();
     })
     .catch(done);
+  });
+
+  it('ok, event type can be null', (done) => {
+    const testEvent = u.getStandard();
+    delete testEvent.actionType;
+    Event.create(testEvent)
+      .then((event) => {
+        expect(event).to.have.property('id');
+        expect(event.actionType).to.equal(null);
+        done();
+      });
   });
 
   it('ok, event created for bot action', (done) => {
@@ -114,6 +126,39 @@ describe('tests/db/model/event/create.js >', () => {
       expect(o).to.have.property('botId');
       expect(o).to.have.property('roomId');
       expect(o).to.have.property('botDataId');
+      done();
+    })
+    .catch(done);
+  });
+
+  it.skip('ok, event create multiple', (done) => {
+    const testBotData = bd.getStandard();
+    const testEvent = u.getStandard();
+    RoomType.create(rt.getStandard())
+    .then((roomType) => {
+      const room = r.getStandard();
+      room.type = roomType.id;
+      return Room.create(room);
+    })
+    .then((room) => {
+      testBotData.roomId = room.id;
+      testEvent.roomId = room.id;
+      return Bot.create(b.getStandard());
+    })
+    .then((bot) => {
+      testBotData.botId = bot.id;
+      testEvent.botId = bot.id;
+      return BotData.create(testBotData);
+    })
+    .then((botData) => {
+      testEvent.botDataId = botData.id;
+      return Event.create(testEvent);
+    })
+    .then(() => Event.create(testEvent))
+    .then(() => Event.create(testEvent))
+    .then(() => Event.findAll())
+    .then((o) => {
+      expect(o.length).to.equal(3);
       done();
     })
     .catch(done);

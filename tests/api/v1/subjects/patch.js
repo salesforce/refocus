@@ -11,13 +11,14 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
 const path = '/v1/subjects';
 const expect = require('chai').expect;
+const featureToggles = require('feature-toggles');
 
 describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
   let token;
@@ -30,33 +31,10 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
     name: `${tu.namePrefix}Quebec`,
     isPublished: true,
   };
-  const n0a = { name: `${tu.namePrefix}NorthAmerica` };
+  const n0a = { name: `${tu.namePrefix}NorthAmerica`, isPublished: true };
   let i0 = 0;
   let i1 = 0;
   let i0a = 0;
-
-  function childCheckIfPatched(res) {
-    const errors = [];
-    if (res.body.name !== p1.name) {
-      errors.push(new Error(`name should be ${p1.name}`));
-    }
-
-    if (res.body.absolutePath !== `${n0.name}.${p1.name}`) {
-      errors.push(new Error(`absolutePath should be ${n0.name}.${p1.name}`));
-    }
-
-    if (!res.body.isPublished) {
-      errors.push(new Error('isPublished should be true'));
-    }
-
-    if (res.body.isDeleted > 0) {
-      errors.push(new Error('isDeleted should be zero'));
-    }
-
-    if (errors.length) {
-      throw new Error(errors);
-    }
-  }
 
   function parentCheckIfPatched(res) {
     const errors = [];
@@ -68,10 +46,6 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
       errors.push(new Error(`absolutePath should be ${p0.name}`));
     }
 
-    if (res.body.isDeleted > 0) {
-      errors.push(new Error('isDeleted should be zero'));
-    }
-
     if (errors.length) {
       throw new Error(errors);
     }
@@ -80,7 +54,7 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
   function childrenAbsPathUpdated() {
     const errors = [];
     const msg = 'Child absolutePath should have been updated';
-    Subject.findById(i0, {
+    Subject.findByPk(i0, {
       include: [
         {
           model: Subject,
@@ -114,7 +88,7 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
       errors.push(new Error(`absolutePath should be ${n0a.name}.${n0.name}`));
     }
 
-    Subject.findById(i0, {
+    Subject.findByPk(i0, {
       include: [
         {
           model: Subject,
@@ -168,10 +142,12 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
     .then(() => Subject.create(n0a))
     .then((subj) => {
       i0a = subj.id;
-      done();
+      return done();
     })
     .catch(done);
   });
+
+  beforeEach(u.populateRedis);
 
   afterEach(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -349,13 +325,43 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
     .end(done);
   });
 
+  it('tags and related links not provided, should set to empty array',
+    (done) => {
+      api.patch(`${path}/${i1}`)
+      .set('Authorization', token)
+      .send({
+        name: `${tu.namePrefix}Quebec`,
+        isPublished: true,
+      })
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.tags).to.have.length(0);
+        expect(res.body.relatedLinks).to.have.length(0);
+      })
+      .end((err /* , res */) => {
+        if (err) {
+          done(err);
+        }
+
+        Subject.findByPk(i1)
+          .then((subj) => {
+            expect(subj.tags).to.eql([]);
+            expect(subj.relatedLinks).to.eql([]);
+            done();
+          });
+      });
+    });
+
   it('patch child name and isPublished', (done) => {
     p1.relatedLinks = [];
     api.patch(`${path}/${i1}`)
     .set('Authorization', token)
     .send(p1)
     .expect(constants.httpStatus.OK)
-    .expect(childCheckIfPatched)
+    .expect((res) => {
+      expect(res.body.name).to.equal(p1.name);
+      expect(res.body.isPublished).to.equal(p1.isPublished);
+    })
     .end(done);
   });
 
@@ -431,7 +437,11 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
     .set('Authorization', token)
     .send(toPatch)
     .expect(constants.httpStatus.OK)
-    .expect(childCheckIfPatched)
+    .expect((res) => {
+      expect(res.body.name).to.equal(p1.name);
+      expect(res.body.isPublished).to.equal(p1.isPublished);
+      expect(res.body.helpUrl).to.equal(p1.helpUrl);
+    })
     .end(done);
   });
 
@@ -638,27 +648,270 @@ describe(`tests/api/v1/subjects/patch.js, PATCH ${path} >`, () => {
       return err ? done(err) : done();
     });
   });
+});
 
-  it('patching readOnly field isDeleted should fail', (done) => {
-    const toPatch = {
-      isPublished: p1.isPublished,
-      name: p1.name,
-      isDeleted: 0,
-    };
-    api.patch(`${path}/${i1}`)
-    .set('Authorization', token)
-    .send(toPatch)
-    .expect(constants.httpStatus.BAD_REQUEST)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
+describe(`tests/api/v1/subjects/patch.js, PATCH ${path}, helpEmail ` +
+  'or helpUrl required >', () => {
+  let token;
+  const toggleOrigValue = featureToggles.isFeatureEnabled(
+    'requireHelpEmailOrHelpUrl'
+  );
 
-      expect(res.body.errors[0].description).to.be.equal(
-        'You cannot modify the read-only field: isDeleted'
-      );
-
+  before((done) => {
+    tu.toggleOverride('requireHelpEmailOrHelpUrl', true);
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
       done();
+    })
+    .catch(done);
+  });
+
+  after(() => tu.toggleOverride(
+    'requireHelpEmailOrHelpUrl', toggleOrigValue)
+  );
+  after(tu.forceDeleteUser);
+
+  describe(`PATCH ${path} helpEmail, helpUrl not set in db >`, () => {
+    let subjId;
+    beforeEach((done) => {
+      Subject.create({ name: `${tu.namePrefix}s1` })
+      .then((subj) => {
+        subjId = subj.id;
+        done();
+      })
+      .catch(done);
+    });
+
+    afterEach(u.forceDelete);
+
+    it('NOT OK, no helpEmail or helpUrl in db or request body', (done) => {
+      api.patch(`${path}/${subjId}`)
+      .set('Authorization', token)
+      .send({ name: 'name_change' })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('ValidationError');
+        expect(res.body.errors[0].description).to.equal(
+          'At least one these attributes are required: helpEmail,helpUrl'
+        );
+        return done();
+      });
+    });
+
+    it('NOT OK, no helpEmail/helpUrl in db, empty helpEmail in request body',
+    (done) => {
+      api.patch(`${path}/${subjId}`)
+      .set('Authorization', token)
+      .send({ helpEmail: '' })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('ValidationError');
+        expect(res.body.errors[0].description).to.equal(
+          'At least one these attributes are required: helpEmail,helpUrl'
+        );
+        return done();
+      });
+    });
+
+    it('OK, no helpEmail/helpUrl in db, valid helpEmail in request body',
+    (done) => {
+      api.patch(`${path}/${subjId}`)
+      .set('Authorization', token)
+      .send({ helpEmail: 'abc@xyz.com' })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+        expect(res.body.helpUrl).to.be.equal(undefined);
+        done();
+      });
+    });
+
+    it('OK, no helpEmail/helpUrl in db, valid helpUrl in request body',
+    (done) => {
+      api.patch(`${path}/${subjId}`)
+      .set('Authorization', token)
+      .send({ helpUrl: 'https://xyz.com' })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.helpEmail).to.be.equal(undefined);
+        expect(res.body.helpUrl).to.be.equal('https://xyz.com');
+        done();
+      });
+    });
+
+    it('OK, no helpEmail/helpUrl in db, valid helpUrl and helpEmail in ' +
+      'request body', (done) => {
+      api.patch(`${path}/${subjId}`)
+      .set('Authorization', token)
+      .send({
+        helpUrl: 'https://xyz.com',
+        helpEmail: 'abc@xyz.com',
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+        expect(res.body.helpUrl).to.be.equal('https://xyz.com');
+        return done();
+      });
+    });
+  });
+
+  describe(`PATCH ${path} helpEmail, helpUrl set in db >`, () => {
+    afterEach(u.forceDelete);
+    it('OK, valid helpUrl in db, no helpEmail/helpUrl in request body',
+    (done) => {
+      const subjToCreate = {
+        name: `${tu.namePrefix}s1`,
+        helpUrl: 'https://xyz.com',
+      };
+
+      Subject.create(subjToCreate)
+      .then((subj) => {
+        api.patch(`${path}/${subj.id}`)
+        .set('Authorization', token)
+        .send({ name: 'name_change' })
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.helpUrl).to.be.equal('https://xyz.com');
+          expect(res.body.helpEmail).to.be.equal(undefined);
+          return done();
+        });
+      })
+      .catch(done);
+    });
+
+    it('OK, valid helpEmail in db, no helpEmail/helpUrl in request body',
+    (done) => {
+      const subjToCreate = {
+        name: `${tu.namePrefix}s1`,
+        helpEmail: 'abc@xyz.com',
+      };
+
+      Subject.create(subjToCreate)
+      .then((subj) => {
+        api.patch(`${path}/${subj.id}`)
+        .set('Authorization', token)
+        .send({ name: 'name_change' })
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+          expect(res.body.helpUrl).to.be.equal(undefined);
+          return done();
+        });
+      })
+      .catch(done);
+    });
+
+    it('OK, valid helpEmail in db, valid helpUrl in request body',
+    (done) => {
+      const subjToCreate = {
+        name: `${tu.namePrefix}s1`,
+        helpEmail: 'abc@xyz.com',
+      };
+
+      Subject.create(subjToCreate)
+      .then((subj) => {
+        api.patch(`${path}/${subj.id}`)
+        .set('Authorization', token)
+        .send({ helpUrl: 'https://xyz.com' })
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+          expect(res.body.helpUrl).to.be.equal('https://xyz.com');
+          return done();
+        });
+      })
+      .catch(done);
+    });
+
+    it('OK, valid helpEmail in db, change helpEmail in request body',
+    (done) => {
+      const subjToCreate = {
+        name: `${tu.namePrefix}s1`,
+        helpEmail: 'abc@xyz.com',
+      };
+
+      Subject.create(subjToCreate)
+      .then((subj) => {
+        api.patch(`${path}/${subj.id}`)
+        .set('Authorization', token)
+        .send({ helpEmail: 'changedAbc@xyz.com' })
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.helpEmail).to.be.equal('changedAbc@xyz.com');
+          expect(res.body.helpUrl).to.be.equal(undefined);
+          return done();
+        });
+      })
+      .catch(done);
+    });
+
+    it('OK, valid helpEmail and helpUrl in db, change helpEmail and ' +
+      'helpUrl in request body',
+    (done) => {
+      const subjToCreate = {
+        name: `${tu.namePrefix}s1`,
+        helpEmail: 'abc@xyz.com',
+        helpUrl: 'http://xyz.com',
+      };
+
+      Subject.create(subjToCreate)
+      .then((subj) => {
+        api.patch(`${path}/${subj.id}`)
+        .set('Authorization', token)
+        .send({
+          helpEmail: 'changedAbc@xyz.com',
+          helpUrl: 'https://changedXyz.com',
+        })
+        .expect(constants.httpStatus.OK)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
+
+          expect(res.body.helpEmail).to.be.equal('changedAbc@xyz.com');
+          expect(res.body.helpUrl).to.be.equal('https://changedXyz.com');
+          return done();
+        });
+      })
+      .catch(done);
     });
   });
 });

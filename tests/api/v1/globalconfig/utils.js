@@ -11,24 +11,45 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
+const Op = require('sequelize').Op;
 
 const testStartTime = new Date();
+const basic = {
+  key: `${tu.namePrefix}testKeyName`,
+  value: 'some-value',
+};
 
 module.exports = {
-  forceDelete() {
-    return tu.db.GlobalConfig.destroy({
+  getBasic(overrideProps={}) {
+    if (!overrideProps.key) {
+      delete overrideProps.key;
+    }
+
+    const defaultProps = JSON.parse(JSON.stringify(basic));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.GlobalConfig.create(toCreate);
+  },
+
+  forceDelete(done, startTime=testStartTime) {
+    tu.db.GlobalConfig.destroy({
       where: {
         key: {
-          $iLike: tu.namePrefix + '%',
+          [Op.iLike]: tu.namePrefix + '%',
         },
         createdAt: {
-          $lt: new Date(),
-          $gte: testStartTime,
+          [Op.lt]: new Date(),
+          [Op.gte]: startTime,
         },
       },
       force: true,
     })
-    .then(() => tu.forceDelete(tu.db.User, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Token, testStartTime));
+    .then(() => tu.forceDelete(tu.db.User, startTime))
+    .then(() => tu.forceDelete(tu.db.Token, startTime))
+    .then(() => done())
+    .catch(done);
   },
 };

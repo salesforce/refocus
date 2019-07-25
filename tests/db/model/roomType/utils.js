@@ -13,10 +13,14 @@
 const tu = require('../../../testUtils');
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestRoomType`;
+const e = `${tu.namePrefix}TestExternalId`;
+const o = `${tu.namePrefix}TestOrigin`;
 
 const standard = {
   name: n,
   isEnabled: true,
+  externalId: e,
+  origin: o,
   settings: {
     Key1: 'Value1',
     Key2: 'Value2',

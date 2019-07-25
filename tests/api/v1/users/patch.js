@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -20,25 +20,24 @@ const expect = require('chai').expect;
 const jwtUtil = require('../../../../utils/jwtUtil');
 const Profile = tu.db.Profile;
 const User = tu.db.User;
-const Token = tu.db.Token;
+const OBAdminProfile = require('../../../../config').db.adminProfile;
+const OBAdminUser = require('../../../../config').db.adminUser;
+const Op = require('sequelize').Op;
 
 describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
-  const ZERO = 0;
   const ONE = 1;
   const TWO = 2;
   let profileOneId = '';
   let profileTwoId = '';
-  const OBAdminUser = require('../../../../config').db.adminUser;
   const userOne = `${tu.namePrefix}test@refocus.com`;
   const userTwo = `${tu.namePrefix}poop@refocus.com`;
   const userThree = `${tu.namePrefix}quote@refocus.com`;
   const tname = `${tu.namePrefix}Voldemort`;
   const pname = `${tu.namePrefix}testProfile`;
   const normalUserToken = jwtUtil.createToken(userOne, userOne);
-  /* out of the box admin user token */
-  const OBAdminUserToken = jwtUtil.createToken(
-    OBAdminUser.name, OBAdminUser.name
-  );
+
+  // out of the box admin user token
+  const OBAdminUserToken = tu.createAdminToken();
 
   before((done) => {
     Profile.create({ name: pname + ONE })
@@ -57,14 +56,16 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
         password: userOne,
       });
     })
-    /* another normal user */
+
+    // another normal user
     .then(() => User.create({
       profileId: profileTwoId,
       name: userTwo,
       email: userTwo,
       password: userTwo,
     }))
-    /* another normal user */
+
+    // another normal user
     .then(() => User.create({
       profileId: profileTwoId,
       name: userThree,
@@ -81,7 +82,7 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
     const userFour = `${tu.namePrefix}wwwwww@refocus.com`;
     const userZero = `${tu.namePrefix}fffffff@refocus.com`;
     const adminUserToken = jwtUtil.createToken(
-      userFour, userFour
+      userFour, userFour, { IsAdmin: true, ProfileName: OBAdminProfile.name }
     );
 
     before((done) => {
@@ -89,19 +90,21 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
       User.findOne({
         where: {
           name: {
-            $iLike: OBAdminUser.name,
+            [Op.iLike]: OBAdminUser.name,
           },
         },
       })
       .then((OBAdminUser) => adminProfileId = OBAdminUser.profileId)
-      /* create a normal user */
+
+      // create a normal user
       .then(() => User.create({
         profileId: profileOneId,
         name: userZero,
         email: userZero,
         password: userZero,
       }))
-      /* create a normal user */
+
+      // create a normal user
       .then(() => User.create({
         profileId: profileOneId,
         name: userFour,
@@ -128,7 +131,7 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
         expect(res.body.errors).to.have.length(1);
         expect(res.body.errors)
         .to.have.deep.property('[0].type', 'AdminUpdateDeleteForbidden');
-        done();
+        return done();
       });
     });
 
@@ -142,8 +145,8 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
           return done(err);
         }
 
-        expect(res.body.profileId).to.equal(profileTwoId);
-        done();
+        expect(res.body.profile.id).to.equal(profileTwoId);
+        return done();
       });
     });
 
@@ -157,8 +160,8 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
           return done(err);
         }
 
-        expect(res.body.profileId).to.equal(profileTwoId);
-        done();
+        expect(res.body.profile.id).to.equal(profileTwoId);
+        return done();
       });
     });
   });
@@ -177,7 +180,7 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
         expect(res.body.errors).to.have.length(1);
         expect(res.body.errors)
         .to.have.deep.property('[0].type', 'AdminUpdateDeleteForbidden');
-        done();
+        return done();
       });
     });
 
@@ -191,8 +194,8 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
           return done(err);
         }
 
-        expect(res.body.profileId).to.equal(profileTwoId);
-        done();
+        expect(res.body.profile.id).to.equal(profileTwoId);
+        return done();
       });
     });
   });
@@ -210,7 +213,7 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
         }
 
         expect(res.body.name).to.equal(newName);
-        done();
+        return done();
       });
     });
 
@@ -227,7 +230,7 @@ describe(`tests/api/v1/users/patch.js, PATCH ${path} >`, () => {
         expect(res.body.errors).to.have.length(1);
         expect(res.body.errors)
         .to.have.deep.property('[0].type', 'ForbiddenError');
-        done();
+        return done();
       });
     });
   });

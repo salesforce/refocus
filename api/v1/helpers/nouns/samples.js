@@ -9,7 +9,7 @@
 /**
  * api/v1/helpers/nouns/samples.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const Sample = require('../../../../db/index').Sample;
 const Aspect = require('../../../../db/index').Aspect;
@@ -45,7 +45,7 @@ module.exports = {
     'status', 'previousStatus',
   ],
   readOnlyFields: [
-    'id', 'isDeleted', 'status', 'previousStatus',
+    'id', 'status', 'previousStatus',
     'statusChangedAt', 'createdAt', 'updatedAt', 'name',
   ],
 }; // exports

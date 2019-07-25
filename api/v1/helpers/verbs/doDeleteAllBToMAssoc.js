@@ -9,11 +9,10 @@
 /**
  * api/v1/helpers/verbs/doDeleteAllBToMAssoc.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
-const featureToggles = require('feature-toggles');
 
 /**
  * Deletes all the associations of the resource and sends back no content

@@ -29,6 +29,15 @@ module.exports = {
     users: 'writers',
   },
   fieldsWithEnum: ['status'],
-  readOnlyFields: ['id', 'isDeleted'],
+  readOnlyFields: ['id'],
   fieldsWritableByCollectorOnly: ['osInfo', 'processInfo', 'version'],
+  fieldScopeMap: {
+    user: 'user',
+    owner: 'owner',
+    status: 'status',
+    collectorGroup: 'collectorGroup',
+    currentGenerators: 'currentGenerators',
+  },
+  fieldsToExclude: ['createdBy', 'ownerId', 'collectorGroupId'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

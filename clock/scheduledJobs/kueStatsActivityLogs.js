@@ -12,7 +12,7 @@
  * Kue stats activity logging.
  */
 const key = 'kueStats';
-const k = require('../../config/activityLog').activityType[key];
+const k = require('../../config/activityLog')[key];
 const warningThreshold = require('../../config').kueStatsInactiveWarning;
 const activityLogUtil = require('../../utils/activityLog');
 const jobQueue = require('../../jobQueue/setup').jobQueue;
@@ -62,7 +62,7 @@ function generateLogObject() {
  * Execute the call to write kue stats activity logs.
  */
 function execute() {
-  generateLogObject()
+  return generateLogObject()
   .then((obj) => {
     let level = DEFAULT_LOG_LEVEL;
     if (warningThreshold > ZERO && obj.inactiveCount > warningThreshold) {

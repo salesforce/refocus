@@ -10,11 +10,12 @@
  * api/v1/controllers/authenticate.js
  */
 
-const configuredPassport = require('../../../index').passportModule;
+const configuredPassport = require('../../../express').passportModule;
 const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
 const apiErrors = require('../apiErrors');
 const jwtUtil = require('../../../utils/jwtUtil');
+const Profile = require('../helpers/nouns/profiles').model;
 
 const resourceName = 'authenticate';
 
@@ -26,7 +27,6 @@ module.exports = {
    * @param {IncomingMessage} req - The request object
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
-   *
    */
   authenticateUser(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
@@ -48,15 +48,28 @@ module.exports = {
           return u.handleError(next, _err, resourceName);
         }
 
-        // create token
-        const token = jwtUtil.createToken(req.user.name, req.user.name);
-        req.session.token = token;
-        const retObj = {
-          success: true,
-          message: 'authentication succeeded',
-        };
-        u.logAPI(req, resultObj, retObj);
-        return res.status(httpStatus.OK).json(retObj);
+        return user.setLastLogin()
+          .then(() => Profile.isAdmin(user.profileId))
+          .then((isAdmin) => { // update in token payload if admin
+            const payloadObj = {
+              ProfileName: user.profile.name,
+              IsAdmin: isAdmin,
+            };
+
+            // create token
+            const token = jwtUtil.createToken(
+              req.user.name, req.user.name, payloadObj
+            );
+
+            req.session.token = token;
+            const retObj = {
+              success: true,
+              message: 'authentication succeeded',
+            };
+            u.logAPI(req, resultObj, retObj);
+            return res.status(httpStatus.OK).json(retObj);
+          })
+          .catch((e) => u.handleError(next, e, resourceName));
       });
     })(req, res, next);
   },

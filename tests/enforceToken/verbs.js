@@ -14,7 +14,7 @@
 const expect = require('chai').expect;
 const constants = require('../../api/v1/constants');
 const supertest = require('supertest');
-const api = supertest(require('../../index').app);
+const api = supertest(require('../../express').app);
 const u = require('../testUtils');
 const registerPath = '/v1/register';
 const { OK, CREATED, FORBIDDEN } = constants.httpStatus;
@@ -87,14 +87,8 @@ describe('tests/enforceToken/verbs.js, API verb token enforced tests', () => {
 
           call
           .expect(FORBIDDEN)
-          .expect(/No authorization token was found/)
-          .end((err /* res */) => {
-            if (err) {
-              done(err);
-            }
-
-            done();
-          });
+          .expect(/Authentication Failed/)
+          .end(done);
         });
 
         it(`${VERB} ${path} wrong token provided returns FORBIDDEN`,
@@ -107,7 +101,7 @@ describe('tests/enforceToken/verbs.js, API verb token enforced tests', () => {
           call
           .set('Authorization', `${defaultToken}xyz`)
           .expect(FORBIDDEN)
-          .expect(/Invalid Token/)
+          .expect(/Authentication Failed/)
           .end(done);
         });
 

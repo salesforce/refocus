@@ -9,7 +9,7 @@
 /**
  * tests/realtime/setupSocketIO.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const tu = require('../testUtils');
 const socketIOSetup = require('../../realtime/setupSocketIO');
@@ -17,9 +17,34 @@ const express = require('express');
 const app = express();
 const httpServer = require('http').Server(app);
 const io = require('socket.io')(httpServer);
+const sioClient = require('socket.io-client');
 const u = require('./utils');
 
 describe('tests/realtime/setupSocketIO.js, socket.io setup >', () => {
+  describe('socket io setup >', () => {
+    it('authorization token is received on connection if passed in headers',
+    (done) => {
+      const token = 'abcd-token-abcd';
+      const options = {
+        transports: ['polling', 'websocket'],
+        transportOptions: {
+          polling: {
+            extraHeaders: {
+              authorization: token,
+            },
+          },
+        },
+      };
+
+      io.listen(5000);
+      sioClient.connect('http://0.0.0.0:5000', options);
+      io.sockets.on('connection', (socket) => {
+        expect(socket.handshake.headers.authorization).to.equal(token);
+        done();
+      });
+    });
+  });
+
   describe('with logging disabled >', () => {
     const rootSubjNAUS = 'NA.US';
     const rootSubjNA = 'NA';

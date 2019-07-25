@@ -25,6 +25,8 @@ const initialFeatureState = featureToggles
   .isFeatureEnabled(sampleStore.constants.featureName);
 const subAspMapType = ssConstants.prefix + ssConstants.separator +
   ssConstants.objectType.subAspMap;
+const aspSubMapType = ssConstants.prefix + ssConstants.separator +
+  ssConstants.objectType.aspSubMap;
 
 describe('tests/cache/sampleStore.js >', () => {
   describe('feature off >', () => {
@@ -73,7 +75,7 @@ describe('tests/cache/sampleStore.js >', () => {
         isPublished: true,
         name: `${tu.namePrefix}Aspect2`,
         timeout: '10m',
-        valueType: 'BOOLEAN',
+        valueType: 'NUMERIC',
         okRange: [10, 100],
       }))
       .then((created) => (a2 = created))
@@ -81,7 +83,7 @@ describe('tests/cache/sampleStore.js >', () => {
         isPublished: true,
         name: `${tu.namePrefix}Aspect3`,
         timeout: '10m',
-        valueType: 'BOOLEAN',
+        valueType: 'NUMERIC',
         okRange: [10, 100],
       }))
       .then((created) => (a3 = created))
@@ -89,7 +91,7 @@ describe('tests/cache/sampleStore.js >', () => {
         isPublished: false, // unpublished aspect should still be found
         name: `${tu.namePrefix}Aspect4`,
         timeout: '10m',
-        valueType: 'BOOLEAN',
+        valueType: 'NUMERIC',
         okRange: [10, 100],
       }))
       .then((created) => (a4 = created))
@@ -210,8 +212,8 @@ describe('tests/cache/sampleStore.js >', () => {
         // Make sure aspects that don't have samples are *also* here
         expect(res.includes('samsto:aspect:___aspect3')).to.be.true;
 
-        // Make sure unpublished aspects are *not* here
-        expect(res.includes('samsto:aspect:___aspect4')).to.be.false;
+        // Make sure unpublished aspects are here
+        expect(res.includes('samsto:aspect:___aspect4')).to.be.true;
       })
       .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
       .then((res) => {
@@ -238,7 +240,24 @@ describe('tests/cache/sampleStore.js >', () => {
       })
       .then(() => rcli.smembersAsync('samsto:subaspmap:___subject1.___subject2'))
       .then((res) => {
-        expect(res.includes(['aspect1', 'aspect2']));
+        expect(res.includes('___aspect1')).to.be.true;
+        expect(res.includes('___aspect2')).to.be.true;
+      })
+      .then(() => rcli.keysAsync(aspSubMapType + '*'))
+      .then((res) => {
+        expect(res.includes('samsto:aspsubmap:___aspect1'))
+        .to.be.true;
+        expect(res.includes('samsto:aspsubmap:___aspect2'))
+        .to.be.true;
+      })
+      .then(() => rcli.smembersAsync('samsto:aspsubmap:___aspect1'))
+      .then((res) => {
+        expect(res.includes('___subject1.___subject2')).to.be.true;
+        expect(res.includes('___subject1.___subject3')).to.be.true;
+      })
+      .then(() => rcli.smembersAsync('samsto:aspsubmap:___aspect2'))
+      .then((res) => {
+        expect(res.includes('___subject1.___subject2')).to.be.true;
       })
       .then(() => samstoinit.init())
       .then((res) => expect(res).to.not.be.false)
@@ -254,7 +273,7 @@ describe('tests/cache/sampleStore.js >', () => {
       .then(() => samstoinit.populate())
       .then(() => rcli.hgetallAsync('samsto:aspect:___aspect1'))
       .then((aspect) => {
-        sampleStore.arrayStringsToJson(aspect,
+        sampleStore.arrayObjsStringsToJson(aspect,
           sampleStore.constants.fieldsToStringify.aspect);
         expect(aspect.writers.length).equal(3);
         expect(aspect.writers)
@@ -262,7 +281,7 @@ describe('tests/cache/sampleStore.js >', () => {
       })
       .then(() => rcli.hgetallAsync('samsto:aspect:___aspect2'))
       .then((aspect) => {
-        sampleStore.arrayStringsToJson(aspect,
+        sampleStore.arrayObjsStringsToJson(aspect,
           sampleStore.constants.fieldsToStringify.aspect);
         expect(aspect.writers.length).to.equal(1);
         expect(aspect.writers).to.have.members([user4.name]);
@@ -282,6 +301,76 @@ describe('tests/cache/sampleStore.js >', () => {
         expect(res.length).to.eql(0);
         done();
       }).catch(done);
+    });
+  });
+
+  describe('convertSubjectStrings >', () => {
+    it('ok', (done) => {
+      const subj = {
+        absolutePath: '___NorthAmerica-limitTest8-even',
+        childCount: '0',
+        description: 'continent',
+        id: 'f4d73b66-eed4-47f8-8006-98fa3c63f9fd',
+        isPublished: 'false',
+        name: '___NorthAmerica-limitTest8-even',
+        relatedLinks: '[{ "name": "a", "url": "b.com" }]',
+        tags: '["foo", "bar"]',
+        sortBy: '_1',
+        createdAt: 'Fri Jul 06 2018 15:19:28 GMT-0700 (PDT)',
+        updatedAt: 'Fri Jul 06 2018 15:19:28 GMT-0700 (PDT)',
+        hierarchyLevel: '1',
+      };
+      expect(sampleStore.convertSubjectStrings(subj)).to.deep.equal({
+        absolutePath: '___NorthAmerica-limitTest8-even',
+        childCount: 0,
+        description: 'continent',
+        id: 'f4d73b66-eed4-47f8-8006-98fa3c63f9fd',
+        isPublished: false,
+        name: '___NorthAmerica-limitTest8-even',
+        relatedLinks: [{ name: 'a', url: 'b.com' }],
+        tags: ['foo', 'bar'],
+        sortBy: '_1',
+        createdAt: 'Fri Jul 06 2018 15:19:28 GMT-0700 (PDT)',
+        updatedAt: 'Fri Jul 06 2018 15:19:28 GMT-0700 (PDT)',
+        hierarchyLevel: 1,
+      });
+      done();
+    });
+
+    it('use 0 if parseInt fails', (done) => {
+      expect(sampleStore.convertSubjectStrings({ childCount: 'ABC' }))
+      .to.deep.equal({
+        hierarchyLevel: 0,
+        childCount: 0,
+        isPublished: true,
+        relatedLinks: [],
+        tags: [],
+      });
+      done();
+    });
+
+    it('use true if JSON.parse fails for isPublished', (done) => {
+      expect(sampleStore.convertSubjectStrings({}))
+      .to.deep.equal({
+        hierarchyLevel: 0,
+        childCount: 0,
+        isPublished: true,
+        relatedLinks: [],
+        tags: [],
+      });
+      done();
+    });
+
+    it('use empty array if JSON.parse fails for tags/relatedLinks', (done) => {
+      expect(sampleStore.convertSubjectStrings({}))
+      .to.deep.equal({
+        hierarchyLevel: 0,
+        childCount: 0,
+        isPublished: true,
+        relatedLinks: [],
+        tags: [],
+      });
+      done();
     });
   });
 });

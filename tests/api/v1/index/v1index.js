@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const path = '/v1';
@@ -78,10 +78,22 @@ describe('tests/api/v1/index/v1index.js >', () => {
   });
 
   describe('/ >', () => {
+    afterEach(() => {
+      delete process.env.LANDING_PAGE_URL;
+    });
+
     it('/ should redirect to /perspectives', (done) => {
       api.get('/')
       .expect((res) => expect(res.redirect).to.be.true)
       .expect((res) => expect(res.header.location).to.contain('/perspectives'))
+      .end(done);
+    });
+
+    it('/ should redirect to /rooms if LANDING_PAGE_URL is set', (done) => {
+      process.env.LANDING_PAGE_URL = '/rooms';
+      api.get('/')
+      .expect((res) => expect(res.redirect).to.be.true)
+      .expect((res) => expect(res.header.location).to.contain('/rooms'))
       .end(done);
     });
   });

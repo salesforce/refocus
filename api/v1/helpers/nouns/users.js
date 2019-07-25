@@ -34,4 +34,9 @@ module.exports = {
     perspectives: 'writablePerspectives',
     subjects: 'writableSubjects',
   },
+  fieldScopeMap: {
+    profile: 'profile',
+  },
+  fieldsToExclude: ['profileId'],
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

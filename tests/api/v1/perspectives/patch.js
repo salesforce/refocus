@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -38,9 +38,9 @@ describe('tests/api/v1/perspectives/patch.js >', () => {
 
   before((done) => {
     u.doSetup()
-    .then((createdLens) => tu.db.Perspective.create({
+    .then(({ lensId }) => tu.db.Perspective.create({
       name: `${tu.namePrefix}testPersp`,
-      lensId: createdLens.id,
+      lensId,
       rootSubject: 'myMainSubject',
       aspectFilter: aspectFilterArr,
       aspectTagFilter: aspectTagFilterArr,
@@ -76,7 +76,7 @@ describe('tests/api/v1/perspectives/patch.js >', () => {
       expect(res.body.aspectTagFilterType).to.equal('INCLUDE');
       expect(res.body.subjectTagFilterType).to.equal('INCLUDE');
       expect(res.body.statusFilterType).to.equal('INCLUDE');
-      Perspective.findById(perspectiveId)
+      Perspective.findByPk(perspectiveId)
       .then((p) => {
         expect(p.aspectFilterType).to.equal('INCLUDE');
         expect(p.aspectTagFilterType).to.equal('INCLUDE');
@@ -99,7 +99,7 @@ describe('tests/api/v1/perspectives/patch.js >', () => {
       }
 
       expect(res.body.rootSubject).to.equal('changedMainSubject');
-      Perspective.findById(perspectiveId)
+      Perspective.findByPk(perspectiveId)
       .then((p) => {
         expect(p.rootSubject).to.be.equal('changedMainSubject');
         done();
@@ -119,7 +119,7 @@ describe('tests/api/v1/perspectives/patch.js >', () => {
       }
 
       expect(res.body.aspectTagFilter).to.eql(['ctemp', 'chum']);
-      Perspective.findById(perspectiveId)
+      Perspective.findByPk(perspectiveId)
       .then((p) => {
         expect(p.aspectTagFilter).to.eql(['ctemp', 'chum']);
         done();
@@ -184,5 +184,37 @@ describe('tests/api/v1/perspectives/patch.js >', () => {
     })
     .expect(constants.httpStatus.BAD_REQUEST)
     .end(done);
+  });
+
+  it('filters set to empty array if not provided', (done) => {
+    Perspective.findByPk(perspectiveId)
+      .then((p) => p.update({
+        subjectTagFilter: [],
+        aspectFilter: [],
+        aspectTagFilter: [],
+        statusFilter: [],
+        aspectFilterType: 'EXCLUDE',
+        statusFilterType: 'EXCLUDE',
+        subjectTagFilterType: 'EXCLUDE',
+        aspectTagFilterType: 'EXCLUDE',
+      }))
+      .then(() => {
+        api.patch(`${path}/${perspectiveId}`)
+          .set('Authorization', token)
+          .send({ rootSubject: 'changedMainSubject' })
+          .expect(constants.httpStatus.OK)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            expect(res.body.subjectTagFilter).to.eql([]);
+            expect(res.body.aspectFilter).to.eql([]);
+            expect(res.body.aspectTagFilter).to.eql([]);
+            expect(res.body.statusFilter).to.eql([]);
+
+            done();
+          });
+      });
   });
 });

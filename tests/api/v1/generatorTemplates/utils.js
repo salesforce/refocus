@@ -31,24 +31,38 @@ const GENERATOR_TEMPLATE_SIMPLE = {
     url: 'http://www.bbb.com',
     bulk: false,
   },
-  transform: 'function...',
+  transform: {
+    default: 'return [{ name: "S1|A1", value: 10 }, ' +
+    '{ name: "S2|A1", value: 2 }] ',
+    errorHandlers: {
+      404: 'return [{ name: "S1|A1", messageBody: "NOT FOUND" },' +
+      ' { name: "S2|A1", messageBody: "NOT FOUND" }]',
+    },
+    responseSchema: {
+      type: 'object',
+      required: ['body'],
+      properties: {
+        body: { type: 'object' },
+      },
+    },
+  },
   isPublished: true,
   helpEmail: 'a@aaa.com',
   helpUrl: 'aaa.com',
   repository: {
-    url: 'aaa.com',
+    url: 'http://aaa.com',
     type: 'GitHub',
   },
   contextDefinition: {
-    a: {
-      description: 'a',
-      aa: 1,
-      ab: 2,
+    okValue: {
+      required: false,
+      default: '0',
+      description: 'An ok sample\'s value, e.g. \'0\'',
     },
-    b: {
-      description: 'b',
-      ba: 3,
-      bb: 4,
+    criticalValue: {
+      required: false,
+      default: '2',
+      description: 'A critical sample\'s value, e.g. \'1\'',
     },
   },
 };
@@ -62,14 +76,25 @@ function getGeneratorTemplate() {
 } // getGenerator
 
 module.exports = {
-  forceDelete(done) {
-    tu.forceDelete(tu.db.GeneratorTemplate, testStartTime)
-    .then(() => tu.forceDelete(tu.db.Collector, testStartTime))
-    .then(() => tu.forceDelete(tu.db.User, testStartTime))
-    .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.GeneratorTemplate, startTime)
+    .then(() => tu.forceDelete(tu.db.Collector, startTime))
     .then(() => done())
     .catch(done);
   },
 
   getGeneratorTemplate,
+  getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
+    const defaultProps = JSON.parse(JSON.stringify(GENERATOR_TEMPLATE_SIMPLE));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.GeneratorTemplate.create(toCreate);
+  },
 };

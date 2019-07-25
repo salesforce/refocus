@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -40,6 +40,7 @@ describe('tests/api/v1/generators/put.js >', () => {
       generatorId = gen.id;
       done();
     })
+    .then(u.createGeneratorAspects())
     .catch((err) => {
       done(err);
     });
@@ -58,8 +59,8 @@ describe('tests/api/v1/generators/put.js >', () => {
         'STATUS',
       ],
       generatorTemplate: {
-        name: 'refocus-ok-generator-template',
-        version: '1.0.0',
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
       },
       context: {
         okValue: {
@@ -68,7 +69,7 @@ describe('tests/api/v1/generators/put.js >', () => {
           description: 'An ok sample\'s value, e.g. \'0\'',
         },
       },
-      subjects: ['US'],
+      subjectQuery: '?absolutePath=Foo.*',
       aspects: ['Temperature', 'Weather'],
     };
 
@@ -77,11 +78,186 @@ describe('tests/api/v1/generators/put.js >', () => {
     .send(toPut)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
+      expect(res.body.subjectQuery).to.equal('?absolutePath=Foo.*');
 
-      // subjectQuery is ?subjects after reload
-      expect(res.body.subjectQuery)
-        .to.equal(generatorToCreate.subjectQuery);
-      expect(res.body.subjects).to.deep.equal(toPut.subjects);
+      // aspect names are saved lowercase
+      expect(res.body.aspects).to.be.an('array').with.lengthOf(2);
+      expect(res.body.aspects[0]).to.equal('temperature');
+      expect(res.body.aspects[1]).to.equal('weather');
+    })
+    .end(done);
+  });
+
+  it('put without subjectQuery (error)', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      generatorTemplate: {
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      aspects: ['Temperature', 'Weather'],
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect((res) => {
+      expect(res.body.errors[0].type).to.equal('SequelizeValidationError');
+      expect(res.body.errors[0].message).to.equal(
+        'Generator.subjectQuery cannot be null'
+      );
+    })
+    .end(done);
+  });
+
+  it('put without generatorTemplate (error)', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjectQuery: '?absolutePath=Foo.*',
+      aspects: ['Temperature', 'Weather'],
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect((res) => {
+      expect(res.body.errors[0].type).to.equal('SCHEMA_VALIDATION_FAILED');
+      expect(res.body.errors[0].message).to.equal(
+        'Missing required property: generatorTemplate'
+      );
+    })
+    .end(done);
+  });
+
+  it('put without generatorTemplate name (error)', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      generatorTemplate: {
+        version: generatorTemplate.version,
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjectQuery: '?absolutePath=Foo.*',
+      aspects: ['Temperature', 'Weather'],
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect((res) => {
+      expect(res.body.errors[0].type).to.equal('SequelizeValidationError');
+      expect(res.body.errors[0].message).to.equal(
+        'child "name" fails because ["name" is required]'
+      );
+    })
+    .end(done);
+  });
+
+  it('put with generatorTemplate name Validation fail (error)', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      generatorTemplate: {
+        name: 123,
+        version: generatorTemplate.version,
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjectQuery: '?absolutePath=Foo.*',
+      aspects: ['Temperature', 'Weather'],
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect((res) => {
+      expect(res.body.errors[0].type).to.equal('SCHEMA_VALIDATION_FAILED');
+      expect(res.body.errors[0].message).to.equal(
+        'Expected type string but found type integer'
+      );
+    })
+    .end(done);
+  });
+
+  it('put with generatorTemplate version Validation fail (error)', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      generatorTemplate: {
+        name: generatorTemplate.name,
+        version: 123,
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjectQuery: '?absolutePath=Foo.*',
+      aspects: ['Temperature', 'Weather'],
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .expect((res) => {
+      expect(res.body.errors[0].type).to.equal('SCHEMA_VALIDATION_FAILED');
+      expect(res.body.errors[0].message).to.equal(
+        'Expected type string but found type integer'
+      );
     })
     .end(done);
   });
@@ -95,8 +271,8 @@ describe('tests/api/v1/generators/put.js >', () => {
         'STATUS',
       ],
       generatorTemplate: {
-        name: 'refocus-ok-generator-template',
-        version: '1.0.0',
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
       },
       context: {
         okValue: {
@@ -105,7 +281,7 @@ describe('tests/api/v1/generators/put.js >', () => {
           description: 'An ok sample\'s value, e.g. \'0\'',
         },
       },
-      subjects: ['US'],
+      subjectQuery: '?absolutePath=Foo.*',
       aspects: ['Temperature', 'Weather'],
     };
 
@@ -128,8 +304,8 @@ describe('tests/api/v1/generators/put.js >', () => {
         'STATUS',
       ],
       generatorTemplate: {
-        name: 'refocus-ok-generator-template',
-        version: '1.0.0',
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
       },
       context: {
         okValue: {
@@ -138,7 +314,7 @@ describe('tests/api/v1/generators/put.js >', () => {
           description: 'An ok sample\'s value, e.g. \'0\'',
         },
       },
-      subjects: ['US'],
+      subjectQuery: '?absolutePath=Foo.*',
     };
 
     api.put(`${path}/${generatorId}`)
@@ -155,5 +331,74 @@ describe('tests/api/v1/generators/put.js >', () => {
       expect(errorArray[ZERO].type).to.equal('SCHEMA_VALIDATION_FAILED');
       done();
     });
+  });
+
+  it('error, put with currentCollector, read only', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      tags: [
+        'status',
+        'STATUS',
+      ],
+      generatorTemplate: {
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjectQuery: '?absolutePath=Foo.*',
+      aspects: ['Temperature', 'Weather'],
+      currentCollector: 'some-collector',
+    };
+
+    api.put(`${path}/${generatorId}`)
+    .set('Authorization', token)
+    .send(toPut)
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].type).to.equal('ValidationError');
+      expect(res.body.errors[0].description).to.equal(
+        'You cannot modify the read-only field: currentCollector'
+      );
+      return done();
+    });
+  });
+
+  it('tags set to empty array if not provided', (done) => {
+    const toPut = {
+      name: 'refocus-ok-generator',
+      description: 'Collect status data',
+      generatorTemplate: {
+        name: generatorTemplate.name,
+        version: generatorTemplate.version,
+      },
+      context: {
+        okValue: {
+          required: false,
+          default: '0',
+          description: 'An ok sample\'s value, e.g. \'0\'',
+        },
+      },
+      subjectQuery: '?absolutePath=Foo.*',
+      aspects: ['Temperature', 'Weather'],
+    };
+    api.put(`${path}/${generatorId}`)
+      .set('Authorization', token)
+      .send(toPut)
+      .expect(constants.httpStatus.OK)
+      .expect((res) => {
+        expect(res.body.tags).to.eql([]);
+      })
+      .end(done);
   });
 });

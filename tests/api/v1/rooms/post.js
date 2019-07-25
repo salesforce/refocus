@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const u = require('./utils');
 const path = '/v1/rooms';
@@ -58,19 +58,41 @@ describe('tests/api/v1/rooms/post.js >', () => {
       }
 
       expect(res.body.name).to.equal(u.name);
+      expect(res.body.origin).to.equal(u.origin);
+      expect(res.body).to.have.property('createdBy');
+      expect(res.body.user).to.have.property('email');
+      expect(res.body.user.email).to.equal('___testUser@refocus.com');
+      done();
+    });
+  });
+
+  it('Pass, post room using roomType name', (done) => {
+    const room = u.getStandard();
+    room.type = testRoomType.name;
+
+    api.post(`${path}`)
+    .set('Authorization', token)
+    .send(room)
+    .expect(constants.httpStatus.CREATED)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.name).to.equal(u.name);
       done();
     });
   });
 
   it('Fail, duplicate room', (done) => {
-    let room = u.getStandard();
+    const room = u.getStandard();
     room.type = testRoomType.id;
     tu.db.Room.create(room)
     .then(() => {
       api.post(`${path}`)
       .set('Authorization', token)
       .send(room)
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.BAD_REQUEST)
       .end((err, res) => {
         if (err) {
           return done(err);
@@ -85,7 +107,7 @@ describe('tests/api/v1/rooms/post.js >', () => {
   });
 
   it('Fail, room validation incorrect', (done) => {
-    let room = u.getStandard();
+    const room = u.getStandard();
     room.type = testRoomType.id;
     room.active = 'INVALID_VALUE';
     api.post(`${path}`)

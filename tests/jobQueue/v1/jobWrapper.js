@@ -18,22 +18,41 @@ const tu = require('../../testUtils');
 const u = require('./utils');
 const path = '/v1/samples/upsert/bulk';
 const sinon = require('sinon');
+const activityLogUtil = require('../../../utils/activityLog');
+const MILLISECONDS_EXPRESSION = /^\d*ms/;
+const featureToggles = require('feature-toggles');
+
+const jobPriority = {
+  high: 'high',
+  normal: 'normal',
+  low: 'low',
+};
+
+if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj')) {
+  jobPriority.high = 1;
+  jobPriority.normal = 50;
+  jobPriority.low = 100;
+}
 
 describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
+  beforeEach((done) => {
+    sinon.spy(activityLogUtil, 'printActivityLogString');
+    done();
+  });
   before(() => {
     tu.toggleOverride('enableWorkerProcess', true);
+    tu.toggleOverride('enableJobCreateActivityLogs', true);
   });
+  afterEach((done) => {
+    activityLogUtil.printActivityLogString.restore();
+    done();
+  });
+
   after(u.forceDelete);
   after(tu.forceDeleteUser);
   after(() => {
     tu.toggleOverride('enableWorkerProcess', false);
-  });
-
-  it('jobQueue.watchStuckJob should be called', (done) => {
-    sinon.spy(jobQueue, 'watchStuckJobs');
-    expect(jobQueue.watchStuckJobs).to.have.been.called;
-    jobQueue.watchStuckJobs.restore();
-    done();
+    tu.toggleOverride('enableJobCreateActivityLogs', false);
   });
 
   it('jobQueue should let you create any type of job', (done) => {
@@ -61,15 +80,169 @@ describe(`tests/jobQueue/v1/jobWrapper.js, api: POST ${path} >`, () => {
     'job id', (done) => {
     const jobType = 'myTestJob';
     const testData = { foo: 'bar' };
+    const jobPriorityNum = featureToggles.isFeatureEnabled(
+      'enableBullForBulkDelSubj') ? 50 : 0;
     jobWrapper.createPromisifiedJob(jobType, testData)
     .then((job) => {
       expect(job).to.not.equal(null);
       expect(job.type).to.equal(jobType);
       expect(job.data).to.equal(testData);
       expect(job.id).to.be.at.least(1);
+      sinon.assert.calledWith(
+        activityLogUtil.printActivityLogString,
+        sinon.match({
+          jobId: sinon.match.number,
+          jobPriority: jobPriorityNum,
+          jobType: 'myTestJob',
+          process: sinon.match.any,
+          totalTime: sinon.match(MILLISECONDS_EXPRESSION),
+        }),
+        'jobCreate');
       done();
     })
     .catch((err) => done(err));
   });
-});
 
+  it('jobWrapper: bulkDeleteSubjects: promisified job creation should return' +
+    ' job with a job id', (done) => {
+    const jobType = 'bulkDeleteSubjects';
+    const testData = { foo: 'bar' };
+    jobWrapper.createPromisifiedJob(jobType, testData)
+      .then((job) => {
+        expect(job).to.not.equal(null);
+        expect(job.type).to.equal(jobType);
+        expect(job.data).to.equal(testData);
+        expect(job.id).to.be.at.least(1);
+        if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj')) {
+          sinon.assert.calledWith(
+            activityLogUtil.printActivityLogString,
+            sinon.match({
+              jobId: sinon.match.string,
+              jobPriority: 50,
+              jobType: 'bulkDeleteSubjects',
+              process: sinon.match.any,
+              totalTime: sinon.match(MILLISECONDS_EXPRESSION),
+            }),
+            'jobCreate');
+        } else {
+          sinon.assert.calledWith(
+            activityLogUtil.printActivityLogString,
+            sinon.match({
+              jobId: sinon.match.number,
+              jobPriority: 0,
+              jobType: 'bulkDeleteSubjects',
+              process: sinon.match.any,
+              totalTime: sinon.match(MILLISECONDS_EXPRESSION),
+            }),
+            'jobCreate');
+        }
+
+        done();
+      })
+      .catch((err) => done(err));
+  });
+
+  describe('calculateJobPriority >', () => {
+    const prioritize = [
+      'frodo.baggins@hobbiton.com',
+      '123.456.789',
+      'abcdefg',
+    ];
+    const deprioritize = [
+      'bilbo.baggins@hobbiton.com',
+      '456.789.123',
+      'hijklmnop',
+    ];
+
+    it('prioritize by name', () => {
+      expect(jobWrapper.calculateJobPriority(prioritize, deprioritize, {
+        headers: {
+          UserName: 'frodo.baggins@hobbiton.com',
+          TokenName: 'Smaug',
+          'x-forwarded-for': '123.456.789',
+        },
+        locals: {
+          ipAddress: '123.456.789',
+        },
+      })).to.equal(jobPriority.high);
+    });
+
+    it('prioritize by token', () => {
+      expect(jobWrapper.calculateJobPriority(prioritize, deprioritize, {
+        headers: {
+          UserName: 'legolas@elf.com',
+          TokenName: 'abcdefg',
+          'x-forwarded-for': '456.789.123',
+        },
+        locals: {
+          ipAddress: '456.789.123',
+        },
+      })).to.equal(jobPriority.high);
+    });
+
+    it('prioritize by ip address', () => {
+      expect(jobWrapper.calculateJobPriority(prioritize, deprioritize, {
+        headers: {
+          UserName: 'legolas@elf.com',
+          TokenName: 'Smaug',
+          'x-forwarded-for': '123.456.789',
+        },
+        locals: {
+          ipAddress: '123.456.789',
+        },
+      })).to.equal(jobPriority.high);
+    });
+
+    it('deprioritize by name', () => {
+      expect(jobWrapper.calculateJobPriority(prioritize, deprioritize, {
+        headers: {
+          UserName: 'bilbo.baggins@hobbiton.com',
+          TokenName: 'Smaug',
+          'x-forwarded-for': '789.123.456',
+        },
+        locals: {
+          ipAddress: '789.123.456',
+        },
+      })).to.equal(jobPriority.low);
+    });
+
+    it('deprioritize by token', () => {
+      expect(jobWrapper.calculateJobPriority(prioritize, deprioritize, {
+        headers: {
+          UserName: 'legolas@elf.com',
+          TokenName: 'hijklmnop',
+          'x-forwarded-for': '789.123.456',
+        },
+        locals: {
+          ipAddress: '789.123.456',
+        },
+      })).to.equal(jobPriority.low);
+    });
+
+    it('deprioritize by ip address', () => {
+      expect(jobWrapper.calculateJobPriority(prioritize, deprioritize, {
+        headers: {
+          UserName: 'legolas@elf.com',
+          TokenName: 'Smaug',
+          'x-forwarded-for': '456.789.123',
+        },
+        locals: {
+          ipAddress: '456.789.123',
+        },
+      })).to.equal(jobPriority.low);
+    });
+
+    it('empty prioritize/deprioritize arrays', () => {
+      expect(jobWrapper.calculateJobPriority([], [], {
+        headers: {
+          UserName: 'frodo.baggins@hobbiton.com',
+          TokenName: 'Smaug',
+          'x-forwarded-for': '123.456.789',
+        },
+        locals: {
+          ipAddress: '123.456.789',
+        },
+      })).to.equal(jobPriority.normal);
+    });
+  });
+});

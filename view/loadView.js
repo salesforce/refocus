@@ -22,6 +22,9 @@ const viewConfig = require('../viewConfig');
 const jwtUtil = require('../utils/jwtUtil');
 const httpStatus = require('./constants').httpStatus;
 const url = require('url');
+const ft = require('feature-toggles');
+
+const redirectFeature = ft.isFeatureEnabled('enableRedirectDifferentInstance');
 
 // protected urls
 const viewmap = {
@@ -36,12 +39,21 @@ const viewmap = {
   '/samples/:key/edit': 'admin',
   '/perspectives': 'perspective/perspective',
   '/perspectives/:key': 'perspective/perspective',
-  '/perspectivesBeta': 'perspectiveBeta/perspective',
-  '/perspectivesBeta/:key': 'perspectiveBeta/perspective',
   '/tokens/new': 'tokens/new',
   '/rooms': 'rooms/list',
+  '/rooms/types': 'rooms/types',
+  '/rooms/types/:key': 'rooms/type',
+  '/rooms/new/:key': 'rooms/new',
+  '/rooms/new/': 'rooms/new',
   '/rooms/:key': 'rooms',
 };
+
+const refocusPerspectivesViews = ['/aspects', '/aspects/:key',
+  '/aspects/:key/edit', '/subjects', '/subjects/:key',
+  '/subjects/:key/edit', '/samples', '/samples/:key',
+  '/samples/:key/edit', '/perspectives', '/perspectives/:key'];
+ const refocusRoomsViews = ['/rooms', '/rooms/types', '/rooms/types/:key',
+  '/rooms/new/:key', '/rooms/new/', '/rooms/:key'];
 
 /**
  * Checks if the user is authenticated and and there is a valid session
@@ -64,36 +76,66 @@ function ensureAuthenticated(req, res, next) {
 /**
  * Authentication for validation SAML responses
  * Used in SAML SSO Stategy
- * Will provision user if no matching user is found
+ * Will provision user if no matching user is found.
+ * Updates user lastLogin upon successful login.
  *
  * @param  {Object}   userProfile - User profile parameters
  * @param  {Function} done - Callback function
  */
 function samlAuthentication(userProfile, done) {
+  const userFullName = `${userProfile.firstname} ${userProfile.lastname}`;
   User.findOne({ where: { email: userProfile.email } })
   .then((user) => {
     if (!user) {
-      return Profile.findOrCreate({ where: { name: 'RefocusSSOUser' } });
+      return Profile.findOne({ where: { name: 'RefocusSSOUser' } })
+      .then((foundProfile) => {
+        if (foundProfile) {
+          return foundProfile;
+        }
+
+        return Profile.create({ name: 'RefocusSSOUser' });
+      })
+      .then((profile) => {
+
+        /**
+         * default scope not applied on create, so we use User.find after this to
+         * get profile attached to user.
+         */
+        return User.create({
+          email: userProfile.email,
+          profileId: profile.id,
+          name: userProfile.email,
+          password: viewConfig.dummySsoPassword,
+          fullName: userFullName,
+          sso: true,
+        });
+      })
+      .then((createdUser) =>
+        User.findByPk(createdUser.id) // to get profile name with user object
+      )
+      .then((newUser) => {
+        done(null, newUser);
+      })
+      .catch((error) => {
+        done(error);
+      });
     }
 
-    return done(null, user);
-  })
-  .spread((profile) =>
-    User.create({
-      email: userProfile.email,
-      profileId: profile.id,
-      name: userProfile.email,
-      password: 'ssopassword',
-      sso: true,
+    // profile already attached - default scope applied on find
+    if (user.fullName) {
+      return user.setLastLogin()
+      .then(() => done(null, user));
+    }
+
+    // user.fullName doesn't exist, update user
+    return user.update({
+      fullName: userFullName,
+      lastLogin: Date.now(),
     })
-  )
-  .then((user) => {
-    done(null, user);
+    .then(() => done(null, user));
   })
-  .catch((error) => {
-    done(error);
-  });
-}
+  .catch((error) => done(error));
+} // samlAuthentication
 
 /**
  * Creates redirect url for sso.
@@ -113,37 +155,59 @@ function getRedirectUrlSSO(req) {
   return redirectUrl;
 }
 
-module.exports = function loadView(app, passport) {
+/**
+ * Gets the redirect URI if we should redirect to a different instance of refocus
+ * for a view.
+ *
+ * @param  {String} viewKey - Key of the view being loaded.
+ * @param  {String} reqUrl - Url of the request.
+ * @returns {String} - Empty string if it should not redirect, otherwise the full
+ * uri that should be redirected to.
+ */
+function getRedirectURI(viewKey, reqUrl) {
+  const refocusPerspectivesUrl = process.env.REFOCUS_PERSPECTIVES_BASE_URL;
+  const refocusRoomsUrl = process.env.REFOCUS_ROOMS_BASE_URL;
+  const shouldRedirectToRooms = refocusRoomsUrl &&
+    refocusRoomsViews.includes(viewKey);
+  const shouldRedirectToPerspectives = refocusPerspectivesUrl &&
+    refocusPerspectivesViews.includes(viewKey);
+   if (shouldRedirectToRooms) {
+    return refocusRoomsUrl + reqUrl;
+  } else if (shouldRedirectToPerspectives) {
+    return refocusPerspectivesUrl + reqUrl;
+  }
+   return '';
+} // This function is temporary - remove when separate deployment has settled
+
+function loadView(app, passport) {
   const keys = Object.keys(viewmap);
   keys.forEach((key) =>
     app.get(
       key,
       ensureAuthenticated,
       (req, res) => {
+        const copyOfUser = JSON.parse(JSON.stringify(req.user));
+        delete copyOfUser.password;
         const trackObj = {
+          userSession: req.session.token,
           trackingId: viewConfig.trackingId,
-          user: JSON.stringify(req.user),
+          user: JSON.stringify(copyOfUser).replace(/'/g,"apos;"),
+          realtimeApplication: viewConfig.realtimeApplication,
+          realtimeApplicationImc: viewConfig.realtimeApplicationImc,
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
-          transportProtocol: viewConfig.socketIOtransportProtocol,
+          useNewNamespaceFormat: ft.isFeatureEnabled('useNewNamespaceFormat'),
+          useNewNamespaceFormatImc: ft.isFeatureEnabled('useNewNamespaceFormatImc'),
         };
 
-        const templateVars = Object.assign(
-          {},
-          { queryParams: JSON.stringify(req.query) },
-          trackObj
-        );
-
-        // if url contains a query, render perspective detail page with realtime
-        // updates
-        if ((key === '/perspectives' && Object.keys(req.query).length) ||
-        key === '/perspectives/:key') {
-          res.render(viewmap[key], templateVars);
-        } else if ((key === '/perspectivesBeta' && Object.keys(req.query).length) ||
-        key === '/perspectivesBeta/:key') {
-          res.render(viewmap[key], templateVars);
-        } else {
-          res.render(viewmap[key], trackObj);
+        // This is temporary - remove when separate deployment has settled
+        if (redirectFeature) {
+          const redirectURI = getRedirectURI(key, req.url);
+          if (redirectURI.length) {
+            return res.redirect(redirectURI);
+          }
         }
+
+        res.render(viewmap[key], trackObj);
       }
     )
   );
@@ -220,18 +284,30 @@ module.exports = function loadView(app, passport) {
         failureRedirect: '/login',
       }),
     (_req, _res) => {
-      if (_req.user && _req.user.name) {
-        const token = jwtUtil.createToken(_req.user.name, _req.user.name);
-        _req.session.token = token;
-      }
+      // We make sure we have _req.user.profile.name in user returned from
+      // samlAuthentication
+      const user = _req.user;
 
-      if (_req.body.RelayState) {
-        // get the redirect url from relay state if present
-        _res.redirect(_req.body.RelayState);
-      } else {
-        // redirect to home page
-        _res.redirect('/');
-      }
+      return Profile.isAdmin(user.profileId)
+      .then((isAdmin) => {
+        const payloadObj = {
+          ProfileName: user.profile.name,
+          IsAdmin: isAdmin,
+        };
+
+        if (user && user.name && user.profile && user.profile.name) {
+          const token = jwtUtil.createToken(user.name, user.name, payloadObj);
+          _req.session.token = token;
+        }
+
+        if (_req.body.RelayState) {
+          // get the redirect url from relay state if present
+          _res.redirect(_req.body.RelayState);
+        } else {
+          // redirect to home page
+          _res.redirect('/');
+        }
+      });
     }
   );
 
@@ -288,4 +364,9 @@ module.exports = function loadView(app, passport) {
 
   // Redirect '/v1' to '/v1/docs'.
   app.get('/v1', (req, res) => res.redirect('/v1/docs'));
+}
+
+module.exports = {
+  loadView,
+  samlAuthentication // for testing
 }; // exports

@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -40,20 +40,9 @@ describe('tests/api/v1/subjects/delete.js >', () => {
       const n = { name: `${tu.namePrefix}NorthAmerica` };
       let i = 0;
 
-      function bodyCheckIfDeleted(res) {
-        const errors = [];
-        if (res.body.isDeleted === 0) {
-          errors.push(new Error('isDeleted should be > 0'));
-        }
-
-        if (errors.length) {
-          throw new Error(errors);
-        }
-      }
-
       function notFound() {
         const errors = [];
-        Subject.findById(i)
+        Subject.findByPk(i)
         .then((subj) => {
           if (subj) {
             errors.push(new Error('should not have found a record with this id'));
@@ -73,13 +62,14 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         .catch(done);
       });
 
+      beforeEach(u.populateRedis);
+
       afterEach(u.forceDelete);
 
       it('delete childless subject by id', (done) => {
         api.delete(`${path}/${i}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
-        .expect(bodyCheckIfDeleted)
         .expect(notFound)
         .end(done);
       });
@@ -89,7 +79,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         api.delete(`${path}/${n.name.toLowerCase()}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
-        .expect(bodyCheckIfDeleted)
         .expect(notFound)
         .end((err, res) => {
           if (err) {
@@ -105,7 +94,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         api.delete(`${path}/${n.name}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
-        .expect(bodyCheckIfDeleted)
         .expect(notFound)
         .end(done);
       });
@@ -129,70 +117,10 @@ describe('tests/api/v1/subjects/delete.js >', () => {
       let ichi = 0;
       let igrn = 0;
 
-      function parentBodyCheckIfDeleted(res) {
-        const errors = [];
-
-        if (res.body.name !== par.name) {
-          errors.push(new Error(`name should be ${par.name}`));
-        }
-
-        if (res.body.hierarchyLevel !== 1) {
-          errors.push(new Error('hierarchyLevel should be 1'));
-        }
-
-        if (res.body.parentId) {
-          errors.push(new Error('parentId should be null'));
-        }
-
-        if (res.body.absolutePath !== par.name) {
-          errors.push(new Error(`absolutePath should be ${par.name}`));
-        }
-
-        if (res.body.isDeleted === 0) {
-          errors.push(new Error('isDeleted should be > 0'));
-        }
-
-        if (errors.length) {
-          throw new Error(errors);
-        }
-      }
-
-      function childBodyCheckIfDeleted(res) {
-        const errors = [];
-        if (res.body.name !== chi.name) {
-          errors.push(new Error(`name should be ${chi.name}`));
-        }
-
-        if (res.body.absolutePath !== `${par.name}.${res.body.name}`) {
-          const msg = `absolutePath should be ${par.name}.${res.body.name}`;
-          errors.push(new Error(msg));
-        }
-
-        if (res.body.isDeleted === 0) {
-          errors.push(new Error('isDeleted should be > 0'));
-        }
-
-        if (errors.length) {
-          throw new Error(errors);
-        }
-      }
-
-      function grandchildBodyCheckIfDeleted(res) {
-        const errors = [];
-        if (res.body.isDeleted === 0) {
-          errors.push(new Error('isDeleted should be > 0'));
-        }
-
-        if (errors.length) {
-          throw new Error(errors);
-        }
-      }
-
       function parentNotFound() {
-        Subject.findById({
+        Subject.findByPk({
           where: {
             id: ipar,
-            isDeleted: 0,
           },
         })
         .then((subj) => {
@@ -206,7 +134,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         Subject.findOne({
           where: {
             id: ichi,
-            isDeleted: 0,
           },
         })
         .then((subj) => {
@@ -220,7 +147,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         Subject.findOne({
           where: {
             id: igrn,
-            isDeleted: 0,
           },
         })
         .then((subj) => {
@@ -273,7 +199,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         api.delete(`${path}/${igrn}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
-        .expect(grandchildBodyCheckIfDeleted)
         .expect(grandchildNotFound)
         .end((err /* , res */) => {
           if (err) {
@@ -283,7 +208,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
           api.delete(`${path}/${ichi}`)
           .set('Authorization', token)
           .expect(constants.httpStatus.OK)
-          .expect(childBodyCheckIfDeleted)
           .expect(childNotFound)
           .end((err2 /* , res */) => {
             if (err2) {
@@ -293,7 +217,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
             api.delete(`${path}/${ipar}`)
             .set('Authorization', token)
             .expect(constants.httpStatus.OK)
-            .expect(parentBodyCheckIfDeleted)
             .expect(parentNotFound)
             .end((/* err, res */) => done());
           });
@@ -305,7 +228,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
         api.delete(`${path}/${par.name}.${chi.name}.${grn.name}`)
         .set('Authorization', token)
         .expect(constants.httpStatus.OK)
-        .expect(grandchildBodyCheckIfDeleted)
         .expect(grandchildNotFound)
         .end((err /* , res */) => {
           if (err) {
@@ -315,7 +237,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
           api.delete(`${path}/${par.name}.${chi.name}`)
           .set('Authorization', token)
           .expect(constants.httpStatus.OK)
-          .expect(childBodyCheckIfDeleted)
           .expect(childNotFound)
           .end((err2 /* , res */) => {
             if (err2) {
@@ -325,7 +246,6 @@ describe('tests/api/v1/subjects/delete.js >', () => {
             api.delete(`${path}/${par.name}`)
             .set('Authorization', token)
             .expect(constants.httpStatus.OK)
-            .expect(parentBodyCheckIfDeleted)
             .expect(parentNotFound)
             .end((/* err, res */) => {
               done();

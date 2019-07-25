@@ -11,17 +11,23 @@
  *
  * Used by the Subject model.
  */
+'use strict'; // eslint-disable-line strict
 
+const sampleEvent = require('../../realtime/constants').events.sample;
 const ParentSubjectNotFound = require('../dbErrors')
   .ParentSubjectNotFound;
 const ParentSubjectNotMatch = require('../dbErrors')
   .ParentSubjectNotMatch;
 const IllegalSelfParenting = require('../dbErrors')
   .IllegalSelfParenting;
+const SubjectAlreadyExistsUnderParent = require('../dbErrors')
+  .SubjectAlreadyExistsUnderParent;
 const redisOps = require('../../cache/redisOps');
 const subjectType = redisOps.subjectType;
-const sampleType = redisOps.sampleType;
 const subAspMapType = redisOps.subAspMapType;
+const publishSample = require('../../realtime/redisPublisher').publishSample;
+const Promise = require('bluebird');
+const Op = require('sequelize').Op;
 
 /**
  * Validates a given field ie. parentAbsolutePath, parentId.
@@ -36,14 +42,7 @@ const subAspMapType = redisOps.subAspMapType;
  * @returns {Promise} contains parent subject
  */
 function validateParentField(Subject, parentFieldVal, fieldVal, fieldName) {
-  const whereObj = { where: {} };
-  if (fieldName === 'absolutePath') {
-    whereObj.where[fieldName] = { $iLike: parentFieldVal };
-  } else {
-    whereObj.where[fieldName] = parentFieldVal;
-  }
-
-  return Subject.find(whereObj)
+  return Subject.scope({ method: [fieldName, parentFieldVal] }).findOne()
   .then((parent) => {
     if (!parent) {
       throw new ParentSubjectNotFound({
@@ -75,21 +74,32 @@ function validateParentField(Subject, parentFieldVal, fieldVal, fieldName) {
  * @returns {Object} the subject instance
  */
 function updateParentFields(Subject, parentId, parentAbsolutePath, inst) {
+  let newAbsolutePath;
   return Subject.scope({ method:
     ['id', inst.previous('parentId')],
-  }).find()
+  }).findOne()
   .then((oldParent) => {
     if (oldParent) {
       oldParent.decrement('childCount');
     }
 
-    const absolutePath = parentAbsolutePath ?
+    newAbsolutePath = parentAbsolutePath ?
       parentAbsolutePath + '.' + inst.name : inst.name;
-
+    const whereObj = { where: { absolutePath: { [Op.iLike]: newAbsolutePath } } };
+    return Subject.findOne(whereObj);
+  })
+  .then((subj) => {
+    if (subj && subj.id !== inst.id) {
+      throw new SubjectAlreadyExistsUnderParent({
+        message: newAbsolutePath + ' already exists.',
+      });
+    }
+  })
+  .then(() => {
     // update the subject values
     inst.setDataValue('parentId', parentId);
     inst.setDataValue('parentAbsolutePath', parentAbsolutePath);
-    inst.setDataValue('absolutePath', absolutePath);
+    inst.setDataValue('absolutePath', newAbsolutePath);
     return inst;
   });
 }
@@ -106,22 +116,77 @@ function throwNotMatchError(parentId, parentAbsolutePath) {
 }
 
 /**
+ * Deletes all the sample entries related to a subject. The sample delete events
+ * are also sent. The following are deleted
+ * 1. subject from aspect to subject mappings
+ * 2. subject to aspect mapping -> samsto:subaspmap:absolutePath
+ * 3. sample entry in samsto:samples (samsto:samples:oldAbsPath|*)
+ * 4. sample hash samsto:samples:oldAbsPath|*
+ * @param {Object} subject - The subject object
+ * @param {Object} seq - The sequelize object
+ * @returns {Promise} which resolves to the deleted samples.
+ */
+function removeRelatedSamples(subject, seq) {
+  const now = new Date().toISOString();
+  let samples = [];
+  return redisOps.deleteSampleKeys(subAspMapType, subject.absolutePath)
+  .then((_samples) => {
+    samples = _samples;
+
+    // get aspects from subaspmap mapping for this subject
+    return redisOps.executeCommand(
+      redisOps.getSubjAspMapMembers(subject.absolutePath));
+  })
+  .then((aspectNames) => redisOps.executeBatchCmds(
+    redisOps.deleteSubjectFromAspectResourceMaps(
+      aspectNames, subject.absolutePath)))
+  .then(() => redisOps.deleteKey(subAspMapType, subject.absolutePath))
+  .then(() => {
+    const promises = [];
+
+    // publish the samples only if the sequelize object seq is available
+    if (seq && samples.length) {
+      samples.forEach((sample) => {
+        /*
+         * publishSample attaches the subject and the aspect by fetching it
+         * either from the database or redis. Deleted subject will not be found
+         * when called from the afterDestroy and afterUpdate hookes. So, attach
+         * the subject here before publishing the sample.
+         */
+        if (sample) {
+          sample.subject = subject;
+          sample.updatedAt = now;
+          promises.push(publishSample(sample, null, sampleEvent.del,
+            seq.models.Aspect));
+        }
+      });
+    }
+
+    return Promise.all(promises);
+  });
+} // removeRelatedSamples
+
+/**
  * Deletes the subject entry AND multiple possible sample entries from the
- * redis sample store.
+ * redis sample store.  The following are deleted
+ * 1. subject entry in samsto:subjects (samsto:subject:absolutePath)
+ * 2. subject hash samsto:subject:absolutePath
+ * 3. subject to aspect mapping -> samsto:subaspmap:absolutePath
+ * 4. sample entry in samsto:samples (samsto:samples:absolutePath|*)
+ * 5. sample hash samsto:samples:absolutePath|*
  *
- * @param {String} absolutePath - The absolutePath of the subject
+ * @param {Object} subject - The subject object
+ * @param {Object} seq - The sequelize object
  * @returns {Promise}
  */
-function removeFromRedis(absolutePath) {
-  return Promise.all([
-    redisOps.deleteKey(subjectType, absolutePath),
-    redisOps.deleteKeys(sampleType, subjectType, absolutePath),
-    redisOps.deleteKey(subAspMapType, absolutePath),
-  ]);
+function removeFromRedis(subject, seq) {
+  return Promise.join(redisOps.deleteKey(subjectType, subject.absolutePath),
+    removeRelatedSamples(subject, seq));
 } // removeFromRedis
 
 module.exports = {
   removeFromRedis,
+  removeRelatedSamples,
   throwNotMatchError,
   updateParentFields,
   validateParentField,

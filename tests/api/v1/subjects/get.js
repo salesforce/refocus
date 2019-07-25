@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -66,10 +66,12 @@ describe(`tests/api/v1/subjects/get.js, GET ${path} >`, () => {
     })
     .then((createdVt) => {
       vt.id = createdVt.id;
-      done();
+      return done();
     })
     .catch(done);
   });
+
+  before(u.populateRedis);
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -429,7 +431,7 @@ describe(`tests/api/v1/subjects/get.js, GET ${path} >`, () => {
       }
 
       expect(res.body[ZERO]).to.not.have.property('absolutePath');
-      expect(res.body[ZERO]).to.have.all
+      expect(res.body[ZERO]).to.contains.all
         .keys(['apiLinks', 'id', 'isPublished', 'name', 'sortBy']);
       done();
     });

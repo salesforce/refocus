@@ -11,10 +11,14 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
+const roomTypeUtil = require('../roomTypes/utils');
 
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestRoom`;
 const n2 = n + 'NonActive';
+const o = `${tu.namePrefix}TestOrigin`;
+const o2 = o + 'NonActive';
+const invalidOrigin = `${tu.namePrefix}^origin*`;
 
 const roomTypeSchema = {
   name: 'roomTypeTest',
@@ -91,11 +95,13 @@ const roomTypeSchema = {
 const standard = {
   name: n,
   active: true,
+  origin: o,
 };
 
 const nonActive = {
   name: n2,
   active: true,
+  origin: o2,
 };
 
 module.exports = {
@@ -103,7 +109,13 @@ module.exports = {
 
   nameNonActive: n2,
 
+  origin: o,
+
+  originNonActive: o2,
+
   rtSchema: roomTypeSchema,
+
+  invalidOrigin,
 
   getStandard() {
     return JSON.parse(JSON.stringify(standard));
@@ -121,9 +133,43 @@ module.exports = {
     return tu.db.Room.create(standard);
   },
 
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Room, testStartTime)
-    .then(() => tu.forceDelete(tu.db.RoomType, testStartTime))
+  getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
+    const defaultProps = JSON.parse(JSON.stringify(standard));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  doSetup(props={}) {
+    const { createdBy, name } = props;
+    return roomTypeUtil.createBasic({ createdBy, name })
+    .then((roomType) => {
+      const createdIds = {
+        type: roomType.id,
+      };
+      return createdIds;
+    });
+  },
+
+  createBasic(overrideProps={}) {
+    const { createdBy, name } = overrideProps;
+    return this.doSetup({ createdBy, name })
+    .then(({ type }) => {
+      Object.assign(overrideProps, { type });
+      const toCreate = this.getBasic(overrideProps);
+      return tu.db.Room.create(toCreate);
+    });
+  },
+
+  getDependencyProps() {
+    return ['type'];
+  },
+
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.Room, startTime)
+    .then(() => tu.forceDelete(tu.db.RoomType, startTime))
     .then(() => done())
     .catch(done);
   },

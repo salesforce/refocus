@@ -25,8 +25,9 @@ describe('tests/db/model/collector/update.js >', () => {
     tu.createUser('testUser')
     .then((user) => {
       userId = user.id;
-      u.collectorObj.createdBy = user.id;
-      return Collector.create(u.collectorObj);
+      const collectorObj = u.getCollectorObj();
+      collectorObj.createdBy = user.id;
+      return Collector.create(collectorObj);
     })
     .then((c) => {
       collectorDb = c;

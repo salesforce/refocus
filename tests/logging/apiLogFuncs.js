@@ -12,11 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const tu = require('../testUtils');
-const u = require('./utils');
-const Aspect = tu.db.Aspect;
 const apiLogUtil = require('../../utils/apiLog');
-const activityLogUtil = require('../../utils/activityLog');
-const sinon = require('sinon');
 
 describe('tests/logging/apiLogFuncs.js, apiLogUtil: functions >', () => {
   let token;

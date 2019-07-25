@@ -14,9 +14,6 @@ const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
-const Profile = tu.db.Profile;
-const User = tu.db.User;
-const constants = require('../../../../db/constants');
 
 describe('tests/db/model/subject/updateParent.js >', () => {
   let subjId1;
@@ -24,13 +21,15 @@ describe('tests/db/model/subject/updateParent.js >', () => {
   let child1AbsolutePath;
   let child1Name;
   let childId2;
+  let rootId;
   const ROOT_NAME = `${tu.namePrefix}parent0`;
 
   beforeEach((done) => {
     const _root = u
     .getSubjectPrototype(ROOT_NAME, null);
     Subject.create(_root)
-    .then(() => {
+    .then((root) => {
+      rootId = root.id;
       const myParent1 = u
       .getSubjectPrototype(`${tu.namePrefix}parent1`, null);
       return Subject.create(myParent1);
@@ -61,7 +60,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
 
   it('on un-publishing subject, ' +
     'subject is not re-parented', (done) => {
-    Subject.findById(childId2)
+    Subject.findByPk(childId2)
     .then((child) => child.update({ isPublished: false }))
     .then((updatedChild) => {
       expect(updatedChild.dataValues.parentId).to.equal(childId1);
@@ -73,7 +72,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
 
   it('on un-publishing subject and updating its name to same name, ' +
     'subject is not re-parented', (done) => {
-    Subject.findById(childId2)
+    Subject.findByPk(childId2)
     .then((child) => child.update({ isPublished: false, name: child1Name }))
     .then((updatedChild) => {
       expect(updatedChild.dataValues.parentId).to.equal(childId1);
@@ -85,7 +84,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
 
   it('on un-publishing subject and changing its name, ' +
     'subject is not re-parented', (done) => {
-    Subject.findById(childId2)
+    Subject.findByPk(childId2)
     .then((child) => child.update({ isPublished: false, name: ROOT_NAME }))
     .then((updatedChild) => {
       expect(updatedChild.dataValues.parentId).to.equal(childId1);
@@ -97,7 +96,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
 
   it('on update parentId to itself, ' +
     'the update fails', (done) => {
-    Subject.findById(childId2)
+    Subject.findByPk(childId2)
     .then((child) => child.update({ parentId: childId2 }))
     .then((updatedChild) => done('Expected IllegalSelfParenting error. But ' +
       'received' + JSON.stringify(updatedChild)))
@@ -110,7 +109,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
 
   it('on update parentAbsolutePath to itself, ' +
     'the update fails', (done) => {
-    Subject.findById(childId2)
+    Subject.findByPk(childId2)
     .then((child) => child.update({ parentAbsolutePath: child.absolutePath }))
     .then((updatedChild) => done('Expected IllegalSelfParenting error. But ' +
       'received' + JSON.stringify(updatedChild)))
@@ -121,22 +120,21 @@ describe('tests/db/model/subject/updateParent.js >', () => {
     });
   });
 
-  it('on update parentAbsolutePath and parentId to empty and non-empty parent subjects, ' +
-    'the update fails', (done) => {
-    Subject.findById(childId2)
+  it('on update parentAbsolutePath and parentId to empty and non-empty parent' +
+    ' subjects, the empty field is set to match the other one', (done) => {
+    Subject.findByPk(childId2)
     .then((child) => child.update({ parentAbsolutePath: ROOT_NAME, parentId: null }))
-    .then((updatedChild) => done('Expected ParentSubjectNotMatch error. But received' +
-      JSON.stringify(updatedChild)))
-    .catch((err) => {
-      expect(err.status).to.equal(400);
-      expect(err.name).to.equal('ParentSubjectNotMatch');
+    .then((updatedChild) => {
+      expect(updatedChild.parentAbsolutePath).to.equal(ROOT_NAME);
+      expect(updatedChild.parentId).to.equal(rootId);
       done();
-    });
+    })
+    .catch(done);
   });
 
   it('on update parentAbsolutePath and parentId to different parent subjects, ' +
     'the update fails', (done) => {
-    Subject.findById(childId2)
+    Subject.findByPk(childId2)
     .then((child) => child.update({ parentAbsolutePath: ROOT_NAME, parentId: subjId1 }))
     .then((updatedChild) => done('Expected ParentSubjectNotMatch error. But received' +
       JSON.stringify(updatedChild)))
@@ -149,7 +147,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
 
   it('on update parentAbsolutePath or parentId to a non-existent subject, ' +
     'the update fails', (done) => {
-    Subject.findById(childId2)
+    Subject.findByPk(childId2)
     .then((child) => child.update({ parentAbsolutePath: 'notHere', parentId: subjId1 }))
     .then((updatedChild) => done('Expected ParentSubjectNotFound error. But received' +
       JSON.stringify(updatedChild)))
@@ -161,7 +159,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
   });
 
   it('on update parentAbsolutePath to null, child becomes root', (done) => {
-    Subject.findById(childId2)
+    Subject.findByPk(childId2)
     .then((child) => child.update({ parentAbsolutePath: null }))
     .then((updatedChild) => {
       expect(updatedChild.dataValues.parentAbsolutePath).to.be.null;
@@ -172,7 +170,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
   });
 
   it('on update parentAbsolutePath to "", child becomes root', (done) => {
-    Subject.findById(childId2)
+    Subject.findByPk(childId2)
     .then((child) => child.update({ parentAbsolutePath: '' }))
     .then((updatedChild) => {
       expect(updatedChild.dataValues.parentAbsolutePath).to.equal(null);
@@ -183,7 +181,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
   });
 
   it('on update parentId to null, child becomes root', (done) => {
-    Subject.findById(childId2)
+    Subject.findByPk(childId2)
     .then((child) => child.update({ parentId: null }))
     .then((updatedChild) => {
       expect(updatedChild.dataValues.parentAbsolutePath).to.be.null;
@@ -197,7 +195,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
     const childName = 'achoo';
     let oldParentId = null;
     let oldParentAbsolutePath = null;
-    Subject.findById(childId2)
+    Subject.findByPk(childId2)
     .then((child) => {
       oldParentId = child.parentId;
       oldParentAbsolutePath = child.parentAbsolutePath;
@@ -217,12 +215,12 @@ describe('tests/db/model/subject/updateParent.js >', () => {
     const parentName = `${tu.namePrefix}parent3`;
     let oldParentId = '';
     Subject.create({ name: parentName })
-    .then(() => Subject.findById(childId1))
+    .then(() => Subject.findByPk(childId1))
     .then((child) => {
       oldParentId = child.parentId;
       return child.update({ parentAbsolutePath: parentName });
     })
-    .then(() => Subject.findById(oldParentId))
+    .then(() => Subject.findByPk(oldParentId))
     .then((oldParent) => {
       expect(oldParent.dataValues.childCount).to.equal(0);
       done();
@@ -234,7 +232,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
   'parent is incremented', (done) => {
     const parentName = `${tu.namePrefix}parent3`;
     Subject.create({ name: parentName })
-    .then(() => Subject.findById(childId1))
+    .then(() => Subject.findByPk(childId1))
     .then((child) => child.update({ parentAbsolutePath: parentName }))
     .then(() => Subject.findOne({ where: { name: parentName } }))
     .then((parent) => {
@@ -248,7 +246,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
   'and absolutePath is changed', (done) => {
     const parentName = `${tu.namePrefix}parent3`;
     Subject.create({ name: parentName })
-    .then(() => Subject.findById(childId2))
+    .then(() => Subject.findByPk(childId2))
     .then((child) => child.update({ parentAbsolutePath: parentName }))
     .then((child) => {
       expect(child.dataValues.absolutePath).to
@@ -263,7 +261,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
   'child"s absolutePath is updated', (done) => {
     const parentName = `${tu.namePrefix}parent2`;
     Subject.create({ name: parentName })
-    .then(() => Subject.findById(childId2))
+    .then(() => Subject.findByPk(childId2))
     .then((subj) => subj.update({ parentAbsolutePath: parentName }))
     .then((subj) => {
       expect(subj.dataValues.parentAbsolutePath).to.equal(parentName);
@@ -276,11 +274,11 @@ describe('tests/db/model/subject/updateParent.js >', () => {
 
   it('ok, child absolutePath is updated when parent name is updated',
   (done) => {
-    Subject.findById(subjId1)
+    Subject.findByPk(subjId1)
     .then((parent) => parent.update({ name: `${parent.get('name')}_UP` }))
     .then(() => {
       setTimeout(() => {
-        Subject.findById(childId1)
+        Subject.findByPk(childId1)
         .then((child) => {
           expect(child.get('absolutePath'))
           .to.equal(`${tu.namePrefix}parent1_UP.${tu.namePrefix}child1`);
@@ -293,13 +291,13 @@ describe('tests/db/model/subject/updateParent.js >', () => {
   });
 
   it('update parent helpEmail, should not change child subject', (done) => {
-    Subject.findById(subjId1)
+    Subject.findByPk(subjId1)
     .then((parent) => {
       expect(parent.get('helpEmail')).to.equal('foo@bar.com');
       parent.update({ helpEmail: 'foobaz@bar.com' });
       expect(parent.get('helpEmail')).to.equal('foobaz@bar.com');
     })
-    .then(() => Subject.findById(childId1))
+    .then(() => Subject.findByPk(childId1))
     .then((child) => {
       expect(child.get('helpEmail')).to.equal('foo@bar.com');
       done();
@@ -308,13 +306,13 @@ describe('tests/db/model/subject/updateParent.js >', () => {
   });
 
   it('update parent helpUrl, should not change child subject', (done) => {
-    Subject.findById(subjId1)
+    Subject.findByPk(subjId1)
     .then((parent) => {
       expect(parent.get('helpUrl')).to.equal('http://www.bar.com');
       parent.update({ helpUrl: 'http://www.foobar.com' });
       expect(parent.get('helpUrl')).to.equal('http://www.foobar.com');
     })
-    .then(() => Subject.findById(childId1))
+    .then(() => Subject.findByPk(childId1))
     .then((child) => {
       expect(child.get('helpUrl')).to.equal('http://www.bar.com');
       done();
@@ -323,7 +321,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
   });
 
   it('update parent imageUrl, should not change child subject', (done) => {
-    Subject.findById(subjId1)
+    Subject.findByPk(subjId1)
     .then((parent) => {
       expect(parent.get('imageUrl'))
       .to.equal('http://www.bar.com/foo.jpg');
@@ -331,7 +329,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
       expect(parent.get('imageUrl'))
       .to.equal('http://www.zoobar.com/foo.jpg');
     })
-    .then(() => Subject.findById(childId1))
+    .then(() => Subject.findByPk(childId1))
     .then((child) => {
       expect(child.get('imageUrl'))
       .to.equal('http://www.bar.com/foo.jpg');
@@ -352,11 +350,11 @@ describe('tests/db/model/subject/updateParent.js >', () => {
     .then((created) => {
       subjId2 = created.id;
     })
-    .then(() => Subject.findById(subjId1))
+    .then(() => Subject.findByPk(subjId1))
     .then((parent1) => parent1.update({ parentId: subjId2 }))
     .then(() => {
       setTimeout(() => {
-        Subject.findById(childId1)
+        Subject.findByPk(childId1)
         .then((child) => {
           expect(child.get('absolutePath'))
             .to.equal(`${tu.namePrefix}parent2.` +
@@ -387,13 +385,13 @@ describe('tests/db/model/subject/updateParent.js >', () => {
     .then((created) => {
       subjId2 = created.id;
     })
-    .then(() => Subject.findById(subjId1))
-    .then(() => Subject.findById(childId1))
+    .then(() => Subject.findByPk(subjId1))
+    .then(() => Subject.findByPk(childId1))
     .then((child1) => {
       expect(child1.get('absolutePath'))
       .to.equal(`${tu.namePrefix}parent1.${tu.namePrefix}child1`);
     })
-    .then(() => Subject.findById(childId2))
+    .then(() => Subject.findByPk(childId2))
     .then((child2) => {
       expect(child2.get('absolutePath'))
         .to.equal(`${tu.namePrefix}parent1.` +
@@ -426,7 +424,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
     Subject.create(myParent2)
     .then((p) => {
       subjId2 = p.id;
-      return Subject.findById(childId1);
+      return Subject.findByPk(childId1);
     })
     .then((child1) => {
       expect(child1.get('absolutePath'))
@@ -437,7 +435,7 @@ describe('tests/db/model/subject/updateParent.js >', () => {
       expect(updatedChild.get('absolutePath'))
         .to.equal(`${tu.namePrefix}parent2.${tu.namePrefix}child1`);
     })
-    .then(() => Subject.findById(childId1))
+    .then(() => Subject.findByPk(childId1))
     .then((child1) => {
       setTimeout(() => {
         child1.getChildren()
@@ -450,6 +448,114 @@ describe('tests/db/model/subject/updateParent.js >', () => {
         .catch(done);
         done();
       }, 500);
+    })
+    .catch(done);
+  });
+
+  /*
+   * Visual depiction below:
+   * O<= parent1 O <= parent2
+   * |               /|
+   * O<= child1 ===>/ O<= child1
+   * |
+   * O<= child2
+   */
+  it('error, assign first child to new parent with existing child', (done) => {
+    let subjId2;
+    const myParent2 = u.getSubjectPrototype(`${tu.namePrefix}parent2`, null);
+    Subject.create(myParent2)
+    .then((created) => {
+      subjId2 = created.id;
+      const myChild1 = u.getSubjectPrototype(`${tu.namePrefix}child1`, subjId2);
+      return Subject.create(myChild1);
+    })
+    .then(() => Subject.findByPk(childId1))
+    .then((child1) => {
+      expect(child1.get('absolutePath'))
+      .to.equal(`${tu.namePrefix}parent1.${tu.namePrefix}child1`);
+      return child1.update({ parentId: subjId2 });
+    })
+    .then((child1) => {
+      done('Expected SubjectAlreadyExistsUnderParent error. But received' +
+        JSON.stringify(child1));
+    })
+    .catch((err) => {
+      expect(err.status).to.equal(400);
+      expect(err.name).to.equal('SubjectAlreadyExistsUnderParent');
+      done();
+    })
+    .catch(done);
+  });
+
+  /*
+   * Visual depiction below:
+   * O<= parent1 O <= parent2
+   * |               /|
+   * O<= child1     / O<= child2
+   * |             /
+   * O<= child2   /
+   */
+  it('error, assign last child to new parent with existing child', (done) => {
+    let subjId2;
+    const myParent2 = u.getSubjectPrototype(`${tu.namePrefix}parent2`, null);
+    Subject.create(myParent2)
+    .then((created) => {
+      subjId2 = created.id;
+      const myChild2 = u.getSubjectPrototype(`${tu.namePrefix}child2`, subjId2);
+      return Subject.create(myChild2);
+    })
+    .then(() => Subject.findByPk(childId2))
+    .then((child2) => {
+      expect(child2.get('absolutePath'))
+      .to.equal(`${tu.namePrefix}parent1.${tu.namePrefix}child1.` +
+        `${tu.namePrefix}child2`);
+      return child2.update({ parentId: subjId2 });
+    })
+    .then((child1) => {
+      done('Expected SubjectAlreadyExistsUnderParent error. But received' +
+        JSON.stringify(child1));
+    })
+    .catch((err) => {
+      expect(err.status).to.equal(400);
+      expect(err.name).to.equal('SubjectAlreadyExistsUnderParent');
+      done();
+    })
+    .catch(done);
+  });
+
+  /*
+   * Visual depiction below:
+   * O<= parent1 O <= parent2
+   * |               /|
+   * O<= child1     / O<= child1
+   * |             /  |
+   * O<= child2   /   O<= child2
+   */
+  it('ok, assign child to new parent with existing child in the hierarchy',
+    (done) => {
+    let subjId2;
+    const myParent2 = u.getSubjectPrototype(`${tu.namePrefix}parent2`, null);
+    Subject.create(myParent2)
+    .then((created) => {
+      subjId2 = created.id;
+      const myChild1 = u.getSubjectPrototype(`${tu.namePrefix}child1`, subjId2);
+      return Subject.create(myChild1);
+    })
+    .then((created) => {
+      const myChild2 = u.getSubjectPrototype(`${tu.namePrefix}child2`, created.id);
+      return Subject.create(myChild2);
+    })
+    .then(() => Subject.findByPk(childId2))
+    .then((child2) => {
+      expect(child2.get('absolutePath'))
+      .to.equal(`${tu.namePrefix}parent1.${tu.namePrefix}child1.` +
+        `${tu.namePrefix}child2`);
+      return child2.update({ parentId: subjId2 });
+    })
+    .then((updatedChild) => {
+      expect(updatedChild.get('absolutePath'))
+      .to.equal(`${tu.namePrefix}parent2.${tu.namePrefix}child2`);
+      done();
     })
     .catch(done);
   });

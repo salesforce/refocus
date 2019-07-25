@@ -7,11 +7,11 @@
  */
 
 /**
- * tests/api/v1/generator/patch.js
+ * tests/api/v1/generators/patch.js
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -35,6 +35,7 @@ describe('tests/api/v1/generators/patch.js >', () => {
       return GeneratorTemplate.create(generatorTemplate);
     })
     .then(() => Generator.create(generatorToCreate))
+    .then(u.createGeneratorAspects())
     .then((gen) => {
       i = gen.id;
       done();
@@ -48,7 +49,7 @@ describe('tests/api/v1/generators/patch.js >', () => {
 
   it('simple patching: ok', (done) => {
     const newDescription = {
-      description: 'Smiple patching test of generator',
+      description: 'Simple patching test of generator',
     };
     api.patch(`${path}/${i}`)
     .set('Authorization', token)
@@ -56,6 +57,19 @@ describe('tests/api/v1/generators/patch.js >', () => {
     .expect(constants.httpStatus.OK)
     .expect((res) => {
       expect(res.body.description).to.equal(newDescription.description);
+    })
+    .end(done);
+  });
+
+  it('patch aspects - saved lowercase', (done) => {
+    api.patch(`${path}/${i}`)
+    .set('Authorization', token)
+    .send({ aspects: ['WEATHER', 'Temperature'] })
+    .expect(constants.httpStatus.OK)
+    .expect((res) => {
+      expect(res.body.aspects).to.be.an('array').with.lengthOf(2);
+      expect(res.body.aspects[0]).to.equal('weather');
+      expect(res.body.aspects[1]).to.equal('temperature');
     })
     .end(done);
   });
@@ -99,14 +113,44 @@ describe('tests/api/v1/generators/patch.js >', () => {
     .end(done);
   });
 
-  it('switch isActive from false to true', (done) => {
+  it('error, switch isActive from false to true with no collectors', (done) => {
     api.patch(`${path}/${i}`)
     .set('Authorization', token)
     .send({ isActive: true })
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      expect(res.body.isActive).to.equal(true);
-    })
+    .expect(constants.httpStatus.BAD_REQUEST)
     .end(done);
+  });
+
+  it('error, patch with currentCollector, read only', (done) => {
+    api.patch(`${path}/${i}`)
+    .set('Authorization', token)
+    .send({ currentCollector: 'some-collector' })
+    .expect(constants.httpStatus.BAD_REQUEST)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.errors[0].type).to.equal('ValidationError');
+      expect(res.body.errors[0].description).to.equal(
+        'You cannot modify the read-only field: currentCollector'
+      );
+      return done();
+    });
+  });
+
+  it('tags set to empty array if not provided', (done) => {
+    Generator.findByPk(i)
+    .then((gen) => gen.update({ tags: [] }))
+    .then(() => {
+      api.patch(`${path}/${i}`)
+        .set('Authorization', token)
+        .send({ name: 'New_Name' })
+        .expect(constants.httpStatus.OK)
+        .expect((res) => {
+          expect(res.body.tags).to.eql([]);
+        })
+        .end(done);
+    });
   });
 });

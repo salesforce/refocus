@@ -36,6 +36,8 @@ describe('tests/api/v1/subjects/getWithLimit.js >', () => {
     .catch(done);
   });
 
+  before(u.populateRedis);
+
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 

@@ -16,13 +16,17 @@ const tu = require('../../../testUtils');
 
 const testStartTime = new Date();
 const n = `${tu.namePrefix}TestBot`;
+const displayName = `${tu.namePrefix}Test Bot`;
 const n2 = n + 'NonActive';
 const mt = path.join(__dirname, './uiBlob');
 const uiBlob = fs.readFileSync(mt);
 
 const standard = {
   name: n,
+  displayName,
   url: 'http://www.bar.com',
+  helpUrl: 'http://www.helpUrl.com',
+  ownerUrl: 'http://www.ownerUrl.com',
   ui: uiBlob,
   active: true,
   actions: [
@@ -52,11 +56,14 @@ const standard = {
     { name: 'Data4', type: 'STRING' },
     { name: 'Data5', type: 'ARRAY' },
   ],
+  version: '1.0.0',
 };
 
 const nonActive = {
   name: n2,
   url: 'http://www.bar.com',
+  helpUrl: 'http://www.bar.com',
+  ownerUrl: 'http://www.bar.com',
   ui: uiBlob,
   active: false,
   actions: [
@@ -113,10 +120,13 @@ const nonActive = {
       type: 'ARRAY',
     },
   ],
+  version: '1.0.0',
 };
 
 module.exports = {
   name: n,
+  displayName,
+  standard,
 
   nameNonActive: n2,
 
@@ -128,12 +138,28 @@ module.exports = {
     return tu.db.Bot.create(nonActive);
   },
 
-  createStandard() {
-    return tu.db.Bot.create(standard);
+  createStandard(userId) {
+    const standardBot = standard;
+    standardBot.installedBy = userId;
+    return tu.db.Bot.create(standardBot);
   },
 
-  forceDelete(done) {
-    tu.forceDelete(tu.db.Bot, testStartTime)
+  getBasic(overrideProps={}) {
+    if (!overrideProps.name) {
+      delete overrideProps.name;
+    }
+
+    const defaultProps = JSON.parse(JSON.stringify(standard));
+    return Object.assign(defaultProps, overrideProps);
+  },
+
+  createBasic(overrideProps={}) {
+    const toCreate = this.getBasic(overrideProps);
+    return tu.db.Bot.create(toCreate);
+  },
+
+  forceDelete(done, startTime=testStartTime) {
+    tu.forceDelete(tu.db.Bot, startTime)
     .then(() => done())
     .catch(done);
   },

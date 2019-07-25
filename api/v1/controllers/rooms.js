@@ -10,14 +10,22 @@
  * api/v1/controllers/rooms.js
  */
 'use strict';
-
+const apiLogUtils = require('../../../utils/apiLog');
 const helper = require('../helpers/nouns/rooms');
+const RoomType = require('../../../db').RoomType;
 const doDelete = require('../helpers/verbs/doDelete');
 const doFind = require('../helpers/verbs/doFind');
 const doGet = require('../helpers/verbs/doGet');
 const doPatch = require('../helpers/verbs/doPatch');
 const doPost = require('../helpers/verbs/doPost');
 const doPut = require('../helpers/verbs/doPut');
+const doGetWriters = require('../helpers/verbs/doGetWriters');
+const doPostWriters = require('../helpers/verbs/doPostWriters');
+const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
+const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
+const u = require('../../../utils/common');
+const Op = require('sequelize').Op;
+const httpStatus = require('../constants').httpStatus;
 
 module.exports = {
 
@@ -30,8 +38,13 @@ module.exports = {
    * @param {ServerResponse} res - The response object
    * @param {Function} next - The next middleware function in the stack
    */
-  deleteRooms(req, res, next) {
-    doDelete(req, res, next, helper);
+  deleteRoom(req, res, next) {
+    convertKeyToNumber(req);
+    doDelete(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -44,7 +57,23 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findRooms(req, res, next) {
-    doFind(req, res, next, helper);
+    const type = req.swagger.params.type;
+    if (type && !u.looksLikeId(type.value)) {
+      RoomType.findOne({
+        where: {
+          name: { [Op.iLike]: req.swagger.params.type.value },
+        },
+      })
+      .then((roomType) => {
+        if (roomType) {
+          req.swagger.params.type.value = roomType.dataValues.id;
+        }
+
+        doFind(req, res, next, helper);
+      });
+    } else {
+      doFind(req, res, next, helper);
+    }
   },
 
   /**
@@ -57,7 +86,12 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getRoom(req, res, next) {
-    doGet(req, res, next, helper);
+    convertKeyToNumber(req);
+    doGet(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -70,6 +104,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchRoom(req, res, next) {
+    convertKeyToNumber(req);
     doPatch(req, res, next, helper);
   },
 
@@ -86,4 +121,87 @@ module.exports = {
     doPost(req, res, next, helper);
   },
 
+  /**
+   * GET /rooms/{key}/writers
+   *
+   * Retrieves all the writers associated with the room
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getRoomWriters(req, res, next) {
+    doGetWriters.getWriters(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
+  }, // getRoomWriters
+
+  /**
+   * GET /rooms/{key}/writers/userNameOrId
+   *
+   * Determine whether a user is an authorized writer for a room and returns
+   * the user record if so.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  getRoomWriter(req, res, next) {
+    doGetWriters.getWriter(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
+  }, // getRoomWriter
+
+  /**
+   * POST /rooms/{key}/writers
+   *
+   * Add one or more users to an rooms list of authorized writers
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  postRoomWriters(req, res, next) {
+    doPostWriters(req, res, next, helper);
+  }, // postRoomWriters
+
+  /**
+   * DELETE /rooms/{keys}/writers
+   *
+   * Deletes all the writers associated with this resource.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  deleteRoomWriters(req, res, next) {
+    doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
+  }, // deleteRoomWriters
+
+  /**
+   * DELETE /rooms/{keys}/writers/userNameOrId
+   *
+   * Deletes a user from an room's list of authorized writers.
+   *
+   * @param {IncomingMessage} req - The request object
+   * @param {ServerResponse} res - The response object
+   * @param {Function} next - The next middleware function in the stack
+   */
+  deleteRoomWriter(req, res, next) {
+    const userNameOrId = req.swagger.params.userNameOrId.value;
+    doDeleteOneAssoc(req, res, next, helper,
+        helper.belongsToManyAssoc.users, userNameOrId);
+  }, // deleteRoomWriter
+
 }; // exports
+
+function convertKeyToNumber(req) {
+  let key = req.swagger.params.key.value;
+  if (Number(key)) {
+    req.swagger.params.key.value = Number(key);
+  }
+}

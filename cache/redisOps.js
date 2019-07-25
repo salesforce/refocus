@@ -12,10 +12,12 @@
 'use strict'; // eslint-disable-line strict
 
 const redisStore = require('./sampleStore');
+const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
 const redisClient = require('./redisCache').client.sampleStore;
 const rsConstant = redisStore.constants;
 const subjectType = redisStore.constants.objectType.subject;
 const subAspMapType = redisStore.constants.objectType.subAspMap;
+const aspSubMapType = redisStore.constants.objectType.aspSubMap;
 const aspectType = redisStore.constants.objectType.aspect;
 const sampleType = redisStore.constants.objectType.sample;
 
@@ -32,6 +34,7 @@ function capitalizeFirstLetter(str) {
 /**
  * Creates or updates the hash specified by the name argument, with values
  * specified by the value argument.
+ *
  * @param  {String} objectName - Name of the object.
  * @param  {String} name  - Name used to identify the hash
  * @param  {Object} value - The value object's key/value are set as the
@@ -40,8 +43,9 @@ function capitalizeFirstLetter(str) {
  */
 function hmSet(objectName, name, value) {
   const cleanobj =
-          redisStore['clean' + capitalizeFirstLetter(objectName)](value);
+    redisStore['clean' + capitalizeFirstLetter(objectName)](value);
   const nameKey = redisStore.toKey(objectName, name);
+  logInvalidHmsetValues(nameKey, cleanobj);
   return redisClient.hmsetAsync(nameKey, cleanobj)
   .then((ok) => Promise.resolve(ok))
   .catch((err) => Promise.reject(err));
@@ -82,7 +86,9 @@ function getHashPromise(type, name) {
 function getValue(type, name) {
   return getHashPromise(type, name)
   .then((value) => {
-    redisStore.arrayStringsToJson(value, rsConstant.fieldsToStringify[type]);
+    redisStore.arrayObjsStringsToJson(
+      value, rsConstant.fieldsToStringify[type]
+    );
     return Promise.resolve(value);
   })
   .catch((err) => Promise.reject(err));
@@ -107,8 +113,7 @@ function addKey(type, name) {
 
 /**
  * Deletes an entry from the master list of indices identified by "type" and
- * and the corresponding hash identified by "name". Use this to delete a single
- * key from the subjectStore, aspectStore or SampleStore.
+ * and the corresponding hash identified by "name".
  * @param  {String} type - The type of the master list on which the
  *  set operations are to be performed
  * @param {String} name - Name of the key to be deleted
@@ -133,57 +138,61 @@ function deleteKey(type, name) {
 } // deleteKey
 
 /**
- * Deletes entries from the sample master list of indexes that matches
- * the "subject name" part or the "aspect name" part of the entry. The hash
- * identified by the deleted entry is also deleted. Use this only to delete
- * multiple keys in the sample master list of indexes and its related hashes.
- * @param  {String} type - The type of the master list on which the
- *  set operations are to be performed
- * @param  {String} objectName - The object name (like Subject, Aspect, Sample)
- * @param {String} name - Name of the key to be deleted
- * @returns {Promise} - which resolves to the values returned by the redis batch
- * command
+ * Deletes the samples associated with the passed in association type.
+ * @param  {String} associationType - Association type, using which the lookup
+ * needs to be done.
+ * @param  {String} name  - Name of the object whose related samples are to be
+ * deleted.
+ * @returns {Array} of deleted sample
  */
-function deleteKeys(type, objectName, name) {
-  if (type !== sampleType) {
-    return Promise.reject(false);
-  }
+function deleteSampleKeys(associationType, name) {
+  let cmds = [];
 
-  const nameKey = redisStore.toKey(type, name);
-  const indexName = redisStore.constants.indexKey[type];
-  const cmds = [];
-  return redisClient.smembersAsync(indexName)
-  .then((keys) => {
-    const keyArr = [];
+  // Sample master list key. e.g.: samsto:samples
+  const indexName = redisStore.constants.indexKey[sampleType];
 
-    /*
-     * Go through the members in the sample master list of indexes.
-     * Split the name parts. If the object type is subject and the
-     * "subjectNamepart" matches the nameKey remove it from the SampleStore.
-     * There is also a hash with the same name as this, delete that hash too.
-     * If the object type is aspect and the and aspect name matches the name,
-     * remove it from the sample master index and delete the hash.
-     */
-    keys.forEach((key) => {
-      const nameParts = key.split('|');
-      const subjectKey = nameParts[0];
-      const aspect = nameParts[1];
-      if ((objectName.toLowerCase() === subjectType && nameKey === subjectKey)
-        || (objectName.toLowerCase() === aspectType && name === aspect)) {
-        keyArr.push(key);
+  /* Association key. e.g: samsto:subaspmap:northamerica.unitedstates
+  where associationType=subaspmap */
+  const assocName = redisStore.toKey(associationType, name);
+
+  // e.g samsto:sample:
+  const sampleKeyPrefix = redisStore.constants.prefix +
+   redisStore.constants.separator + sampleType + redisStore.constants.separator;
+  const keyArr = [];
+  let deletedSamples = [];
+  return redisClient.smembersAsync(assocName)
+  .then((members) => {
+    members.forEach((member) => {
+      let sampleKey = sampleKeyPrefix;
+
+      if (associationType === subAspMapType) {
+        // name is subject absolute path and member is an aspect name
+        sampleKey = sampleKey + name.toLowerCase() + '|' + member;
+      } else if (associationType === aspSubMapType) {
+        // name is aspect name and member is subject absolute path
+        sampleKey = sampleKey + member + '|' + name.toLowerCase();
       }
+
+      // sampleKey e.g: samsto:sample:northamerica.unitedstates|toohot
+      keyArr.push(sampleKey);
+      cmds.push(['hgetall', sampleKey]);
     });
 
-    // remove the entry from the master list of index
-    cmds.push(['srem', indexName, Array.from(keyArr)]);
-
-    // delete the hash too
-    cmds.push(['del', Array.from(keyArr)]);
     return redisClient.batch(cmds).execAsync();
   })
-  .then((ret) => Promise.resolve(ret))
-  .catch((err) => Promise.reject(err));
-} // deleteKeys
+  .then((samples) => {
+    deletedSamples = samples || [];
+
+    /*
+     * Delete all the sample hashes and remove the entries from the master
+     * index of samples.
+     */
+    const delCmds = keyArr.map((key) => ['del', key]);
+    const sremCmds = keyArr.map((key) => ['srem', indexName, key]);
+    return executeBatchCmds(delCmds.concat(sremCmds));
+  })
+  .then(() => deletedSamples);
+} // deleteSampleKeys
 
 /**
  * Renames the entry in subject or aspect master list and the corresponding
@@ -211,79 +220,46 @@ function renameKey(type, oldName, newName) {
   // rename the set with the new name
   cmds.push(['rename', oldKey, newKey]);
   return redisClient.batch(cmds).execAsync()
-        .then((ret) => Promise.resolve(ret))
-        .catch((err) => Promise.reject(err));
+  .then((ret) => Promise.resolve(ret))
+  .catch((err) => Promise.reject(err));
 } // renameKey
 
 /**
- * Renames the entries in the sample master list and the corresponding hashes
- * identified by the entries.
- * @param  {String} type - The type of the master list on which the
- * set operations are to be performed
- * @param  {String} objectName - The object name (like Subject, Aspect, Sample)
- * @param  {String} oldName - The old key name
- * @param  {String} newName - The new key name
- * @returns {Promise} - which resolves to the values returned by the redis batch
- * command
+ * Command to delete subject from aspect resource mapping
+ * @param  {String} aspName - Aspect name
+ * @param  {String} subjAbsPath - Subject absolute path
+ * @returns {Array} - Command array
  */
-function renameKeys(type, objectName, oldName, newName) {
-  if (type !== sampleType) {
-    return Promise.reject(false);
-  }
+function delSubFromAspSetCmd(aspName, subjAbsPath) {
+  return [
+    'srem',
+    redisStore.toKey(aspSubMapType, aspName.toLowerCase()),
+    subjAbsPath.toLowerCase(),
+  ];
+}
 
-  const indexName = redisStore.constants.indexKey[type];
-  const oldKey = redisStore.toKey(type, oldName);
-  const newKey = redisStore.toKey(type, newName);
-  const cmds = [];
-  return redisClient.smembersAsync(indexName)
-  .then((keys) => {
-    const finalNewKeyArr = [];
-    const finalOldKeyArr = [];
+/**
+ * Execute command asynchronously
+ * @param  {Array} cmds - array of commands
+ * @returns {Promise} - Resolves to commands responses
+ */
+function executeBatchCmds(cmds) {
+  return redisClient.batch(cmds).execAsync();
+}
 
-    /*
-     * For each key in the sampleStore, split the key into subjectKey and aspect
-     * (calling it subjectKey because the subject has redis namespace prefixed
-     * to it ). If the subjectKey matches the oldKey and the objectName is
-     * subject, add the key to finalOldKeyArr to be removed later and
-     * add create a finalNewKey(sample key) using the newKey and the aspect name
-     * obtained after spliting the key. Add the finalNewKey to
-     * a finalNewKeyArr to be aded to the sampleStore later. Also, rename the
-     * set that corresponds to the key to finalNewKey. The same is done when
-     * the oldName matches the aspect name obtained from splitting the key and
-     * the objectName is aspect, expect the finaNewKey is created using the
-     * subjectKey from spiliting the key and the newName.
-     */
-    keys.forEach((key) => {
-      const nameParts = key.split('|');
-      const subjectKey = nameParts[0];
-      const aspect = nameParts[1];
-      let finalNewKey;
-      if (oldKey === subjectKey &&
-        objectName.toLowerCase() === redisStore.constants.objectType.subject) {
-        finalNewKey = newKey + '|' + aspect;
-        finalNewKeyArr.push(finalNewKey);
-        finalOldKeyArr.push(key);
-        cmds.push(['rename', key, finalNewKey]);
-      } else if (oldName === aspect &&
-        objectName.toLowerCase() === redisStore.constants.objectType.aspect) {
-        finalNewKey = subjectKey + '|' + newName;
-        finalNewKeyArr.push(finalNewKey);
-        finalOldKeyArr.push(key);
-        cmds.push(['rename', key, finalNewKey]);
-      }
-    });
-
-    // remove the old key from the master list of index
-    cmds.push(['srem', indexName, Array.from(finalOldKeyArr)]);
-
-    // add the new key to the master list of index
-    cmds.push(['sadd', indexName, Array.from(finalNewKeyArr)]);
-
-    return redisClient.batch(cmds).execAsync();
-  })
-  .then((ret) => Promise.resolve(ret))
-  .catch((err) => Promise.reject(err));
-} // renameKeys
+/**
+ * Command to delete aspect from subject set
+ * @param  {String} subjAbsPath - Subject absolute path
+ * @param  {String} aspName - Aspect name
+ * @returns {Array} - Command array
+ */
+function delAspFromSubjSetCmd(subjAbsPath, aspName) {
+  return [
+    'srem',
+    redisStore.toKey(subAspMapType, subjAbsPath.toLowerCase()),
+    aspName.toLowerCase(),
+  ];
+}
 
 module.exports = {
 
@@ -324,20 +300,6 @@ module.exports = {
   },
 
   /**
-   * Command to delete aspect from subject set
-   * @param  {String} subjAbsPath - Subject absolute path
-   * @param  {String} aspName - Aspect name
-   * @returns {Array} - Command array
-   */
-  delAspFromSubjSetCmd(subjAbsPath, aspName) {
-    return [
-      'srem',
-      redisStore.toKey(subAspMapType, subjAbsPath),
-      aspName.toLowerCase(),
-    ];
-  },
-
-  /**
    * Command to check if aspect exists in subject set
    * @param  {String} subjAbsPath - Subject absolute path
    * @param  {String} aspName - Aspect name
@@ -346,8 +308,23 @@ module.exports = {
   aspExistsInSubjSetCmd(subjAbsPath, aspName) {
     return [
       'sismember',
-      redisStore.toKey(subAspMapType, subjAbsPath),
+      redisStore.toKey(subAspMapType, subjAbsPath.toLowerCase()),
       aspName.toLowerCase(),
+    ];
+  },
+
+  /**
+   * Command to check if subject absolute path exists in aspect-to-subject
+   * respurce map
+   * @param  {String} aspName - Aspect name
+   * @param  {String} subjAbsPath - Subject absolute path
+   * @returns {Array} - Command array
+   */
+  subjAbsPathExistsInAspSetCmd(aspName, subjAbsPath) {
+    return [
+      'sismember',
+      redisStore.toKey(aspSubMapType, aspName.toLowerCase()),
+      subjAbsPath.toLowerCase(),
     ];
   },
 
@@ -360,7 +337,7 @@ module.exports = {
   addAspectInSubjSetCmd(subjAbsPath, aspName) {
     return [
       'sadd',
-      redisStore.toKey(subAspMapType, subjAbsPath),
+      redisStore.toKey(subAspMapType, subjAbsPath.toLowerCase()),
       aspName.toLowerCase(),
     ];
   },
@@ -403,11 +380,9 @@ module.exports = {
       return [];
     }
 
-    return [
-      'hmset',
-      redisStore.toKey(type, name),
-      kvObj,
-    ];
+    const key = redisStore.toKey(type, name);
+    logInvalidHmsetValues(key, kvObj);
+    return ['hmset', key, kvObj];
   },
 
   /**
@@ -422,7 +397,9 @@ module.exports = {
       return Promise.resolve();
     }
 
-    return redisClient.hmsetAsync(redisStore.toKey(type, name), kvObj);
+    const key = redisStore.toKey(type, name);
+    logInvalidHmsetValues(key, kvObj);
+    return redisClient.hmsetAsync(key, kvObj);
   },
 
   /**
@@ -437,21 +414,132 @@ module.exports = {
   },
 
   /**
-   * Execute command asynchronously
-   * @param  {Array} cmds - array of commands
-   * @returns {Promise} - Resolves to commands responses
+   * Get samples for a given aspect
+   * @param  {String} aspName - Aspect Name
+   * @returns {Promise} - Resolves to array of samples
    */
-  executeBatchCmds(cmds) {
-    return redisClient.batch(cmds).execAsync();
+  getSamplesFromAspectName(aspName) {
+    const aspsubmapKey = redisStore.toKey(
+      redisStore.constants.objectType.aspSubMap, aspName
+    );
+    const promiseArr = [];
+    return redisClient.smembersAsync(aspsubmapKey)
+    .then((subjNames) => {
+      subjNames.forEach((subjName) => {
+        const sampleName = subjName + '|' + aspName;
+        promiseArr.push(redisClient.hgetallAsync(
+          redisStore.toKey(redisStore.constants.objectType.sample, sampleName)
+        ));
+      });
+
+      return Promise.all(promiseArr);
+    });
+  },
+
+  /**
+   * Delete subject from aspect-to-subject respurce maps
+   * @param  {Array} aspNamesArr - Array of aspect names
+   * @param {String} subjectAbsPath - Subject absolute path
+   * @returns {Array of Arrays} - Array of redis commands
+   */
+  deleteSubjectFromAspectResourceMaps(aspNamesArr, subjectAbsPath) {
+    const cmds = [];
+    aspNamesArr.forEach((aspName) => {
+      cmds.push(delSubFromAspSetCmd(
+        aspName.toLowerCase(), subjectAbsPath.toLowerCase()));
+    });
+
+    return cmds;
+  },
+
+  /**
+   * Delete aspect from subject-to-aspect respurce maps
+   * @param  {Array} subjectAbsPathArr - Array of subject absolute paths
+   * @param {String} aspName - Aspect name
+   * @returns {Array} Redis command
+   */
+  deleteAspectFromSubjectResourceMaps(subjectAbsPathArr, aspName) {
+    const cmds = [];
+    subjectAbsPathArr.forEach((subjAbsPath) => {
+      cmds.push(delAspFromSubjSetCmd(
+        subjAbsPath.toLowerCase(), aspName.toLowerCase()));
+    });
+
+    return cmds;
+  },
+
+  /**
+   * Get aspect-to-subject resource map members
+   * @param  {String}  aspName - Aspect name
+   * @returns {Array} Redis command
+   */
+  getAspSubjMapMembers(aspName) {
+    const key = redisStore.toKey(aspSubMapType, aspName.toLowerCase());
+    return ['smembers', key];
+  },
+
+  /**
+   * Get subject-to-aspect resource map members
+   * @param  {String}  subjAbsPath - Subject absolute path
+   * @returns {Array} Redis command
+   */
+  getSubjAspMapMembers(subjAbsPath) {
+    const key = redisStore.toKey(subAspMapType, subjAbsPath.toLowerCase());
+    return ['smembers', key];
+  },
+
+  /**
+   * Add subject absolute path to aspect-to-subject resource map.
+   * @param {String}  aspName - Aspect name
+   * @param {string}  subjAbsPath - Subject absolute path
+   * @returns {Array} Redis command
+   */
+  addSubjectAbsPathInAspectSet(aspName, subjAbsPath) {
+    const aspectSetKey = redisStore.toKey(aspSubMapType, aspName.toLowerCase());
+    return ['sadd', aspectSetKey, subjAbsPath.toLowerCase()];
+  },
+
+  /**
+   * Add aspect name to subject-to-aspect resource map.
+   * @param {String}  subjAbsPath - Subject absolute path
+   * @param {string}  aspName - Aspect name
+   * @returns {Array} Redis command
+   */
+  addAspectNameInSubjectSet(subjAbsPath, aspName) {
+    const subjectSetKey = redisStore.toKey(
+      subAspMapType, subjAbsPath.toLowerCase());
+    return ['sadd', subjectSetKey, aspName.toLowerCase()];
+  },
+
+  /**
+   * Duplicate a set
+   * @param  {String}  setType - Set type in sample store,
+   *  e.g. subaspmap|aspsubmap etc
+   * @param  {String}  nameTo - New set name
+   * @param  {string}  nameFrom - Old set name
+   * @returns {Array} Redis command
+   */
+  duplicateSet(setType, nameTo, nameFrom) {
+    const fromSet = redisStore.toKey(setType, nameFrom.toLowerCase());
+    const toSet = redisStore.toKey(setType, nameTo.toLowerCase());
+    return ['sunionstore', toSet, fromSet];
+  },
+
+  /**
+   * Execute one redis command
+   * @param  {Array} redisCommand - Redis command
+   * @returns {Promise} - Resolves to the result of redis command
+   */
+  executeCommand(redisCommand) {
+    return executeBatchCmds([redisCommand])
+    .then((results) => Promise.resolve(results[0]));
   },
 
   renameKey,
 
-  renameKeys,
-
   deleteKey,
 
-  deleteKeys,
+  deleteSampleKeys,
 
   addKey,
 
@@ -467,7 +555,15 @@ module.exports = {
 
   subAspMapType,
 
+  aspSubMapType,
+
   getValue,
 
   getHashPromise,
+
+  executeBatchCmds,
+
+  delSubFromAspSetCmd,
+
+  delAspFromSubjSetCmd,
 }; // export

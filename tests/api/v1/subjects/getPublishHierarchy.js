@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -76,12 +76,14 @@ describe(`tests/api/v1/subjects/getPublishHierarchy.js, GET ${path} >`, () => {
     })
     .then((a) => {
       sample1.aspectId = a.id;
-      return tu.db.Sample.create(sample1);
+      return tu.Sample.create(sample1);
     })
-    .then(() => tu.db.Sample.create(sample2))
+    .then(() => tu.Sample.create(sample2))
     .then(() => done())
     .catch(done);
   });
+
+  before(u.populateRedis);
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);

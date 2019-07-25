@@ -65,7 +65,7 @@ describe('tests/cache/sampleStoreFlagFlipFlop.js >', () => {
         isPublished: true,
         name: `${tu.namePrefix}Aspect2`,
         timeout: '10m',
-        valueType: 'BOOLEAN',
+        valueType: 'NUMERIC',
         okRange: [10, 100],
       }))
       .then((created) => (a2 = created))
@@ -73,7 +73,7 @@ describe('tests/cache/sampleStoreFlagFlipFlop.js >', () => {
         isPublished: true,
         name: `${tu.namePrefix}Aspect3`,
         timeout: '10m',
-        valueType: 'BOOLEAN',
+        valueType: 'NUMERIC',
         okRange: [10, 100],
       }))
       .then((created) => (a3 = created))
@@ -81,7 +81,7 @@ describe('tests/cache/sampleStoreFlagFlipFlop.js >', () => {
         isPublished: false,
         name: `${tu.namePrefix}Aspect4`,
         timeout: '10m',
-        valueType: 'BOOLEAN',
+        valueType: 'NUMERIC',
         okRange: [10, 100],
       }))
       .then((created) => (a4 = created))
@@ -174,8 +174,8 @@ describe('tests/cache/sampleStoreFlagFlipFlop.js >', () => {
         // Make sure aspects that don't have samples are *also* here
         expect(res.includes('samsto:aspect:___aspect3')).to.be.true;
 
-        // Make sure unpublished aspects are *not* here
-        expect(res.includes('samsto:aspect:___aspect4')).to.be.false;
+        // Make sure unpublished aspects are here
+        expect(res.includes('samsto:aspect:___aspect4')).to.be.true;
       })
       .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
       .then((res) => {

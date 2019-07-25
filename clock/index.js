@@ -18,45 +18,23 @@
  *
  * If a separate clock dyno is NOT enabled, this module is just loaded from
  * inside the main web process.
+ *
+ * To define a new clock job: create a new job file in clock/jobs, update the
+ * clockJobConfig object in config.js.
  */
 const conf = require('../config');
-if (conf.newRelicKey) {
-  require('newrelic');
-}
+if (conf.newRelicKey) require('newrelic');
+const logEnvVars = require('../utils/logEnvVars');
+logEnvVars.log(process.env); // eslint-disable-line no-process-env
+const requireDir = require('require-dir');
+const setupIntervals = require('./setupIntervals');
 
-const featureToggles = require('feature-toggles');
-const kueStatsActivityLogs = require('./scheduledJobs/kueStatsActivityLogs');
-const persistSampleStoreJob = require('./scheduledJobs/persistSampleStoreJob');
-const queueStatsActivityLogs =
-  require('./scheduledJobs/queueStatsActivityLogs');
-const sampleTimeoutJob = require('./scheduledJobs/sampleTimeoutJob');
-const jobCleanup = require('./scheduledJobs/jobCleanup');
+const jobs = requireDir('./scheduledJobs');
 
 /*
- * Add all the scheduled work here.
+ * Adding some extra logging to get to the bottom of why we're crashing worker
+ * dynos with "Error: Cannot find module '../../clock/scheduledJobs/undefined'".
  */
-setInterval(sampleTimeoutJob.enqueue, conf.checkTimeoutIntervalMillis);
+console.log(`clock/index, require-dir: ['${Object.keys(jobs).join(', ')}]`);
 
-// If redis sample store feature is enabled, schedule persist to db
-if (featureToggles.isFeatureEnabled('enableRedisSampleStore')) {
-  setInterval(persistSampleStoreJob.enqueue,
-    conf.persistRedisSampleStoreMilliseconds);
-}
-
-// If enableKueStatsActivityLogs is true then write log
-if (featureToggles.isFeatureEnabled('enableKueStatsActivityLogs')) {
-  setInterval(kueStatsActivityLogs.execute,
-    conf.queueStatsActivityLogsInterval);
-}
-
-// If queueStatsActivityLogs is true then write log
-if (featureToggles.isFeatureEnabled('enableQueueStatsActivityLogs')) {
-  setInterval(queueStatsActivityLogs.execute,
-    conf.queueStatsActivityLogsInterval);
-}
-
-// Clean up completed jobs
-setInterval(jobCleanup.enqueue, conf.JOB_REMOVAL_INTERVAL);
-
-// Reset the job id counter
-setInterval(jobCleanup.resetCounter, conf.JOB_COUNTER_RESET_INTERVAL);
+module.exports = setupIntervals(jobs, conf.clockJobConfig);

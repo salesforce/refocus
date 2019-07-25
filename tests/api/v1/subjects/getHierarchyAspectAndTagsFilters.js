@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -112,10 +112,10 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
     })
     .then((a) => {
       sample1.aspectId = a.id;
-      return tu.db.Sample.create(sample1);
+      return tu.Sample.create(sample1);
     })
-    .then(() => tu.db.Sample.create(sample2))
-    .then(() => tu.db.Sample.create(sample3))
+    .then(() => tu.Sample.create(sample2))
+    .then(() => tu.Sample.create(sample3))
     .then(() => tu.db.Subject.create(parOther1))
     .then((subj) => {
       parOther1 = subj;
@@ -128,11 +128,13 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
     .then((a) => {
       sample4.aspectId = a.id;
       sample4.subjectId = grn.id;
-      return tu.db.Sample.create(sample4);
+      return tu.Sample.create(sample4);
     })
     .then(() => done())
     .catch(done);
   });
+
+  before(u.populateRedis);
 
   after(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -259,7 +261,7 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
         expect(res.body.children).to.have.length(1);
         expect(res.body).to.not.have.property('tags');
         expect(res.body).to.have.all
-        .keys(['name', 'id', 'samples', 'children', 'apiLinks']);
+          .keys(['name', 'id', 'samples', 'children', 'apiLinks']);
 
         // canada
         expect(res.body.children[0].children).to.have.length(1);
@@ -277,7 +279,7 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
     it('should return samples with temperature and humidity aspects',
     (done) => {
       const endpoint = path.replace('{key}', par.id) +
-        '?aspect=humidity,temperature';
+        '?aspect=Humidity,TEMPERATURE';
       api.get(endpoint)
       .set('Authorization', token)
       .expect(constants.httpStatus.OK)
@@ -301,7 +303,7 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
           .property('aspect.name', 'humidity');
         expect(res.body.children[0].samples[0]).to.have.deep
           .property('aspect.name', 'humidity');
-        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].children).to.not.exist;
       })
       .end(done);
     });
@@ -357,7 +359,7 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
         expect(aspectNames).to.include.members(['humidity', 'temperature']);
         expect(res.body.children).to.have.length(1);
         expect(res.body.children[0].samples).to.have.length(1);
-        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].children).to.not.exist;
         expect(res.body.children[0].samples[0])
         .to.have.deep.property('aspect.name', 'humidity');
         done();
@@ -393,14 +395,14 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
         expect(res.body.samples).to.have.length(2);
         expect(res.body.children).to.have.length(1);
         expect(res.body.children[0].samples).to.have.length(1);
-        expect(res.body.children[0].children).to.have.length(0);
+        expect(res.body.children[0].children).to.not.exist;
       })
       .end(done);
     });
   });
 
   describe('aspectTags filter on hierarchy >', () => {
-    it('Hierarchy for subject with Aspect tags matching the quuery params ' +
+    it('Hierarchy for subject with Aspect tags matching the query params ' +
     'should be returned', (done) => {
       const endpoint = path.replace('{key}', chi.id) + '?aspectTags=wnd';
       api.get(endpoint)
@@ -427,13 +429,13 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
       .expect((res) => {
         expect(res.body).to.not.equal(null);
         expect(res.body.samples).to.have.length(0);
-        expect(res.body.children).to.have.length(0);
+        expect(res.body.children).to.not.exist;
       })
       .end(done);
     });
 
     it('Multiple Query Params: Hierarchy for subject with Aspect tags' +
-      ' matching the quuery params should be returned',
+      ' matching the query params should be returned',
     (done) => {
       const endpoint = path.replace('{key}', gp.id) + '?aspectTags=wnd,temp';
       api.get(endpoint)
@@ -457,7 +459,7 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
     });
 
     it('Negation: Hierarchy for subject with Aspect tags' +
-      ' matching the quuery params should be returned',
+      ' matching the query params should be returned',
     (done) => {
       const endpoint = path.replace('{key}', gp.id) + '?aspectTags=-temp';
       api.get(endpoint)
@@ -479,7 +481,7 @@ describe('tests/api/v1/subjects/getHierarchyAspectAndTagsFilters.js, ' +
     });
 
     it('Negation: Multiple Query Params: Hierarchy for subject with Aspect' +
-      ' tags matching the quuery params should be returned',
+      ' tags matching the query params should be returned',
     (done) => {
       const endpoint = path.replace('{key}', gp.id) + '?aspectTags=-temp,-wnd';
       api.get(endpoint)

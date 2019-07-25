@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
@@ -99,7 +99,7 @@ describe('tests/cache/models/aspects/postWriters.js, ' +
       // make sure the writers are added to the aspect in redis too
       rcli.hgetallAsync('samsto:aspect:___aspectname')
       .then((asp) => {
-        sampleStore.arrayStringsToJson(asp,
+        sampleStore.arrayObjsStringsToJson(asp,
           sampleStore.constants.fieldsToStringify.aspect);
         expect(asp.writers.length).to.equal(2);
         expect(asp.writers).to.have

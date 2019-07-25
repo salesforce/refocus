@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -21,16 +21,28 @@ const Profile = tu.db.Profile;
 const User = tu.db.User;
 const Token = tu.db.Token;
 
-describe(`tests/api/v1/users/get.js, GET ${path}`, () => {
+describe('tests/api/v1/users/get.js >', () => {
   const uname = `${tu.namePrefix}test@refocus.com`;
+  const ufullName = `${tu.namePrefix}test fullName`;
   const tname = `${tu.namePrefix}Voldemort`;
   let userId = '';
+  let token;
 
   before((done) => {
-    Profile.create({ name: `${tu.namePrefix}testProfile` })
+    tu.createToken()
+    .then((returnedToken) => {
+      token = returnedToken;
+      done();
+    })
+    .catch(done);
+  });
+
+  before((done) => {
+    Profile.create({ name: `${tu.namePrefix}testProfile2` })
     .then((profile) => User.create({
       profileId: profile.id,
       name: uname,
+      fullName: ufullName,
       email: uname,
       password: 'user123password',
     }))
@@ -42,9 +54,11 @@ describe(`tests/api/v1/users/get.js, GET ${path}`, () => {
   });
 
   after(u.forceDelete);
+  after(tu.forceDeleteUser);
 
   it('does not return default token', (done) => {
     api.get(`${path}/${uname}`)
+    .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -65,6 +79,7 @@ describe(`tests/api/v1/users/get.js, GET ${path}`, () => {
 
   it('user found', (done) => {
     api.get(`${path}/${uname}`)
+    .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -72,6 +87,7 @@ describe(`tests/api/v1/users/get.js, GET ${path}`, () => {
       }
 
       expect(res.body).to.have.property('name', uname);
+      expect(res.body).to.have.property('fullName', ufullName);
       expect(res.body).to.not.have.property('password');
       expect(res.body.isDeleted).to.not.equal(0);
       done();
@@ -80,6 +96,7 @@ describe(`tests/api/v1/users/get.js, GET ${path}`, () => {
 
   it('users array returned', (done) => {
     api.get(`${path}`)
+    .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
       if (err) {
@@ -94,7 +111,7 @@ describe(`tests/api/v1/users/get.js, GET ${path}`, () => {
 
   it('user not found', (done) => {
     api.get(`${path}/who@what.com`)
-    .set('Authorization', '???')
+    .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)
     .end(done);
   });

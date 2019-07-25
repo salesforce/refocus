@@ -12,7 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const perspectivesPath = '/perspectives';
 
 describe('tests/api/v1/authenticate/protectedView.js >', () => {

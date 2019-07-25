@@ -63,11 +63,14 @@ function getCookie(cname) {
  * statusFilterType=statusFilter.
  * NOTE: It looks like socketIO is not able to send data over namespace
  * containing ',' and a combination of '&|' characters.
+ *
+ * @param {String} realtimeApplication - the real-time application endpoint
  * @param  {Instance} inst - Perspective object
  * @returns {String} - namespace string.
  */
-function getNamespaceString(inst) {
-  let namespace = '/';
+function getNamespaceString(realtimeApplication, inst) {
+  let namespace = realtimeApplication.endsWith('/') ? realtimeApplication :
+    (realtimeApplication + '/');
   if (inst.rootSubject) {
     namespace += inst.rootSubject;
   }
@@ -96,13 +99,21 @@ function removeSpinner(spinnerID) {
 }
 
 /**
- * @param {String} url The url to get from
+ * Default behavior (no custom headers passed) - when a request is
+ * sent to the server a full response is downloaded (no caching).
+ *
+ * Custom headers object allow for specifying caching policy (and any other option
+ * available through headers), e.g. {'Cache-Control': 'max-age=31536000,public'}
+ * will allow CDNs to cache request responses for 1 year.
+ *
+ * @param {String} url - The url to get from
+ * @param {Object} (optional) headers - HTTP headers
  * @returns {Promise} For use in chaining.
  */
-function getPromiseWithUrl(url) {
+function getPromiseWithUrl(url, headers) {
   return new Promise((resolve, reject) => {
     request.get(url)
-    .set(REQ_HEADERS)
+    .set(headers || REQ_HEADERS)
     .end((error, response) => {
       // reject if error is present, otherwise resolve request
       if (error) {
@@ -114,10 +125,54 @@ function getPromiseWithUrl(url) {
   });
 } // getPromiseWithUrl
 
+/**
+ * @param {String} url The url to patch
+ * @param {JSON} data the payload needed for route
+ * @returns {Promise} For use in chaining.
+ */
+function patchPromiseWithUrl(url, data) {
+  return new Promise((resolve, reject) => {
+    request.patch(url)
+    .set(REQ_HEADERS)
+    .send(data)
+    .end((error, response) => {
+      // reject if error is present, otherwise resolve request
+      if (error) {
+        reject(error);
+      } else {
+        resolve(response);
+      }
+    });
+  });
+} // patchPromiseWithUrl
+
+/**
+ * @param {String} url The url to patch
+ * @param {JSON} data the payload needed for route
+ * @returns {Promise} For use in chaining.
+ */
+function postPromiseWithUrl(url, data) {
+  return new Promise((resolve, reject) => {
+    request.post(url)
+      .set(REQ_HEADERS)
+      .send(data)
+      .end((error, response) => {
+        // reject if error is present, otherwise resolve request
+        if (error) {
+          reject(error);
+        } else {
+          resolve(response);
+        }
+      });
+  });
+} // postPromiseWithUrl
+
 module.exports = {
   setCookie,
   getCookie,
   getNamespaceString,
   removeSpinner,
   getPromiseWithUrl,
+  patchPromiseWithUrl,
+  postPromiseWithUrl,
 };

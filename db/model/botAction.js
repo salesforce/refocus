@@ -17,8 +17,13 @@
 const assoc = {};
 const dbErrors = require('../dbErrors');
 const constants = require('../constants');
+const realTime = require('../../realtime/redisPublisher');
+const rtConstants = require('../../realtime/constants');
 const u = require('../helpers/botUtils');
 const commonUtils = require('../../utils/common');
+const botActionEventNames = rtConstants.events.botAction;
+const pubOpts = rtConstants.pubOpts.botAction;
+const Op = require('sequelize').Op;
 
 module.exports = function botAction(seq, dataTypes) {
   const BotAction = seq.define('BotAction', {
@@ -40,6 +45,12 @@ module.exports = function botAction(seq, dataTypes) {
       },
       comment: 'Name of the bot action',
     },
+    actionLog: {
+      type: dataTypes.STRING(constants.fieldlen.normalName),
+      allowNull: true,
+      comment: 'This is a field for a developer to specify a' +
+        'more specific action name',
+    },
     parameters: {
       type: dataTypes.ARRAY(dataTypes.JSON),
       allowNull: true,
@@ -55,35 +66,6 @@ module.exports = function botAction(seq, dataTypes) {
         'After an action is completed the bot may have a response',
     },
   }, {
-    classMethods: {
-      getBotActionAssociations() {
-        return assoc;
-      },
-
-      postImport(models) {
-        assoc.room = BotAction.belongsTo(models.Room, {
-          foreignKey: {
-            name: 'roomId',
-            allowNull: false,
-          },
-        });
-        assoc.bot = BotAction.belongsTo(models.Bot, {
-          foreignKey: {
-            name: 'botId',
-            allowNull: false,
-          },
-        });
-        assoc.user = BotAction.belongsTo(models.User, {
-          foreignKey: 'userId',
-          allowNull: true,
-        });
-        assoc.writers = BotAction.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'BotActionWriters',
-          foreignKey: 'botId',
-        });
-      },
-    },
     hooks: {
 
       /**
@@ -101,7 +83,7 @@ module.exports = function botAction(seq, dataTypes) {
 
         return seq.models.Bot.findOne({
           where: {
-            name: { $iLike: botId },
+            name: { [Op.iLike]: botId },
           },
         })
         .then((bot) => {
@@ -155,6 +137,22 @@ module.exports = function botAction(seq, dataTypes) {
           .catch((err) => reject(err))
         );
       }, // hooks.beforeCreate
+
+      afterCreate: (instance) => {
+        const changedKeys = Object.keys(instance._changed);
+        return realTime.publishObject(instance.toJSON(),
+          botActionEventNames.add, changedKeys, [], pubOpts);
+      },
+
+      afterUpdate(instance /* , opts */) {
+        return realTime.publishObject(instance.toJSON(),
+          botActionEventNames.upd, null, null, pubOpts);
+      }, // hooks.afterUpdate
+
+      afterDestroy(instance /* , opts */) {
+        return realTime.publishObject(instance.toJSON(),
+          botActionEventNames.del, null, null, pubOpts);
+      }, // hooks.afterDestroy
     }, // hooks
     indexes: [
       {
@@ -165,6 +163,72 @@ module.exports = function botAction(seq, dataTypes) {
       },
     ],
   });
+
+  /**
+   * Class Methods:
+   */
+
+  BotAction.getBotActionAssociations = function () {
+    return assoc;
+  };
+
+  BotAction.postImport = function (models) {
+    assoc.room = BotAction.belongsTo(models.Room, {
+      foreignKey: {
+        name: 'roomId',
+        allowNull: false,
+      },
+    });
+    assoc.bot = BotAction.belongsTo(models.Bot, {
+      foreignKey: {
+        name: 'botId',
+        allowNull: false,
+      },
+    });
+    assoc.owner = BotAction.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+    assoc.user = BotAction.belongsTo(models.User, {
+      foreignKey: 'userId',
+      allowNull: true,
+    });
+    assoc.writers = BotAction.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'BotActionWriters',
+      foreignKey: 'botId',
+    });
+
+    BotAction.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    }, {
+      override: true,
+    });
+  };
+
+  BotAction.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getWriters()
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
   return BotAction;
 };
 

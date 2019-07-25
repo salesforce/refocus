@@ -7,23 +7,19 @@
  */
 
 /**
- * tests/tokenReq/api/token/revoke.js
+ * tests/enforceToken/revoke.js
  */
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const api = supertest(require('../../index').app);
-const adminUser = require('../../config').db.adminUser;
+const api = supertest(require('../../express').app);
 const constants = require('../../api/v1/constants');
-const jwtUtil = require('../../utils/jwtUtil');
 const u = require('../testUtils');
 const registerPath = '/v1/register';
 const tokenPath = '/v1/tokens';
 
 describe('tests/enforceToken/revoke.js, enforceToken: revoke >', () => {
   let defaultToken;
-  const predefinedAdminUserToken = jwtUtil.createToken(
-    adminUser.name, adminUser.name
-  );
+  const predefinedAdminUserToken = u.createAdminToken();
 
   beforeEach((done) => {
     api.post(registerPath)
@@ -62,13 +58,9 @@ describe('tests/enforceToken/revoke.js, enforceToken: revoke >', () => {
         .set('Authorization', newToken)
         .expect(constants.httpStatus.FORBIDDEN)
         .end((err3, res3) => {
-          if (err3) {
-            return done(err3);
-          }
-
+          if (err3) return done(err3);
           expect(res3.body.errors[0].description)
-          .to.eql('Token was revoked. Please contact your Refocus ' +
-            'administrator.');
+            .to.eql('Authentication Failed');
           return done();
         });
       });

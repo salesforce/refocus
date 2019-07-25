@@ -33,5 +33,14 @@ module.exports = {
   },
   fieldsWithArrayType: ['tags'],
   tagFilterName: 'tags',
+  fieldScopeMap: {
+    user: 'user',
+    owner: 'owner',
+  },
+  fieldsToExclude: ['createdBy', 'ownerId'],
+
+  hasMultipartKey: true,
+  timePeriodFilters: ['createdAt', 'updatedAt'],
+
 }; // exports
 

@@ -11,35 +11,39 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
 const path = '/v1/samples';
 const expect = require('chai').expect;
 const ZERO = 0;
 const redisCache = require('../../../../cache/redisCache').client.cache;
-const featureToggles = require('feature-toggles');
-const cacheGetSamplesByNameWildcard =
-  featureToggles.isFeatureEnabled('cacheGetSamplesByNameWildcard');
 
 describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
   let sampleName;
   let token;
-
+  let userId;
+  let userObject;
   before((done) => {
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    tu.createUserAndToken()
+    .then((obj) => {
+      userId = obj.user.id;
+      token = obj.token;
+      userObject = obj.user;
       done();
     })
     .catch(done);
   });
+  after(tu.forceDeleteUser);
 
   before((done) => {
     u.doSetup()
-    .then((samp) => Sample.create(samp))
+    .then(({ aspectId, subjectId }) => {
+      const samp = u.getBasic({ aspectId, subjectId, provider: userId });
+      return Sample.create(samp, userObject);
+    })
     .then((samp) => {
       sampleName = samp.name;
       done();
@@ -47,8 +51,78 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
     .catch(done);
   });
 
+  before(u.populateRedis);
   after(u.forceDelete);
-  after(tu.forceDeleteUser);
+
+  it('get all', (done) => {
+    api.get(path)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.length).to.equal(1);
+      expect(res.body[0].provider).to.equal(userId);
+      expect(res.body[0].id).to.be.undefined;
+      const user = res.body[0].user;
+      const sample = res.body[0];
+      const aspect = sample.aspect;
+      expect(sample).to.have.property('name').that.is.a('string');
+      expect(sample).to.have.property('status').that.is.a('string');
+      expect(sample).to.have.property('previousStatus').that.is.a('string');
+      expect(sample).to.have.property('statusChangedAt').that.is.a('string');
+      expect(sample).to.have.property('value').that.is.a('string');
+      expect(sample).to.have.property('relatedLinks').that.is.an('array');
+      expect(sample).to.have.property('createdAt').that.is.a('string');
+      expect(sample).to.have.property('updatedAt').that.is.a('string');
+      expect(sample).to.have.property('aspectId').that.is.a('string');
+      expect(sample).to.have.property('subjectId').that.is.a('string');
+      expect(sample).to.have.property('apiLinks').that.is.an('array');
+      expect(aspect).to.have.property('description').that.is.a('string');
+      expect(aspect).to.have.property('id').that.is.a('string');
+      expect(aspect).to.have.property('isPublished').that.is.a('boolean');
+      expect(aspect).to.have.property('name').that.is.a('string');
+      expect(aspect).to.have.property('criticalRange').that.is.an('array');
+      expect(aspect).to.have.property('warningRange').that.is.an('array');
+      expect(aspect).to.have.property('infoRange').that.is.an('array');
+      expect(aspect).to.have.property('okRange').that.is.an('array');
+      expect(aspect).to.have.property('timeout').that.is.a('string');
+      expect(aspect).to.have.property('valueLabel').that.is.a('string');
+      expect(aspect).to.have.property('valueType').that.is.a('string');
+      expect(aspect).to.have.property('relatedLinks').that.is.an('array');
+      expect(aspect).to.have.property('tags').that.is.an('array');
+      expect(user).to.be.an('object');
+      expect(user.name).to.be.an('string');
+      expect(user.email).to.be.an('string');
+      expect(user.profile.name).to.be.an('string');
+      expect(res.header).to.have.property('x-total-count', '1');
+      expect(sample.status).to.equal(constants.statuses.Critical);
+      return done();
+    });
+  });
+
+  it('get by name', (done) => {
+    api.get(`${path}/${sampleName}`)
+    .set('Authorization', token)
+    .expect(constants.httpStatus.OK)
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+
+      expect(res.body.status).to.equal(constants.statuses.Critical);
+      expect(res.body.provider).to.equal(userId);
+      const user = res.body.user;
+      expect(user).to.be.an('object');
+      expect(user.name).to.be.an('string');
+      expect(user.email).to.be.an('string');
+      expect(user.profile.name).to.be.an('string');
+      expect(res.body.id).to.be.undefined;
+      return done();
+    });
+  });
 
   it('apiLinks in basic get end  with sample name', (done) => {
     api.get(path)
@@ -71,23 +145,8 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
     .end(done);
   });
 
-  it('basic get', (done) => {
-    api.get(path)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      if (tu.gotExpectedLength(res.body, ZERO)) {
-        throw new Error('expecting sample');
-      }
-
-      if (res.body[ZERO].status !== constants.statuses.Critical) {
-        throw new Error('Incorrect Status Value');
-      }
-    })
-    .end(done);
-  });
-
-  it('basic get does not return id', (done) => {
+  it('basic get: samples should have statusChangedAt field but not ' +
+    'aspects ', (done) => {
     api.get(path)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -96,26 +155,28 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
         return done(err);
       }
 
-      expect(res.body.length).to.be.above(ZERO);
-      expect(res.body[0].id).to.be.undefined;
-      done();
+      res.body.forEach((sample) => {
+        expect(sample.statusChangedAt).to.be.an('string');
+        expect(sample.aspect.statusChangedAt).to.be.undefined;
+      });
+      return done();
     });
   });
 
-  it('basic get by id', (done) => {
-    api.get(`${path}/${sampleName}`)
+  it('basic get: aspect does not have statusChangedAt', (done) => {
+    api.get(path)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
-    .expect((res) => {
-      if (tu.gotExpectedLength(res.body, ZERO)) {
-        throw new Error('expecting sample');
+    .end((err, res) => {
+      if (err) {
+        return done(err);
       }
 
-      if (res.body.status !== constants.statuses.Critical) {
-        throw new Error('Incorrect Status Value');
-      }
-    })
-    .end(done);
+      res.body.forEach((sample) => {
+        expect(sample.aspect.statusChangedAt).to.be.undefined;
+      });
+      return done();
+    });
   });
 
   it('by name is case in-sensitive', (done) => {
@@ -129,33 +190,17 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >`, () => {
       }
 
       expect(res.body.name).to.equal(name);
-      done();
-    });
-  });
-
-  it('does not return id', (done) => {
-    const name = u.sampleName;
-    api.get(`${path}/${name}`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.id).to.be.undefined;
-      done();
+      return done();
     });
   });
 });
 
-describe(`tests/api/v1/samples/get.js, GET ${path} >` +
-  'GET with cacheGetSamplesWildcard flag on', () => {
+describe(`tests/api/v1/samples/get.js, GET ${path} > ` +
+  'cache the response >', () => {
   let sampleName;
   let token;
 
   before((done) => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -165,8 +210,7 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >` +
   });
 
   before((done) => {
-    u.doSetup()
-    .then((samp) => Sample.create(samp))
+    u.createBasic()
     .then((samp) => {
       sampleName = samp.name;
       done();
@@ -174,15 +218,11 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >` +
     .catch(done);
   });
 
-  after(() => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard',
-      cacheGetSamplesByNameWildcard);
-  });
-
+  before(u.populateRedis);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
 
-  it('get with wildcard shold cache response', (done) => {
+  it('get with wildcard should cache response', (done) => {
     api.get(`${path}?name=${sampleName}*`)
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -214,58 +254,6 @@ describe(`tests/api/v1/samples/get.js, GET ${path} >` +
       }
 
       redisCache.get(`${sampleName}`, (cacheErr, reply) => {
-        if (cacheErr || !reply) {
-          expect(res.body.length).to.be.above(ZERO);
-          done();
-        }
-      });
-    });
-  });
-});
-
-describe(`tests/api/v1/samples/get.js, GET ${path} >` +
-  'GET with cacheGetSamplesWildcard flag off', () => {
-  let sampleName;
-  let token;
-
-  before((done) => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard', false);
-    tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
-      done();
-    })
-    .catch(done);
-  });
-
-  before((done) => {
-    u.doSetup()
-    .then((samp) => Sample.create(samp))
-    .then((samp) => {
-      sampleName = samp.name;
-      done();
-    })
-    .catch(done);
-  });
-
-  after(() => {
-    tu.toggleOverride('cacheGetSamplesByNameWildcard',
-      cacheGetSamplesByNameWildcard);
-  });
-
-  after(u.forceDelete);
-  after(tu.forceDeleteUser);
-
-  it('get with wildcard should not cache response', (done) => {
-    api.get(`${path}?name=${sampleName}*`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      redisCache.get(`${sampleName}*`, (cacheErr, reply) => {
         if (cacheErr || !reply) {
           expect(res.body.length).to.be.above(ZERO);
           done();

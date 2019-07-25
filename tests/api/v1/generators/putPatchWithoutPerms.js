@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -47,8 +47,9 @@ describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
     .then((_usr) => tu.createTokenFromUserName(_usr.name))
     .then((tkn) => {
       otherValidToken = tkn;
-      done();
+      return u.createGeneratorAspects();
     })
+    .then(() => done())
     .catch(done);
   });
 
@@ -75,7 +76,7 @@ describe('tests/api/v1/generators/putPatchWithoutPerms.js >', () => {
           description: 'An ok sample\'s value, e.g. \'0\'',
         },
       },
-      subjects: ['US'],
+      subjectQuery: '?absolutePath=Foo.*',
       aspects: ['Temperature', 'Weather'],
     };
 

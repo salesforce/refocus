@@ -10,7 +10,7 @@
  * cache/model/subject.js
  */
 'use strict'; // eslint-disable-line strict
-
+const featureToggles = require('feature-toggles');
 const helper = require('../../api/v1/helpers/nouns/subjects');
 const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const utils = require('../../api/v1/helpers/verbs/utils');
@@ -99,11 +99,25 @@ function attachSamples(res) {
   return redisClient.smembersAsync(subjectKey).then((aspectNames) => {
     const cmds = [];
     aspectNames.forEach((aspect) => {
-      const sampleKey = sampleStore.toKey(constants.objectType.sample,
-               res.absolutePath + '|' + aspect);
-      const aspectKey = sampleStore.toKey(constants.objectType.aspect, aspect);
-      cmds.push(['hgetall', sampleKey]);
-      cmds.push(['hgetall', aspectKey]);
+
+      /*
+       * If there is an aspect name filter, do it now instead of doing extra
+       * hgetall calls for aspects and samples we don't need!
+       */
+      let aspectPassesFilter = true; // default true if no aspect name filter
+      if (filters.aspect.includes && filters.aspect.includes.size) {
+        aspectPassesFilter = filters.aspect.includes.has(aspect.toLowerCase());
+      } else if (filters.aspect.excludes && filters.aspect.excludes.size) {
+        aspectPassesFilter = !filters.aspect.excludes.has(aspect.toLowerCase());
+      }
+
+      if (aspectPassesFilter) {
+        const sampleKey = sampleStore.toKey(constants.objectType.sample,
+          res.absolutePath + '|' + aspect);
+        const aspectKey = sampleStore.toKey(constants.objectType.aspect, aspect);
+        cmds.push(['hgetall', sampleKey]);
+        cmds.push(['hgetall', aspectKey]);
+      }
     });
 
     return redisClient.batch(cmds).execAsync();
@@ -114,16 +128,22 @@ function attachSamples(res) {
       if (sample && asp) {
 
         // parse the array fields to JSON before adding them to the sample list
-        sampleStore.arrayStringsToJson(sample,
-                                    constants.fieldsToStringify.sample);
-        sampleStore.arrayStringsToJson(asp, constants.fieldsToStringify.aspect);
+        sampleStore.arrayObjsStringsToJson(sample,
+          constants.fieldsToStringify.sample);
+        sampleStore.arrayObjsStringsToJson(asp,
+          constants.fieldsToStringify.aspect);
+        sampleStore.convertAspectStrings(asp);
 
         sample.aspect = asp;
         res.samples.push(sample);
       }
     }
 
-    // apply aspect, aspectTag and sampleStatus filters to the samples
+    /*
+     * We already applied aspect name filter so clear that one, but apply
+     * aspectTag and sampleStatus filters to the samples here now.
+     */
+    filters.aspects = {};
     filterSamples(res);
 
     /* filterOnSubject: returns true(integer > 0) only if the subjecttags are
@@ -175,7 +195,8 @@ function traverseHierarchy(res) {
       }
     }
 
-    res.children = filteredChildrenArr;
+    res.children = filteredChildrenArr.length ? filteredChildrenArr : undefined;
+
     return attachSamples(res);
   })
   .then((ret) => Promise.resolve(ret || filteredChildrenArr.length));
@@ -203,33 +224,48 @@ function getNameFromAbsolutePath(absolutePath) {
  * complete subject hierarchy with samples
  */
 function completeSubjectHierarchy(res, params) {
-  // set the filters
+  const startTime = new Date();
   u.setFilters(params, filters);
   return traverseHierarchy(res)
   .then(() => {
     // once the filtering is done, reset it back.
     u.resetFilters(filters);
+
+    if (featureToggles.isFeatureEnabled('instrumentCompleteSubjectHierarchy')) {
+      console.log('cache/model/subject.completeSubjectHierarchy:' +
+        `${res.absolutePath}:${new Date() - startTime}`);
+    }
+
     return Promise.resolve(res);
   });
 } // completeSubjectHierarchy
 
 /**
- * Turns fields numeric fields turned into ints.
+ * Prepare fields to be sent in the response
  *
  * Also adds a parentAbsolutePath field, if it was not there previously.
  * @param {Object} subject
- * @returns {Object} Object with parentAbsolutePath field and numeric fields.
+ * @param {Object} opts
+ * @param {Object} req
  */
-function convertStringsToNumbersAndAddParentAbsolutePath(subject) {
+function prepareFields(subject, opts, req) {
   // add parentAbsolutePath
   if (subject.parentAbsolutePath === undefined) {
     subject.parentAbsolutePath = '';
   }
 
-  // convert the strings into numbers
-  subject.childCount = parseInt(subject.childCount, 10) || 0;
-  subject.hierarchyLevel = parseInt(subject.hierarchyLevel, 10);
-  return subject;
+  // convert the time fields to appropriate format
+  subject.createdAt = new Date(subject.createdAt).toISOString();
+  subject.updatedAt = new Date(subject.updatedAt).toISOString();
+
+  if (opts.attributes) { // delete subject fields
+    modelUtils.applyFieldListFilter(subject, opts.attributes);
+  }
+
+  utils.removeFieldsFromResponse(helper.fieldsToExclude, subject);
+
+  // add api links
+  subject.apiLinks = utils.getApiLinks(subject.name, helper, req.method);
 }
 
 module.exports = {
@@ -255,24 +291,11 @@ module.exports = {
         });
       }
 
-      subject = convertStringsToNumbersAndAddParentAbsolutePath(subject);
-
+      sampleStore.convertSubjectStrings(subject);
       logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
+      prepareFields(subject, opts, req);
 
-      // convert the time fields to appropriate format
-      subject.createdAt = new Date(subject.createdAt).toISOString();
-      subject.updatedAt = new Date(subject.updatedAt).toISOString();
-
-      if (opts.attributes) { // delete subject fields
-        modelUtils.applyFieldListFilter(subject, opts.attributes);
-      }
-
-      // add api links
-      subject.apiLinks = utils.getApiLinks(
-        subject.name, helper, req.method
-      );
-
-      const result = sampleStore.arrayStringsToJson(
+      const result = sampleStore.arrayObjsStringsToJson(
         subject, constants.fieldsToStringify.subject
       );
 
@@ -296,44 +319,28 @@ module.exports = {
     const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
     const response = [];
 
-    if (opts.limit || opts.offset) {
-      res.links({
-        prev: req.originalUrl,
-        next: fu.getNextUrl(req.originalUrl, opts.limit, opts.offset),
-      });
-    }
+    res.links({
+      prev: req.originalUrl,
+      next: fu.getNextUrl(req.originalUrl, opts.limit, opts.offset),
+    });
 
     // get all Subjects sorted lexicographically
     return redisClient.sortAsync(constants.indexKey.subject, 'alpha')
     .then((allSubjectKeys) => {
       const commands = [];
       const filteredSubjectKeys = modelUtils
-        .applyFiltersOnResourceKeys(allSubjectKeys, opts, getNameFromAbsolutePath);
-
+        .prefilterKeys(allSubjectKeys, opts, getNameFromAbsolutePath);
       filteredSubjectKeys.forEach((subjectKey) => {
         commands.push(['hgetall', subjectKey]);
       });
-
       return redisClient.batch(commands).execAsync();
     })
     .then((subjects) => {
       logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
+      subjects.forEach(sampleStore.convertSubjectStrings);
       const filteredSubjects = modelUtils.applyFiltersOnResourceObjs(subjects, opts);
       filteredSubjects.forEach((subject) => {
-        subject = convertStringsToNumbersAndAddParentAbsolutePath(subject);
-
-        // convert the time fields to appropriate format
-        subject.createdAt = new Date(subject.createdAt).toISOString();
-        subject.updatedAt = new Date(subject.updatedAt).toISOString();
-
-        if (opts.attributes) { // delete subject fields, hence no return obj
-          modelUtils.applyFieldListFilter(subject, opts.attributes);
-        }
-
-        // add api links
-        subject.apiLinks = utils.getApiLinks(
-          subject.name, helper, req.method
-        );
+        prepareFields(subject, opts, req);
         response.push(subject); // add subject to response
       });
 

@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - "6"
+  - "8"
 
 # safelist - only do branch build for "master" (keep doing PR builds for
 # every pr)
@@ -19,10 +19,10 @@ sudo: false
 git:
   depth: 2
 
-cache:
-  timeout: 3600
-  directories:
-    - node_modules
+# cache:
+#   timeout: 3600
+#   directories:
+#     - node_modules
 
 env:
   global:
@@ -43,4 +43,14 @@ services:
 script:
   - npm run jscs-enforce
   - npm run checkdb
-  - npm test
+  - travis_retry npm run test-travis
+
+before_install:
+  - travis_retry npm install -g npm@^5.7.0
+
+install:
+  - travis_retry npm ci
+
+cache:
+  directories:
+    - "$HOME/.npm"

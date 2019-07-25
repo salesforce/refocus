@@ -24,6 +24,7 @@
 const constants = require('../constants');
 const u = require('../helpers/roomTypeUtils');
 const assoc = {};
+const Op = require('sequelize').Op;
 
 module.exports = function roomType(seq, dataTypes) {
   const RoomType = seq.define('RoomType', {
@@ -65,30 +66,6 @@ module.exports = function roomType(seq, dataTypes) {
       comment: 'Bots to be used in roomType',
     },
   }, {
-    classMethods: {
-      getRoomTypeAssociations() {
-        return assoc;
-      },
-
-      getProfileAccessField() {
-        return 'roomTypeAccess';
-      },
-
-      postImport(models) {
-        assoc.type = RoomType.hasMany(models.Room, {
-          foreignKey: 'type',
-        });
-        assoc.bots = RoomType.belongsToMany(models.Bot, {
-          foreignKey: 'roomTypeId',
-          through: 'RoomTypeBots',
-        });
-        assoc.writers = RoomType.belongsToMany(models.User, {
-          as: 'writers',
-          through: 'RoomTypeWriters',
-          foreignKey: 'roomTypeId',
-        });
-      },
-    },
     hooks: {
 
       /**
@@ -133,7 +110,7 @@ module.exports = function roomType(seq, dataTypes) {
                 seq.models.Bot.findOne({
                   where: {
                     name: {
-                      $iLike: botName,
+                      [Op.iLike]: botName,
                     },
                   },
                 })
@@ -147,20 +124,22 @@ module.exports = function roomType(seq, dataTypes) {
             resolve();
           })
           .then(() => {
-            inst.dataValues.bots.forEach((botName) => {
-              seq.models.Bot.findOne({
-                where: {
-                  name: {
-                    $iLike: botName,
+            if (inst.dataValues.bots) {
+              inst.dataValues.bots.forEach((botName) => {
+                seq.models.Bot.findOne({
+                  where: {
+                    name: {
+                      [Op.iLike]: botName,
+                    },
                   },
-                },
-              })
-              .then((o) => {
-                inst.addBots(o)
-                .catch(reject);
+                })
+                .then((o) => {
+                  inst.addBots(o)
+                  .catch(reject);
+                });
               });
-            });
-            resolve(inst);
+              resolve(inst);
+            }
           });
         });
       }, // hooks.afterUpdate
@@ -170,7 +149,7 @@ module.exports = function roomType(seq, dataTypes) {
        *
        * @param {RoomType} inst - The newly-created instance
        */
-      beforeDelete(inst /* , opts */) {
+      beforeDestroy(inst /* , opts */) {
         const bots = inst.dataValues.bots;
 
         return new seq.Promise((resolve, reject) => {
@@ -182,7 +161,7 @@ module.exports = function roomType(seq, dataTypes) {
             seq.models.Bot.findOne({
               where: {
                 name: {
-                  $iLike: botName,
+                  [Op.iLike]: botName,
                 },
               },
             })
@@ -193,7 +172,7 @@ module.exports = function roomType(seq, dataTypes) {
           });
           resolve(inst);
         });
-      }, // hooks.beforeDelete
+      }, // hooks.beforeDestroy
 
       /**
        * Creates relationship between roomType & bots
@@ -212,7 +191,7 @@ module.exports = function roomType(seq, dataTypes) {
             seq.models.Bot.findOne({
               where: {
                 name: {
-                  $iLike: botName,
+                  [Op.iLike]: botName,
                 },
               },
             })
@@ -226,5 +205,74 @@ module.exports = function roomType(seq, dataTypes) {
       }, // hooks.afterCreate
     },
   });
+
+  /**
+   * Class Methods:
+   */
+
+  RoomType.getRoomTypeAssociations = function () {
+    return assoc;
+  };
+
+  RoomType.getProfileAccessField = function () {
+    return 'roomTypeAccess';
+  };
+
+  RoomType.postImport = function (models) {
+    assoc.type = RoomType.hasMany(models.Room, {
+      foreignKey: 'type',
+    });
+
+    assoc.bots = RoomType.belongsToMany(models.Bot, {
+      foreignKey: 'roomTypeId',
+      through: 'RoomTypeBots',
+    });
+
+    assoc.owner = RoomType.belongsTo(models.User, {
+      foreignKey: 'ownerId',
+      as: 'owner',
+    });
+
+    assoc.user = RoomType.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+      as: 'user',
+    });
+
+    assoc.writers = RoomType.belongsToMany(models.User, {
+      as: 'writers',
+      through: 'RoomTypeWriters',
+      foreignKey: 'roomTypeId',
+    });
+
+    RoomType.addScope('defaultScope', {
+      include: [
+        {
+          association: assoc.user,
+          attributes: ['name', 'email', 'fullName'],
+        },
+        {
+          association: assoc.owner,
+          attributes: ['name', 'email', 'fullName'],
+        },
+      ],
+    }, {
+      override: true,
+    });
+  };
+
+  RoomType.prototype.isWritableBy = function (who) {
+    return new seq.Promise((resolve /* , reject */) =>
+      this.getWriters()
+      .then((writers) => {
+        if (!writers.length) {
+          resolve(true);
+        }
+
+        const found = writers.filter((w) =>
+          w.name === who || w.id === who);
+        resolve(found.length === 1);
+      }));
+  }; // isWritableBy
+
   return RoomType;
 };

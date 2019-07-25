@@ -9,13 +9,14 @@
 /**
  * tests/db/model/subject/delete.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
 const Aspect = tu.db.Aspect;
-const Sample = tu.db.Sample;
+const Sample = tu.Sample;
+const redisOps = require('../../../../cache/redisOps');
 
 describe('tests/db/model/subject/delete.js >', () => {
   describe('no children >', () => {
@@ -33,9 +34,9 @@ describe('tests/db/model/subject/delete.js >', () => {
     afterEach(u.forceDelete);
 
     it('ok', (done) => {
-      Subject.findById(id)
+      Subject.findByPk(id)
       .then((s) => s.destroy())
-      .then(() => Subject.findById(id))
+      .then(() => Subject.findByPk(id))
       .then((s) => {
         expect(s).to.be.equal(null);
         done();
@@ -86,7 +87,7 @@ describe('tests/db/model/subject/delete.js >', () => {
     afterEach(u.forceDelete);
 
     it('should fail, destroy parent', (done) => {
-      Subject.findById(grandparent)
+      Subject.findByPk(grandparent)
       .then((s) => s.destroy())
       .then(() => done('Uh oh. This should have thrown an error!'))
       .catch((err) => {
@@ -95,21 +96,6 @@ describe('tests/db/model/subject/delete.js >', () => {
         expect(err).to.have.property('subject');
         done();
       });
-    });
-
-    it('deleteHierarchy should succeed', (done) => {
-      Subject.scope('hierarchy').findById(grandparent)
-      .then((s) => s.deleteHierarchy())
-      .then(() => Subject.findById(child1))
-      .then((s) => expect(s).to.be.null)
-      .then(() => Subject.findById(child2))
-      .then((s) => expect(s).to.be.null)
-      .then(() => Subject.findById(parent))
-      .then((s) => expect(s).to.be.null)
-      .then(() => Subject.findById(grandparent))
-      .then((s) => expect(s).to.be.null)
-      .then(() => done())
-      .catch(done);
     });
   });
 
@@ -160,7 +146,7 @@ describe('tests/db/model/subject/delete.js >', () => {
     afterEach(u.forceDelete);
 
     it('clear description field on parent, should succeed', (done) => {
-      Subject.findById(theParent)
+      Subject.findByPk(theParent)
       .then((parent1) => {
         const oldDescription = parent1.dataValues.description;
         expect(parent1.dataValues.description).to.equal(oldDescription);
@@ -175,7 +161,7 @@ describe('tests/db/model/subject/delete.js >', () => {
     });
 
     it('clear helpEmail field on parent, should succeed', (done) => {
-      Subject.findById(theParent)
+      Subject.findByPk(theParent)
       .then((parent1) => {
         // console.log(parent1.dataValues.helpEmail);
         expect(parent1.dataValues.helpEmail).to.equal('foo@bar.com');
@@ -190,7 +176,7 @@ describe('tests/db/model/subject/delete.js >', () => {
     });
 
     it('clear helpUrl field on parent, should succeed', (done) => {
-      Subject.findById(theParent)
+      Subject.findByPk(theParent)
       .then((parent1) => {
         // console.log(parent1.dataValues.helpUrl);
         expect(parent1.dataValues.helpUrl)
@@ -206,7 +192,7 @@ describe('tests/db/model/subject/delete.js >', () => {
     });
 
     it('clear imageUrl field on parent, should succeed', (done) => {
-      Subject.findById(theParent)
+      Subject.findByPk(theParent)
       .then((parent1) => {
         // console.log(parent1.dataValues.imageUrl);
         expect(parent1.dataValues.imageUrl)
@@ -222,7 +208,7 @@ describe('tests/db/model/subject/delete.js >', () => {
     });
 
     it('clear isPublished field on parent, should fail', (done) => {
-      Subject.findById(theParent)
+      Subject.findByPk(theParent)
       .then((parent1) => {
         // console.log(parent1.dataValues.isPublished);
         expect(parent1.dataValues.isPublished).to.equal(true);
@@ -236,25 +222,8 @@ describe('tests/db/model/subject/delete.js >', () => {
       });
     });
 
-    it('clear isDeleted field on parent, should fail', (done) => {
-      Subject.findById(theParent)
-      .then((parent1) => {
-        // console.log(parent1.dataValues.isDeleted);
-        // Expecting a string 0 since sequelize treats BIGINT as an object
-        expect(parent1.dataValues.isDeleted).to.equal('0');
-        return parent1.update({ isDeleted: null });
-      })
-      .then(() => done('Uh oh. This should have thrown an error!'))
-      .catch((err) => {
-        // console.log(err);
-        expect(err).to.have.property('name')
-        .to.equal('SequelizeValidationError');
-        done();
-      });
-    });
-
     it('clear name field on parent, should fail', (done) => {
-      Subject.findById(theParent)
+      Subject.findByPk(theParent)
       .then((parent1) => {
         const parentName = parent1.dataValues.name;
         expect(parent1.dataValues.name).to.equal(parentName);
@@ -269,13 +238,13 @@ describe('tests/db/model/subject/delete.js >', () => {
     });
 
     it('clear child1 parentId, parent childCount should be 0', (done) => {
-      Subject.findById(theParent)
+      Subject.findByPk(theParent)
       .then((parent1) => {
         expect(parent1.dataValues.childCount).to.equal(1);
       })
-      .then(() => Subject.findById(childId1))
+      .then(() => Subject.findByPk(childId1))
       .then((child1) => child1.update({ parentId: null }))
-      .then(() => Subject.findById(theParent))
+      .then(() => Subject.findByPk(theParent))
       .then((parent1) => {
         expect(parent1.dataValues.childCount).to.equal(0);
         done();
@@ -285,14 +254,14 @@ describe('tests/db/model/subject/delete.js >', () => {
 
     it('reparent subject: child count on new parent should' +
         'increment', (done) => {
-      Subject.findById(otherParent.id)
+      Subject.findByPk(otherParent.id)
       .then((op) => {
         // check the old child Count
         expect(op.dataValues.childCount).to.equal(0);
       });
-      Subject.findById(theParent)
+      Subject.findByPk(theParent)
       .then((sub) => sub.update({ parentId: otherParent.id }))
-      .then(() => Subject.findById(otherParent.id))
+      .then(() => Subject.findByPk(otherParent.id))
       .then((op) => {
         // check the new child count again
         expect(op.dataValues.childCount).to.equal(1);
@@ -303,14 +272,14 @@ describe('tests/db/model/subject/delete.js >', () => {
 
     it('reparent subject: child count on old parent should' +
        'decrement', (done) => {
-      Subject.findById(grandParent)
+      Subject.findByPk(grandParent)
       .then((gp) => {
         // check the old child Count
         expect(gp.dataValues.childCount).to.equal(1);
       });
-      Subject.findById(theParent)
+      Subject.findByPk(theParent)
       .then((sub) => sub.update({ parentId: otherParent.id }))
-      .then(() => Subject.findById(grandParent))
+      .then(() => Subject.findByPk(grandParent))
       .then((gp) => {
         // check the new child count again
         expect(gp.dataValues.childCount).to.equal(0);
@@ -320,7 +289,7 @@ describe('tests/db/model/subject/delete.js >', () => {
     });
 
     it('set child1 parentId to null, shouldnt affect child2', (done) => {
-      Subject.findById(childId1)
+      Subject.findByPk(childId1)
       .then((child1) => {
         const child1ParentId = child1.dataValues.parentId;
         expect(child1.dataValues.parentId).to.equal(child1ParentId);
@@ -329,7 +298,7 @@ describe('tests/db/model/subject/delete.js >', () => {
       .then((child1) => {
         expect(child1.dataValues.parentId).to.equal(null);
       })
-      .then(() => Subject.findById(childId2))
+      .then(() => Subject.findByPk(childId2))
       .then((child2) => {
         expect(child2.dataValues.parentId).to.equal(childId1);
         done();
@@ -375,14 +344,33 @@ describe('tests/db/model/subject/delete.js >', () => {
       .catch(done);
     });
 
+    before(u.populateRedis);
     after(u.forceDelete);
 
     it('samples deleted when subject is deleted', (done) => {
-      Subject.findById(subject.id)
+      // asp-to-subj map will have one element
+      redisOps.executeCommand(redisOps.getAspSubjMapMembers(aspectToCreate.name))
+      .then((res) => {
+        expect(res).to.deep.equal(['___subject']);
+      }).then(() => redisOps.executeCommand(redisOps.getSubjAspMapMembers(subject.absolutePath)))
+      .then((res) => {
+        // subj-to-asp map will have one element
+        expect(res).to.deep.equal(['___aspect']);
+        return Subject.findByPk(subject.id);
+      })
       .then((subj) => subj.destroy())
-      .then(() => Sample.findById(sample.id))
+      .then(() => Sample.findOne(sample))
       .then((samp) => {
         expect(samp).to.equal(null);
+        return redisOps.executeCommand(redisOps.getAspSubjMapMembers(aspectToCreate.name));
+      })
+      .then((res) => {
+        // asp-to-subj map should be empty now
+        expect(res).to.be.empty;
+        return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subject.absolutePath));
+      }).then((res) => {
+        // subj-to-asp map should be empty now
+        expect(res).to.be.empty;
         done();
       })
       .catch(done);

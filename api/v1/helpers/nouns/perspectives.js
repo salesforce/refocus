@@ -15,7 +15,7 @@ const Perspective = require('../../../../db/index').Perspective;
 const featureToggles = require('feature-toggles');
 const apiErrors = require('../../apiErrors');
 
-const m = 'perspective';
+const resourceType = 'perspective';
 const filters = ['aspectFilter',
                   'subjectTagFilter',
                   'aspectTagFilter',
@@ -52,16 +52,19 @@ function validateFilterAndThrowError(o) {
 
 module.exports = {
   apiLinks: {
-    DELETE: `Delete this ${m}`,
-    GET: `Retrieve this ${m}`,
-    PATCH: `Update selected attributes of this ${m}`,
-    POST: `Create a new ${m}`,
-    PUT: `Overwrite all attributes of this ${m}`,
+    DELETE: `Delete this ${resourceType}`,
+    GET: `Retrieve this ${resourceType}`,
+    PATCH: `Update selected attributes of this ${resourceType}`,
+    POST: `Create a new ${resourceType}`,
+    PUT: `Overwrite all attributes of this ${resourceType}`,
   },
   baseUrl: '/v1/perspectives',
-  fieldAbsenceScopeMap: {
-    lens: 'withoutLensAssociation',
+  fieldScopeMap: {
+    user: 'user',
+    owner: 'owner',
+    lens: 'lens',
   },
+  fieldsToExclude: ['createdBy', 'ownerId', 'lensId'],
   model: Perspective,
   modelName: 'Perspective',
   validateFilterAndThrowError,
@@ -71,4 +74,6 @@ module.exports = {
     users: 'writers',
   },
   cacheEnabled: featureToggles.isFeatureEnabled('enableCachePerspective'),
+  resourceType,
+  timePeriodFilters: ['createdAt', 'updatedAt'],
 }; // exports

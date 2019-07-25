@@ -7,11 +7,12 @@
  */
 
 /**
- * tests/db/model/generatortemplate/utils.js
+ * tests/db/model/generator/utils.js
  */
 'use strict';
 const tu = require('../../../testUtils');
 const gtUtil = require('../generatortemplate/utils');
+const Op = require('sequelize').Op;
 const testStartTime = new Date();
 
 const NOT_FOUND_STATUS_CODE = 404;
@@ -38,23 +39,9 @@ const GENERATOR_SIMPLE = {
   },
   helpUrl: 'http://help.com',
   helpEmail: 'refocus-gt@refocus.rf',
-  subjectQuery: '?subjects',
-  aspects: ['Temperature', 'Weather'],
+  subjectQuery: '?absolutePath=Foo.*',
+  aspects: ['Temperature', 'Weather', 'Humidity'],
 };
-
-/**
- * Copied from api/v1/helpers/verbs/utils.js
- * Returns a where clause object that uses the "IN" operator
- * @param  {Array} arr - An array that needs to be
- * assigned to the "IN" operator
- * @returns {Object} - An where clause object
- */
-function whereClauseForNameInArr(arr) {
-  const whr = {};
-  whr.name = {};
-  whr.name.$in = arr;
-  return whr;
-} // whereClauseForNameInArr
 
 /**
  * Given a sample generator template sgt and a sample generator sg, assign the
@@ -73,15 +60,57 @@ function createSGtoSGTMapping(sgt, sg) {
  * @returns {Object} - Generator object
  */
 function getGenerator() {
-  return GENERATOR_SIMPLE;
+  return JSON.parse(JSON.stringify(GENERATOR_SIMPLE));
 } // getGenerator
 
+function createGeneratorAspects() {
+  return tu.db.Aspect.create({
+    name: GENERATOR_SIMPLE.aspects[0],
+    isPublished: true,
+    timeout: '110s',
+  })
+  .then(() => tu.db.Aspect.create({
+    name: GENERATOR_SIMPLE.aspects[1],
+    isPublished: true,
+    timeout: '110s',
+  }))
+  .then(() => tu.db.Aspect.create({
+    name: GENERATOR_SIMPLE.aspects[2],
+    isPublished: false,
+    timeout: '111s',
+  }));
+} // createGeneratorAspects
+
+function createGeneratorSubjects() {
+  return tu.db.Subject.create({
+    name: 'foo',
+    isPublished: true,
+  })
+  .then(() => tu.db.Subject.create({
+    name: 'bar',
+    parentAbsolutePath: 'foo',
+    isPublished: true,
+  }))
+  .then(() => tu.db.Subject.create({
+    name: 'baz',
+    parentAbsolutePath: 'foo',
+    isPublished: true,
+  }));
+} // createGeneratorSubjects
+
 module.exports = {
+  createGeneratorAspects,
+  createGeneratorSubjects,
+  createSGtoSGTMapping,
+
   forceDelete(done) {
-    tu.forceDelete(tu.db.Generator, testStartTime)
+    tu.forceDelete(tu.db.Aspect, testStartTime)
+    .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
+    .then(() => tu.forceDelete(tu.db.Generator, testStartTime))
     .then(() => tu.forceDelete(tu.db.Collector, testStartTime))
     .then(() => tu.forceDelete(tu.db.User, testStartTime))
     .then(() => tu.forceDelete(tu.db.Profile, testStartTime))
+    .then(() => tu.forceDelete(tu.db.CollectorGroup, testStartTime))
     .then(() => done())
     .catch(done);
   },
@@ -92,15 +121,8 @@ module.exports = {
     .catch(done);
   },
 
-  BAD_REQUEST_STATUS_CODE,
-
-  NOT_FOUND_STATUS_CODE,
-
-  whereClauseForNameInArr,
-
   getGenerator,
-
   gtUtil,
-
-  createSGtoSGTMapping,
+  BAD_REQUEST_STATUS_CODE,
+  NOT_FOUND_STATUS_CODE,
 };

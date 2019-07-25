@@ -9,94 +9,214 @@
 /**
  * db/helpers/generatorUtil.js
  */
-const common = require('./common');
+'use strict'; // eslint-disable-line strict
+
 const dbErrors = require('../dbErrors');
+const ValidationError = dbErrors.ValidationError;
+const common = require('./common');
+const Op = require('sequelize').Op;
 
 /**
- * Reject the request if collectorNames contain duplicate names
- * @param {Array} collectorNames Array of strings
- * @returns {Promise} empty if validation passed, reject otherwise
+ * Function to validate the context field of the sample generator based on the
+ * contextDefinition field of its related generator template.
+ * @param  {Object} sgCtx - The generator context object     [description]
+ * @param  {Object} sgtCtxDef - The related sample generator template context
+ * definition object
+ * @throws {MissingRequiredFieldrror} If the generator context field does not
+ * have the attributes that are required by the context definiton field of the
+ * sample generator template
+ * @throws {ValidationError} If the number of keys in the generator context do
+ * not match the number of keys in the generator template context.
  */
-function validateCollectorNames(collectorNames) {
-  if (common.checkDuplicatesInStringArray(collectorNames)) {
-    const err = new dbErrors.DuplicateCollectorError();
-    err.resourceType = 'Collector';
-    err.resourceKey = collectorNames;
-    return Promise.reject(err);
+function validateGeneratorCtx(sgCtx, sgtCtxDef) {
+  const sgtCtxDefKeys = sgtCtxDef ? Object.keys(sgtCtxDef) : [];
+  const sgCtxKeys = sgCtx ? Object.keys(sgCtx) : [];
+  const sgtCtxDefKeysSet = new Set(sgtCtxDefKeys);
+
+  const invalidKeys = sgCtxKeys.filter((key) => !sgtCtxDefKeysSet.has(key));
+  if (invalidKeys.length) {
+    throw new dbErrors.ValidationError(
+      { explanation: 'Sample generator context contains invalid ' +
+      `keys: ${invalidKeys}`,
+    });
   }
 
-  return Promise.resolve();
+  sgtCtxDefKeys.forEach((key) => {
+    if (sgtCtxDef[key].required && (!sgCtx || !sgCtx[key])) {
+      const err = new dbErrors.MissingRequiredFieldError(
+      { explanation: `Missing the required generator context field ${key}` }
+      );
+      throw err;
+    }
+  });
+} // validateCtxRequiredFields
+
+/*
+ * Validate Subject Query
+ *
+ * @param {String} subjectQuery string
+ * @return {String} returns Subject Query
+ * @throws {ValidationError} Throw an error if subjectQuery fails following
+ * criteria:
+ * 1. subjectQuery must start with "?"
+ * 2. subjectQuery must be longer than 6 characters
+ * 3. Format of subjectQuery must be "?{key}={value}"
+ * 4. Wildcard "*" is prohibited in the subjectQuery for "tag" filters
+ */
+function validateSubjectQuery(subjectQuery) {
+  // subjectQuery should start with '?'
+  if (subjectQuery.charAt(0) !== '?') {
+    throw new dbErrors.ValidationError('subjectQuery ValidationError',
+      'subjectQuery must start with "?"');
+  }
+
+  // size of subjectQuery should be greater than 6
+  if (subjectQuery.length <= 6) {
+    throw new dbErrors.ValidationError('subjectQuery ValidationError',
+      'subjectQuery must be longer than 6 characters');
+  }
+
+  const subjectQueryString = subjectQuery.substr(1);
+  const splitSubjectQuery = subjectQueryString.split('&');
+
+  splitSubjectQuery.forEach((sq) => {
+    const splitSQ = sq.split('=');
+
+    if (splitSQ.length !== 2) {
+      throw new dbErrors.ValidationError('subjectQuery ValidationError',
+        'Format of subjectQuery must be "?{key}={value}"');
+    }
+
+    if (splitSQ[0] === 'tags' && splitSQ[1].indexOf('*') > -1) {
+      throw new dbErrors.ValidationError('subjectQuery ValidationError',
+        'Wildcard "*" is prohibited in the subjectQuery for "tag" filters');
+    }
+
+    if (splitSQ[0] === 'isPublished' && splitSQ[1] === 'false') {
+      throw new dbErrors.ValidationError('subjectQuery ValidationError',
+        'Cannot generate samples for subjects with isPublished=false');
+    }
+  });
+
+  return subjectQuery;
 }
 
 /**
- * If collectors exist, return a Promise with an
- * Array of collector objects referenced by collectorNames.
- * If collector names are not supplied, return a Promise
- * with an empty array
- * If collector names are invalid, reject with error.
-
- * @param {Object} seq The sequelize object
- * @param {Array} collectorNames Array of Strings
- * @param {Function} whereClauseForNameInArr Passed in from API
- * @returns {Promise} with an array if check passed, error otherwise
+ * Used by db model.
+ * Validate the collectorGroup name field: if succeed, return a promise with
+ * the collectorGroup.
+ * If fail, reject Promise with the appropriate error
+ *
+ * @param {Object} seq - the Sequelize object
+ * @param {String} collectorGroupName - name of a collectorGroup
+ * @returns {Promise} with collectorGroup if validation pass,
+ * rejected promise with the appropriate error otherwise.
  */
-function checkCollectorsExist(seq,
-  collectorNames, whereClauseForNameInArr) {
-  if (!collectorNames || !collectorNames.length) {
-    return [];
+function validateCollectorGroup(seq, collectorGroupName) {
+  if (!collectorGroupName) {
+    return Promise.resolve(null);
   }
 
-  const options = {};
-  options.where = whereClauseForNameInArr(collectorNames);
+  return new seq.Promise((resolve, reject) =>
+    seq.models.CollectorGroup.findOne({ where: { name: collectorGroupName } })
+      .then((_cg) => {
+        if (_cg) {
+          resolve(_cg);
+        }
 
-  //reject the request if collectorNames contain duplicate names
-  return new Promise((resolve, reject) =>
-    seq.models.Collector.findAll(options)
-    .then((_collectors) => {
-
-      /*
-       * If requestBody does not have a collectors field, OR
-       * if the number of collectors in requestBody MATCH the
-       * GET result, order the collectors AND create the generator.
-       * Else throw error since there are collectors that don't exist.
-       */
-      if (_collectors.length === collectorNames.length) {
-        resolve(_collectors);
-      }
-
-      const err = new dbErrors.ResourceNotFoundError();
-      err.resourceType = 'Collector';
-      err.resourceKey = collectorNames;
-      reject(err);
-    })
+        const err = new dbErrors.ResourceNotFoundError(
+          `CollectorGroup "${collectorGroupName}" not found.`
+        );
+        err.resourceType = 'CollectorGroup';
+        err.resourceKey = collectorGroupName;
+        reject(err);
+      })
   );
 }
 
 /**
  * Used by db model.
- * Validate the collectors field: if succeed, return a promise with
- * the collectors.
+ * Validate the generators field: if succeed, return a promise with
+ * the generator instances.
  * If fail, reject Promise with the appropriate error
  *
  * @param {Object} seq the Sequelize object
- * @param {Array} collectorNames Array of strings
- * @param {Function} whereClauseForNameInArr Passed in from API
+ * @param {Array} generatorNames Array of generator names
  * @returns {Promise} with collectors if validation and check pass,
  * rejected promise with the appropriate error otherwise.
  */
-function validateCollectors(seq, collectorNames,
-  whereClauseForNameInArr) {
-  return new seq.Promise((resolve, reject) =>
-    validateCollectorNames(collectorNames)
-    .then(() => checkCollectorsExist(
-      seq, collectorNames, whereClauseForNameInArr))
-    .then(resolve)
-    .catch(reject)
-  );
+function validateGeneratorNames(seq, generatorNames) {
+  if (!generatorNames || !generatorNames.length) {
+    return Promise.resolve([]);
+  }
+
+  if (common.checkDuplicatesInStringArray(generatorNames)) {
+    throw new dbErrors.DuplicateGeneratorError({
+      resourceType: 'Generator',
+      resourceKey: generatorNames,
+    });
+  }
+
+  if (!generatorNames || !generatorNames.length) return [];
+
+  return seq.models.Generator.findAll({
+    where: { name: { [Op.in]: generatorNames } },
+  })
+  .then((generators) => {
+    if (generators.length === generatorNames.length) {
+      return generators;
+    } else {
+      throw new dbErrors.ResourceNotFoundError({
+        resourceType: 'Generator',
+        resourceKey: generatorNames,
+      });
+    }
+  });
 }
 
+/**
+ * Checks if any of the generators in the array is already assigned to a group.
+ * @param {Array<Object>} arr - array of generator objects
+ * @returns {Array<Object>} the original array
+ */
+function alreadyAssigned(arr) {
+  const toReject = arr.filter((generator) => generator.collectorGroup);
+  if (toReject.length === 0) {
+    return arr;
+  }
+
+  const names = toReject.map((c) => c.name);
+  const msg = `Cannot double-assign generator(s) [${names.join(', ')}] to ` +
+    'collector groups';
+  throw new ValidationError(msg);
+} // alreadyAssigned
+
+/**
+ * Checks if any of the generators in the array is already assigned to a group
+ * other than the one specified
+ * @param {Array<Object>} arr - array of generator objects
+ * @param {CollectorGroup} group - collector group
+ * @returns {Array<Object>} the original array
+ */
+function alreadyAssignedToOtherGroup(arr, group) {
+  const toReject = arr.filter((generator) =>
+    generator.collectorGroup && generator.collectorGroup.id !== group.id
+  );
+  if (toReject.length === 0) {
+    return arr;
+  }
+
+  const names = toReject.map((g) => g.name);
+  const msg = `Cannot double-assign generator(s) [${names.join(', ')}] to ` +
+    'collector groups';
+  throw new ValidationError(msg);
+} // alreadyAssignedToOtherGroup
+
 module.exports = {
-  validateCollectorNames,
-  checkCollectorsExist,
-  validateCollectors,
+  validateGeneratorCtx,
+  validateSubjectQuery,
+  validateCollectorGroup,
+  validateGeneratorNames,
+  alreadyAssignedToOtherGroup,
+  alreadyAssigned,
 };

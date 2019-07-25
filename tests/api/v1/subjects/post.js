@@ -11,13 +11,14 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
 const Subject = tu.db.Subject;
 const path = '/v1/subjects';
 const expect = require('chai').expect;
+const featureToggles = require('feature-toggles');
 const ZERO = 0;
 
 describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
@@ -53,10 +54,6 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         errors.push(new Error(`absolutePath should be ${n0.name}`));
       }
 
-      if (res.body.isDeleted !== '0') {
-        errors.push(new Error('isDeleted should be "0"'));
-      }
-
       if (errors.length) {
         throw new Error(errors);
       }
@@ -64,7 +61,7 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
 
     function parentFound() {
       const errors = [];
-      Subject.findById(i0)
+      Subject.findByPk(i0)
       .then((subj) => {
         if (subj && subj.name !== n0.name) {
           errors.push(new Error('uh oh'));
@@ -90,20 +87,22 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         .catch(done);
       });
 
+      beforeEach(u.populateRedis);
+
       afterEach(u.forceDelete);
 
       it('with identical name', (done) => {
         api.post(path)
         .set('Authorization', token)
         .send(DUMMY)
-        .expect(constants.httpStatus.FORBIDDEN)
+        .expect(constants.httpStatus.BAD_REQUEST)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
 
-          expect(res.body.errors[ZERO].type)
-            .to.equal(tu.uniErrorName);
+          expect(res.body.errors[ZERO].type).to.be
+            .oneOf([tu.uniErrorName, 'DuplicateResourceError']);
           done();
         });
       });
@@ -112,14 +111,14 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         api.post(path)
         .set('Authorization', token)
         .send(DUMMY)
-        .expect(constants.httpStatus.FORBIDDEN)
+        .expect(constants.httpStatus.BAD_REQUEST)
         .end((err, res) => {
           if (err) {
             return done(err);
           }
 
-          expect(res.body.errors[ZERO].type)
-            .to.equal(tu.uniErrorName);
+          expect(res.body.errors[ZERO].type).to.be
+            .oneOf([tu.uniErrorName, 'DuplicateResourceError']);
           done();
         });
       });
@@ -139,6 +138,8 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         const result = JSON.parse(res.text);
         expect(Object.keys(result)).to.contain('parentAbsolutePath');
         expect(result.parentAbsolutePath).to.equal.null;
+        expect(result).to.have.property('user');
+        expect(result.user).to.have.property('name', '___testUser');
         done();
       });
     });
@@ -271,22 +272,6 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
       });
     });
 
-    it('posting with readOnly field isDeleted should fail', (done) => {
-      api.post(path)
-      .set('Authorization', token)
-      .send({ name: n0.name, isDeleted: 0 })
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        expect(res.body.errors[0].description)
-        .to.contain('You cannot modify the read-only field: isDeleted');
-        return done();
-      });
-    });
-
     it('post subject with sortBy', (done) => {
       api.post(path)
       .set('Authorization', token)
@@ -365,7 +350,7 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
 
     function childFound() {
       const errors = [];
-      Subject.findById(i1)
+      Subject.findByPk(i1)
       .then((subj) => {
         if (subj && subj.name !== n1.name) {
           errors.push(new Error('uh oh'));
@@ -439,8 +424,8 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         name: n1.name,
         parentId: i0,
       })
-      .expect(constants.httpStatus.FORBIDDEN)
-      .expect(/UniqueConstraintError/)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect(res => expect(res.body.errors[0].type).to.equal(tu.uniErrorName))
       .end(done);
     });
 
@@ -448,8 +433,9 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
       api.post(path)
       .set('Authorization', token)
       .send(n0)
-      .expect(constants.httpStatus.FORBIDDEN)
-      .expect(/UniqueConstraintError/)
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .expect((res) => expect(res.body.errors[0].type).to.be
+        .oneOf([tu.uniErrorName, tu.duplicateResourceErrorName]))
       .end(done);
     });
 
@@ -607,6 +593,118 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
       .expect(constants.httpStatus.CREATED)
       .expect((res) => {
         expect(res.body.tags).to.have.length(tags.length);
+      })
+      .end(done);
+    });
+
+    it('tags and related links not provided, should set to empty array',
+      (done) => {
+        const subjectToPost = { name: `${tu.namePrefix}SouthAmerica` };
+        api.post(path)
+        .set('Authorization', token)
+        .send(subjectToPost)
+        .expect(constants.httpStatus.CREATED)
+        .expect((res) => {
+          expect(res.body.tags).to.have.length(0);
+          expect(res.body.relatedLinks).to.have.length(0);
+        })
+        .end((err /* , res */) => {
+          if (err) {
+            console.log(err);
+            return done(err);
+          }
+
+          Subject.findOne({ where: { name: `${tu.namePrefix}SouthAmerica` } })
+          .then((subj) => {
+            expect(subj.tags).to.eql([]);
+            expect(subj.relatedLinks).to.eql([]);
+            done();
+          });
+        });
+      });
+  });
+
+  describe('validate helpEmail/helpUrl required >', () => {
+    const toggleOrigValue = featureToggles.isFeatureEnabled(
+      'requireHelpEmailOrHelpUrl'
+    );
+    before(() => tu.toggleOverride('requireHelpEmailOrHelpUrl', true));
+    after(() => tu.toggleOverride(
+      'requireHelpEmailOrHelpUrl', toggleOrigValue)
+    );
+
+    afterEach(u.forceDelete);
+
+    it('NOT OK, post subject with no helpEmail or helpUrl', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ name: `${tu.namePrefix}s1` })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('ValidationError');
+        expect(res.body.errors[0].description).to.equal(
+          'At least one these attributes are required: helpEmail,helpUrl'
+        );
+        done();
+      });
+    });
+
+    it('NOT OK, post subject with empty helpEmail or helpUrl', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ name: `${tu.namePrefix}s1`, helpEmail: '' })
+      .expect(constants.httpStatus.BAD_REQUEST)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        expect(res.body.errors[0].type).to.equal('ValidationError');
+        expect(res.body.errors[0].description).to.equal(
+          'At least one these attributes are required: helpEmail,helpUrl'
+        );
+        done();
+      });
+    });
+
+    it('OK, post subject with only helpEmail', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ name: `${tu.namePrefix}s1`, helpEmail: 'abc@xyz.com' })
+      .expect(constants.httpStatus.CREATED)
+      .expect((res) => {
+        expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
+      })
+      .end(done);
+    });
+
+    it('OK, post subject with only helpUrl', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({ name: `${tu.namePrefix}s1`, helpUrl: 'http://xyz.com' })
+      .expect(constants.httpStatus.CREATED)
+      .expect((res) => {
+        expect(res.body.helpUrl).to.be.equal('http://xyz.com');
+      })
+      .end(done);
+    });
+
+    it('OK, post subject with both helpUrl and helpEmail', (done) => {
+      api.post(path)
+      .set('Authorization', token)
+      .send({
+        name: `${tu.namePrefix}s1`,
+        helpUrl: 'http://xyz.com',
+        helpEmail: 'abc@xyz.com',
+      })
+      .expect(constants.httpStatus.CREATED)
+      .expect((res) => {
+        expect(res.body.helpUrl).to.be.equal('http://xyz.com');
+        expect(res.body.helpEmail).to.be.equal('abc@xyz.com');
       })
       .end(done);
     });

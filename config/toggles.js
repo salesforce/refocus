@@ -39,6 +39,37 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
     x.toString().toLowerCase() === 'true';
 } // environmentVariableTrue
 
+/**
+ * Return boolean true if the named environment variable contains a comma-
+ * delimited list of strings and one of those strings matches the test string
+ * (case-insensitive). If the env var === '*' then returns true for any test
+ * string.
+ *
+ * @param {Object} env - The node process environment. (Passing it into
+ *  this function instead of just getting a reference to it *inside* this
+ *  function makes the function easier to test.)
+ * @param {String} envVarName - The name of the environment var.
+ * @param {String} str - The test string.
+ * @returns {Boolean} true if the named environment variable is boolean true or
+ *  case-insensitive string 'true'.
+ */
+function envVarIncludes(env, envVarName, str) {
+  const val = env[envVarName];
+
+  /* str length < 1? False! */
+  if (str.length < 1) return false;
+
+  /* Not defined or null? False! */
+  if (typeof val === 'undefined' || !val) return false;
+
+  /* Wildcard "all"? True! */
+  if (val.toString() === '*') return true;
+
+  /* Array includes str? (Strip any leading/trailing spaces first. */
+  const arr = val.toString().toLowerCase().split(',').map((i) => i.trim());
+  return arr.includes(str.toLowerCase());
+} // envVarIncludes
+
 /*
  * longTermToggles - add a new toggle here if you expect it to be around
  * long-term.
@@ -49,24 +80,56 @@ function environmentVariableTrue(processEnv, environmentVariableName) {
  * things from getting out of hand and keeping tons of dead unused code around.
  */
 const longTermToggles = {
-  // Enable api activity logging
-  enableApiActivityLogs:
-    environmentVariableTrue(pe, 'ENABLE_API_ACTIVITY_LOGS'),
+  // Activity logging
+  enableApiActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'api'),
+  enableCollectorAssignmentLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'collectorAssignment'),
+  enableCollectorHeartbeatLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'collectorHeartbeat'),
+  enableEnvActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'env'),
+  enableJobActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'job'),
+  enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'jobCleanup'),
+  enableJobCreateActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'jobCreate'),
+  enableKueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'kueStats'),
+  enableLimiterActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'limiter'),
+  enablePubsubStatsLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'pubsubStats'),
+  enableQueueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'queueStats'),
+  enableRealtimeActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'realtime'),
+  enableSigtermActivityLog: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'sigterm'),
+  enableUnauthorizedActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'unauthorized'),
+  enableWorkerActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'worker'),
+  enableEventActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
+    'event'),
 
   // Enable heroku clock dyno
   enableClockProcess: environmentVariableTrue(pe, 'ENABLE_CLOCK_PROCESS'),
 
-  // Enable Kue stats activity logging
-  enableKueStatsActivityLogs:
-    environmentVariableTrue(pe, 'ENABLE_KUESTATS_ACTIVITY_LOGS'),
+  // Hide routes
+  hideRoutes: environmentVariableTrue(pe, 'HIDE_ROUTES'),
 
-  // Enable queueStatsActivityLogs
-  enableQueueStatsActivityLogs:
-    environmentVariableTrue(pe, 'ENABLE_QUEUESTATS_ACTIVITY_LOGS'),
+  /*
+   * Use separate realtime application for perspectives if the env var exists and is not equal
+   * to "/".
+   */
+  enableRealtimeApplication: pe.hasOwnProperty('REALTIME_APPLICATION')
+    && pe.REALTIME_APPLICATION !== '/',
 
-  // Enable realtime activity logging
-  enableRealtimeActivityLogs:
-    environmentVariableTrue(pe, 'ENABLE_REALTIME_ACTIVITY_LOGS'),
+  /*
+   * Use separate realtime application for Imc rooms if the env var exists and is not equal
+   * to "/".
+   */
+  enableRealtimeApplicationImc: pe.hasOwnProperty('REALTIME_APPLICATION_IMC')
+    && pe.REALTIME_APPLICATION_IMC !== '/',
 
   // Enable redis client connection logging.
   enableRedisConnectionLogging: environmentVariableTrue(pe,
@@ -76,16 +139,9 @@ const longTermToggles = {
   enableRedisSampleStore:
     environmentVariableTrue(pe, 'ENABLE_REDIS_SAMPLE_STORE'),
 
-  // Enable Rooms functionality
-  enableRooms: environmentVariableTrue(pe, 'ENABLE_ROOMS'),
-
   // Enable sample store info logging
   enableSampleStoreInfoLogging: environmentVariableTrue(pe,
     'ENABLE_SAMPLE_STORE_INFO_LOGGING'),
-
-  // Enable worker activity logging
-  enableWorkerActivityLogs:
-    environmentVariableTrue(pe, 'ENABLE_WORKER_ACTIVITY_LOGS'),
 
   /*
    * Use this setting to offload work from web processes to worker processes to
@@ -93,11 +149,20 @@ const longTermToggles = {
    */
   enableWorkerProcess: environmentVariableTrue(pe, 'ENABLE_WORKER_PROCESS'),
 
-  // Enforce that all API requests have valid API token
-  requireAccessToken: environmentVariableTrue(pe, 'REQUIRE_ACCESS_TOKEN'),
+  // Reject local user registration
+  rejectLocalUserRegistration:
+    environmentVariableTrue(pe, 'REJECT_LOCAL_USER_REGISTRATION'),
+
+  // Reject (401) requests with multiple X-Forwarded-For values
+  rejectMultipleXForwardedFor:
+    environmentVariableTrue(pe, 'REJECT_MULTIPLE_X_FORWARDED_FOR'),
 
   // Disable HTTP, i.e. only use https
   requireHttps: environmentVariableTrue(pe, 'REQUIRE_HTTPS'),
+
+  // Toggle to redirect to different instance of refocus
+  enableRedirectDifferentInstance: environmentVariableTrue(pe,
+    'ENABLE_REDIRECT_DIFFERENT_INSTANCE'),
 
 }; // longTermToggles
 
@@ -114,9 +179,9 @@ const longTermToggles = {
  */
 const shortTermToggles = {
 
-  // Cache the GET request for samples with wildcard by name
-  cacheGetSamplesByNameWildcard: environmentVariableTrue(pe,
-    'CACHE_GET_SAMPLES_BY_NAME_WILDCARD'),
+  // turn on logging to log invalid hmset values
+  logInvalidHmsetValues: environmentVariableTrue(pe,
+    'LOG_INVALID_HMSET_VALUES'),
 
   // Enable GET from cache for /v1/subjects, /v1/subjects/{key}
   getSubjectFromCache: environmentVariableTrue(pe,
@@ -126,24 +191,42 @@ const shortTermToggles = {
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),
 
+  // Enable IOREDIS instead of node redis
+  enableIORedis: environmentVariableTrue(pe, 'ENABLE_IOREDIS'),
+
+  // Enable graceful shutdown handling event
+  enableSigtermEvent: environmentVariableTrue(pe, 'ENABLE_SIGTERM_EVENT'),
+
   // Enable using worker dyno for hierarchy queries
   enqueueHierarchy: environmentVariableTrue(pe, 'ENQUEUE_HIERARCHY'),
 
   // Add some job queue instrumentation logging
   instrumentKue: environmentVariableTrue(pe, 'INSTRUMENT_KUE'),
 
-  returnUser: environmentVariableTrue(pe, 'RETURN_CREATEDBY_ON_TOKEN_INPUT'),
+  instrumentCompleteSubjectHierarchy: environmentVariableTrue(pe,
+    'INSTRUMENT_COMPLETE_SUBJECT_HIERARCHY'),
 
-  fastFailDuplicateSubject: environmentVariableTrue(pe,
-    'FAST_FAIL_DUPLICATE_SUBJECT'),
+  // require helpEmail or helpUrl in POST/PUT/PATCH of aspects and subjects
+  requireHelpEmailOrHelpUrl: environmentVariableTrue(pe,
+    'REQUIRE_HELP_EMAIL_OR_HELP_URL'),
 
-  // publish partial sample to the subscribers
-  publishPartialSample: environmentVariableTrue(pe, 'PUBLISH_PARTIAL_SAMPLE'),
+  // use new socket.io namespace/room format
+  useNewNamespaceFormat: environmentVariableTrue(pe, 'USE_NEW_NAMESPACE_FORMAT'),
 
+  // use new socket.io namespace/room format for Imc rooms
+  useNewNamespaceFormatImc: environmentVariableTrue(pe, 'USE_NEW_NAMESPACE_FORMAT_IMC'),
+
+  // optimize sample filtered gets
+  optimizeSampleFilteredGets: environmentVariableTrue(pe,
+    'OPTIMIZE_SAMPLE_FILTERED_GETS'),
+
+  enableBullForBulkDelSubj: environmentVariableTrue(
+    pe, 'ENABLE_BULL_FOR_BULK_DEL_SUBJ'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
 
 module.exports = {
   environmentVariableTrue, // exporting to make it easy to test
+  envVarIncludes, // exporting for test only
 };

@@ -10,13 +10,14 @@
  * tests/cache/jobQueue/bulkUpsert.js
  */
 'use strict';
-const jobQueue = require('../../../jobQueue/setup').jobQueue;
-const jobType = require('../../../jobQueue/setup').jobType;
-const bulkUpsertSamplesJob = require('../../../worker/jobs/bulkUpsertSamplesJob');
-const getHierarchyJob = require('../../../worker/jobs/getHierarchyJob');
+const jobSetup = require('../../../jobQueue/setup');
+const jobQueue = jobSetup.jobQueue;
+const jobType = jobSetup.jobType;
+const bulkUpsertSamplesJob = require('../../../worker/jobs/bulkUpsertSamples');
+const getHierarchyJob = require('../../../worker/jobs/getHierarchy');
 const expect = require('chai').expect;
 const supertest = require('supertest');
-const api = supertest(require('../../../index').app);
+const api = supertest(require('../../../express').app);
 const tu = require('../../testUtils');
 const rtu = require('../models/redisTestUtil');
 const samstoinit = require('../../../cache/sampleStoreInit');
@@ -25,16 +26,19 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 const logger = require('../../../utils/activityLog').logger;
+const RADIX = 10;
 
 describe('tests/cache/jobQueue/bulkUpsert.js, ' +
-'redisStore: POST using worker process' + path, () => {
-  let token;
+'redisStore: POST using worker process, ' + path + ' >', () => {
+  before(() => jobSetup.resetJobQueue());
+  after(() => jobSetup.resetJobQueue());
 
+  let token;
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enableApiActivityLogs', false);
     tu.toggleOverride('enableWorkerActivityLogs', false);
-    jobQueue.process(jobType.BULKUPSERTSAMPLES, bulkUpsertSamplesJob);
+    jobQueue.process(jobType.bulkUpsertSamples, bulkUpsertSamplesJob);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
@@ -56,7 +60,7 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
       isPublished: true,
       name: `${tu.namePrefix}Aspect2`,
       timeout: '10m',
-      valueType: 'BOOLEAN',
+      valueType: 'NUMERIC',
       okRange: [10, 100],
     }))
     .then(() => Subject.create({
@@ -70,14 +74,13 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
   });
 
   after(rtu.forceDelete);
-  after(rtu.flushRedis);
+  after(tu.forceDeleteUser);
   after(() => {
     tu.toggleOverride('enableWorkerProcess', false);
     tu.toggleOverride('enableRedisSampleStore', false);
   });
 
-  it('should return ok status with the job id for good ' +
-      'or bad samples', (done) => {
+  it('return ok status with job id for good or bad samples', (done) => {
     api.post(path)
     .set('Authorization', token)
     .send([
@@ -107,7 +110,7 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
     });
   });
 
-  it('test logging', (done) => {
+  it('logging', (done) => {
     tu.toggleOverride('enableApiActivityLogs', true);
     tu.toggleOverride('enableWorkerActivityLogs', true);
     logger.on('logging', testLogMessage);
@@ -153,11 +156,11 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
           expect(logObj.recordCount).to.equal('2');
           expect(logObj.errorCount).to.equal('1');
 
-          const totalTime = parseInt(logObj.totalTime);
-          const queueTime = parseInt(logObj.queueTime);
-          const queueResponseTime = parseInt(logObj.queueResponseTime);
-          const workTime = parseInt(logObj.workTime);
-          const dbTime = parseInt(logObj.dbTime);
+          const totalTime = parseInt(logObj.totalTime, RADIX);
+          const queueTime = parseInt(logObj.queueTime, RADIX);
+          const queueResponseTime = parseInt(logObj.queueResponseTime, RADIX);
+          const workTime = parseInt(logObj.workTime, RADIX);
+          const dbTime = parseInt(logObj.dbTime, RADIX);
 
           expect(workTime).to.be.at.least(dbTime);
           expect(totalTime).to.be.at.least(workTime);
@@ -183,8 +186,8 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
           expect(logObj.dbTime).to.match(/\d+ms/);
           expect(logObj.recordCount).to.equal('3');
           expect(logObj.responseBytes).to.match(/\d+/);
-          const totalTime = parseInt(logObj.totalTime);
-          const dbTime = parseInt(logObj.dbTime);
+          const totalTime = parseInt(logObj.totalTime, RADIX);
+          const dbTime = parseInt(logObj.dbTime, RADIX);
           expect(totalTime).to.be.above(dbTime);
           apiLogged = true;
           if (workerLogged && apiLogged) {

@@ -34,13 +34,6 @@ module.exports = function user(seq, dataTypes) {
       allowNull: false,
     },
   }, {
-    classMethods: {
-      postImport(models) {
-        assoc.createdBy = SSOConfig.belongsTo(models.User, {
-          foreignKey: 'createdBy',
-        });
-      },
-    },
     hooks: {
 
       /**
@@ -82,7 +75,17 @@ module.exports = function user(seq, dataTypes) {
         }
       }, // hooks.beforeValidate
     },
-    paranoid: true,
   });
+
+  /**
+   * Class Methods:
+   */
+
+  SSOConfig.postImport = function (models) {
+    assoc.createdBy = SSOConfig.belongsTo(models.User, {
+      foreignKey: 'createdBy',
+    });
+  };
+
   return SSOConfig;
 };

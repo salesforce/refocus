@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
 const u = require('./utils');
@@ -73,7 +73,7 @@ describe('tests/api/v1/generatorTemplates/getWriters.js > ', () => {
   });
 
   it('find Writers and make sure the passwords are not returned', (done) => {
-    api.get(getWritersPath.replace('{key}', generatorTemplate.name))
+    api.get(getWritersPath.replace('{key}', generatorTemplate.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
     .expect((res) => {
@@ -89,7 +89,7 @@ describe('tests/api/v1/generatorTemplates/getWriters.js > ', () => {
   });
 
   it('find Writer by username', (done) => {
-    api.get(getWriterPath.replace('{key}', generatorTemplate.name)
+    api.get(getWriterPath.replace('{key}', generatorTemplate.id)
     .replace('{userNameOrId}', user.name))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -100,7 +100,7 @@ describe('tests/api/v1/generatorTemplates/getWriters.js > ', () => {
   });
 
   it('find Writer by userId', (done) => {
-    api.get(getWriterPath.replace('{key}', generatorTemplate.name)
+    api.get(getWriterPath.replace('{key}', generatorTemplate.id)
     .replace('{userNameOrId}', user.id))
     .set('Authorization', token)
     .expect(constants.httpStatus.OK)
@@ -114,12 +114,12 @@ describe('tests/api/v1/generatorTemplates/getWriters.js > ', () => {
     api.get(getWriterPath.replace('{key}', 'invalidresource')
     .replace('{userNameOrId}', user.id))
     .set('Authorization', token)
-    .expect(constants.httpStatus.NOT_FOUND)
+    .expect(constants.httpStatus.BAD_REQUEST)
     .end(done);
   });
 
   it('Writer not found for invalid username', (done) => {
-    api.get(getWriterPath.replace('{key}', generatorTemplate.name)
+    api.get(getWriterPath.replace('{key}', generatorTemplate.id)
     .replace('{userNameOrId}', 'invalidUser'))
     .set('Authorization', token)
     .expect(constants.httpStatus.NOT_FOUND)

@@ -11,7 +11,7 @@
  */
 'use strict';
 const supertest = require('supertest');
-const api = supertest(require('../../../../index').app);
+const api = supertest(require('../../../../express').app);
 const tu = require('../../../testUtils');
 const rtu = require('../redisTestUtil');
 const samstoinit = require('../../../../cache/sampleStoreInit');
@@ -47,21 +47,21 @@ describe('tests/cache/models/samples/upsertBulkConcurrent.js, ' +
       isPublished: true,
       name: `${tu.namePrefix}Aspect2`,
       timeout: '10m',
-      valueType: 'BOOLEAN',
+      valueType: 'NUMERIC',
       okRange: [10, 100],
     }))
     .then(() => Aspect.create({
       isPublished: true,
       name: `${tu.namePrefix}Aspect3`,
       timeout: '10m',
-      valueType: 'BOOLEAN',
+      valueType: 'NUMERIC',
       okRange: [10, 100],
     }))
     .then(() => Aspect.create({
       isPublished: true,
       name: `${tu.namePrefix}Aspect4`,
       timeout: '10m',
-      valueType: 'BOOLEAN',
+      valueType: 'NUMERIC',
       okRange: [10, 100],
     }))
     .then(() => Subject.create({
@@ -75,6 +75,8 @@ describe('tests/cache/models/samples/upsertBulkConcurrent.js, ' +
   });
 
   after(rtu.forceDelete);
+  after(rtu.forceDeleteUserAndProf);
+  after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
   it('bulkupsert to multiple samples that belong to the subject should ' +
@@ -99,6 +101,7 @@ describe('tests/cache/models/samples/upsertBulkConcurrent.js, ' +
     .then(() => {
       setTimeout(() => {
         api.get('/v1/samples')
+        .set('Authorization', token)
         .end((err, res) => {
           if (err) {
             return done(err);
