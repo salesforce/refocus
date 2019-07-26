@@ -63,7 +63,6 @@ const BOT_REQ_HEADERS = {
 const openInNewTabProps = 'rel="noopener noreferrer" target="_blank"';
 let _refocusRoomsFeedbackChatter;
 let _refocusRoomsFeedbackEmail;
-let banner;
 let _realtimeApplication;
 let _io;
 let _user;
@@ -74,6 +73,7 @@ let _movingContent;
 let _botsLayout;
 let _userSession;
 let firstLoad = true;
+let banner = null;
 
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
@@ -1045,12 +1045,10 @@ window.onload = () => {
   // Get Url from index.pug
   _refocusRoomsFeedbackChatter = refocusRoomsFeedbackChatter;
   _refocusRoomsFeedbackEmail = refocusRoomsFeedbackEmail;
-  if (_refocusRoomsChatterUrl && _refocusRoomsContactEmail) {
+  if (_refocusRoomsFeedbackChatter && _refocusRoomsFeedbackEmail) {
     banner = 'Got questions or feedback? Reach IMC via ' +
     `<a href="${_refocusRoomsFeedbackChatter}" ${openInNewTabProps}>Chatter</a> or ` +
-    `<a href="mailto:${_refocusRoomsFeedbackEmaill}" ${openInNewTabProps}>${_refocusRoomsFeedbackEmail}</a>`;
-  } else {
-    banner = null;
+    `<a href="mailto:${_refocusRoomsFeedbackEmail}" ${openInNewTabProps}>${_refocusRoomsFeedbackEmail}</a>`;
   }
 
   // Note: this is declared in index.pug:
