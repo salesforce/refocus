@@ -23,8 +23,7 @@ const jwtUtil = require('../utils/jwtUtil');
 const httpStatus = require('./constants').httpStatus;
 const url = require('url');
 const ft = require('feature-toggles');
-const { refocusRoomsChatterUrl,
-  refocusRoomsContactEmail } = require('../config');
+const { refocusRoomsFeedback } = require('../config');
 
 const redirectFeature = ft.isFeatureEnabled('enableRedirectDifferentInstance');
 
@@ -182,6 +181,7 @@ function getRedirectURI(viewKey, reqUrl) {
 } // This function is temporary - remove when separate deployment has settled
 
 function loadView(app, passport) {
+  console.log('loadView', refocusRoomsFeedback);
   const keys = Object.keys(viewmap);
   keys.forEach((key) =>
     app.get(
@@ -196,8 +196,7 @@ function loadView(app, passport) {
           user: JSON.stringify(copyOfUser).replace(/'/g,"apos;"),
           realtimeApplication: viewConfig.realtimeApplication,
           realtimeApplicationImc: viewConfig.realtimeApplicationImc,
-          refocusRoomsChatterUrl,
-          refocusRoomsContactEmail,
+          refocusRoomsFeedback,
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
           useNewNamespaceFormat: ft.isFeatureEnabled('useNewNamespaceFormat'),
           useNewNamespaceFormatImc: ft.isFeatureEnabled('useNewNamespaceFormatImc'),

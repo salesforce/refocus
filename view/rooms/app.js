@@ -1043,14 +1043,14 @@ window.onload = () => {
   setupColumns();
 
   // Get Url from index.pug
-  _refocusRoomsChatterUrl = refocusRoomsChatterUrl;
-  _refocusRoomsContactEmail = refocusRoomsContactEmail;
+  _refocusRoomsChatterUrl = refocusRoomsFeedbackChatter;
+  _refocusRoomsContactEmail = refocusRoomsFeedbackEmail;
   if (_refocusRoomsChatterUrl && _refocusRoomsContactEmail) {
     banner = 'Got questions or feedback? Reach IMC via ' +
     `<a href="${_refocusRoomsChatterUrl}" ${openInNewTabProps}>Chatter</a> or ` +
     `<a href="mailto:${_refocusRoomsContactEmail}" ${openInNewTabProps}>${_refocusRoomsContactEmail}</a>`;
   } else {
-    banner = '';
+    banner = null;
   }
 
   // Note: this is declared in index.pug:
@@ -1094,7 +1094,9 @@ window.onload = () => {
       _roomTypeName = res.body.name;
       const subTitle = `${_roomName} - ${_roomTypeName}`;
       uPage.setSubtitle(subTitle);
-      uPage.setBannerText(banner);
+      if (banner) {
+        uPage.setBannerText(banner);
+      }
       document.title = subTitle;
       let layoutCookie =
         u.getCookie(`${window.location.pathname}-bots-layout`);
