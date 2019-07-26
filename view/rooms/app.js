@@ -61,8 +61,8 @@ const BOT_REQ_HEADERS = {
 };
 
 const openInNewTabProps = 'rel="noopener noreferrer" target="_blank"';
-let _refocusRoomsChatterUrl;
-let _refocusRoomsContactEmail;
+let _refocusRoomsFeedbackChatter;
+let _refocusRoomsFeedbackEmail;
 let banner;
 let _realtimeApplication;
 let _io;
@@ -1043,12 +1043,12 @@ window.onload = () => {
   setupColumns();
 
   // Get Url from index.pug
-  _refocusRoomsChatterUrl = refocusRoomsFeedbackChatter;
-  _refocusRoomsContactEmail = refocusRoomsFeedbackEmail;
+  _refocusRoomsFeedbackChatter = refocusRoomsFeedbackChatter;
+  _refocusRoomsFeedbackEmail = refocusRoomsFeedbackEmail;
   if (_refocusRoomsChatterUrl && _refocusRoomsContactEmail) {
     banner = 'Got questions or feedback? Reach IMC via ' +
-    `<a href="${_refocusRoomsChatterUrl}" ${openInNewTabProps}>Chatter</a> or ` +
-    `<a href="mailto:${_refocusRoomsContactEmail}" ${openInNewTabProps}>${_refocusRoomsContactEmail}</a>`;
+    `<a href="${_refocusRoomsFeedbackChatter}" ${openInNewTabProps}>Chatter</a> or ` +
+    `<a href="mailto:${_refocusRoomsFeedbackEmaill}" ${openInNewTabProps}>${_refocusRoomsFeedbackEmail}</a>`;
   } else {
     banner = null;
   }

@@ -181,7 +181,6 @@ function getRedirectURI(viewKey, reqUrl) {
 } // This function is temporary - remove when separate deployment has settled
 
 function loadView(app, passport) {
-  console.log('loadView', refocusRoomsFeedback);
   const keys = Object.keys(viewmap);
   keys.forEach((key) =>
     app.get(
