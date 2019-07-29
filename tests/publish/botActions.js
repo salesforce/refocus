@@ -34,14 +34,18 @@ describe('tests/publish/botActions.js >', () => {
   let subscriber;
   let subscribeTracker = [];
   let testBotAction;
+  let userId;
 
   before((done) => {
     subscriber = redis.createClient(DEFAULT_LOCAL_REDIS_URL);
     subscriber.subscribe(rconf.botChannelName);
     subscriber.on('message', (channel, msg) => subscribeTracker.push(msg));
 
-    tu.createToken()
-      .then((returnedToken) => (token = returnedToken))
+    tu.createUserAndToken()
+      .then((obj) => {
+        userId = obj.user.id;
+        token = obj.token;
+      })
       .then(() => done())
       .catch(done);
   });
@@ -56,7 +60,7 @@ describe('tests/publish/botActions.js >', () => {
       })
       .then((room) => {
         testBotAction.roomId = room.id;
-        return Bot.create(b.getStandard());
+        return b.createStandard(userId);
       })
       .then((bot) => {
         testBotAction.botId = bot.id;
