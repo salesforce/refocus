@@ -157,7 +157,6 @@ function removeAspectRelatedSamples(aspect, seq) {
          * the aspect here before publishing the sample.
          */
         if (sample) {
-          // sample.aspect = aspect;
           sample.updatedAt = now;
           promises.push(publishSample(sample, sampleEvent.del));
         }

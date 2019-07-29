@@ -19,6 +19,7 @@ const pubPerspectives = client.pubPerspectives;
 const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const pubSubStats = require('./pubSubStats');
+const redisOps = require('../cache/redisOps');
 const ONE = 1;
 
 /**
@@ -159,7 +160,6 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
     }
   }
 
-  // console.log('publishing >>', obj);
   return pubClient.publishAsync(channelName, JSON.stringify(obj))
     .then((numClients) => obj);
 } // publishObject
@@ -169,37 +169,54 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  * a absolutePath field added to it before the sample is published to the redis
  * channel.
  *
- * @param  {Object} sampleInst - The sample instance to be published
+ * @param  {Object} sample - The sample instance to be published
  * @param  {Model} subjectModel - The subject model to get the related
  *  subject instance
  * @param  {String} event  - Type of the event that is being published
  * @returns {Promise} - which resolves to a sample object
  */
-function publishSample(sampleInst, event) {
-  /**
-   * TODO: Needs to be deleted once sample store is updated because sample will
-   * no longer have these attributes.
-   */
-
-  delete sampleInst.aspectId;
-  delete sampleInst.subjectId;
-  delete sampleInst.aspect;
-  delete sampleInst.subject;
-
-  if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
-    return publishSampleNoChange(sampleInst);
+function publishSample(sample, event) {
+  const arr = (sample.name || '').split('|');
+  if (arr.length !== 2) {
+    logger.error('publishSample error',
+      `Invalid sample name "${sample.name}"`);
+    return Promise.resolve();
   }
 
-  const eventType = event || getSampleEventType(sampleInst);
+  sample.subject = {};
+  sample.aspect = {};
 
-  return publishObject(sampleInst, eventType)
-    .then(() => sampleInst)
+  const subjAbsolutePath = arr[0];
+  sample.absolutePath = subjAbsolutePath; // used for perspective filtering
+  sample.subject.absolutePath = subjAbsolutePath;
+  sample.aspect.name = arr[1]; // for socket.io perspective filtering
+
+  const cmds = [];
+  const subjTagsKey = redisOps.getSubjectTagsKey(sample.absolutePath);
+  cmds.push(['smembers', subjTagsKey]);
+
+  const aspTagsKey = redisOps.getSubjectTagsKey(sample.aspect.name);
+  cmds.push(['smembers', aspTagsKey]);
+
+  return redisOps.executeBatchCmds(cmds)
+    .then((res) => { // TODO: check that it returns empty arr if value not present
+      sample.subject.tags = res[0]; // for socket.io perspective filtering
+      sample.aspect.tags = res[1]; // for socket.io perspective filtering
+    })
+    .then(() => {
+      if (sample.hasOwnProperty('noChange') && sample.noChange === true) {
+        return publishSampleNoChange(sample);
+      }
+
+      const eventType = event || getSampleEventType(sample);
+      return publishObject(sample, eventType);
+    })
+    .then(() => sample)
     .catch((err) => {
       // Any failure on publish sample must not stop the next promise.
       logger.error('publishSample error', err);
       return Promise.resolve();
     });
-
 } // publishSample
 
 /**
@@ -212,7 +229,16 @@ function publishSampleNoChange(sample) {
   const s = {
     name: sample.name,
     status: sample.status, // for socket.io perspective filtering
+    absolutePath: sample.absolutePath, // used for persp filtering
     updatedAt: sample.updatedAt,
+    subject: {
+      absolutePath: sample.absolutePath,
+      tags: sample.subject.tags, // for socket.io perspective filtering
+    },
+    aspect: {
+      name: sample.aspect.name, // for socket.io perspective filtering
+      tags: sample.aspect.tags, // for socket.io perspective filtering
+    },
   };
 
   return publishObject(s, sampleEvent.nc)

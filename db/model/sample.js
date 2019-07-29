@@ -22,6 +22,7 @@ const assoc = {};
 const EMPTY_STRING = '';
 const maxSampleNameLength = constants.fieldlen.longish +
   constants.fieldlen.normalName + 1; // eslint-disable-line no-magic-numbers
+const redisOps = require('../../cache/redisOps');
 const Op = require('sequelize').Op;
 
 module.exports = function sample(seq, dataTypes) {
@@ -100,8 +101,11 @@ module.exports = function sample(seq, dataTypes) {
           .then((a) => {
             if (a && a.getDataValue('isPublished')) {
               inst.name += a.name;
-              inst.status = u.computeStatus(a, inst.value);
-              return resolve(inst);
+              return redisOps.calculateSampleStatus(inst)
+                .then((status) => {
+                  inst.status = status;
+                  return resolve(inst);
+                });
             }
 
             throw new dbErrors.ResourceNotFoundError({
@@ -139,15 +143,17 @@ module.exports = function sample(seq, dataTypes) {
           .then((aspect) => {
             if (aspect && aspect.getDataValue('isPublished')) {
               inst.aspect = aspect;
-              inst.calculateStatus();
-              inst.setStatusChangedAt();
+              return inst.calculateStatus()
+                .then((status) => {
+                  inst.status = status;
+                  inst.setStatusChangedAt();
+                });
             } else {
               throw new dbErrors.ResourceNotFoundError({
                 explanation: 'Aspect not found.',
                 resourceType: 'Aspect',
                 resourceKey: inst.getDataValue('aspectId'),
               });
-
             }
           });
         }
@@ -472,7 +478,7 @@ module.exports = function sample(seq, dataTypes) {
    * Instance method wrapper around computeStatus.
    */
   Sample.prototype.calculateStatus = function () {
-    this.status = u.computeStatus(this.aspect, this.value);
+    return redisOps.calculateSampleStatus(this);
   }; // calculateStatus
 
   Sample.prototype.isWritableBy = function (who) {

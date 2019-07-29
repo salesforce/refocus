@@ -21,6 +21,10 @@ const aspSubMapType = redisStore.constants.objectType.aspSubMap;
 const aspectType = redisStore.constants.objectType.aspect;
 const sampleType = redisStore.constants.objectType.sample;
 const subjectTagsType = redisStore.constants.objectType.subjectTags;
+const aspectTagsType = redisStore.constants.objectType.aspectTags;
+const aspectWritersType = redisStore.constants.objectType.aspectWriters;
+const aspectRangesType = redisStore.constants.objectType.aspectRanges;
+const status = require('../db/constants').statuses;
 
 /**
  * Capitalize the first letter of the string and returns the modified string.
@@ -561,6 +565,118 @@ module.exports = {
     return redisStore.toKey(subjectTagsType, absolutePath);
   },
 
+  getAspectTagsKey(aspName) {
+    return redisStore.toKey(aspectTagsType, aspName);
+  },
+
+  getAspectRangesKey(aspName) {
+    return redisStore.toKey(aspectRangesType, aspName);
+  },
+
+  getAspectWritersKey(aspName) {
+    return redisStore.toKey(aspectWritersType, aspName);
+  },
+
+  /**
+   *
+   * @param  {Object} sample - aspect object
+   * @returns {Promise}
+   */
+  calculateSampleStatus(sample) {
+    const [absPath, aspName] = sample.name.split('|');
+    const { value } = sample;
+
+    // Invalid if value is not a non-empty string!
+    if (typeof value !== 'string' || value.length === 0) {
+      return Promise.resolve(status.Invalid)
+    }
+
+    // "Timeout" special case
+    if (value === status.Timeout) {
+      return Promise.resolve(status.Timeout);
+    }
+
+    let num;
+
+    // Boolean value type: Case-insensitive 'true'
+    if (value.toLowerCase() === 'true') {
+      num = 1;
+    } else if (value.toLowerCase() === 'false') {
+      // Boolean value type: Case-insensitive 'false'
+      num = 0;
+    } else {
+      num = Number(value);
+    }
+
+    // If not true|false|Timeout, then value must be convertible to number!
+    if (isNaN(num)) {
+      return Promise.resolve(status.Invalid);
+    }
+
+    // Set status based on ranges
+    const key = `samsto:aspectRanges:${aspName}`;
+    return redisClient.zrangebyscoreAsync(key, num, '+inf', 'WITHSCORES', 'LIMIT', 0, 1)
+      .then(([rangeName, score]) => {
+        score = Number(score);
+        if (rangeName) {
+          let [status, rangeType] = rangeName.split(':');
+          status = status.split('_')[1];
+          if (rangeType === '1') { // max
+            return status;
+          } else if (rangeType === '0' && num === score) { // min
+            return status;
+          }
+        }
+
+        return status.Invalid;
+      })
+  }, // calculateSampleStatus
+
+  /**
+   *
+   * @param  {Object} aspect - aspect object
+   * @returns {Promise}
+   */
+  setTags(aspect) {
+    const nameKey = `samsto:aspectTags:${aspect.name}`
+    if (aspect.tags && aspect.tags.length) {
+      return redisClient.saddAsync(nameKey, aspect.tags)
+    }
+  }, // setTags
+
+  // TODO: figure out how to batch all three of these together
+  /**
+   *
+   * @param  {Object} aspect - aspect object
+   * @returns {Promise}
+   */
+  setWriters(aspect) {
+    const nameKey = `samsto:writers:aspect:${aspect.name}`.toLowerCase();
+    if (aspect.writers && aspect.writers.length) {
+      const writerNames = aspect.writers && aspect.writers.map(w => w.name);
+      return redisClient.saddAsync(nameKey, writerNames);
+    }
+  }, // setWriters
+
+  /**
+   *
+   * @param  {Object} aspect - aspect object
+   * @returns {Promise}
+   */
+  setRanges(aspect) {
+    const nameKey = `samsto:aspectRanges:${aspect.name}`
+    const batch = redisClient.batch();
+    aspect.criticalRange && batch.zadd(nameKey, aspect.criticalRange[0], '1_Critical:0');
+    aspect.criticalRange && batch.zadd(nameKey, aspect.criticalRange[1], '1_Critical:1');
+    aspect.warningRange && batch.zadd(nameKey, aspect.warningRange[0], '2_Warning:0');
+    aspect.warningRange && batch.zadd(nameKey, aspect.warningRange[1], '2_Warning:1');
+    aspect.infoRange && batch.zadd(nameKey, aspect.infoRange[0], '3_Info:0');
+    aspect.infoRange && batch.zadd(nameKey, aspect.infoRange[1], '3_Info:1');
+    aspect.okRange && batch.zadd(nameKey, aspect.okRange[0], '4_OK:0');
+    aspect.okRange && batch.zadd(nameKey, aspect.okRange[1], '4_OK:1');
+    return batch.execAsync();
+  }, // setRanges
+
   renameKey,
 
   deleteKey,
@@ -584,6 +700,12 @@ module.exports = {
   aspSubMapType,
 
   subjectTagsType,
+
+  aspectRangesType,
+
+  aspectWritersType,
+
+  aspectTagsType,
 
   getValue,
 

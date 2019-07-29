@@ -53,6 +53,8 @@ const constants = {
   },
   objectType: { aspect: 'aspect', sample: 'sample', subject: 'subject',
     subAspMap: 'subaspmap', aspSubMap: 'aspsubmap', subjectTags: 'tags:subject',
+    aspectTags: 'tags:aspect', aspectWriters: 'writers:aspect',
+    aspectRanges: 'ranges:aspect',
   },
   prefix: PFX,
   separator: SEP,
