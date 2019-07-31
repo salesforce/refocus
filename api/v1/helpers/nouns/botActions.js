@@ -28,4 +28,5 @@ module.exports = {
   model: BotActions,
   modelName: 'botActions',
   timePeriodFilters: ['createdAt', 'updatedAt'],
+  hasMultipartKey: true,
 }; // exports
