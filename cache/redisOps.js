@@ -552,6 +552,15 @@ module.exports = {
     .then((results) => Promise.resolve(results[0]));
   },
 
+  /**
+   * Get tags key for a subject
+   * @param absolutePath - subject absolute path
+   * @returns {String} - subject tags key
+   */
+  getSubjectTagsKey(absolutePath) {
+    return redisStore.toKey(subjectTagsType, absolutePath);
+  },
+
   renameKey,
 
   deleteKey,
