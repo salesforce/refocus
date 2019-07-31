@@ -25,8 +25,8 @@ module.exports = {
     users: 'writers',
   },
   baseUrl: '/v1/botData',
+  hasMultipartKey: true,
   model: BotData,
   modelName: 'botData',
   timePeriodFilters: ['createdAt', 'updatedAt'],
-  hasMultipartKey: true,
 }; // exports
