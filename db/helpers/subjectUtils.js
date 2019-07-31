@@ -181,7 +181,7 @@ function removeRelatedSamples(subject, seq) {
  * @returns {Promise}
  */
 function removeFromRedis(subject, seq) {
-  const subjTagsKey = sampleStore.toKey(redisOps.subjectTagsType, subject.absolutePath);
+  const subjTagsKey = redisOps.getSubjectTagsKey(subject.absolutePath);
   const cmds = [['del', subjTagsKey]]; // remove subject tags from sample store
   return Promise.join(
     redisOps.deleteKey(subjectType, subject.absolutePath, cmds),
