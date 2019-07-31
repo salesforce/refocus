@@ -149,14 +149,14 @@ module.exports = function aspect(seq, dataTypes) {
       afterCreate(inst /* , opts */) {
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-        const promiseArr = [];
-        if (inst.getDataValue('isPublished') === true) {
-          promiseArr.push(publishObject(inst, aspectEventNames.add));
-        }
-
-        promiseArr.push(redisOps.addKey(aspectType, inst.getDataValue('name')));
-        promiseArr.push(redisOps.hmSet(aspectType, inst.name, instDataObj));
-        return Promise.all(promiseArr);
+        return Promise.all([
+          inst.isPublished && publishObject(inst, aspectEventNames.add),
+          redisOps.addKey(aspectType, inst.getDataValue('name')),
+          redisOps.hmSet(aspectType, inst.name, instDataObj),
+          redisOps.setWriters(inst),
+          redisOps.setRanges(inst),
+          redisOps.setTags(inst),
+        ]);
       }, // hooks.afterCreate
 
       /**
