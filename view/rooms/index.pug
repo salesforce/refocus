@@ -76,8 +76,8 @@ html
   script(src='/static/scripts/moment.min.js')
   script.
     var realtimeApplication = '#{realtimeApplicationImc}';
-    var refocusRoomsFeedbackChatter = '#{refocusRoomsFeedback.chatter}';
-    var refocusRoomsFeedbackEmail = '#{refocusRoomsFeedback.email}';
+    var refocusRoomsFeedbackChatter = '#{refocusRoomsFeedback ? refocusRoomsFeedback.chatter: null}';
+    var refocusRoomsFeedbackEmail = '#{refocusRoomsFeedback ? refocusRoomsFeedback.email : null}';
     var trackingId = '#{trackingId}';
     var user = '#{user}';
     var userSession = '#{userSession}';
