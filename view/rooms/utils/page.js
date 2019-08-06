@@ -16,6 +16,7 @@ const u = require('./../../utils');
 const TITLE_ELEM_ID = 'title';
 const SUBTITLE_ELEM_ID = 'subTitle';
 const SPINNER_ID = 'loading_spinner';
+const BANNER_ELEM_ID = 'banner';
 const ROOMS_TAB = 'roomsTab';
 const ROOM_TYPES_TAB = 'roomTypesTab';
 const DEBUG_REALTIME = window.location.href.split(/[&\?]/)
@@ -46,6 +47,16 @@ module.exports = {
    */
   setSubtitle(subtitle) {
     return document.getElementById(SUBTITLE_ELEM_ID).innerHTML = subtitle;
+  },
+
+  /**
+   * sets banner text.
+   * @param  {Object} document - Document object
+   * @param  {String} bannerText - banner text string to be set
+   * @returns {String} - banner text string if successful
+   */
+  setBannerText(bannerText) {
+    return document.getElementById(BANNER_ELEM_ID).innerHTML = bannerText;
   },
 
   /**
