@@ -59,6 +59,10 @@ const BOT_REQ_HEADERS = {
   Expires: '-1',
   'Cache-Control': 'private, max-age=31536000', // 31536000s = 1 year
 };
+
+const openInNewTabProps = 'rel="noopener noreferrer" target="_blank"';
+let _refocusRoomsFeedbackChatter;
+let _refocusRoomsFeedbackEmail;
 let _realtimeApplication;
 let _io;
 let _user;
@@ -69,6 +73,7 @@ let _movingContent;
 let _botsLayout;
 let _userSession;
 let firstLoad = true;
+let banner = null;
 
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
@@ -697,12 +702,12 @@ function setupSocketIOClient(realtimeApp, bots, roomId) {
 
     const namespace = realtimeApp.endsWith('/') ? 'rooms' : '/rooms';
     socket = _io(`${realtimeApp}${namespace}`, options)
-             .on('connect', function() {
-               this.emit('auth', _userSession);
-             })
-             .on('auth error', (err) =>
-               console.error('Socket auth error:', err)
-             );
+              .on('connect', function() {
+                this.emit('auth', _userSession);
+              })
+              .on('auth error', (err) =>
+              console.error('Socket auth error:', err)
+              );
   } else {
     const realtimeEndpoint = (realtimeApp.endsWith('/') ? realtimeApp :
       (realtimeApp + '/')) + `?t=${_userSession}`;
@@ -1037,6 +1042,15 @@ window.onload = () => {
   declineButton.onclick = closeConfirmationModal;
   setupColumns();
 
+  // Get Url from index.pug
+  _refocusRoomsFeedbackChatter = refocusRoomsFeedbackChatter;
+  _refocusRoomsFeedbackEmail = refocusRoomsFeedbackEmail;
+  if (_refocusRoomsFeedbackChatter && _refocusRoomsFeedbackEmail) {
+    banner = 'Got questions or feedback? Reach IMC via ' +
+    `<a href="${_refocusRoomsFeedbackChatter}" ${openInNewTabProps}>Chatter</a> or ` +
+    `<a href="mailto:${_refocusRoomsFeedbackEmail}" ${openInNewTabProps}>${_refocusRoomsFeedbackEmail}</a>`;
+  }
+
   // Note: this is declared in index.pug:
   _realtimeApplication = realtimeApplication;
   _io = io;
@@ -1074,10 +1088,13 @@ window.onload = () => {
     debugMessage(`Error ${err}`);
   })
   .then((res) => {
-    if(res) {
+    if (res) {
       _roomTypeName = res.body.name;
       const subTitle = `${_roomName} - ${_roomTypeName}`;
       uPage.setSubtitle(subTitle);
+      if (banner) {
+        uPage.setBannerText(banner);
+      }
       document.title = subTitle;
       let layoutCookie =
         u.getCookie(`${window.location.pathname}-bots-layout`);
