@@ -46,7 +46,7 @@ module.exports = {
     }
 
     // print the log
-    logger.log(logLevel, logStr);
+    logger.log(logStr, logLevel);
   },
 
   /**
