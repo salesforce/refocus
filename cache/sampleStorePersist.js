@@ -17,7 +17,8 @@ const Sample = require('../db').Sample;
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
 const constants = samsto.constants;
-const log = require('winston');
+const log = require('@salesforce/refocus-logging-client');
+
 const infoLoggingEnabled =
   featureToggles.isFeatureEnabled('enableSampleStoreInfoLogging');
 

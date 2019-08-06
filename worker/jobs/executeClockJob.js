@@ -9,7 +9,8 @@
 /**
  * /worker/jobs/executeClockJob.js
  */
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
+
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 const jobLog = require('../jobLog');

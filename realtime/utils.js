@@ -14,7 +14,8 @@ const ip = require('ip');
 const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
+
 const featureToggles = require('feature-toggles');
 const Op = require('sequelize').Op;
 const filters = [
@@ -177,6 +178,7 @@ function applyFilter(filterString, objValues = []) {
  *  represented by the nspComponents
  */
 function perspectiveEmit(nspComponents, obj) {
+
   /*
    * Note: I perf tested these individual assignments from the nspComponents
    * array vs. using destructuring assignment, and individual assigments was
@@ -349,6 +351,7 @@ function initializeBotNamespace(inst, io) {
  * @throws {Error} if address is NOT whitelisted
  */
 function isIpWhitelisted(addr, whitelist) {
+
   /*
    * if the whitelist passed is not defined or it is not an array, assume
    * that the ip address is whitelisted

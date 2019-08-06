@@ -10,7 +10,8 @@
  * ./realTime/redisPublisher.js
  */
 'use strict'; // eslint-disable-line strict
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
+
 const featureToggles = require('feature-toggles');
 const rtUtils = require('./utils');
 const config = require('../config');

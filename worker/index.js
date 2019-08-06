@@ -17,7 +17,8 @@
  */
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
+
 const conf = require('../config');
 if (conf.newRelicKey) require('newrelic');
 const logEnvVars = require('../utils/logEnvVars');

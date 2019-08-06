@@ -18,7 +18,8 @@ const Subject = require('../db').Subject;
 const featureToggles = require('feature-toggles');
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
-const log = require('winston');
+const log = require('@salesforce/refocus-logging-client');
+
 const samstoPersist = require('./sampleStorePersist');
 const constants = samsto.constants;
 const infoLoggingEnabled =
@@ -91,7 +92,6 @@ function eradicate() {
     .map((s) => redisClient.smembersAsync(constants.indexKey[s])
     .then((keys) => {
       if (constants.indexKey[s] === constants.indexKey.sample) {
-
         /**
          * this is done to delete keys prefixed with "samsto:subaspmap:" and
          * "samsto:aspsubmap:"
@@ -358,6 +358,7 @@ function storeSampleToCacheOrDb() {
      * needs to be taken based on the current status
     */
     if (previousStatus !== currentStatus) {
+
       /*
        * call "popluate" when "enableRedisSampleStore" flag has been changed
        * from false to true. Call "eradicate" and "storeSampleToDb" when

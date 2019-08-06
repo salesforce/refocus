@@ -32,7 +32,8 @@ const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
 const commonUtils = require('../../utils/common');
 const sampleNameSeparator = '|';
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
+
 const featureToggles = require('feature-toggles');
 const config = require('../../config');
 

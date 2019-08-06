@@ -10,7 +10,8 @@
  * api/v1/controllers/bots.js
  */
 'use strict';
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
+
 const featureToggles = require('feature-toggles');
 const apiLogUtils = require('../../../utils/apiLog');
 const u = require('../helpers/verbs/utils');

@@ -10,7 +10,8 @@
  * /worker/jobs/bulkPostEvents.js
  */
 
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
+
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 const eventModel = require('./../../db/index.js').Event;

@@ -9,7 +9,8 @@
 /**
  * /worker/jobs/bulkUpsertSamples.js
  */
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
+
 const subHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');

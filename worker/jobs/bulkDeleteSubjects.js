@@ -9,7 +9,8 @@
 /**
  * /worker/jobs/bulkDeleteSubjects.js
  */
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
+
 const subjectHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
