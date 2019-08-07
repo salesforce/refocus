@@ -170,7 +170,7 @@ function populateAspects() {
         return true;
       });
   })
-  .catch(log.error); // eslint-disable-line 
+  .catch(log.error);
 } // populateAspects
 
 /**
@@ -208,7 +208,7 @@ function populateSubjects() {
         return true;
       });
   })
-  .catch(log.error); // eslint-disable-line 
+  .catch(log.error);
 } // populateSubjects
 
 /**
@@ -304,7 +304,7 @@ function populateSamples() {
         return true;
       });
   })
-  .catch(log.error); // eslint-disable-line 
+  .catch(log.error);
 } // populateSamples
 
 /**
@@ -400,7 +400,7 @@ function init() {
   .then((ret) => Promise.resolve(ret))
   .catch((err) => {
     // NO-OP
-    log.error(err); // eslint-disable-line 
+    log.error(err);
     Promise.resolve(false);
   });
 } // init
