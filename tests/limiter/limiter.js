@@ -326,7 +326,7 @@ describe('tests/limiter/limiter.js >', () => {
 
     afterEach((done) => setTimeout(done, 200));
 
-    function testLogMessage(transport, level, msg, meta) {
+    function testLogMessage(msg) {
       const logObj = {};
       logObj.activity = msg.split(' ')[0].split('=')[1]; //gets activity param from log
       try {
