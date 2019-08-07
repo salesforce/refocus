@@ -30,7 +30,7 @@ utils.doImport()
     process.exit(0);
   })
   .catch((err) => {
-    logger.info(err); // eslint-disable-line
+    logger.info(err);
     process.exit(1);
   });
 });
