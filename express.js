@@ -14,6 +14,7 @@
 
 /* eslint-disable global-require */
 /* eslint-disable no-process-env */
+const logger = require('@salesforce/refocus-logging-client');
 const conf = require('./config');
 const signal = require('./signal/signal');
 const ONE = 1;
@@ -117,11 +118,11 @@ if (isDevelopment) {
   app.use(require('webpack-hot-middleware')(compiler));
 
   app.listen(PORT, () => {
-    console.log(listening, PORT); // eslint-disable-line no-console
+    logger.info(listening, PORT); // eslint-disable-line no-console
   });
 } else {
   httpServer.listen(PORT, () => {
-    console.log(listening, PORT); // eslint-disable-line no-console
+    logger.info(listening, PORT); // eslint-disable-line no-console
   });
 }
 
@@ -244,8 +245,8 @@ swaggerTools.initializeMiddleware(swaggerDoc, (mw) => {
       try {
         app[method](paths, rateLimit);
       } catch (err) {
-        console.error(`Failed to initialize limiter for ${method} ${paths}`);
-        console.error(err);
+        logger.error(`Failed to initialize limiter for ${method} ${paths}`);
+        logger.error(err);
       }
     }
   });

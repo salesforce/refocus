@@ -15,7 +15,6 @@ const constants = require('./constants');
 const redisClient = require('../cache/redisCache').client.sampleStore;
 const redisStore = require('../cache/sampleStore');
 const logger = require('@salesforce/refocus-logging-client');
-
 const featureToggles = require('feature-toggles');
 const Op = require('sequelize').Op;
 const filters = [
@@ -394,7 +393,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
     logger.error('sample object does not contain name', JSON.stringify(sample));
-    console.trace('from attachAspectSubject');
+    logger.verbose('from attachAspectSubject');
     return Promise.resolve(null);
   }
 

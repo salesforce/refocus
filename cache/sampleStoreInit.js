@@ -105,7 +105,7 @@ function eradicate() {
     })
     .catch((err) => {
       // NO-OP
-      console.error(err); // eslint-disable-line no-console
+      logger.error(err); // eslint-disable-line
       Promise.resolve(true);
     }));
   return deletePreviousStatus()
@@ -171,7 +171,7 @@ function populateAspects() {
         return true;
       });
   })
-  .catch(console.error); // eslint-disable-line no-console
+  .catch(logger.error); // eslint-disable-line 
 } // populateAspects
 
 /**
@@ -209,7 +209,7 @@ function populateSubjects() {
         return true;
       });
   })
-  .catch(console.error); // eslint-disable-line no-console
+  .catch(logger.error); // eslint-disable-line 
 } // populateSubjects
 
 /**
@@ -305,7 +305,7 @@ function populateSamples() {
         return true;
       });
   })
-  .catch(console.error); // eslint-disable-line no-console
+  .catch(logger.error); // eslint-disable-line 
 } // populateSamples
 
 /**
@@ -401,7 +401,7 @@ function init() {
   .then((ret) => Promise.resolve(ret))
   .catch((err) => {
     // NO-OP
-    console.error(err); // eslint-disable-line no-console
+    logger.error(err); // eslint-disable-line 
     Promise.resolve(false);
   });
 } // init

@@ -17,6 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const Sequelize = require('sequelize');
+const logger = require('@salesforce/refocus-logging-client');
 require('sequelize-hierarchy')(Sequelize);
 const conf = require('../config');
 const env = conf.environment[conf.nodeEnv];
@@ -157,7 +158,7 @@ seq.Promise = Sequelize.Promise; // seq v5
  */
 function clog(moduleName, functionName, msg) {
   if (conf.nodeEnv === 'development') {
-    console.log('[./db/' + // eslint-disable-line no-console
+    logger.info('[./db/' + // eslint-disable-line
       `${moduleName}${functionName ? '.' + functionName : ''}]`,
       msg);
   }

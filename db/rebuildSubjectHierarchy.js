@@ -20,16 +20,17 @@
  * data in the Subject table.
  */
 const utils = require('./utils.js');
+const logger = require('@salesforce/refocus-logging-client');
 
 utils.doImport()
 .then(() => {
   utils.seq.models.Subject.rebuildHierarchy()
   .then(() => {
-    console.log('Successfully rebuilt Subject Hierarchy.'); // eslint-disable-line no-console
+    logger.info('Successfully rebuilt Subject Hierarchy.'); // eslint-disable-line
     process.exit(0);
   })
   .catch((err) => {
-    console.log(err); // eslint-disable-line no-console
+    logger.info(err); // eslint-disable-line
     process.exit(1);
   });
 });

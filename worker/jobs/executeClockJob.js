@@ -32,7 +32,7 @@ module.exports = (job, done) => {
    * "Error: Cannot find module '../../clock/scheduledJobs/undefined'".
    */
   if (!clockJobName) {
-    console.trace('Missing Clock Job Name', job);
+    logger.verbose('Missing Clock Job Name', job);
     return Promise.resolve();
   }
 

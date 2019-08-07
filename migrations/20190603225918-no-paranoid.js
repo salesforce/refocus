@@ -14,6 +14,7 @@
  * *after* the "destroySoftDeleted" step has completed!
  */
 'use strict';
+const logger = require('@salesforce/refocus-logging-client');
 const Promise = require('bluebird');
 const db = require('../db/index');
 const IS = 'isDeleted';
@@ -31,21 +32,21 @@ const AT = 'deletedAt';
  * @returns {*}
  */
 function fixReferences(qi) {
-  console.log('fixReferences...');
+  logger.info('fixReferences...');
   return qi.sequelize.query(
     `UPDATE "Collectors" SET "collectorGroupId" = NULL ` +
     `WHERE "collectorGroupId" IN ` +
     `  (SELECT id FROM "CollectorGroups" WHERE "isDeleted" > 0)`
   )
-    .catch((err) => console.log(` [ERR] fixReferences: ${err.message}`))
-    .then((n) => console.log(` [OK] fixReferences cleared soft-deleted ` +
+    .catch((err) => logger.info(` [ERR] fixReferences: ${err.message}`))
+    .then((n) => logger.info(` [OK] fixReferences cleared soft-deleted ` +
       `collectorGroupId from Collectors records: ${JSON.stringify(n)}`))
     .then(() => qi.sequelize.query(`DELETE FROM "Perspectives" ` +
       `WHERE "lensId" IN (SELECT id FROM "Lenses" WHERE "isDeleted" > 0)`))
-    .catch((err) => console.log(` [ERR] fixReferences: ${err.message}`))
-    .then((n) => console.log(` [OK] fixReferences deleted Perspectives ` +
+    .catch((err) => logger.info(` [ERR] fixReferences: ${err.message}`))
+    .then((n) => logger.info(` [OK] fixReferences deleted Perspectives ` +
       `which have soft-deleted lensId: ${JSON.stringify(n)}`))
-    .then(() => console.log('fixReferences... done!\n'));
+    .then(() => logger.info('fixReferences... done!\n'));
 } // fixReferences
 
 function destroySoftDeleted(qi, Seq) {
@@ -58,11 +59,11 @@ function destroySoftDeleted(qi, Seq) {
     force: true,
   };
   const exec = (modelName, opts) => db[modelName].destroy(opts)
-    .then((n) => console.log(` [OK] destroySoftDeleted ${modelName}: ${n}`))
+    .then((n) => logger.info(` [OK] destroySoftDeleted ${modelName}: ${n}`))
     .catch((err) =>
-      console.log(` [ERR] destroySoftDeleted ${modelName}: ${err.message}`));
+      logger.info(` [ERR] destroySoftDeleted ${modelName}: ${err.message}`));
 
-  console.log('destroySoftDeleted...');
+  logger.info('destroySoftDeleted...');
 
   return qi.sequelize.transaction(() => Promise.all([
     exec('Aspect', optsIs),
@@ -78,8 +79,8 @@ function destroySoftDeleted(qi, Seq) {
     exec('Subject', optsIs),
     exec('CollectorGroup', optsIs),
   ]))
-    .catch((err) => console.log(` [ERR] destroySoftDeleted: ${err.message}`))
-    .then(() => console.log('destroySoftDeleted... done!\n'));
+    .catch((err) => logger.info(` [ERR] destroySoftDeleted: ${err.message}`))
+    .then(() => logger.info('destroySoftDeleted... done!\n'));
 } // destroySoftDeleted
 
 /**
@@ -88,11 +89,11 @@ function destroySoftDeleted(qi, Seq) {
  */
 function removeOldIndices(qi) {
   const exec = (tbl, idx) => qi.removeIndex(tbl, idx)
-    .then(() => console.log(` [OK] removeOldIndices ${tbl} ${idx}`))
+    .then(() => logger.info(` [OK] removeOldIndices ${tbl} ${idx}`))
     .catch((err) =>
-      console.log(` [ERR] removeOldIndices ${tbl} ${idx}: ${err.message}`));
+      logger.info(` [ERR] removeOldIndices ${tbl} ${idx}: ${err.message}`));
 
-  console.log('removeOldIndices...');
+  logger.info('removeOldIndices...');
   return Promise.all([
     exec('Aspects', 'AspectUniqueLowercaseNameIsDeleted'),
     exec('Collectors', 'CollectorUniqueLowercaseNameIsDeleted'),
@@ -106,17 +107,17 @@ function removeOldIndices(qi) {
     exec('Subjects', 'SubjectAbsolutePathDeletedAtIsPublished'),
     exec('Tokens', 'TokenUniqueLowercaseNameCreatedByIsDeleted'),
   ])
-    .catch((err) => console.log(` [ERR] removeOldIndices: ${err.message}`))
-    .then(() => console.log('removeOldIndices... done!\n'));
+    .catch((err) => logger.info(` [ERR] removeOldIndices: ${err.message}`))
+    .then(() => logger.info('removeOldIndices... done!\n'));
 } // removeOldIndices
 
 function removeFields(qi) {
   const exec = (tbl, col) => qi.removeColumn(tbl, col)
-    .then(() => console.log(` [OK] removeFields ${tbl} ${col}`))
+    .then(() => logger.info(` [OK] removeFields ${tbl} ${col}`))
     .catch((err) =>
-      console.log(` [ERR] removeFields ${tbl} ${col}: ${err.message}`));
+      logger.info(` [ERR] removeFields ${tbl} ${col}: ${err.message}`));
 
-  console.log('removeFields...');
+  logger.info('removeFields...');
   return Promise.all([
     exec('Aspects', IS),
     exec('Collectors', IS),
@@ -129,7 +130,7 @@ function removeFields(qi) {
     exec('Subjects', IS),
     exec('Tokens', IS),
   ])
-    .catch((err) => console.log(` [ERR] removeFields: ${err.message}`))
+    .catch((err) => logger.info(` [ERR] removeFields: ${err.message}`))
     .then(() => Promise.all([
       exec('AuditEvents', AT),
       exec('Aspects', AT),
@@ -144,8 +145,8 @@ function removeFields(qi) {
       exec('Subjects', AT),
       exec('Tokens', AT),
     ]))
-    .catch((err) => console.log(` [ERR] removeFields: ${err.message}`))
-    .then(() => console.log('removeFields... done!\n'));
+    .catch((err) => logger.info(` [ERR] removeFields: ${err.message}`))
+    .then(() => logger.info('removeFields... done!\n'));
 } // removeFields
 
 function recreateOldFields(qi, Seq) {
@@ -160,11 +161,11 @@ function recreateOldFields(qi, Seq) {
   };
   const exec = (tbl, col) =>
     qi.addColumn(tbl, col, (col === 'isDeleted' ? isDeleted : deletedAt))
-      .then(() => console.log(` [OK] recreateOldFields ${tbl} ${col}`))
+      .then(() => logger.info(` [OK] recreateOldFields ${tbl} ${col}`))
       .catch((err) =>
-        console.log(` [ERR] recreateOldFields ${tbl} ${col} ${err.message}`));
+        logger.info(` [ERR] recreateOldFields ${tbl} ${col} ${err.message}`));
 
-  console.log('recreateOldFields...');
+  logger.info('recreateOldFields...');
   return Promise.all([
     exec('Aspects', IS),
     exec('Collectors', IS),
@@ -177,7 +178,7 @@ function recreateOldFields(qi, Seq) {
     exec('Subjects', IS),
     exec('Tokens', IS),
   ])
-    .catch((err) => console.log(` [ERR] recreateOldFields ${err.message}`))
+    .catch((err) => logger.info(` [ERR] recreateOldFields ${err.message}`))
     .then(() => Promise.all([
       exec('AuditEvents', AT),
       exec('Aspects', AT),
@@ -192,17 +193,17 @@ function recreateOldFields(qi, Seq) {
       exec('Subjects', AT),
       exec('Tokens', AT),
     ]))
-    .catch((err) => console.log(` [ERR] recreateOldFields ${err.message}`))
-    .then(() => console.log('recreateOldFields... done!\n'));
+    .catch((err) => logger.info(` [ERR] recreateOldFields ${err.message}`))
+    .then(() => logger.info('recreateOldFields... done!\n'));
 } // recreateOldFields
 
 function removeNewIndices(qi) {
   const exec = (tbl, idx) => qi.removeIndex(tbl, idx)
-    .then(() => console.log(` [OK] removeNewIndices ${tbl} ${idx}`))
+    .then(() => logger.info(` [OK] removeNewIndices ${tbl} ${idx}`))
     .catch((err) =>
-      console.log(` [ERR] removeNewIndices ${tbl} ${idx}: ${err.message}`));
+      logger.info(` [ERR] removeNewIndices ${tbl} ${idx}: ${err.message}`));
 
-  console.log('removeNewIndices...');
+  logger.info('removeNewIndices...');
   return Promise.all([
     exec('Aspects', 'AspectUniqueLowercaseName'),
     exec('Collectors', 'CollectorUniqueLowercaseName'),
@@ -216,8 +217,8 @@ function removeNewIndices(qi) {
     exec('Subjects', 'SubjectAbsolutePathIsPublished'),
     exec('Tokens', 'TokenUniqueLowercaseNameCreatedBy'),
   ])
-    .catch((err) => console.log(` [ERR] removeNewIndices ${err.message}`))
-    .then(() => console.log('removeNewIndices... done!\n'));
+    .catch((err) => logger.info(` [ERR] removeNewIndices ${err.message}`))
+    .then(() => logger.info('removeNewIndices... done!\n'));
 } // removeNewIndices
 
 module.exports = {

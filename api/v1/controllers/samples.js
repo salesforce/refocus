@@ -32,7 +32,6 @@ const redisCache = require('../../../cache/redisCache').client.cache;
 const RADIX = 10;
 const COUNT_HEADER_NAME = require('../constants').COUNT_HEADER_NAME;
 const logger = require('@salesforce/refocus-logging-client');
-
 const generators = require('../helpers/nouns/generators');
 
 /**

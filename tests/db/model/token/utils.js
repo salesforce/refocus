@@ -12,6 +12,7 @@
 'use strict';  // eslint-disable-line strict
 
 const tu = require('../../../testUtils');
+const logger = require('@salesforce/refocus-logging-client');
 
 const testStartTime = new Date();
 const pfx = '___';
@@ -63,6 +64,6 @@ module.exports = {
       });
       return tu.db.Token.bulkCreate(toCreate);
     })
-    .catch(console.error);
+    .catch(logger.error);
   },
 };

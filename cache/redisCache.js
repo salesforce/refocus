@@ -14,7 +14,6 @@
 'use strict'; // eslint-disable-line strict
 const redis = require('redis');
 const logger = require('@salesforce/refocus-logging-client');
-
 const rconf = require('../config').redis;
 const featureToggles = require('feature-toggles');
 

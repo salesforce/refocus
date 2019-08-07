@@ -12,7 +12,7 @@
  * API Error Handler
  */
 'use strict';
-
+const logger = require('@salesforce/refocus-logging-client');
 const util = require('util');
 const nodeEnv = require('../../config').nodeEnv;
 const featureToggles = require('feature-toggles');
@@ -31,15 +31,15 @@ function stackTraceFilter(ln) {
 
 /**
  * Display additional details from the request, response and error using
- * console.error. Filters a bunch of node_modules and core node.js lines from
+ * logger.error. Filters a bunch of node_modules and core node.js lines from
  * the stack trace so we can focus on *our* code.
  *
  * @param {Object} req - the request
  * @param {Object} errResponse - the error response
  * @param {Error} - the error
- * @param {Function} outputFn - the output function, defaults to console.error
+ * @param {Function} outputFn - the output function, defaults to logger.error
  */
-function displayErrorDetails(req, errResponse, err, outputFn = console.error) {
+function displayErrorDetails(req, errResponse, err, outputFn = logger.error) {
   outputFn('\n--------- errorHandler ---------');
   outputFn(req.method, req.url, req.body);
   outputFn(errResponse);

@@ -13,6 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
+const logger = require('@salesforce/refocus-logging-client');
 const Sample = require('../db').Sample;
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
@@ -93,7 +94,7 @@ function persist() {
   return storeSampleToDb()
   .catch((err) => {
     // NO-OP
-    console.error(err); // eslint-disable-line no-console
+    logger.error(err); // eslint-disable-line
     Promise.resolve(false);
   });
 } // persist
