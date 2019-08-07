@@ -19,7 +19,6 @@ const featureToggles = require('feature-toggles');
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
 const log = require('@salesforce/refocus-logging-client');
-
 const samstoPersist = require('./sampleStorePersist');
 const constants = samsto.constants;
 const infoLoggingEnabled =
@@ -105,7 +104,7 @@ function eradicate() {
     })
     .catch((err) => {
       // NO-OP
-      logger.error(err); // eslint-disable-line
+      log.error(err); // eslint-disable-line
       Promise.resolve(true);
     }));
   return deletePreviousStatus()
@@ -171,7 +170,7 @@ function populateAspects() {
         return true;
       });
   })
-  .catch(logger.error); // eslint-disable-line 
+  .catch(log.error); // eslint-disable-line 
 } // populateAspects
 
 /**
@@ -209,7 +208,7 @@ function populateSubjects() {
         return true;
       });
   })
-  .catch(logger.error); // eslint-disable-line 
+  .catch(log.error); // eslint-disable-line 
 } // populateSubjects
 
 /**
@@ -305,7 +304,7 @@ function populateSamples() {
         return true;
       });
   })
-  .catch(logger.error); // eslint-disable-line 
+  .catch(log.error); // eslint-disable-line 
 } // populateSamples
 
 /**
@@ -401,7 +400,7 @@ function init() {
   .then((ret) => Promise.resolve(ret))
   .catch((err) => {
     // NO-OP
-    logger.error(err); // eslint-disable-line 
+    log.error(err); // eslint-disable-line 
     Promise.resolve(false);
   });
 } // init
