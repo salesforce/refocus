@@ -26,7 +26,7 @@ utils.doImport()
 .then(() => {
   utils.seq.models.Subject.rebuildHierarchy()
   .then(() => {
-    logger.info('Successfully rebuilt Subject Hierarchy.'); // eslint-disable-line
+    logger.info('Successfully rebuilt Subject Hierarchy.');
     process.exit(0);
   })
   .catch((err) => {

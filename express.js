@@ -118,11 +118,11 @@ if (isDevelopment) {
   app.use(require('webpack-hot-middleware')(compiler));
 
   app.listen(PORT, () => {
-    logger.info(listening, PORT); // eslint-disable-line no-console
+    logger.info(listening, PORT);
   });
 } else {
   httpServer.listen(PORT, () => {
-    logger.info(listening, PORT); // eslint-disable-line no-console
+    logger.info(listening, PORT);
   });
 }
 

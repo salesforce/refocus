@@ -158,7 +158,7 @@ seq.Promise = Sequelize.Promise; // seq v5
  */
 function clog(moduleName, functionName, msg) {
   if (conf.nodeEnv === 'development') {
-    logger.info('[./db/' + // eslint-disable-line
+    logger.info('[./db/' +
       `${moduleName}${functionName ? '.' + functionName : ''}]`,
       msg);
   }

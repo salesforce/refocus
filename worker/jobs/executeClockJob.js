@@ -19,7 +19,7 @@ module.exports = (job, done) => {
   const { reqStartTime, clockJobName } = job.data;
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg = `[KJI] Entered executeClockJob.js (${clockJobName})`;
-    console.log(msg); // eslint-disable-line no-console
+    logger.info(msg);
   }
 
   const jobStartTime = Date.now();

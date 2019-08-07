@@ -149,7 +149,7 @@ function init(io, redisStore) {
             // Retrieve the logging info for this socket.
             redisClient.get(socket.id, (getErr, getResp) => {
               if (getErr) {
-                logger.info('Error ' + // eslint-disable-line
+                logger.info('Error ' +
                   `retrieving socket id ${socket.id} from redis on client ` +
                   'disconnect:', getErr);
               } else { // eslint-disable-line lines-around-comment
@@ -167,11 +167,11 @@ function init(io, redisStore) {
                 // Remove the redis key for this socket.
                 redisClient.del(socket.id, (delErr, delResp) => {
                   if (delErr) {
-                    logger.info('Error ' + // eslint-disable-line
+                    logger.info('Error ' +
                       `deleting socket id ${socket.id} from redis on ` +
                       'client disconnect:', delErr);
                   } else if (delResp !== ONE) {
-                    logger.info('Expecting' + // eslint-disable-line
+                    logger.info('Expecting' +
                       `unique socket id ${socket.id} to delete from redis on ` +
                       `client disconnect, but ${delResp} were deleted.`);
                   }

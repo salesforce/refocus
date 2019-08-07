@@ -18,16 +18,16 @@ const cmd = 'node_modules/.bin/sequelize db:migrate:undo';
 
 module.exports = exec(cmd, (error, stdout, stderr) => {
   // Log the results to the console.
-  logger.info(// eslint-disable-line
+  logger.info(
     '[./db/migrateUndo (stdout)] ' + stdout);
 
   if (stderr) {
-    logger.info(// eslint-disable-line
+    logger.info(
       '[./db/migrateUndo (stderr)] ' + stderr);
   }
 
   if (error !== null) {
-    logger.info('[./db/migrateUndo] ' + // eslint-disable-line
+    logger.info('[./db/migrateUndo] ' +
       error);
     process.exit(-1); // eslint-disable-line
   }

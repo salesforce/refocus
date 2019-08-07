@@ -18,16 +18,16 @@ const cmd = 'node_modules/.bin/sequelize db:migrate';
 
 module.exports = exec(cmd, (error, stdout, stderr) => {
   // Log the results to the console.
-  logger.info('[./db/migrate (stdout)] ' + // eslint-disable-line
+  logger.info('[./db/migrate (stdout)] ' +
     stdout);
 
   if (stderr) {
-    logger.info('[./db/migrate (stderr)] ' + // eslint-disable-line
+    logger.info('[./db/migrate (stderr)] ' +
       stderr);
   }
 
   if (error !== null) {
-    logger.info('[./db/migrate] ' + // eslint-disable-line
+    logger.info('[./db/migrate] ' +
       error);
     process.exit(-1); // eslint-disable-line
   }

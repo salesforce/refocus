@@ -83,12 +83,12 @@ function gracefulShutdown() {
 }
 
 jobQueue.on('error', (err) => {
-  logger.error('Kue Error!', err); // eslint-disable-line
+  logger.error('Kue Error!', err);
 });
 
 if (featureToggles.isFeatureEnabled('instrumentKue')) {
   jobQueue.on('job enqueue', (id, type) => {
-    logger.info('[KJI] enqueued: ' + // eslint-disable-line
+    logger.info('[KJI] enqueued: ' +
       'id=%s type=%s', id, type);
   });
 }
