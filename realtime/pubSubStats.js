@@ -70,7 +70,8 @@ function track(src, evt, obj) {
     nameFromObj = obj.new.name;
     elapsed = now - new Date(obj.new.updatedAt);
   } else {
-    logger.verbose('Where is updatedAt? ' + JSON.stringify(obj));
+    logger.verbose('Where is updatedAt? ' + JSON.stringify(obj) + '\n' +
+      new Error().stack);
   }
 
   if (elapsed > 2000) {

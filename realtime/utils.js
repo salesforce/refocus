@@ -177,7 +177,6 @@ function applyFilter(filterString, objValues = []) {
  *  represented by the nspComponents
  */
 function perspectiveEmit(nspComponents, obj) {
-
   /*
    * Note: I perf tested these individual assignments from the nspComponents
    * array vs. using destructuring assignment, and individual assigments was
@@ -350,7 +349,6 @@ function initializeBotNamespace(inst, io) {
  * @throws {Error} if address is NOT whitelisted
  */
 function isIpWhitelisted(addr, whitelist) {
-
   /*
    * if the whitelist passed is not defined or it is not an array, assume
    * that the ip address is whitelisted
@@ -393,7 +391,7 @@ function attachAspectSubject(sample, subjectModel, aspectModel) {
   // check if sample object contains name
   if (!sample.name || sample.name.indexOf('|') < 0) {
     logger.error('sample object does not contain name', JSON.stringify(sample));
-    logger.verbose('from attachAspectSubject');
+    logger.verbose('from attachAspectSubject' + '\n' + new Error().stack);
     return Promise.resolve(null);
   }
 

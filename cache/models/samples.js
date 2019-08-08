@@ -94,7 +94,7 @@ function parseName(name) {
   }
 
   logger.error(`cache/models/samples.parseName|Invalid sample name "${name}"`);
-  logger.verbose();
+  logger.verbose(new Error().stack);
   throw new redisErrors.ResourceNotFoundError({
     explanation: `Invalid sample name "${name}"`,
   });

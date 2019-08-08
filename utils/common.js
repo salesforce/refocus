@@ -26,10 +26,11 @@ function logInvalidHmsetValues(key, obj) {
     for (const _key in obj) {
       if (_key === null || obj[_key] === null ||
         (obj[_key] === undefined) || Array.isArray(obj[_key])) {
-        // eslint-disable-next-line
-        const stringified = JSON.stringify(obj, (k, v) => v === undefined ? 'undefined' : v);
+        const stringified = JSON.stringify(obj,
+          (k, v) => v === undefined ? 'undefined' : v);
         logger.verbose('Invalid hmset params: key ' + key +
-          ' with invalid field: ' + _key + ', received: ' + stringified);
+          ' with invalid field: ' + _key + ', received: ' + stringified +
+          '\n' + new Error().stack);
         break;
       }
     }

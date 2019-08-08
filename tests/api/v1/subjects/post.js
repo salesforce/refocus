@@ -11,7 +11,6 @@
  */
 'use strict';
 const supertest = require('supertest');
-const logger = require('@salesforce/refocus-logging-client');
 const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
 const tu = require('../../../testUtils');
@@ -611,7 +610,6 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         })
         .end((err /* , res */) => {
           if (err) {
-            logger.info(err);
             return done(err);
           }
 

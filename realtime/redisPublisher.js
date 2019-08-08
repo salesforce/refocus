@@ -51,7 +51,8 @@ function trackStats(key, obj) {
     obj.new.hasOwnProperty('updatedAt')) {
     elapsed = Date.now() - new Date(obj.new.updatedAt);
   } else {
-    logger.verbose('Where is updatedAt? ' + JSON.stringify(obj));
+    logger.verbose('Where is updatedAt? ' + JSON.stringify(obj) + '\n' +
+      new Error().stack);
   }
 
   rcache.hincrbyAsync(pubKeys.count, key, ONE)
