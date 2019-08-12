@@ -205,10 +205,10 @@ describe('tests/api/v1/botActions/get.js >', () => {
     });
   });
 
-  it('Fail, id not found', (done) => {
+  it('Fail, botId required', (done) => {
     api.get(`${path}/INVALID_ID`)
     .set('Authorization', token)
-    .expect(constants.httpStatus.NOT_FOUND)
+    .expect(constants.httpStatus.BAD_REQUEST)
     .end(done);
   });
 });
