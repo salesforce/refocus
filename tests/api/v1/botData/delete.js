@@ -78,24 +78,10 @@ describe('tests/api/v1/botData/delete.js >', () => {
     });
   });
 
-  it('Pass, delete botData by name', (done) => {
-    api.delete(`${path}/${saveBotData.name}`)
-    .set('Authorization', token)
-    .expect(constants.httpStatus.OK)
-    .end((err, res) => {
-      if (err) {
-        return done(err);
-      }
-
-      expect(res.body.name).to.equal(u.name);
-      done(err);
-    });
-  });
-
-  it('Fail, botData not found', (done) => {
+  it('Fail, invalid id', (done) => {
     api.delete(`${path}/INVALID_ID`)
     .set('Authorization', token)
-    .expect(constants.httpStatus.NOT_FOUND)
+    .expect(constants.httpStatus.BAD_REQUEST)
     .end(done);
   });
 });
