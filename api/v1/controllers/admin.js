@@ -52,7 +52,7 @@ module.exports = {
       .then(() => sampleStoreInit.populate())
       .then(() => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        u.logAPI(req, resultObj, {});
+        u.logAPI(req, resultObj, {}, null, httpStatus.NO_CONTENT);
         res.status(httpStatus.NO_CONTENT).json();
       })
       .catch(() => u.forbidden(next));

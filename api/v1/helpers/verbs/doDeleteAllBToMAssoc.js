@@ -36,7 +36,7 @@ function doDeleteAllBToMAssoc(req, res, next, // eslint-disable-line max-params
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     u.deleteAllAssociations(o, [assocName]);
-    u.logAPI(req, resultObj, o.dataValues);
+    u.logAPI(req, resultObj, o.dataValues, null, httpStatus.NO_CONTENT);
     res.status(httpStatus.NO_CONTENT).json();
   })
   .catch((err) => u.handleError(next, err, props.modelName));

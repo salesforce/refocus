@@ -58,7 +58,7 @@ function doDeleteOneBtoMAssoc(req, res, next, // eslint-disable-line max-params
 
       // if assocName is "writers", resolves to modelInst.removeWriters(o)
       modelInst[functionName](o);
-      u.logAPI(req, resultObj, o[0].dataValues);
+      u.logAPI(req, resultObj, o[0].dataValues, null, httpStatus.NO_CONTENT);
       res.status(httpStatus.NO_CONTENT).json();
     }
   })
