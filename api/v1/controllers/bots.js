@@ -158,7 +158,7 @@ module.exports = {
             seqObj.name, req.headers.UserName,
             { IsBot: true });
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          u.logAPI(req, resultObj, o.dataValues);
+          u.logAPI(req, resultObj, o.dataValues, null, httpStatus.CREATED);
           return res.status(httpStatus.CREATED)
             .json(u.responsify(o, helper, req.method));
         })

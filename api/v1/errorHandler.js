@@ -21,6 +21,7 @@ const constants = require('./constants');
 const dbErrors = require('../../db/dbErrors');
 const cacheErrors = require('../../cache/redisErrors');
 const activityLog = require('../../utils/activityLog');
+const u = require('../../utils/apiLog');
 
 function stackTraceFilter(ln) {
   return !ln.includes('/node_modules/') &&
@@ -155,7 +156,6 @@ module.exports = function errorHandler(err, req, res, next) {
       } else if (err.name === 'Unauthorized') {
         // Log and reject
         err.status = constants.httpStatus.UNAUTHORIZED;
-
         if (featureToggles.isFeatureEnabled('enableUnauthorizedActivityLogs')) {
           const logObject = {
             activity: 'unauthorized',
@@ -173,6 +173,12 @@ module.exports = function errorHandler(err, req, res, next) {
       }
     }
 
+    /**
+     * resultObject, retVal,  are not relevant/we dont have access
+     * to the values to an errored request thus they have the values {},
+     * {} and null respectively
+     * */
+    u.logAPI(req, {}, {}, null, err.status);
     if (nodeEnv === 'development') displayErrorDetails(req, errResponse, err);
     res.status(err.status).json(errResponse);
   } catch (err2) {

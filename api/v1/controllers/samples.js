@@ -292,7 +292,7 @@ module.exports = {
     })
     .then(() => {
       if (s.hasOwnProperty('aspect')) delete s.aspect;
-      u.logAPI(req, resultObj, s);
+      u.logAPI(req, resultObj, s, null, httpStatus.CREATED);
       return res.status(httpStatus.CREATED)
         .json(u.responsify(s, helper, req.method));
     })

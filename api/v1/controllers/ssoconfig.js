@@ -199,7 +199,7 @@ module.exports = {
     return helper.model.create(toPost, assocToCreate)
       .then((o) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        u.logAPI(req, resultObj, o.dataValues);
+        u.logAPI(req, resultObj, o.dataValues, null, httpStatus.CREATED);
         res.status(httpStatus.CREATED).json(responsify(o, helper, req.method));
       })
       .catch((err) => u.handleError(next, err, helper.modelName));

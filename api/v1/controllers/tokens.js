@@ -110,7 +110,7 @@ module.exports = {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       const tokenObj = u.responsify(createdToken, helper, req.method);
       tokenObj.token = token;
-      u.logAPI(req, resultObj, tokenObj);
+      u.logAPI(req, resultObj, tokenObj, null, httpStatus.CREATED);
       return res.status(httpStatus.CREATED).json(tokenObj);
     })
     .catch((err) => u.handleError(next, err, helper.modelName));

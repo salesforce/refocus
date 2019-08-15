@@ -70,7 +70,7 @@ module.exports = {
           const userObj = u.responsify(user, helper, req.method);
           userObj.token = tokenToReturn;
           req.session.token = tokenToReturn;
-          u.logAPI(req, resultObj, userObj);
+          u.logAPI(req, resultObj, userObj, null, httpStatus.CREATED);
           return res.status(httpStatus.CREATED).json(userObj);
         }).catch((e) => u.handleError(next, e, helper.modelName));
       });

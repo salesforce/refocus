@@ -14,6 +14,7 @@
 const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('./activityLog');
+const httpStatus = require('../api/v1/constants').httpStatus;
 
 /**
  * Returns the number of characters in the object.
@@ -93,7 +94,7 @@ function combineAndLog(resultObj, logObject, retval, recordCountOverride) {
  * @param {Integer} recordCountOverride - override the
  * default recordCount. optional
  */
-function logAPI(req, resultObj, retval, recordCountOverride) {
+function logAPI(req, resultObj, retval, recordCountOverride, statusCode = httpStatus.OK) {
   if (req && retval &&
     featureToggles.isFeatureEnabled('enableApiActivityLogs')) {
     const obj = retval.get ? retval.get({ plain: true }) : retval;
@@ -105,6 +106,7 @@ function logAPI(req, resultObj, retval, recordCountOverride) {
       process: req.process,
       requestBytes: getSize(req.body),
       uri: req.url,
+      statusCode,
     };
 
     // Add "request_id" if header is available

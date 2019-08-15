@@ -188,7 +188,7 @@ module.exports = {
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.sortArrayObjectsByField(helper, o); // order collectors by name
-      u.logAPI(req, resultObj, o);
+      u.logAPI(req, resultObj, o, null, constants.httpStatus.CREATED);
       res.status(constants.httpStatus.CREATED)
       .json(u.responsify(o, helper, req.method));
     })

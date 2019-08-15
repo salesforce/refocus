@@ -95,7 +95,7 @@ module.exports = {
       .then((o) => o.reload())
       .then((o) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime + 'ms';
-        u.logAPI(req, resultObj, o.dataValues);
+        u.logAPI(req, resultObj, o.dataValues, null, httpStatus.CREATED);
         if (featureToggles.isFeatureEnabled('enableEventActivityLogs')) {
           resultObj.user = req.headers.UserName;
           resultObj.token = req.headers.TokenName;

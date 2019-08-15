@@ -409,7 +409,7 @@ module.exports = {
       .then((o) => {
         delete o.dataValues.library;
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        u.logAPI(req, resultObj, o.dataValues);
+        u.logAPI(req, resultObj, o.dataValues, null, httpStatus.CREATED);
         res.status(httpStatus.CREATED)
           .json(u.responsify(o, helper, req.method));
       })

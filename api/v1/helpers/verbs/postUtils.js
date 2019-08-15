@@ -41,12 +41,12 @@ function handlePostResult(o, resultObj, props, res, req) {
   if (o.get) {
     o.reload(o._modelOptions.defaultScope)
     .then((o) => {
-      logAPI(req, resultObj, o);
+      logAPI(req, resultObj, o, null, constants.httpStatus.CREATED);
       res.status(constants.httpStatus.CREATED)
       .json(u.responsify(o, props, req.method));
     });
   } else {
-    logAPI(req, resultObj, o);
+    logAPI(req, resultObj, o, constants.httpStatus.CREATED);
     res.status(constants.httpStatus.CREATED)
     .json(u.responsify(o, props, req.method));
   }

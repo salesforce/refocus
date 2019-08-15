@@ -44,7 +44,7 @@ function createCollectorGroup(req, res, next) {
   .then((collectorGroup) => {
     const recordCountOverride = null;
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
-    u.logAPI(req, resultObj, collectorGroup, recordCountOverride);
+    u.logAPI(req, resultObj, collectorGroup, recordCountOverride, httpStatus.CREATED);
 
     const response = u.responsify(collectorGroup, helper, req.method);
     res.status(httpStatus.CREATED).json(response);
