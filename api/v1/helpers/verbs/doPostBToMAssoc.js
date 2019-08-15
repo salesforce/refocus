@@ -42,7 +42,7 @@ function doPostBToMAssoc(req, res, next, // eslint-disable-line max-params
   .then((o) => {
     resultObj.dbTime = new Date() - resultObj.reqStartTime;
     const retval = u.responsify(o, props, req.method);
-    u.logAPI(req, resultObj, retval, httpStatus.CREATED);
+    u.logAPI(req, resultObj, retval, null, httpStatus.CREATED);
     res.status(httpStatus.CREATED).json(retval);
   })
   .catch((err) => u.handleError(next, err, props.modelName));

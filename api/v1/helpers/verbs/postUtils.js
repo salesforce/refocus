@@ -46,7 +46,7 @@ function handlePostResult(o, resultObj, props, res, req) {
       .json(u.responsify(o, props, req.method));
     });
   } else {
-    logAPI(req, resultObj, o, constants.httpStatus.CREATED);
+    logAPI(req, resultObj, o, null, constants.httpStatus.CREATED);
     res.status(constants.httpStatus.CREATED)
     .json(u.responsify(o, props, req.method));
   }
