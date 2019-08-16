@@ -22,6 +22,22 @@ const pubSubStats = require('./pubSubStats');
 const ONE = 1;
 
 /**
+ * Sends the published time to the kafka cluster for a given sample updated
+ * @param {Date} startTime - The start time of the publish
+ * @param {Object} sampleInst - The object being published
+ */
+function sendPublishTracking(startTime, sampleInst) {
+  logger.log({
+    publishTime: new Date() - startTime,
+  },
+  'info', 'pubSub-aggregation', {
+    sampleName: sampleInst.name,
+    updatedAt: sampleInst.updatedAt,
+    type: 'publishTime',
+  });
+}
+
+/**
  * Returns a random integer between min (inclusive) and max (inclusive).
  * The value is no lower than min (or the next integer greater than min
  * if min isn't an integer) and no greater than max (or the next integer
@@ -159,7 +175,6 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
       logger.error(err);
     }
   }
-
   return pubClient.publishAsync(channelName, JSON.stringify(obj))
     .then((numClients) => obj);
 } // publishObject
@@ -179,7 +194,10 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
-    return publishSampleNoChange(sampleInst);
+    const startTime = new Date();
+    return publishSampleNoChange(sampleInst).then(() => {
+      sendPublishTracking(startTime, sampleInst);
+    });
   }
 
   const eventType = event || getSampleEventType(sampleInst);
@@ -197,8 +215,12 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     .then((sample) => {
       if (sample) {
         sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
+        const startTime = new Date();
         return publishObject(sample, eventType)
-          .then(() => sample);
+          .then(() => {
+            sendPublishTracking(startTime, sample);
+            return sample;
+          });
       }
     })
     .catch((err) => {

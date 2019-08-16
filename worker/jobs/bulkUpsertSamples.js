@@ -26,6 +26,7 @@ module.exports = (job, done) => {
    * the new ones look like this
    *  {data: {upsertData: [sample1,sample2], user: { name, email, ...}}}
    */
+
   const jobStartTime = Date.now();
   const samples = job.data.length ? job.data : job.data.upsertData;
   const user = job.data.user;
@@ -71,6 +72,14 @@ module.exports = (job, done) => {
         successCount++;
 
         // Wait for publish to complete before resolving the promise.
+        logger.log({
+          queueTime: jobStartTime - reqStartTime,
+        },
+        'info', 'pubSub-aggregation', {
+          sampleName: result.name,
+          updatedAt: result.updatedAt,
+          type: 'queueTime',
+        });
         return publisher.publishSample(result, subHelper.model);
       }));
     })
