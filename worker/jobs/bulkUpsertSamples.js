@@ -16,6 +16,7 @@ const activityLogUtil = require('../../utils/activityLog');
 const cacheSampleModel = require('../../cache/models/samples');
 const publisher = require('../../realtime/redisPublisher');
 const jobLog = require('../jobLog');
+const tracker = require('../../kafkaTracking');
 
 module.exports = (job, done) => {
   /*
@@ -72,14 +73,8 @@ module.exports = (job, done) => {
         successCount++;
 
         // Wait for publish to complete before resolving the promise.
-        logger.log({
-          queueTime: jobStartTime - reqStartTime,
-        },
-        'info', 'pubSub-aggregation', {
-          sampleName: result.name,
-          updatedAt: result.updatedAt,
-          type: 'queueTime',
-        });
+        const queueTime = jobStartTime - reqStartTime;
+        tracker.sendQueueTracking(queueTime, result.name, result.updatedAt);
         return publisher.publishSample(result, subHelper.model);
       }));
     })

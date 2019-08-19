@@ -35,6 +35,7 @@ const sampleNameSeparator = '|';
 const logger = require('@salesforce/refocus-logging-client');
 const featureToggles = require('feature-toggles');
 const config = require('../../config');
+const tracker = require('../../kafkaTracking');
 
 const sampFields = {
   PROVIDER: 'provider',
@@ -287,6 +288,8 @@ function updateSampleAttributes(curr, prev, aspect) {
 
   if (!prev) curr[sampFields.CREATED_AT] = now;
   curr[sampFields.UPD_AT] = now;
+  tracker.sendUpdateReceivedTracking(curr[sampFields.NAME],
+    curr[sampFields.UPD_AT]);
 } // updateSampleAttributes
 
 /**
@@ -1334,7 +1337,6 @@ module.exports = {
        *
        */
       if (hasNameFilterOnly && !opts.filter.name.includes('*')) {
-
         let nameFilterArr = opts.filter.name.split(',').map((item) =>
           item.trim());
         debugfindSamples('Case 2: Name filter only and no wildcards. ' +

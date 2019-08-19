@@ -20,22 +20,7 @@ const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const pubSubStats = require('./pubSubStats');
 const ONE = 1;
-
-/**
- * Sends the published time to the kafka cluster for a given sample updated
- * @param {Date} startTime - The start time of the publish
- * @param {Object} sampleInst - The object being published
- */
-function sendPublishTracking(startTime, sampleInst) {
-  logger.log({
-    publishTime: new Date() - startTime,
-  },
-  'info', 'pubSub-aggregation', {
-    sampleName: sampleInst.name,
-    updatedAt: sampleInst.updatedAt,
-    type: 'publishTime',
-  });
-}
+const tracker = require('../kafkaTracking');
 
 /**
  * Returns a random integer between min (inclusive) and max (inclusive).
@@ -196,7 +181,8 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
   if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
     const startTime = new Date();
     return publishSampleNoChange(sampleInst).then(() => {
-      sendPublishTracking(startTime, sampleInst);
+      tracker.sendPublishTracking(startTime, sampleInst.name,
+        sampleInst.updatedAt);
     });
   }
 
@@ -218,7 +204,8 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
         const startTime = new Date();
         return publishObject(sample, eventType)
           .then(() => {
-            sendPublishTracking(startTime, sample);
+            tracker.sendPublishTracking(startTime, sample.name,
+              sample.updatedAt);
             return sample;
           });
       }
