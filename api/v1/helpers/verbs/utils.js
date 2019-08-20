@@ -23,6 +23,7 @@ const userProps = require('../nouns/users');
 const Op = require('sequelize').Op;
 const md5 = require('md5');
 const ADMIN_OVERRIDE_KEYWORD = 'admin';
+const tracker = require('../../../../kafkaTracking');
 
 /**
  * @param {Object} o Sequelize instance
@@ -100,6 +101,11 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
 
   // publish the update event to the redis channel
   if (props.publishEvents) {
+
+    // Need access to the sample, so we are sending the tracking
+    // message here instead of beginning of function
+    tracker.sendUpdateReceivedTracking(returnObj.name,
+      returnObj.updatedAt, req.timestamp);
     publisher.publishSample(returnObj, props.associatedModels.subject,
       realtimeEvents.sample.upd);
   }

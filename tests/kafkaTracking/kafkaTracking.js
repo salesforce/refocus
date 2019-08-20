@@ -19,38 +19,32 @@ describe('tests/kafkaTracking/kafkaTracking.js >', () => {
   it('sendUpdateReceivedTracking calls logger.log with write arguments', () => {
     const updatedAt = new Date().toISOString();
     const loggerStub = sinon.stub(logger, 'log');
-    tracker.sendUpdateReceivedTracking('testSample', updatedAt);
-    const args = loggerStub.getCall(0).args;
-    expect(args[0].type).to.equal(tracker.MESSAGE_TYPES.RECEIVED);
-    expect(args[0].updateReceivedAt instanceof Date).to.equal(true);
-    expect(args[1]).to.equal('info');
-    expect(args[2]).to.equal(tracker.AGGR_TOPIC);
-    expect(args[3].sampleName).to.equal('testSample');
-    expect(args[3].updatedAt).to.equal(updatedAt);
-    loggerStub.restore();
-  });
+    const now = Date.now();
+    tracker.sendUpdateReceivedTracking('testSample', updatedAt, now);
 
-  it('sendQueueTracking calls logger.log with write arguments', () => {
-    const updatedAt = new Date().toISOString();
-    const loggerStub = sinon.stub(logger, 'log');
-    const num = 5;
-    tracker.sendQueueTracking(num, 'testSample', updatedAt);
-    const args = loggerStub.getCall(0).args;
-    expect(args[0].jobStartTime instanceof ).to.equal(num);
-    expect(args[0].type).to.equal(tracker.MESSAGE_TYPES.QUEUE_TIME);
-    expect(args[1]).to.equal('info');
-    expect(args[2]).to.equal(tracker.AGGR_TOPIC);
-    expect(args[3].sampleName).to.equal('testSample');
-    expect(args[3].updatedAt).to.equal(updatedAt);
+    const firstCall = loggerStub.getCall(0).args;
+    expect(firstCall[0].type).to.equal(tracker.MESSAGE_TYPES.RECEIVED);
+    expect(firstCall[0].reqStartTime).to.equal(now);
+    expect(firstCall[0].jobStartTime).to.equal(now);
+    expect(firstCall[1]).to.equal('info');
+    expect(firstCall[2]).to.equal(tracker.AGGR_TOPIC);
+    expect(firstCall[3].sampleName).to.equal('testSample');
+    expect(firstCall[3].updatedAt).to.equal(updatedAt);
+
+    const now2 = Date.now();
+    tracker.sendUpdateReceivedTracking('testSample', updatedAt, now, now2);
+    const secondCall = loggerStub.getCall(1).args;
+    expect(secondCall[0].reqStartTime).to.equal(now);
+    expect(secondCall[0].jobStartTime).to.equal(now2);
     loggerStub.restore();
   });
 
   it('sendPublishTracking calls logger.log with write arguments', () => {
     const updatedAt = new Date().toISOString();
     const loggerStub = sinon.stub(logger, 'log');
-    tracker.sendPublishTracking(new Date(), 'testSample', updatedAt);
+    tracker.sendPublishTracking('testSample', updatedAt);
     const args = loggerStub.getCall(0).args;
-    expect(args[0].publishTime).to.be.an('number');
+    expect(args[0].publishCompletedAt).to.be.an('number');
     expect(args[0].type).to.equal(tracker.MESSAGE_TYPES.PUBLISH_TIME);
     expect(args[1]).to.equal('info');
     expect(args[2]).to.equal(tracker.AGGR_TOPIC);
@@ -59,27 +53,45 @@ describe('tests/kafkaTracking/kafkaTracking.js >', () => {
     loggerStub.restore();
   });
 
-  it('Throws error for invalid args', () => {
+  it('sendUpdateReceivedTracking throws error for invalid args', () => {
     const spy = sinon.spy();
     try {
-      tracker.sendUpdateReceivedTracking();
+      tracker.sendUpdateReceivedTracking('foo', new Date().toISOString(), null);
     } catch (e) {
       spy();
     }
 
     try {
-      tracker.sendQueueTracking();
+      tracker.sendUpdateReceivedTracking(null,
+        new Date().toISOString(), Date.now());
     } catch (e) {
       spy();
     }
 
     try {
-      tracker.sendPublishTracking();
+      tracker.sendUpdateReceivedTracking('foo', null, Date.now());
     } catch (e) {
       spy();
     }
 
     expect(spy.calledThrice).to.equal(true);
+  });
+
+  it('sendUpdateReceivedTracking throws error for invalid args', () => {
+    const spy = sinon.spy();
+    try {
+      tracker.sendPublishTracking('foo');
+    } catch (e) {
+      spy();
+    }
+
+    try {
+      tracker.sendPublishTracking(null, new Date().toISOString());
+    } catch (e) {
+      spy();
+    }
+
+    expect(spy.calledTwice).to.equal(true);
   });
 });
 

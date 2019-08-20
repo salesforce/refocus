@@ -73,9 +73,12 @@ module.exports = (job, done) => {
 
         successCount++;
 
+        // Need access to the sample, so we are sending the tracking
+        // message here instead of beginning of function
+        tracker.sendUpdateReceivedTracking(result.name,
+          result.updatedAt, reqStartTime, jobStartTime);
+
         // Wait for publish to complete before resolving the promise.
-        tracker.sendQueueTracking(jobStartTime, reqStartTime, result.name,
-          result.updatedAt);
         return publisher.publishSample(result, subHelper.model);
       }));
     })
