@@ -22,6 +22,7 @@ describe('tests/kafkaTracking/kafkaTracking.js >', () => {
     tracker.sendUpdateReceivedTracking('testSample', updatedAt);
     const args = loggerStub.getCall(0).args;
     expect(args[0].type).to.equal(tracker.MESSAGE_TYPES.RECEIVED);
+    expect(args[0].updateReceivedAt instanceof Date).to.equal(true);
     expect(args[1]).to.equal('info');
     expect(args[2]).to.equal(tracker.AGGR_TOPIC);
     expect(args[3].sampleName).to.equal('testSample');
@@ -35,7 +36,7 @@ describe('tests/kafkaTracking/kafkaTracking.js >', () => {
     const num = 5;
     tracker.sendQueueTracking(num, 'testSample', updatedAt);
     const args = loggerStub.getCall(0).args;
-    expect(args[0].queueTime).to.equal(num);
+    expect(args[0].jobStartTime instanceof ).to.equal(num);
     expect(args[0].type).to.equal(tracker.MESSAGE_TYPES.QUEUE_TIME);
     expect(args[1]).to.equal('info');
     expect(args[2]).to.equal(tracker.AGGR_TOPIC);

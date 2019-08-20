@@ -135,6 +135,7 @@ module.exports = {
    */
   deleteSample(req, res, next) {
     doDelete(req, res, next, helper)
+    // add request start time
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
         res.status(httpStatus.OK).json(res.locals.retVal);
@@ -287,6 +288,7 @@ module.exports = {
     .then((sample) => {
       s = sample;
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      // 
       return publisher.publishSample(sample, helper.associatedModels.subject,
         realtimeEvents.sample.add, helper.associatedModels.aspect);
     })

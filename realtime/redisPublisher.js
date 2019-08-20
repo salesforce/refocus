@@ -179,9 +179,8 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
-    const startTime = new Date();
     return publishSampleNoChange(sampleInst).then(() => {
-      tracker.sendPublishTracking(startTime, sampleInst.name,
+      tracker.sendPublishTracking(sampleInst.name,
         sampleInst.updatedAt);
     });
   }
@@ -201,10 +200,9 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
     .then((sample) => {
       if (sample) {
         sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
-        const startTime = new Date();
         return publishObject(sample, eventType)
           .then(() => {
-            tracker.sendPublishTracking(startTime, sample.name,
+            tracker.sendPublishTracking(sample.name,
               sample.updatedAt);
             return sample;
           });

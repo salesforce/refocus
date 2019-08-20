@@ -32,6 +32,7 @@ module.exports = (job, done) => {
   const samples = job.data.length ? job.data : job.data.upsertData;
   const user = job.data.user;
   const reqStartTime = job.data.reqStartTime;
+  // samples.map... then send message
   const readOnlyFields = job.data.readOnlyFields;
   const errors = [];
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
@@ -73,8 +74,8 @@ module.exports = (job, done) => {
         successCount++;
 
         // Wait for publish to complete before resolving the promise.
-        const queueTime = jobStartTime - reqStartTime;
-        tracker.sendQueueTracking(queueTime, result.name, result.updatedAt);
+        tracker.sendQueueTracking(jobStartTime, reqStartTime, result.name,
+          result.updatedAt);
         return publisher.publishSample(result, subHelper.model);
       }));
     })

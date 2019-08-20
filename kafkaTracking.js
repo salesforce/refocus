@@ -22,19 +22,17 @@ const MESSAGE_TYPES = {
 /**
  * Send a message (to the kafka-cluster) containing the time it took
  * for a particular publish to happen to the redis instances
- * @param  {Date}  startTime - The time publish began
  * @param  {String} sampleName - The sample name
  * @param {String} updatedAt - The time ((Date.toISOString)) sample was updated at
  */
-const sendPublishTracking = (startTime, sampleName, updatedAt) => {
-  if (!(startTime instanceof Date) || typeof sampleName !== 'string' ||
-    typeof updatedAt !== 'string') {
+const sendPublishTracking = (sampleName, updatedAt) => {
+  if (typeof sampleName !== 'string' || typeof updatedAt !== 'string') {
     throw new Error('Invalid args');
   }
 
   logger.log({
-    publishTime: new Date() - startTime,
     type: MESSAGE_TYPES.PUBLISH_TIME,
+    publishCompletedAt: Date.now(),
   },
   'info', AGGR_TOPIC, {
     sampleName,
@@ -54,6 +52,7 @@ const sendUpdateReceivedTracking = (sampleName, updatedAt) => {
 
   logger.log({
     type: MESSAGE_TYPES.RECEIVED,
+    updatedReceivedAt: Date.now(),
   }, 'info', AGGR_TOPIC, {
     sampleName,
     updatedAt,
@@ -63,11 +62,13 @@ const sendUpdateReceivedTracking = (sampleName, updatedAt) => {
 /**
  * Send a message (to the kafka-cluster) containing the time it took
  * for a particular publish to happen to the redis instances
- * @param  {number}  queueTime - The time publish began
+ * @param {number}  jobStartTime - The time was dequed (unix timestamp)
+ * @param {number} reqStartTime - The time request was received (unix timestamp)
  * @param  {String} sampleName - The sample name
  * @param {String} updatedAt - The time (Date.toISOString) sample was updated at
  */
-const sendQueueTracking = (queueTime, sampleName, updatedAt) => {
+const sendQueueTracking = (reqStartTime, jobStartTime,
+  sampleName, updatedAt) => {
   if (typeof queueTime !== 'number' || typeof sampleName !== 'string' ||
     typeof updatedAt !== 'string') {
     throw new Error('Invalid args');
@@ -75,7 +76,8 @@ const sendQueueTracking = (queueTime, sampleName, updatedAt) => {
 
   logger.log({
     type: MESSAGE_TYPES.QUEUE_TIME,
-    queueTime,
+    jobStartTime,
+    reqStartTime,
   }, 'info', AGGR_TOPIC, {
     sampleName,
     updatedAt,
