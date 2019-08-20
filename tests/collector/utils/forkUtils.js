@@ -10,7 +10,6 @@
  * tests/collector/utils.js
  */
 'use strict'; // eslint-disable-line strict
-const logger = require('@salesforce/refocus-logging-client');
 const expect = require('chai').expect;
 const sinon = require('sinon');
 const Promise = require('bluebird');
@@ -92,8 +91,8 @@ function doFork(args) {
   };
   const forkPath = require.resolve('./runCollector');
   const subprocess = fork(forkPath, args, opts);
-  subprocess.stdout.on('data', (data) => logger.info(data.toString()));
-  subprocess.stderr.on('data', (data) => logger.error(data.toString()));
+  subprocess.stdout.on('data', (data) => console.log(data.toString()));
+  subprocess.stderr.on('data', (data) => console.error(data.toString()));
   return subprocess;
 }
 
