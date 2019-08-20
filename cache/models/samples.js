@@ -288,8 +288,6 @@ function updateSampleAttributes(curr, prev, aspect) {
 
   if (!prev) curr[sampFields.CREATED_AT] = now;
   curr[sampFields.UPD_AT] = now;
-  tracker.sendUpdateReceivedTracking(new Date(), curr[sampFields.NAME],
-    curr[sampFields.UPD_AT]);
 } // updateSampleAttributes
 
 /**
