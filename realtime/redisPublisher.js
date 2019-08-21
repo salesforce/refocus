@@ -160,6 +160,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
       logger.error(err);
     }
   }
+
   return pubClient.publishAsync(channelName, JSON.stringify(obj))
     .then((numClients) => obj);
 } // publishObject

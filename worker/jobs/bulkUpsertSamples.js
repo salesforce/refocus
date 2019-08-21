@@ -32,7 +32,6 @@ module.exports = (job, done) => {
   const samples = job.data.length ? job.data : job.data.upsertData;
   const user = job.data.user;
   const reqStartTime = job.data.reqStartTime;
-  // samples.map... then send message
   const readOnlyFields = job.data.readOnlyFields;
   const errors = [];
   if (featureToggles.isFeatureEnabled('instrumentKue')) {

@@ -136,7 +136,6 @@ module.exports = {
    */
   deleteSample(req, res, next) {
     doDelete(req, res, next, helper)
-    // add request start time
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
         res.status(httpStatus.OK).json(res.locals.retVal);
