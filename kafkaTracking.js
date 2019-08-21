@@ -29,7 +29,7 @@ const sendPublishTracking = (sampleName, updatedAt) => {
     throw new Error('Invalid args');
   }
 
-  logger.log({
+  logger.track({
     type: MESSAGE_TYPES.PUBLISH_TIME,
     publishCompletedAt: Date.now(),
   },
@@ -51,7 +51,7 @@ const sendUpdateReceivedTracking = (sampleName, updatedAt,
     throw new Error('Invalid args');
   }
 
-  logger.log({
+  logger.track({
     type: MESSAGE_TYPES.RECEIVED,
     reqStartTime,
     jobStartTime: jobStartTime ? jobStartTime : reqStartTime,

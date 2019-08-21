@@ -18,7 +18,7 @@ const sinon = require('sinon');
 describe('tests/kafkaTracking/kafkaTracking.js >', () => {
   it('sendUpdateReceivedTracking calls logger.log with write arguments', () => {
     const updatedAt = new Date().toISOString();
-    const loggerStub = sinon.stub(logger, 'log');
+    const loggerStub = sinon.stub(logger, 'track');
     const now = Date.now();
     tracker.sendUpdateReceivedTracking('testSample', updatedAt, now);
 
@@ -41,7 +41,7 @@ describe('tests/kafkaTracking/kafkaTracking.js >', () => {
 
   it('sendPublishTracking calls logger.log with write arguments', () => {
     const updatedAt = new Date().toISOString();
-    const loggerStub = sinon.stub(logger, 'log');
+    const loggerStub = sinon.stub(logger, 'track');
     tracker.sendPublishTracking('testSample', updatedAt);
     const args = loggerStub.getCall(0).args;
     expect(args[0].publishCompletedAt).to.be.an('number');
