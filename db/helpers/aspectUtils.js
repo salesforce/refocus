@@ -159,8 +159,6 @@ function removeAspectRelatedSamples(aspect, seq) {
         if (sample) {
           sample.aspect = aspect;
           sample.updatedAt = now;
-          tracker.sendUpdateReceivedTracking(sample.name, sample.updatedAt,
-            Date.now());
           promises.push(publishSample(sample, seq.models.Subject, sampleEvent.del,
             seq.models.Aspect));
         }
