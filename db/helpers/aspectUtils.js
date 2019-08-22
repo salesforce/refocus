@@ -225,21 +225,20 @@ function validateRange(statusRange, aspValueType) {
 function validateAspectStatusRanges(inst) {
   const aspStatusRanges = [
     inst.criticalRange, inst.warningRange, inst.infoRange, inst.okRange,
-  ];
+  ].filter(x => x);
 
   // Boolean value type allows only 2 different status ranges: [0,0] or [1,1]
   if (inst.valueType === aspValueTypes.boolean) {
-    const definedBoolRanges = aspStatusRanges.filter((ar) => ar);
-    if (definedBoolRanges.length > 2) {
+    if (aspStatusRanges.length > 2) {
       throw new dbErrors.InvalidAspectStatusRange({
         message: 'More than 2 status ranges cannot be assigned for value ' +
         'type: BOOLEAN',
       });
     }
 
-    if (definedBoolRanges.length === 2 &&
-      definedBoolRanges[0][0] === definedBoolRanges[1][0] &&
-      definedBoolRanges[0][1] === definedBoolRanges[1][1]) {
+    if (aspStatusRanges.length === 2 &&
+      aspStatusRanges[0][0] === aspStatusRanges[1][0] &&
+      aspStatusRanges[0][1] === aspStatusRanges[1][1]) {
       throw new dbErrors.InvalidAspectStatusRange({
         message: 'Same value range to multiple statuses is not allowed for ' +
         'value type: BOOLEAN',
@@ -250,6 +249,19 @@ function validateAspectStatusRanges(inst) {
   aspStatusRanges.forEach((aspRange) => {
     validateRange(aspRange, inst.valueType);
   });
+
+  const byMin = [...aspStatusRanges].sort((a, b) =>
+    a[0] === b[0] ? a[1] > b[1] : a[0] > b[0]
+  );
+  const byMinFlat = byMin.reduce((allVals, range) => [...allVals, ...range], []);
+  const flatSorted = [...byMinFlat].sort((a, b) => a > b);
+  const overlapping = !flatSorted.every((val, i) => val === byMinFlat[i]);
+
+  if (overlapping) {
+    throw new dbErrors.InvalidAspectStatusRange({
+      message: 'Ranges cannot overlap.',
+    });
+  }
 }
 
 module.exports = {

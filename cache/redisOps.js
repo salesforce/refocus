@@ -11,16 +11,25 @@
  */
 'use strict'; // eslint-disable-line strict
 
+const Promise = require('bluebird');
 const redisStore = require('./sampleStore');
 const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
 const redisClient = require('./redisCache').client.sampleStore;
 const rsConstant = redisStore.constants;
-const subjectType = redisStore.constants.objectType.subject;
-const subAspMapType = redisStore.constants.objectType.subAspMap;
-const aspSubMapType = redisStore.constants.objectType.aspSubMap;
-const aspectType = redisStore.constants.objectType.aspect;
-const sampleType = redisStore.constants.objectType.sample;
-const status = require('../db/constants').statuses;
+const keyType = redisStore.constants.objectType;
+const subjectType = keyType.subject;
+const subAspMapType = keyType.subAspMap;
+const aspSubMapType = keyType.aspSubMap;
+const aspectType = keyType.aspect;
+const sampleType = keyType.sample;
+const Status = require('../db/constants').statuses;
+
+const rangeNameToStatus = {
+  criticalRange: 'Critical',
+  warningRange: 'Warning',
+  infoRange: 'Info',
+  okRange: 'OK',
+};
 
 /**
  * Capitalize the first letter of the string and returns the modified string.
@@ -536,42 +545,243 @@ module.exports = {
     .then((results) => Promise.resolve(results[0]));
   },
 
-  // TODO: figure out how to batch all three of these together
   /**
+   * Setup writers, tags, and ranges for this aspect.
    *
-   * @param  {Object} aspect - aspect object
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  setupKeysForAspect(aspect) {
+    return Promise.join(
+      module.exports.setTags(aspect),
+      module.exports.setWriters(aspect),
+      module.exports.setRanges(aspect),
+    );
+  },
+
+  /**
+   * Remove writers, tags, and ranges for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  removeKeysForAspect(aspect) {
+    return Promise.join(
+      module.exports.removeTags(aspect),
+      module.exports.removeWriters(aspect),
+      module.exports.removeRanges(aspect),
+    );
+  },
+
+  /**
+   * Reset tags keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  resetTags(aspect) {
+    return Promise.join(
+      module.exports.removeTags(aspect),
+      module.exports.setTags(aspect),
+    );
+  }, // resetTags
+
+  /**
+   * Reset writers keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  resetWriters(aspect) {
+    return Promise.join(
+      module.exports.removeWriters(aspect),
+      module.exports.setWriters(aspect),
+    );
+  }, // resetWriters
+
+  /**
+   * Reset ranges keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  resetRanges(aspect) {
+    return Promise.join(
+      module.exports.removeRanges(aspect),
+      module.exports.setRanges(aspect),
+    );
+  }, // resetRanges
+
+  /**
+   * Remove tags keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  removeTags(aspect) {
+    const key = redisStore.toKey(keyType.aspTags, aspect.name);
+    return redisClient.delAsync(key);
+  }, // removeTags
+
+  /**
+   * Remove writers keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  removeWriters(aspect) {
+    const key = redisStore.toKey(keyType.aspWriters, aspect.name);
+    return redisClient.delAsync(key);
+  }, // removeWriters
+
+  /**
+   * Remove ranges keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  removeRanges(aspect) {
+    const key = redisStore.toKey(keyType.aspRanges, aspect.name);
+    return redisClient.delAsync(key);
+  }, // removeRanges
+
+  /**
+   * Get tags keys for this aspect
+   *
+   * @param  {Object} aspect
+   * @returns {Promise<Array>}
+   */
+  getTags(aspect) {
+    const key = redisStore.toKey(keyType.aspTags, aspect.name);
+    return redisClient.smembersAsync(key);
+  },
+
+  /**
+   * Get writers keys for this aspect
+   *
+   * @param  {Object} aspect
+   * @returns {Promise<Array>}
+   */
+  getWriters(aspect) {
+    const key = redisStore.toKey(keyType.aspWriters, aspect.name);
+    return redisClient.smembersAsync(key);
+  },
+
+  /**
+   * Get ranges keys for this aspect
+   *
+   * @param  {Object} aspect
+   * @returns {Promise<Array>}
+   */
+  getRanges(aspect) {
+    const key = redisStore.toKey(keyType.aspRanges, aspect.name);
+    return redisClient.zrangeAsync(key, 0, -1, 'WITHSCORES');
+  },
+
+  /**
+   * Get ranges keys for this aspect
+   *
+   * @param  {Object} aspect
+   * @returns {Promise<Object>}
+   */
+  getTagsWritersRanges(aspect) {
+    return Promise.join(
+      module.exports.getTags(aspect),
+      module.exports.getWriters(aspect),
+      module.exports.getRanges(aspect),
+    )
+    .then(([tags, writers, ranges]) => ({ tags, writers, ranges }));
+  },
+
+  /**
+   * Set tags keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  setTags(aspect) {
+    const key = redisStore.toKey(keyType.aspTags, aspect.name);
+    if (aspect.tags && aspect.tags.length) {
+      return redisClient.saddAsync(key, aspect.tags);
+    }
+  }, // setTags
+
+  /**
+   * Set writers keys for this aspect.
+   *
+   * @param  {Object} aspect
    * @returns {Promise}
    */
   setWriters(aspect) {
-    const nameKey = `samsto:aspectWriters:${aspect.name}`
-    if (aspect.writers && aspect.writers.length) {
-      const writerNames = aspect.writers && aspect.writers.map(w => w.name);
-      return redisClient.saddAsync(nameKey, writerNames)
+    const key = redisStore.toKey(keyType.aspWriters, aspect.name);
+    const writerNames = aspect.writers && aspect.writers.map(w => w.name);
+
+    if (writerNames && writerNames.length) {
+      return redisClient.saddAsync(key, writerNames);
     }
   }, // setWriters
 
   /**
+   * Set ranges keys for this aspect.
    *
-   * @param  {Object} aspect - aspect object
+   * @param  {Object} aspect
    * @returns {Promise}
    */
   setRanges(aspect) {
-    const nameKey = `samsto:aspectRanges:${aspect.name}`
-    const batch = redisClient.batch();
-    aspect.criticalRange && batch.zadd(nameKey, aspect.criticalRange[0], '1_Critical:0');
-    aspect.criticalRange && batch.zadd(nameKey, aspect.criticalRange[1], '1_Critical:1');
-    aspect.warningRange && batch.zadd(nameKey, aspect.warningRange[0], '2_Warning:0');
-    aspect.warningRange && batch.zadd(nameKey, aspect.warningRange[1], '2_Warning:1');
-    aspect.infoRange && batch.zadd(nameKey, aspect.infoRange[0], '3_Info:0');
-    aspect.infoRange && batch.zadd(nameKey, aspect.infoRange[1], '3_Info:1');
-    aspect.okRange && batch.zadd(nameKey, aspect.okRange[0], '4_OK:0');
-    aspect.okRange && batch.zadd(nameKey, aspect.okRange[1], '4_OK:1');
-    return batch.execAsync();
+    const key = redisStore.toKey(keyType.aspRanges, aspect.name);
+    const ranges = {
+      Critical: aspect.criticalRange,
+      Warning: aspect.warningRange,
+      Info: aspect.infoRange,
+      OK: aspect.okRange,
+    };
+
+    return Object.entries(ranges)
+    .filter(([status, range]) => range)
+    .reduce((batch, [status, [min, max]]) => {
+      const [minKey, maxKey] = module.exports.getRangesKeys(status, [min, max]);
+      return batch
+      .zadd(key, min, minKey)
+      .zadd(key, max, maxKey)
+    }, redisClient.batch())
+    .execAsync();
   }, // setRanges
 
+  getRangesKeys(status, range) {
+    const [min, max] = range;
+
+    const precedence = {};
+    if (min === max) { // make sure min is first for flat ranges
+      precedence.min = 1;
+      precedence.max = 2;
+    } else { // ties go to the lower range
+      precedence.max = 0;
+      precedence.min = 3;
+    }
+
+    const minKey = getRangeKey({ type: 'min', status, precedence });
+    const maxKey = getRangeKey({ type: 'max', status, precedence });
+    return [minKey, maxKey];
+
+    function getRangeKey({ type, precedence, status }) {
+      return `${precedence[type]}:${type}:${status}`;
+    }
+  },
+
+  parseRange([key, score]) {
+    if (key) {
+      score = Number(score);
+      let [precedence, rangeType, status] = key.split(':');
+      return { score, precedence, rangeType, status };
+    } else {
+      return {};
+    }
+  },
+
   /**
+   * Calculate the sample status based on the ranges set for this sample's aspect.
    *
-   * @param  {Object} sample - aspect object
+   * @param  {Object} sample
    * @returns {Promise}
    */
   calculateSampleStatus(sample) {
@@ -580,12 +790,12 @@ module.exports = {
 
     // Invalid if value is not a non-empty string!
     if (typeof value !== 'string' || value.length === 0) {
-      return Promise.resolve(status.Invalid)
+      return Promise.resolve(Status.Invalid)
     }
 
     // "Timeout" special case
-    if (value === status.Timeout) {
-      return Promise.resolve(status.Timeout);
+    if (value === Status.Timeout) {
+      return Promise.resolve(Status.Timeout);
     }
 
     let num;
@@ -602,40 +812,23 @@ module.exports = {
 
     // If not true|false|Timeout, then value must be convertible to number!
     if (isNaN(num)) {
-      return Promise.resolve(status.Invalid);
+      return Promise.resolve(Status.Invalid);
     }
 
     // Set status based on ranges
-    const key = `samsto:aspectRanges:${aspName}`;
+    const key = redisStore.toKey(keyType.aspRanges, aspName);
     return redisClient.zrangebyscoreAsync(key, num, '+inf', 'WITHSCORES', 'LIMIT', 0, 1)
-           .then(([rangeName, score]) => {
-             score = Number(score);
-             if (rangeName) {
-               let [status, rangeType] = rangeName.split(':');
-               status = status.split('_')[1];
-               if (rangeType === '1') { // max
-                 return status;
-               } else if (rangeType === '0' && num === score) { // min
-                 return status;
-               }
-             }
+    .then((result) => {
+      const { score, rangeType, status } = module.exports.parseRange(result);
+      if (rangeType === 'max') {
+        return status;
+      } else if (rangeType === 'min' && num === score) {
+        return status;
+      }
 
-             return status.Invalid;
-           })
+      return Status.Invalid;
+    })
   }, // calculateSampleStatus
-
-  /**
-   *
-   * @param  {Object} aspect - aspect object
-   * @returns {Promise}
-   */
-  setTags(aspect) {
-    const nameKey = `samsto:aspectTags:${aspect.name}`
-    if (aspect.tags && aspect.tags.length) {
-      return redisClient.saddAsync(nameKey, aspect.tags)
-    }
-  }, // setTags
-
 
   renameKey,
 
