@@ -9,6 +9,7 @@
 /**
  * /kafkaTracking.js
  */
+/* eslint-disable func-style*/
 const logger = require('@salesforce/refocus-logging-client');
 
 const AGGR_TOPIC = 'pubSub-aggregation';

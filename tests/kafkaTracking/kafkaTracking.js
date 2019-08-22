@@ -60,13 +60,15 @@ describe('tests/kafkaTracking/kafkaTracking.js >', () => {
         new Date().toISOString(), Date.now());
     tracker.sendUpdateReceivedTracking('foo', null, Date.now());
     expect(errorSpy.calledThrice).to.equal(true);
+    errorSpy.restore();
   });
 
-  it('sendUpdateReceivedTracking throws error for invalid args', () => {
-    const errorSpy = sinon.spy();
+  it('sendPublishTracking throws error for invalid args', () => {
+    const errorSpy = sinon.spy(logger, 'error');
     tracker.sendPublishTracking('foo');
     tracker.sendPublishTracking(null, new Date().toISOString());
     expect(errorSpy.calledTwice).to.equal(true);
+    errorSpy.restore();
   });
 });
 
