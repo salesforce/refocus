@@ -335,6 +335,10 @@ module.exports = {
   pubSubStatsLoggingInterval,
   queueTime95thMillis: pe.QUEUESTATS_95TH_WARNING_MILLIS,
   readReplicas,
+  refocusRoomsFeedback: {
+    chatter: pe.REFOCUS_ROOMS_CHATTER_URL || null,
+    email: pe.REFOCUS_ROOMS_CONTACT_EMAIL || null,
+  },
   waitingSigKillTimeout,
   findSamplesSscanCount: pe.FIND_SAMPLES_SSCAN_COUNT_STR ||
     DEFAULT_FIND_SAMPLES_SSCAN_COUNT_STR,

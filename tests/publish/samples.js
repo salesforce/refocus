@@ -140,28 +140,37 @@ describe('tests/publish/samples.js >', () => {
           }
 
           expect(subscribeTracker).to.have.length(4);
+          let sampDelEvent = null;
+          let aspDelEvent = null;
+          let aspAddEvent = null;
+          let sampAddEvent = null;
+          subscribeTracker.forEach((e) => {
+            const event = JSON.parse(e);
+            if (event.hasOwnProperty(sampleEvents.del)) {
+              sampDelEvent = event;
+            } else if (event.hasOwnProperty(aspectEvents.del)) {
+              aspDelEvent = event;
+            } else if (event.hasOwnProperty(aspectEvents.add)) {
+              aspAddEvent = event;
+              expect(aspDelEvent).to.not.be.null;
+            } else if (event.hasOwnProperty(sampleEvents.add)) {
+              sampAddEvent = event;
+              expect(sampDelEvent).to.not.be.null;
+            }
+          });
 
-          const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(sampleEvents.del);
-          const s0Body = s0[sampleEvents.del];
-          expect(s0Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
-            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
-            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
-            'absolutePath');
-
-          const s1 = JSON.parse(subscribeTracker[1]);
-          expect(s1).to.have.property(aspectEvents.del);
-
-          const s2 = JSON.parse(subscribeTracker[2]);
-          expect(s2).to.have.property(aspectEvents.add);
-
-          const s3 = JSON.parse(subscribeTracker[3]);
-          expect(s3).to.have.property(sampleEvents.add);
-          const s3Body = s3[sampleEvents.add];
-          expect(s3Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
-            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
-            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
-            'absolutePath');
+          expect(aspDelEvent).to.not.be.null;
+          expect(aspAddEvent).to.not.be.null;
+          const sampDelBody = sampDelEvent[sampleEvents.del];
+          expect(sampDelBody).to.include.keys('createdAt', 'subjectId',
+            'aspectId', 'user', 'status', 'name', 'relatedLinks', 'provider',
+            'updatedAt', 'previousStatus', 'statusChangedAt', 'aspect',
+            'subject', 'absolutePath');
+          const sampAddBody = sampAddEvent[sampleEvents.add];
+          expect(sampAddBody).to.include.keys('createdAt', 'subjectId',
+            'aspectId', 'user', 'status', 'name', 'relatedLinks', 'provider',
+            'updatedAt', 'previousStatus', 'statusChangedAt', 'aspect',
+            'subject', 'absolutePath');
           done();
         });
     });
@@ -496,7 +505,7 @@ describe('tests/publish/samples.js >', () => {
       .then(() => upsertSample(`${tu.namePrefix}S8|${tu.namePrefix}A8`, token))
       .then((samp) => {
         mockUpdatedAt = new Date(samp.body.updatedAt);
-        mockUpdatedAt.setMinutes(mockUpdatedAt.getMinutes() + 10);
+        mockUpdatedAt.setMinutes(mockUpdatedAt.getMinutes() + 20);
       })
       .then(() => (subscribeTracker = [])));
 
