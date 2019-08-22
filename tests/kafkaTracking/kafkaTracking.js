@@ -54,44 +54,19 @@ describe('tests/kafkaTracking/kafkaTracking.js >', () => {
   });
 
   it('sendUpdateReceivedTracking throws error for invalid args', () => {
-    const spy = sinon.spy();
-    try {
-      tracker.sendUpdateReceivedTracking('foo', new Date().toISOString(), null);
-    } catch (e) {
-      spy();
-    }
-
-    try {
-      tracker.sendUpdateReceivedTracking(null,
+    const errorSpy = sinon.spy(logger, 'error');
+    tracker.sendUpdateReceivedTracking('foo', new Date().toISOString(), null);
+    tracker.sendUpdateReceivedTracking(null,
         new Date().toISOString(), Date.now());
-    } catch (e) {
-      spy();
-    }
-
-    try {
-      tracker.sendUpdateReceivedTracking('foo', null, Date.now());
-    } catch (e) {
-      spy();
-    }
-
-    expect(spy.calledThrice).to.equal(true);
+    tracker.sendUpdateReceivedTracking('foo', null, Date.now());
+    expect(errorSpy.calledThrice).to.equal(true);
   });
 
   it('sendUpdateReceivedTracking throws error for invalid args', () => {
-    const spy = sinon.spy();
-    try {
-      tracker.sendPublishTracking('foo');
-    } catch (e) {
-      spy();
-    }
-
-    try {
-      tracker.sendPublishTracking(null, new Date().toISOString());
-    } catch (e) {
-      spy();
-    }
-
-    expect(spy.calledTwice).to.equal(true);
+    const errorSpy = sinon.spy();
+    tracker.sendPublishTracking('foo');
+    tracker.sendPublishTracking(null, new Date().toISOString());
+    expect(errorSpy.calledTwice).to.equal(true);
   });
 });
 

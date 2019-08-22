@@ -26,7 +26,8 @@ const MESSAGE_TYPES = {
  */
 const sendPublishTracking = (sampleName, updatedAt) => {
   if (typeof sampleName !== 'string' || typeof updatedAt !== 'string') {
-    throw new Error('Invalid args');
+    logger.error(`Received invalid args: ${sampleName} ${updatedAt} `);
+    return;
   }
 
   logger.track({
@@ -48,7 +49,9 @@ const sendUpdateReceivedTracking = (sampleName, updatedAt,
   reqStartTime, jobStartTime) => {
   if (typeof sampleName !== 'string' || typeof updatedAt !== 'string' ||
       typeof reqStartTime !== 'number') {
-    throw new Error('Invalid args');
+    logger.error(`Received invalid args: ${sampleName} ${updatedAt} 
+      ${reqStartTime} ${jobStartTime}`);
+    return;
   }
 
   logger.track({
