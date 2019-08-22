@@ -13,20 +13,21 @@
  * current migration(s).
  */
 const exec = require('child_process').exec;
+const logger = require('@salesforce/refocus-logging-client');
 const cmd = 'node_modules/.bin/sequelize db:migrate:undo';
 
 module.exports = exec(cmd, (error, stdout, stderr) => {
   // Log the results to the console.
-  console.log(// eslint-disable-line no-console
+  logger.info(
     '[./db/migrateUndo (stdout)] ' + stdout);
 
   if (stderr) {
-    console.log(// eslint-disable-line no-console
+    logger.info(
       '[./db/migrateUndo (stderr)] ' + stderr);
   }
 
   if (error !== null) {
-    console.log('[./db/migrateUndo] ' + // eslint-disable-line no-console
+    logger.info('[./db/migrateUndo] ' +
       error);
     process.exit(-1); // eslint-disable-line
   }

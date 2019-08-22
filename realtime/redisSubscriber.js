@@ -10,6 +10,7 @@
  * ./realTime/redisSubscriber.js
  */
 'use strict'; // eslint-disable-line strict
+const logger = require('@salesforce/refocus-logging-client');
 const featureToggles = require('feature-toggles');
 const emitter = require('./socketIOEmitter');
 const subPerspectives = require('../cache/redisCache').client.subPerspectives;
@@ -43,7 +44,7 @@ module.exports = (io) => {
         try {
           pubSubStats.track('sub', key, parsedObj);
         } catch (err) {
-          console.error(err);
+          logger.error(err);
         }
       }
 

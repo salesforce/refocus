@@ -96,7 +96,7 @@ describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
        * @param  {String} level - Logging level
        * @param  {String} msg - The actual log message
        */
-      function testLogMessage(transport, level, msg) {
+      function testLogMessage(msg) {
         const logObj = {};
         msg.split(' ').forEach((entry) => {
           logObj[entry.split('=')[0]] = entry.split('=')[1];

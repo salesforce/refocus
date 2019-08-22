@@ -10,6 +10,7 @@
  * /realtime/pubSubStats.js
  */
 const debug = require('debug')('refocus:pubsub:elapsed');
+const logger = require('@salesforce/refocus-logging-client');
 const activityLogType = 'pubsub';
 const globalKey = require('./constants').pubSubStatsAggregator;
 const activityLog = require('../utils/activityLog');
@@ -55,7 +56,7 @@ function track(src, evt, obj) {
 
   /*
    * Calculate the elapsed time. If we can't find an "updatedAt" attribute,
-   * treat the elapsed time as 0 but console.trace the object.
+   * treat the elapsed time as 0 but logger.verbose the object.
    */
   let elapsed = 0;
   let updatedAtFromObj;
@@ -69,7 +70,8 @@ function track(src, evt, obj) {
     nameFromObj = obj.new.name;
     elapsed = now - new Date(obj.new.updatedAt);
   } else {
-    console.trace('Where is updatedAt? ' + JSON.stringify(obj));
+    logger.verbose('Where is updatedAt? ' + JSON.stringify(obj) + '\n' +
+      new Error().stack);
   }
 
   if (elapsed > 2000) {
