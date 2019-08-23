@@ -32,7 +32,7 @@ const subjectType = redisOps.subjectType;
 const sampleType = redisOps.sampleType;
 const commonUtils = require('../../utils/common');
 const sampleNameSeparator = '|';
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
 const featureToggles = require('feature-toggles');
 const config = require('../../config');
 
@@ -94,7 +94,7 @@ function parseName(name) {
   }
 
   logger.error(`cache/models/samples.parseName|Invalid sample name "${name}"`);
-  console.trace(); // eslint-disable-line no-console
+  logger.verbose(new Error().stack);
   throw new redisErrors.ResourceNotFoundError({
     explanation: `Invalid sample name "${name}"`,
   });

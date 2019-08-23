@@ -9,7 +9,7 @@
 /**
  * /worker/jobs/bulkDeleteSubjects.js
  */
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
 const subjectHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
@@ -81,7 +81,7 @@ module.exports = (job, done) => {
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg = `[KJI] Entered bulkDeleteSubjects.js: job.id=${job.id} ` +
       `SubjectsToDelete=${subjectKeys.length}`;
-    console.log(msg); // eslint-disable-line no-console
+    logger.info(msg);
   }
 
   const dbStartTime = Date.now();

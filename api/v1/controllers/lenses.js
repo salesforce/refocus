@@ -25,7 +25,8 @@ const apiErrors = require('../apiErrors');
 const AdmZip = require('adm-zip');
 const redisCache = require('../../../cache/redisCache').client.cache;
 const lensUtil = require('../../../utils/lensUtil');
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
+
 const ZERO = 0;
 const ONE = 1;
 

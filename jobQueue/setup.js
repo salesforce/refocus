@@ -15,6 +15,7 @@
 'use strict'; // eslint-disable-line strict
 const PROTOCOL_PREFIX = 'redis:';
 const conf = require('../config');
+const logger = require('@salesforce/refocus-logging-client');
 const featureToggles = require('feature-toggles');
 const urlParser = require('url');
 const kue = require('kue');
@@ -82,12 +83,12 @@ function gracefulShutdown() {
 }
 
 jobQueue.on('error', (err) => {
-  console.error('Kue Error!', err); // eslint-disable-line no-console
+  logger.error('Kue Error!', err);
 });
 
 if (featureToggles.isFeatureEnabled('instrumentKue')) {
   jobQueue.on('job enqueue', (id, type) => {
-    console.log('[KJI] enqueued: ' + // eslint-disable-line no-console
+    logger.info('[KJI] enqueued: ' +
       'id=%s type=%s', id, type);
   });
 }

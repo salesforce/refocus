@@ -610,7 +610,6 @@ describe(`tests/api/v1/subjects/post.js, POST ${path} >`, () => {
         })
         .end((err /* , res */) => {
           if (err) {
-            console.log(err);
             return done(err);
           }
 
