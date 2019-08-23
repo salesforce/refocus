@@ -13,21 +13,19 @@
  * current migration(s).
  */
 const exec = require('child_process').exec;
+const logger = require('@salesforce/refocus-logging-client');
 const cmd = 'node_modules/.bin/sequelize db:migrate';
 
 module.exports = exec(cmd, (error, stdout, stderr) => {
   // Log the results to the console.
-  console.log('[./db/migrate (stdout)] ' + // eslint-disable-line no-console
-    stdout);
+  logger.info('[./db/migrate (stdout)] ' + stdout);
 
   if (stderr) {
-    console.log('[./db/migrate (stderr)] ' + // eslint-disable-line no-console
-      stderr);
+    logger.info('[./db/migrate (stderr)] ' + stderr);
   }
 
   if (error !== null) {
-    console.log('[./db/migrate] ' + // eslint-disable-line no-console
-      error);
+    logger.info('[./db/migrate] ' + error);
     process.exit(-1); // eslint-disable-line
   }
 

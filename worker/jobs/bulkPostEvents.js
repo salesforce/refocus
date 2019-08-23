@@ -10,7 +10,7 @@
  * /worker/jobs/bulkPostEvents.js
  */
 
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 const eventModel = require('./../../db/index.js').Event;
@@ -26,7 +26,7 @@ module.exports = (job, done) => {
     const msg =
       `[KJI] Entered bulkPostEvents.js: job.id=${job.id} ` +
       `eventCount=${events.length}`;
-    console.log(msg); // eslint-disable-line no-console
+    logger.info(msg);
   }
 
   const dbStartTime = Date.now();

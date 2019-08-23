@@ -25,7 +25,7 @@ function testWorkerAPiActivityLogs(done) {
   let apiLogged = false;
   logger.on('logging', testLogMessage);
 
-  function testLogMessage(transport, level, msg, meta) {
+  function testLogMessage(msg) {
     const logObj = {};
     msg.split(' ').forEach((entry) => {
       logObj[entry.split('=')[0]] = entry.split('=')[1];

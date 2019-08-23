@@ -18,7 +18,7 @@ const Subject = require('../db').Subject;
 const featureToggles = require('feature-toggles');
 const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
-const log = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
 const samstoPersist = require('./sampleStorePersist');
 const constants = samsto.constants;
 const infoLoggingEnabled =
@@ -91,7 +91,6 @@ function eradicate() {
     .map((s) => redisClient.smembersAsync(constants.indexKey[s])
     .then((keys) => {
       if (constants.indexKey[s] === constants.indexKey.sample) {
-
         /**
          * this is done to delete keys prefixed with "samsto:subaspmap:" and
          * "samsto:aspsubmap:"
@@ -105,14 +104,14 @@ function eradicate() {
     })
     .catch((err) => {
       // NO-OP
-      console.error(err); // eslint-disable-line no-console
+      logger.error(err); // eslint-disable-line
       Promise.resolve(true);
     }));
   return deletePreviousStatus()
     .then(() => Promise.all(promises))
     .then(() => {
       if (infoLoggingEnabled) {
-        log.info('Sample Store eradicated from cache :D');
+        logger.info('Sample Store eradicated from cache :D');
       }
 
       return true;
@@ -131,7 +130,7 @@ function populateAspects() {
   .then((allAspects) => {
     if (infoLoggingEnabled) {
       const msg = `Starting to load ${allAspects.length} aspects to cache :|`;
-      log.info(msg);
+      logger.info(msg);
     }
 
     aspects = allAspects;
@@ -165,13 +164,13 @@ function populateAspects() {
     return redisClient.batch(cmds).execAsync()
       .then(() => {
         if (infoLoggingEnabled) {
-          log.info('Done loading aspects to cache :D');
+          logger.info('Done loading aspects to cache :D');
         }
 
         return true;
       });
   })
-  .catch(console.error); // eslint-disable-line no-console
+  .catch(logger.error);
 } // populateAspects
 
 /**
@@ -184,7 +183,7 @@ function populateSubjects() {
   .then((subjects) => {
     if (infoLoggingEnabled) {
       const msg = `Starting to load ${subjects.length} subjects to cache :|`;
-      log.info(msg);
+      logger.info(msg);
     }
 
     const cmds = [];
@@ -203,13 +202,13 @@ function populateSubjects() {
     return redisClient.batch(cmds).execAsync()
       .then(() => {
         if (infoLoggingEnabled) {
-          log.info('Done loading subjects to cache :D');
+          logger.info('Done loading subjects to cache :D');
         }
 
         return true;
       });
   })
-  .catch(console.error); // eslint-disable-line no-console
+  .catch(logger.error);
 } // populateSubjects
 
 /**
@@ -222,7 +221,7 @@ function populateSamples() {
   .then((samples) => {
     if (infoLoggingEnabled) {
       const msg = `Starting to load ${samples.length} samples to cache :|`;
-      log.info(msg);
+      logger.info(msg);
     }
 
     const sampleIdx = new Set();
@@ -299,13 +298,13 @@ function populateSamples() {
     return Promise.all(batchPromises)
       .then(() => {
         if (infoLoggingEnabled) {
-          log.info('Done loading samples to cache :D');
+          logger.info('Done loading samples to cache :D');
         }
 
         return true;
       });
   })
-  .catch(console.error); // eslint-disable-line no-console
+  .catch(logger.error);
 } // populateSamples
 
 /**
@@ -317,7 +316,7 @@ function populateSamples() {
 function populate() {
   if (infoLoggingEnabled) {
     const msg = 'Populating redis sample store from db started :|';
-    log.info(msg);
+    logger.info(msg);
   }
 
   let resp;
@@ -358,6 +357,7 @@ function storeSampleToCacheOrDb() {
      * needs to be taken based on the current status
     */
     if (previousStatus !== currentStatus) {
+
       /*
        * call "popluate" when "enableRedisSampleStore" flag has been changed
        * from false to true. Call "eradicate" and "storeSampleToDb" when
@@ -365,7 +365,7 @@ function storeSampleToCacheOrDb() {
        */
       if (currentStatus) {
         if (infoLoggingEnabled) {
-          log.info('"enableRedisSampleStore" flag was switched to true, so ' +
+          logger.info('"enableRedisSampleStore" flag was switched to true, so ' +
             'populating the cache from db');
         }
 
@@ -373,7 +373,7 @@ function storeSampleToCacheOrDb() {
       }
 
       if (infoLoggingEnabled) {
-        log.info('"enableRedisSampleStore" flag was switched to false so ' +
+        logger.info('"enableRedisSampleStore" flag was switched to false so ' +
           'so persisting to db from cache. The cache will be eradicated ' +
           'after the samples are persisted to db');
       }
@@ -400,7 +400,7 @@ function init() {
   .then((ret) => Promise.resolve(ret))
   .catch((err) => {
     // NO-OP
-    console.error(err); // eslint-disable-line no-console
+    logger.error(err);
     Promise.resolve(false);
   });
 } // init

@@ -11,6 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
+const logger = require('@salesforce/refocus-logging-client');
 const helper = require('../../api/v1/helpers/nouns/subjects');
 const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const utils = require('../../api/v1/helpers/verbs/utils');
@@ -232,7 +233,7 @@ function completeSubjectHierarchy(res, params) {
     u.resetFilters(filters);
 
     if (featureToggles.isFeatureEnabled('instrumentCompleteSubjectHierarchy')) {
-      console.log('cache/model/subject.completeSubjectHierarchy:' +
+      logger.info('cache/model/subject.completeSubjectHierarchy:' +
         `${res.absolutePath}:${new Date() - startTime}`);
     }
 

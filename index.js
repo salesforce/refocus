@@ -15,6 +15,7 @@
 
 /* eslint-disable global-require */
 /* eslint-disable no-process-env */
+const logger = require('@salesforce/refocus-logging-client');
 const throng = require('throng');
 const featureToggles = require('feature-toggles');
 const DEFAULT_WEB_CONCURRENCY = 1;
@@ -29,7 +30,7 @@ const logEnvVars = require('./utils/logEnvVars');
  *  otherwise 0
  */
 function start(clusterProcessId = 0) { // eslint-disable-line max-statements
-  console.log(`Started node process ${clusterProcessId}`);
+  logger.info(`Started node process ${clusterProcessId}`);
 
   /*
    * Express app
@@ -84,7 +85,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
 }
 
 function startMaster() {
-  console.log('Started node cluster master');
+  logger.info('Started node cluster master');
 } // startMaster
 
 const isProd = (process.env.NODE_ENV === 'production');

@@ -197,7 +197,7 @@ describe('tests/jobQueue/v1/getHierarchy.js, ' +
       });
 
       logger.on('logging', testLogMessage);
-      function testLogMessage(transport, level, msg, meta) {
+      function testLogMessage(msg) {
         const logObj = {};
         msg.split(' ').forEach((entry) => {
           logObj[entry.split('=')[0]] = entry.split('=')[1];
