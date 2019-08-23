@@ -739,10 +739,10 @@ module.exports = {
     return Object.entries(ranges)
     .filter(([status, range]) => range)
     .reduce((batch, [status, [min, max]]) => {
-      const [minKey, maxKey] = module.exports.getRangesKeys(status, [min, max]);
+      const { minKey, maxKey } = module.exports.getRangesKeys(status, [min, max]);
       return batch
       .zadd(key, min, minKey)
-      .zadd(key, max, maxKey)
+      .zadd(key, max, maxKey);
     }, redisClient.batch())
     .execAsync();
   }, // setRanges
@@ -761,7 +761,7 @@ module.exports = {
 
     const minKey = getRangeKey({ type: 'min', status, precedence });
     const maxKey = getRangeKey({ type: 'max', status, precedence });
-    return [minKey, maxKey];
+    return { minKey, maxKey };
 
     function getRangeKey({ type, precedence, status }) {
       return `${precedence[type]}:${type}:${status}`;
@@ -771,7 +771,7 @@ module.exports = {
   parseRange([key, score]) {
     if (key) {
       score = Number(score);
-      let [precedence, rangeType, status] = key.split(':');
+      let [precedence, rangeType, status] = key.split(':'); // jscs:ignore
       return { score, precedence, rangeType, status };
     } else {
       return {};
@@ -785,12 +785,12 @@ module.exports = {
    * @returns {Promise}
    */
   calculateSampleStatus(sample) {
-    const [absPath, aspName] = sample.name.split('|');
+    const aspName = sample.name.split('|')[1];
     const { value } = sample;
 
     // Invalid if value is not a non-empty string!
     if (typeof value !== 'string' || value.length === 0) {
-      return Promise.resolve(Status.Invalid)
+      return Promise.resolve(Status.Invalid);
     }
 
     // "Timeout" special case
@@ -827,7 +827,7 @@ module.exports = {
       }
 
       return Status.Invalid;
-    })
+    });
   }, // calculateSampleStatus
 
   renameKey,

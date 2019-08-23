@@ -22,7 +22,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
   afterEach(rtu.flushRedis);
 
   function setupRanges(ranges) {
-    return redisOps.setRanges({ name: 'asp1', ...ranges })
+    return redisOps.setRanges({ name: 'asp1', ...ranges });
   } // setupRanges
 
   function calculateAndExpect(value, expectedStatus) {

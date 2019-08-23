@@ -19,11 +19,11 @@ const rtu = require('../redisTestUtil');
 const Aspect = tu.db.Aspect;
 const redisOps = rtu.redisOps;
 
-Function.prototype.where = function(...args) {
+Function.prototype.where = function (...args) {
   return this.bind(null, ...args);
 };
 
-Function.prototype.for = function(arg) {
+Function.prototype.for = function (arg) {
   return this.bind(arg);
 };
 
@@ -116,7 +116,7 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
           okRange: [0, 1],
         })
         .then(expectRanges.where([
-          '3:min:OK', '0', '0:max:OK', '1'
+          '3:min:OK', '0', '0:max:OK', '1',
         ]))
       );
 

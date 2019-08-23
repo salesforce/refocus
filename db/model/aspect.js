@@ -224,7 +224,7 @@ module.exports = function aspect(seq, dataTypes) {
 
         return Promise.resolve()
         .then(() => {
-          if (((nameChanged && inst.isPublished) || isPublishedChanged ) && !inst.writers) {
+          if (((nameChanged && inst.isPublished) || isPublishedChanged) && !inst.writers) {
             return inst.getWriters()
             .then((writers) => inst.writers = writers);
           }
@@ -479,7 +479,7 @@ module.exports = function aspect(seq, dataTypes) {
         if (asp.isPublished) {
           return redisOps.resetWriters(asp);
         }
-      })
+      });
     }
 
     Aspect.addScope('baseScope', {
