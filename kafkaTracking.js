@@ -45,6 +45,8 @@ const sendPublishTracking = (sampleName, updatedAt) => {
  * Send a message (to the kafka-cluster) informing that an update was received
  * @param  {String} sampleName - The sample name
  * @param {String} updatedAt - The time (Date.toISOString) sample was updated at
+ * @param {String} reqStartTime - The time (epoch) request was sent in
+ * @param {String} jobStartTime - The time (epoch) request processing started
  */
 const sendUpdateReceivedTracking = (sampleName, updatedAt,
   reqStartTime, jobStartTime) => {
