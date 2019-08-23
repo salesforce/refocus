@@ -35,7 +35,6 @@ const sampleNameSeparator = '|';
 const logger = require('@salesforce/refocus-logging-client');
 const featureToggles = require('feature-toggles');
 const config = require('../../config');
-const tracker = require('../../kafkaTracking');
 
 const sampFields = {
   PROVIDER: 'provider',
