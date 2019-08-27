@@ -52,7 +52,7 @@ const constants = {
     subject: PFX + SEP + 'subjects',
   },
   objectType: { aspect: 'aspect', sample: 'sample', subject: 'subject',
-    subAspMap: 'subaspmap', aspSubMap: 'aspsubmap', subjectTags: 'tags:subject',
+    subAspMap: 'subaspmap', aspSubMap: 'aspsubmap', subjectTags: 'subTags',
   },
   prefix: PFX,
   separator: SEP,
