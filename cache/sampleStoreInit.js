@@ -105,11 +105,11 @@ function eradicate() {
            * delete aspect tags/writers/ranges keys
            */
           keys.forEach((key) => {
-            const aspName = key.split(constants.separator)[2]
+            const aspName = key.split(constants.separator)[2];
             keys.push(samsto.toKey(constants.objectType.aspTags, aspName));
             keys.push(samsto.toKey(constants.objectType.aspWriters, aspName));
             keys.push(samsto.toKey(constants.objectType.aspRanges, aspName));
-          })
+          });
         }
 
         if (constants.indexKey[s] === constants.indexKey.subject) {
@@ -117,9 +117,9 @@ function eradicate() {
            * delete subject tags/writers/ranges keys
            */
           keys.forEach((key) => {
-            const subName = key.split(constants.separator)[2]
+            const subName = key.split(constants.separator)[2];
             keys.push(samsto.toKey(constants.objectType.subTags, subName));
-          })
+          });
         }
 
         keys.push(constants.indexKey[s]);
