@@ -20,7 +20,7 @@ const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const pubSubStats = require('./pubSubStats');
 const ONE = 1;
-const tracker = require('../kafkaTracking');
+const tracker = require('./kafkaTracking');
 
 /**
  * Returns a random integer between min (inclusive) and max (inclusive).

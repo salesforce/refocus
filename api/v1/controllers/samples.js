@@ -33,7 +33,7 @@ const RADIX = 10;
 const COUNT_HEADER_NAME = require('../constants').COUNT_HEADER_NAME;
 const logger = require('@salesforce/refocus-logging-client');
 const generators = require('../helpers/nouns/generators');
-const tracker = require('../../../kafkaTracking');
+const tracker = require('../../../realtime/kafkaTracking');
 
 /**
  * Find sample (from redis sample store). If cache is on then cache the

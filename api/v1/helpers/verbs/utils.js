@@ -23,7 +23,7 @@ const userProps = require('../nouns/users');
 const Op = require('sequelize').Op;
 const md5 = require('md5');
 const ADMIN_OVERRIDE_KEYWORD = 'admin';
-const tracker = require('../../../../kafkaTracking');
+const tracker = require('../../../../realtime/kafkaTracking');
 
 /**
  * @param {Object} o Sequelize instance
