@@ -71,7 +71,7 @@ function doDelete(req, res, next, props) {
     if (props.publishEvents) {
       // Need access to the sample, so we are sending the tracking
       // message here instead of beginning of function
-      trackSampleRequest(res.locals.retVal.name,
+      tracker.trackSampleRequest(res.locals.retVal.name,
         res.locals.retVal.updatedAt, res.locals.resultObj.reqStartTime);
 
       publisher.publishSample(res.locals.retVal, props.associatedModels.subject,

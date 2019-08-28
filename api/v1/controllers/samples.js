@@ -292,7 +292,7 @@ module.exports = {
 
       // Need access to the sample, so we are sending the tracking message here
       // instead of beginning of function
-      trackSampleRequest(sample.name, sample.updatedAt,
+      tracker.trackSampleRequest(sample.name, sample.updatedAt,
         req.timestamp);
       return publisher.publishSample(sample, helper.associatedModels.subject,
         realtimeEvents.sample.add, helper.associatedModels.aspect);
@@ -395,7 +395,7 @@ module.exports = {
 
         // Need access to the sample, so we are sending the tracking message here
         // instead of beginning of function
-        trackSampleRequest(sample.name, sample.updatedAt,
+        tracker.trackSampleRequest(sample.name, sample.updatedAt,
           resultObj.reqStartTime);
 
         /*
@@ -473,7 +473,7 @@ module.exports = {
       .then((samples) => samples.forEach((sample) => {
         // Need access to the sample, so we are sending the tracking
         // message here instead of beginning of function
-        trackSampleRequest(sample.name,
+        tracker.trackSampleRequest(sample.name,
           sample.updatedAt, resultObj.reqStartTime);
         if (!sample.isFailed) {
           publisher.publishSample(sample, subHelper.model);
@@ -516,7 +516,7 @@ module.exports = {
 
       // Need access to the sample, so we are sending the tracking
       // message here instead of beginning of function
-      trackSampleRequest(o.name,
+      tracker.trackSampleRequest(o.name,
         o.updatedAt, resultObj.reqStartTime);
 
       return publisher.publishSample(
