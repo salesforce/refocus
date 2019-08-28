@@ -203,7 +203,7 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
         sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
         return publishObject(sample, eventType)
           .then(() => {
-            tracker.sendPublishTracking(sample.name,
+            tracker.trackSamplePublish(sample.name,
               sample.updatedAt);
             return sample;
           });
