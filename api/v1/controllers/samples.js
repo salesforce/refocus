@@ -49,6 +49,7 @@ const tracker = require('../../../realtime/kafkaTracking');
 function doFindSample(req, res, next, resultObj, cacheKey, cacheExpiry) {
   sampleModel.findSamples(req, res)
   .then((response) => {
+
     /*
      * Record the "dbTime" (time spent retrieving the records from the sample
      * store).
@@ -291,7 +292,7 @@ module.exports = {
 
       // Need access to the sample, so we are sending the tracking message here
       // instead of beginning of function
-      tracker.trackSampleRequestTracking(sample.name, sample.updatedAt,
+      trackSampleRequest(sample.name, sample.updatedAt,
         req.timestamp);
       return publisher.publishSample(sample, helper.associatedModels.subject,
         realtimeEvents.sample.add, helper.associatedModels.aspect);
@@ -394,7 +395,7 @@ module.exports = {
 
         // Need access to the sample, so we are sending the tracking message here
         // instead of beginning of function
-        tracker.trackSampleRequestTracking(sample.name, sample.updatedAt,
+        trackSampleRequest(sample.name, sample.updatedAt,
           resultObj.reqStartTime);
 
         /*
@@ -472,7 +473,7 @@ module.exports = {
       .then((samples) => samples.forEach((sample) => {
         // Need access to the sample, so we are sending the tracking
         // message here instead of beginning of function
-        tracker.trackSampleRequestTracking(sample.name,
+        trackSampleRequest(sample.name,
           sample.updatedAt, resultObj.reqStartTime);
         if (!sample.isFailed) {
           publisher.publishSample(sample, subHelper.model);
@@ -515,7 +516,7 @@ module.exports = {
 
       // Need access to the sample, so we are sending the tracking
       // message here instead of beginning of function
-      tracker.trackSampleRequestTracking(o.name,
+      trackSampleRequest(o.name,
         o.updatedAt, resultObj.reqStartTime);
 
       return publisher.publishSample(

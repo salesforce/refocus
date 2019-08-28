@@ -19,6 +19,7 @@ const jobLog = require('../jobLog');
 const tracker = require('../../realtime/kafkaTracking');
 
 module.exports = (job, done) => {
+
   /*
    * The shape of the old jobs objects in redis is different from the shape
    * of the new job objects that will be inserted in redis. The following
@@ -47,6 +48,7 @@ module.exports = (job, done) => {
   cacheSampleModel.bulkUpsertByName(samples, user, readOnlyFields)
     .then((results) => {
       dbEndTime = Date.now();
+
       /*
        * For each result, if there was an error, track the error to return to
        * to the caller when they check status. If no error, publish the sample
@@ -74,7 +76,7 @@ module.exports = (job, done) => {
 
         // Need access to the sample, so we are sending the tracking
         // message here instead of beginning of function
-        tracker.trackSampleRequestTracking(result.name,
+        trackSampleRequest(result.name,
           result.updatedAt, reqStartTime, jobStartTime);
 
         // Wait for publish to complete before resolving the promise.
