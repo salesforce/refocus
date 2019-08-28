@@ -35,7 +35,7 @@ const trackSamplePublish = (sampleName, updatedAt) => {
     }
 
     logger.track({
-      type: MESSAGE_TYPES.PUBLISH_TIME,
+      type: MESSAGE_TYPES.PUBLISHED,
       publishCompletedAt: Date.now(),
     },
     'info', pubSubAggregationTopic, {
@@ -57,14 +57,14 @@ const trackSampleRequest = (sampleName, updatedAt,
   if (featureToggles.isFeatureEnabled('enableKafkaPubSubAggregation')) {
     if (typeof sampleName !== 'string' || typeof updatedAt !== 'string' ||
         typeof reqStartTime !== 'number' ||
-        (!jobStartTime && typeof jobStartTime !== 'number')) {
+        (jobStartTime && typeof jobStartTime !== 'number')) {
       logger.error(`Received invalid args in trackSampleRequest: 
         ${sampleName} ${updatedAt} ${reqStartTime} ${jobStartTime}`);
       return;
     }
 
     logger.track({
-      type: MESSAGE_TYPES.RECEIVED,
+      type: MESSAGE_TYPES.REQUEST_STARTED,
       reqStartTime,
       jobStartTime: jobStartTime ? jobStartTime : reqStartTime,
     }, 'info', pubSubAggregationTopic, {

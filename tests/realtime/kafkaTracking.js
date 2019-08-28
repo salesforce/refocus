@@ -14,20 +14,30 @@ const expect = require('chai').expect;
 const logger = require('@salesforce/refocus-logging-client');
 const tracker = require('../../realtime/kafkaTracking');
 const sinon = require('sinon');
+const testUtil = require('../testUtils');
 
-describe.only('tests/kafkaTracking/kafkaTracking.js >', () => {
-  it('trackSampleRequest calls logger.log with write arguments', () => {
+describe('tests/kafkaTracking/kafkaTracking.js >', () => {
+  before(() => {
+    testUtil.toggleOverride('enableKafkaPubSubAggregation', true);
+  });
+
+  after(() => {
+    testUtil.toggleOverride('enableKafkaPubSubAggregation', false);
+  });
+
+  it('trackSampleRequest calls logger.track with right arguments', () => {
     const updatedAt = new Date().toISOString();
     const loggerStub = sinon.stub(logger, 'track');
     const now = Date.now();
     tracker.trackSampleRequest('testSample', updatedAt, now);
 
     const firstCall = loggerStub.getCall(0).args;
+    console.log(firstCall);
     expect(firstCall[0].type).to.equal('requestStarted');
     expect(firstCall[0].reqStartTime).to.equal(now);
     expect(firstCall[0].jobStartTime).to.equal(now);
     expect(firstCall[1]).to.equal('info');
-    expect(firstCall[2]).to.equal(tracker.AGGR_TOPIC);
+    expect(firstCall[2]).to.equal('pub-sub-aggregation');
     expect(firstCall[3].sampleName).to.equal('testSample');
     expect(firstCall[3].updatedAt).to.equal(updatedAt);
 
@@ -39,7 +49,7 @@ describe.only('tests/kafkaTracking/kafkaTracking.js >', () => {
     loggerStub.restore();
   });
 
-  it('trackSamplePublish calls logger.log with write arguments', () => {
+  it('trackSamplePublish calls logger.track with write arguments', () => {
     const updatedAt = new Date().toISOString();
     const loggerStub = sinon.stub(logger, 'track');
     tracker.trackSamplePublish('testSample', updatedAt);
@@ -47,7 +57,7 @@ describe.only('tests/kafkaTracking/kafkaTracking.js >', () => {
     expect(args[0].publishCompletedAt).to.be.an('number');
     expect(args[0].type).to.equal('published');
     expect(args[1]).to.equal('info');
-    expect(args[2]).to.equal(tracker.AGGR_TOPIC);
+    expect(args[2]).to.equal('pub-sub-aggregation');
     expect(args[3].sampleName).to.equal('testSample');
     expect(args[3].updatedAt).to.equal(updatedAt);
     loggerStub.restore();
