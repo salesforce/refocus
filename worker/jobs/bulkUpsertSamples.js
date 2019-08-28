@@ -74,7 +74,7 @@ module.exports = (job, done) => {
 
         // Need access to the sample, so we are sending the tracking
         // message here instead of beginning of function
-        tracker.sendUpdateReceivedTracking(result.name,
+        tracker.trackSampleRequestTracking(result.name,
           result.updatedAt, reqStartTime, jobStartTime);
 
         // Wait for publish to complete before resolving the promise.

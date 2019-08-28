@@ -104,7 +104,7 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
 
     // Need access to the sample, so we are sending the tracking
     // message here instead of beginning of function
-    tracker.sendUpdateReceivedTracking(returnObj.name,
+    tracker.trackSampleRequestTracking(returnObj.name,
       returnObj.updatedAt, req.timestamp);
     publisher.publishSample(returnObj, props.associatedModels.subject,
       realtimeEvents.sample.upd);

@@ -181,7 +181,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
     return publishSampleNoChange(sampleInst).then(() => {
-      tracker.sendPublishTracking(sampleInst.name,
+      tracker.trackSamplePublish(sampleInst.name,
         sampleInst.updatedAt);
     });
   }
