@@ -32,7 +32,6 @@ describe('tests/kafkaTracking/kafkaTracking.js >', () => {
     tracker.trackSampleRequest('testSample', updatedAt, now);
 
     const firstCall = loggerStub.getCall(0).args;
-    console.log(firstCall);
     expect(firstCall[0].type).to.equal('requestStarted');
     expect(firstCall[0].reqStartTime).to.equal(now);
     expect(firstCall[0].jobStartTime).to.equal(now);

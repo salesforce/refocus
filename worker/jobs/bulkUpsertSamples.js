@@ -16,7 +16,7 @@ const activityLogUtil = require('../../utils/activityLog');
 const cacheSampleModel = require('../../cache/models/samples');
 const publisher = require('../../realtime/redisPublisher');
 const jobLog = require('../jobLog');
-const tracker = require('../../kafkaTracking');
+const tracker = require('../../realtime/kafkaTracking');
 
 module.exports = (job, done) => {
   /*
