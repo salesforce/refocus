@@ -33,6 +33,7 @@ const RADIX = 10;
 const COUNT_HEADER_NAME = require('../constants').COUNT_HEADER_NAME;
 const logger = require('@salesforce/refocus-logging-client');
 const generators = require('../helpers/nouns/generators');
+const tracker = require('../../../realtime/kafkaTracking');
 
 /**
  * Find sample (from redis sample store). If cache is on then cache the
@@ -48,6 +49,7 @@ const generators = require('../helpers/nouns/generators');
 function doFindSample(req, res, next, resultObj, cacheKey, cacheExpiry) {
   sampleModel.findSamples(req, res)
   .then((response) => {
+
     /*
      * Record the "dbTime" (time spent retrieving the records from the sample
      * store).
@@ -287,6 +289,11 @@ module.exports = {
     .then((sample) => {
       s = sample;
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+      // Need access to the sample, so we are sending the tracking message here
+      // instead of beginning of function
+      tracker.trackSampleRequest(sample.name, sample.updatedAt,
+        req.timestamp);
       return publisher.publishSample(sample, helper.associatedModels.subject,
         realtimeEvents.sample.add, helper.associatedModels.aspect);
     })
@@ -386,6 +393,11 @@ module.exports = {
         // loop through remove values to delete property
         u.removeFieldsFromResponse(helper.fieldsToExclude, dataValues);
 
+        // Need access to the sample, so we are sending the tracking message here
+        // instead of beginning of function
+        tracker.trackSampleRequest(sample.name, sample.updatedAt,
+          resultObj.reqStartTime);
+
         /*
          * Send the upserted sample to the client by publishing it to the redis
          * channel.
@@ -459,6 +471,10 @@ module.exports = {
        */
       sampleModel.bulkUpsertByName(value, user, readOnlyFields)
       .then((samples) => samples.forEach((sample) => {
+        // Need access to the sample, so we are sending the tracking
+        // message here instead of beginning of function
+        tracker.trackSampleRequest(sample.name,
+          sample.updatedAt, resultObj.reqStartTime);
         if (!sample.isFailed) {
           publisher.publishSample(sample, subHelper.model);
         }
@@ -497,6 +513,11 @@ module.exports = {
 
       // loop through remove values to delete property
       u.removeFieldsFromResponse(helper.fieldsToExclude, retval);
+
+      // Need access to the sample, so we are sending the tracking
+      // message here instead of beginning of function
+      tracker.trackSampleRequest(o.name,
+        o.updatedAt, resultObj.reqStartTime);
 
       return publisher.publishSample(
         o, helper.associatedModels.subject, u.realtimeEvents.sample.upd,
