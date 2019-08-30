@@ -16,6 +16,7 @@ const publisher = u.publisher;
 const event = u.realtimeEvents;
 const redisModelSample = require('../../../../cache/models/samples');
 const redisCache = require('../../../../cache/redisCache').client.cache;
+const tracker = require('../../../../realtime/kafkaTracking');
 
 /**
  * Deletes a record and sets res.local so the controller can send back the
@@ -68,6 +69,11 @@ function doDelete(req, res, next, props) {
 
     // publish the delete event to the redis channel
     if (props.publishEvents) {
+      // Need access to the sample, so we are sending the tracking
+      // message here instead of beginning of function
+      tracker.trackSampleRequest(res.locals.retVal.name,
+        res.locals.retVal.updatedAt, res.locals.resultObj.reqStartTime);
+
       publisher.publishSample(res.locals.retVal, props.associatedModels.subject,
         event.sample.del);
     }

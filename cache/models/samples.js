@@ -1334,7 +1334,6 @@ module.exports = {
        *
        */
       if (hasNameFilterOnly && !opts.filter.name.includes('*')) {
-
         let nameFilterArr = opts.filter.name.split(',').map((item) =>
           item.trim());
         debugfindSamples('Case 2: Name filter only and no wildcards. ' +
