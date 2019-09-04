@@ -10,7 +10,6 @@
  * realtime/emitUtils.js
  */
 'use strict'; // eslint-disable-line strict
-const ip = require('ip');
 const constants = require('./constants');
 const filters = [
   'aspectFilter',
