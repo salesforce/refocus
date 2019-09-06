@@ -26,8 +26,9 @@ const DEFAULT_LIMIT = config.botEventLimit;
 const roomModel = require('../helpers/nouns/rooms').model;
 const roomTypeModel = require('../helpers/nouns/roomTypes').model;
 
-const kueSetup = require('../../../jobQueue/setup');
-const kue = kueSetup.kue;
+const queueSetup = require('../../../jobQueue/setup');
+const kue = queueSetup.kue;
+const bulkPostEventsQueue = queueSetup.bulkPostEventsQueue;
 
 module.exports = {
 
@@ -157,11 +158,11 @@ module.exports = {
         wrappedBulkPostData.user = user;
         wrappedBulkPostData.reqStartTime = resultObj.reqStartTime;
         const jobPromise = jobWrapper
-          .createPromisifiedJob(jobType.bulkPostEvents,
+          .createPromisifiedJob(jobType.bulkPostEventsQueue,
             wrappedBulkPostData, req);
         return jobPromise.then((job) => {
           // Set the jobId in the response object before it is returned
-          body.jobId = job.id;
+          body.jobId = parseInt(job.id, 10);
           u.logAPI(req, resultObj, body, value.length);
           return res.status(httpStatus.OK).json(body);
         })
@@ -170,7 +171,7 @@ module.exports = {
         });
       }
 
-      // If enableWorkerProcess is toggled off, just carry out with web dynosåååå
+      // If enableWorkerProcess is toggled off, just carry out with web dynos
       helper.model.bulkCreate(value, user);
       u.logAPI(req, resultObj, body, value.length);
       return Promise.resolve(res.status(httpStatus.OK).json(body));
@@ -193,24 +194,61 @@ module.exports = {
     const resultObj = { reqStartTime: req.timestamp };
     const reqParams = req.swagger.params;
     const jobId = reqParams.key.value;
-    kue.Job.get(jobId, (_err, job) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
-      /*
-       * throw the "ResourceNotFoundError" if there is an error in getting the
-       * job or the job is not a bulkPostEvents job
-       */
-      if (_err || !job || job.type !== kueSetup.jobType.bulkPostEvents) {
-        const err = new apiErrors.ResourceNotFoundError();
-        return u.handleError(next, err, helper.modelName);
-      }
+    if (featureToggles.isFeatureEnabled('enableBullForbulkPostEventsQueue')) {
+      let bulkPostEventsJob;
+      bulkPostEventsQueue.getJobFromId(jobId)
+        .then((job) => {
+          bulkPostEventsJob = job;
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
-      // return the job status and the errors in the response
-      const ret = {};
-      ret.status = job._state;
-      ret.errors = job.result ? job.result.errors : [];
-      u.logAPI(req, resultObj, ret);
-      return res.status(httpStatus.OK).json(ret);
-    });
+          if (!job ||
+            job.queue.name !== queueSetup.jobType.bulkDeleteSubjects) {
+            const err = new apiErrors.ResourceNotFoundError();
+            throw err;
+          }
+
+          return job.getState();
+        })
+        .then((jobState) => {
+          const ret = {};
+          ret.status = jobState;
+
+          if (jobState === 'completed' &&
+           bulkPostEventsJob.returnvalue.errors) {
+            ret.errors = bulkPostEventsJob.returnvalue.errors;
+          } else if (jobState === 'failed') {
+            ret.error = bulkPostEventsJob.failedReason;
+          }
+
+          u.logAPI(req, resultObj, ret);
+          return res.status(httpStatus.OK).json(ret);
+        })
+        .catch(() => {
+          const err = new apiErrors.ResourceNotFoundError();
+          return u.handleError(next, err, helper.modelName);
+        });
+    } else {
+      kue.Job.get(jobId, (_err, job) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+        if (_err || !job || job.type !== queueSetup.jobType.bulkPostEventsQueue) {
+          const err = new apiErrors.ResourceNotFoundError();
+          return u.handleError(next, err, helper.modelName);
+        }
+
+        const ret = {};
+        ret.status = job._state;
+
+        if (job._state === 'complete' && job.result.errors) {
+          ret.errors = job.result.errors;
+        } else if (job._state === 'failed') {
+          ret.error = job._error;
+        }
+
+        u.logAPI(req, resultObj, ret);
+        return res.status(httpStatus.OK).json(ret);
+      });
+    }
   },
 }; // exports

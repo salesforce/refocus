@@ -17,6 +17,7 @@
 const jobSetup = require('./setup');
 const jobQueue = jobSetup.jobQueue;
 const bulkDelSubQueue = jobSetup.bulkDelSubQueue;
+const bulkPostEventsQueue = jobSetup.bulkPostEventsQueue;
 const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
@@ -68,6 +69,34 @@ function mapJobResultsToLogObject(jobResultObj, logObject) {
 }
 
 bulkDelSubQueue.on('completed', (job, jobResultObj) => {
+  const logObject = {
+    jobType: job.type,
+    jobId: job.id,
+  };
+
+  Object.assign(logObject, jobResultObj.requestInfo);
+
+  // when enableWorkerActivityLogs are enabled, update the logObject
+  if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs') &&
+    jobResultObj && logObject) {
+    mapJobResultsToLogObject(jobResultObj, logObject);
+
+    // Update queueStatsActivityLogs
+    if (featureToggles
+      .isFeatureEnabled('enableQueueStatsActivityLogs')) {
+      queueTimeActivityLogs
+        .update(jobResultObj.recordCount, jobResultObj.queueTime);
+    }
+
+    /*
+    * The second argument should match the activity logging type in
+    * /config/activityLog.js
+    */
+    activityLogUtil.printActivityLogString(logObject, 'worker');
+  }
+});
+
+bulkPostEventsQueue.on('completed', (job, jobResultObj) => {
   const logObject = {
     jobType: job.type,
     jobId: job.id,
@@ -265,6 +294,21 @@ function createPromisifiedJob(jobName, data, req) {
       });
   }
 
+  if (featureToggles.isFeatureEnabled('enableBullForbulkPostEventsQueue') &&
+    jobName === jobType.bulkPostEventsQueue) {
+    data.requestInfo = getRequestInfo(req);
+
+    const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
+      conf.deprioritizeJobsFrom, req);
+
+    return bulkPostEventsQueue.add(data, { priority: jobPriority })
+      .then((job) => {
+        job.type = jobType.bulkPostEventsQueue;
+        logJobCreate(startTime, job);
+        return job;
+      });
+  }
+
   const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
     conf.deprioritizeJobsFrom, req);
 
@@ -326,4 +370,5 @@ module.exports = {
   logJobOnComplete,
   mapJobResultsToLogObject,
   bulkDelSubQueue,
+  bulkPostEventsQueue,
 }; // exports
