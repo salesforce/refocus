@@ -88,25 +88,49 @@ function getPreviousStatus() {
  */
 function eradicate() {
   const promises = Object.getOwnPropertyNames(constants.indexKey)
-    .map((s) => redisClient.smembersAsync(constants.indexKey[s])
-    .then((keys) => {
-      if (constants.indexKey[s] === constants.indexKey.sample) {
-        /**
-         * this is done to delete keys prefixed with "samsto:subaspmap:" and
-         * "samsto:aspsubmap:"
-         */
-        keys.push(...getResourceMapsKeys(keys)[ZERO]);
-        keys.push(...getResourceMapsKeys(keys)[ONE]);
-      }
+    .map((s) =>
+      redisClient.smembersAsync(constants.indexKey[s])
+      .then((keys) => {
+        if (constants.indexKey[s] === constants.indexKey.sample) {
+          /**
+           * this is done to delete keys prefixed with "samsto:subaspmap:" and
+           * "samsto:aspsubmap:"
+           */
+          keys.push(...getResourceMapsKeys(keys)[ZERO]);
+          keys.push(...getResourceMapsKeys(keys)[ONE]);
+        }
 
-      keys.push(constants.indexKey[s]);
-      return redisClient.delAsync(keys);
-    })
-    .catch((err) => {
-      // NO-OP
-      logger.error(err); // eslint-disable-line
-      Promise.resolve(true);
-    }));
+        if (constants.indexKey[s] === constants.indexKey.aspect) {
+          /**
+           * delete aspect tags/writers/ranges keys
+           */
+          keys.forEach((key) => {
+            const aspName = key.split(constants.separator)[2]
+            keys.push(samsto.toKey(constants.objectType.aspTags, aspName));
+            keys.push(samsto.toKey(constants.objectType.aspWriters, aspName));
+            keys.push(samsto.toKey(constants.objectType.aspRanges, aspName));
+          })
+        }
+
+        if (constants.indexKey[s] === constants.indexKey.subject) {
+          /**
+           * delete subject tags/writers/ranges keys
+           */
+          keys.forEach((key) => {
+            const subName = key.split(constants.separator)[2]
+            keys.push(samsto.toKey(constants.objectType.subTags, subName));
+          })
+        }
+
+        keys.push(constants.indexKey[s]);
+        return redisClient.delAsync(keys);
+      })
+      .catch((err) => {
+        // NO-OP
+        logger.error(err); // eslint-disable-line
+        Promise.resolve(true);
+      })
+    );
   return deletePreviousStatus()
     .then(() => Promise.all(promises))
     .then(() => {

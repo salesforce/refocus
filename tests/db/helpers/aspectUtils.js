@@ -11,242 +11,335 @@
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
+require('chai').use(require('chai-as-promised')).should();
 const tu = require('../../testUtils');
 const u = require('../model/aspect/utils');
 const aspectUtils = require('../../../db/helpers/aspectUtils');
 const Aspect = tu.db.Aspect;
 
-/**
- * aspect json object
- * @return {Object} aspect json object
- */
-function getAspectJson() {
-  return JSON.parse(JSON.stringify({
-    name: `${tu.namePrefix}TestAspect`,
-    description: 'This is an awesome aspect I\'m testing here',
-    helpEmail: 'jolson@dailyplanet.com',
-    helpUrl: 'http://www.dailyplanet.com',
-    isPublished: true,
-    timeout: '10m',
-    valueLabel: 'ms',
-    valueType: aspectUtils.aspValueTypes.boolean,
-  }));
-}
-
 describe('tests/db/model/aspect/aspectUtils.js >', () => {
   afterEach(u.forceDelete);
 
   describe('validateAspectStatusRanges >', () => {
-    it('ok, aspect valueType=boolean, valid status ranges', (done) => {
-      const aspToCreate = getAspectJson();
-      aspToCreate.criticalRange = [0, 0];
-      aspToCreate.okRange = [1, 1];
-      aspToCreate.valueType = aspectUtils.aspValueTypes.boolean;
+    describe('individual ranges', () => {
+      describe('numeric', () => {
+        it('ok', () =>
+          validateNumericRanges({
+            criticalRange: [-1234, 1234],
+          })
+          .should.eventually.be.fulfilled
+        );
 
-      const aspInst = Aspect.build(aspToCreate);
-      try {
-        aspectUtils.validateAspectStatusRanges(aspInst);
-        done();
-      } catch (err) {
-        done(err);
-      }
+        it('below min', () =>
+          validateNumericRanges({
+            okRange: [Number.MIN_SAFE_INTEGER - 5, 1234],
+          })
+          .should.eventually.be.rejectedWith(
+            'Value type: NUMERIC can only have ranges with min value:' +
+            ' -9007199254740991, max value: 9007199254740991',
+          )
+        );
+
+        it('above max', () =>
+          validateNumericRanges({
+            criticalRange: [-1234, Number.MAX_SAFE_INTEGER + 10],
+          })
+          .should.eventually.be.rejectedWith(
+            'Value type: NUMERIC can only have ranges with min value:' +
+            ' -9007199254740991, max value: 9007199254740991',
+          )
+        );
+      });
+
+      describe('boolean', () => {
+        it('ok', () =>
+          validateBooleanRanges({
+            okRange: [1, 1],
+          })
+          .should.eventually.be.fulfilled
+        );
+
+        it('non-boolean', () =>
+          validateBooleanRanges({
+            okRange: [1, 0],
+          })
+          .should.eventually.be.rejectedWith(
+            'Value type: BOOLEAN can only have ranges: [0,0] or [1,1]',
+          )
+        );
+      });
+
+      describe('percent', () => {
+        it('ok', () =>
+          validatePercentRanges({
+            okRange: [25, 50],
+          })
+          .should.eventually.be.fulfilled
+        );
+
+        it('less than 0', () =>
+          validatePercentRanges({
+            okRange: [-1, 1],
+          })
+          .should.eventually.be.rejectedWith(
+            'Value type: PERCENT can only have ranges with min value:' +
+            ' 0, max value: 100',
+          )
+        );
+
+        it('greater than 100', () =>
+          validatePercentRanges({
+            okRange: [0, 110],
+          })
+          .should.eventually.be.rejectedWith(
+            'Value type: PERCENT can only have ranges with min value:' +
+            ' 0, max value: 100',
+          )
+        );
+      });
     });
 
-    it('not ok, aspect valueType=boolean, duplicate status ranges', (done) => {
-      const aspToCreate = getAspectJson();
-      aspToCreate.criticalRange = [0, 0];
-      aspToCreate.okRange = [0, 0];
-      aspToCreate.valueType = aspectUtils.aspValueTypes.boolean;
+    describe('multiple ranges', () => {
+      describe('boolean', () => {
+        it('ok', () =>
+          validateBooleanRanges({
+            criticalRange: [0, 0],
+            okRange: [1, 1],
+          })
+          .should.eventually.be.fulfilled
+        );
 
-      const aspInst = Aspect.build(aspToCreate);
-      try {
-        aspectUtils.validateAspectStatusRanges(aspInst);
-        done('Expecting error');
-      } catch (err) {
-        const msg = 'Same value range to multiple statuses is not allowed for ' +
-        'value type: BOOLEAN';
-        expect(err.name).to.be.equal('InvalidAspectStatusRange');
-        expect(err.message).to.be.equal(msg);
-        done();
-      }
-    });
+        it('duplicate', () =>
+          validateBooleanRanges({
+            criticalRange: [0, 0],
+            okRange: [0, 0],
+          })
+          .should.eventually.be.rejectedWith(
+            'Same value range to multiple statuses is not allowed for value type: BOOLEAN'
+          )
+        );
 
-    it('not ok, aspect valueType=boolean, >2 status set', (done) => {
-      const aspToCreate = getAspectJson();
-      aspToCreate.criticalRange = [1, 1];
-      aspToCreate.okRange = [0, 0];
-      aspToCreate.infoRange = [1, 1];
-      aspToCreate.valueType = aspectUtils.aspValueTypes.boolean;
+        it('too many ranges', () =>
+          validateBooleanRanges({
+            criticalRange: [0, 0],
+            warningRange: [1, 1],
+            okRange: [1, 1],
+          })
+          .should.eventually.be.rejectedWith(
+            'More than 2 status ranges cannot be assigned for value type: BOOLEAN'
+          )
+        );
+      });
 
-      const aspInst = Aspect.build(aspToCreate);
-      try {
-        aspectUtils.validateAspectStatusRanges(aspInst);
-        done('Expecting error');
-      } catch (err) {
-        const msg = 'More than 2 status ranges cannot be assigned for value ' +
-        'type: BOOLEAN';
-        expect(err.name).to.be.equal('InvalidAspectStatusRange');
-        expect(err.message).to.be.equal(msg);
-        done();
-      }
-    });
+      describe('percent', () => {
+        it('ok', () =>
+          validatePercentRanges({
+            criticalRange: [0, 20],
+            warningRange: [21, 40],
+            infoRange: [41, 50],
+            okRange: [51, 100],
+          })
+          .should.eventually.be.fulfilled
+        );
+      });
 
-    it('not ok, aspect valueType=boolean, invalid status ranges', (done) => {
-      const aspToCreate = getAspectJson();
-      aspToCreate.criticalRange = [1, 0];
-      aspToCreate.okRange = [0, 0];
-      aspToCreate.valueType = aspectUtils.aspValueTypes.boolean;
+      describe('numeric', () => {
+        it('basic ranges', () =>
+          validateNumericRanges({
+            criticalRange: [0, 1],
+            warningRange: [2, 3],
+            infoRange: [4, 4],
+            okRange: [5, 10],
+          })
+          .should.eventually.be.fulfilled
+        );
 
-      const aspInst = Aspect.build(aspToCreate);
-      try {
-        aspectUtils.validateAspectStatusRanges(aspInst);
-        done('Expecting error');
-      } catch (err) {
-        const msg = 'Value type: BOOLEAN can only have ranges: [0,0] or [1,1]';
-        expect(err.name).to.be.equal('InvalidAspectStatusRange');
-        expect(err.message).to.be.equal(msg);
-        done();
-      }
-    });
+        it('negative int ranges with null range in the middle', () =>
+          validateNumericRanges({
+            criticalRange: [-10, -1],
+            warningRange: null,
+            infoRange: [0, 0],
+            okRange: [1, 10],
+          })
+          .should.eventually.be.fulfilled
+        );
 
-    it('ok, aspect valueType=numeric, valid status ranges', (done) => {
-      const aspToCreate = getAspectJson();
-      aspToCreate.criticalRange = [-1234, -123];
-      aspToCreate.warningRange = [-122, 0];
-      aspToCreate.infoRange = [0, 5678];
-      aspToCreate.okRange = [5679, 56789];
-      aspToCreate.valueType = aspectUtils.aspValueTypes.numeric;
+        it('all null ranges', () =>
+          validateNumericRanges({
+            criticalRange: null,
+            warningRange: null,
+            infoRange: null,
+            okRange: null,
+          })
+          .should.eventually.be.fulfilled
+        );
 
-      const aspInst = Aspect.build(aspToCreate);
-      try {
-        aspectUtils.validateAspectStatusRanges(aspInst);
-        done();
-      } catch (err) {
-        done(err);
-      }
-    });
+        it('non-contiguous ranges', () =>
+          validateNumericRanges({
+            criticalRange: [0, 10],
+            warningRange: null,
+            infoRange: [20, 30],
+            okRange: null,
+          })
+          .should.eventually.be.fulfilled
+        );
 
-    it('ok, aspect valueType=numeric, some statuses undefined', (done) => {
-      const aspToCreate = getAspectJson();
-      aspToCreate.criticalRange = [-1234, -123];
-      aspToCreate.warningRange = [-122, 0];
-      delete aspToCreate.infoRange;
-      delete aspToCreate.okRange;
-      aspToCreate.valueType = aspectUtils.aspValueTypes.numeric;
+        it('out of order ranges', () =>
+          validateNumericRanges({
+            criticalRange: [10, 20],
+            warningRange: [0, 9],
+            infoRange: [21, 30],
+            okRange: [-9, -1],
+          })
+          .should.eventually.be.fulfilled
+        );
 
-      const aspInst = Aspect.build(aspToCreate);
-      try {
-        aspectUtils.validateAspectStatusRanges(aspInst);
-        done();
-      } catch (err) {
-        done(err);
-      }
-    });
+        it('touching edges', () =>
+          validateNumericRanges({
+            criticalRange: [0, 5],
+            warningRange: [5, 10],
+            infoRange: [10, 15],
+            okRange: null,
+          })
+          .should.eventually.be.fulfilled
+        );
 
-    it('ok, aspect valueType=numeric, same/overlapping statuses', (done) => {
-      const aspToCreate = getAspectJson();
-      aspToCreate.criticalRange = [-1234, -123];
-      aspToCreate.warningRange = [-1234, -123];
-      aspToCreate.infoRange = [0, 5678];
-      aspToCreate.okRange = [5678, 56789];
-      aspToCreate.valueType = aspectUtils.aspValueTypes.numeric;
+        it('touching edges, reverse', () =>
+          validateNumericRanges({
+            criticalRange: [10, 15],
+            warningRange: [5, 10],
+            infoRange: [0, 5],
+            okRange: null,
+          })
+          .should.eventually.be.fulfilled
+        );
 
-      const aspInst = Aspect.build(aspToCreate);
-      try {
-        aspectUtils.validateAspectStatusRanges(aspInst);
-        done();
-      } catch (err) {
-        done(err);
-      }
-    });
+        it('singular range', () =>
+          validateNumericRanges({
+            criticalRange: [0, 3],
+            warningRange: [5, 5],
+            infoRange: [7, 10],
+            okRange: null,
+          })
+          .should.eventually.be.fulfilled
+        );
 
-    it('not ok, aspect valueType=numeric, invalid status ranges', (done) => {
-      const aspToCreate = getAspectJson();
-      aspToCreate.criticalRange = [Number.MIN_SAFE_INTEGER - 5, -123];
-      aspToCreate.warningRange = [-122, 0];
-      aspToCreate.infoRange = [0, 5678];
-      aspToCreate.okRange = [5678, Number.MAX_SAFE_INTEGER + 10];
-      aspToCreate.valueType = aspectUtils.aspValueTypes.numeric;
+        it('singular range, reverse', () =>
+          validateNumericRanges({
+            criticalRange: [7, 10],
+            warningRange: [5, 5],
+            infoRange: [0, 3],
+            okRange: null,
+          })
+          .should.eventually.be.fulfilled
+        );
 
-      const aspInst = Aspect.build(aspToCreate);
-      try {
-        aspectUtils.validateAspectStatusRanges(aspInst);
-        done('Expecting error');
-      } catch (err) {
-        const msg = 'Value type: NUMERIC can only have ranges with ' +
-        'min value: -9007199254740991, max value: 9007199254740991';
-        expect(err.name).to.be.equal('InvalidAspectStatusRange');
-        expect(err.message).to.be.equal(msg);
-        done();
-      }
-    });
+        it('touching edges, singular ranges', () =>
+          validateNumericRanges({
+            criticalRange: [10, 10],
+            warningRange: [5, 10],
+            infoRange: [5, 5],
+            okRange: [0, 5],
+          })
+          .should.eventually.be.fulfilled
+        );
 
-    it('ok, aspect valueType=percent, valid status ranges', (done) => {
-      const aspToCreate = getAspectJson();
-      aspToCreate.criticalRange = [0, 20];
-      aspToCreate.warningRange = [21, 40];
-      aspToCreate.infoRange = [41, 50];
-      aspToCreate.okRange = [51, 100];
-      aspToCreate.valueType = aspectUtils.aspValueTypes.percent;
+        it('identical edge ranges', () =>
+          validateNumericRanges({
+            criticalRange: [5, 10],
+            warningRange: [5, 5],
+            infoRange: [5, 5],
+            okRange: [1, 5],
+          })
+          .should.eventually.be.fulfilled
+        );
 
-      const aspInst = Aspect.build(aspToCreate);
-      try {
-        aspectUtils.validateAspectStatusRanges(aspInst);
-        done();
-      } catch (err) {
-        done(err);
-      }
-    });
+        it('identical non-singular ranges', () =>
+          validateNumericRanges({
+            criticalRange: [0, 4],
+            warningRange: [5, 9],
+            infoRange: [5, 9],
+            okRange: [10, 14],
+          })
+          .should.eventually.be.rejectedWith('Ranges cannot overlap')
+        );
 
-    it('ok, aspect valueType=percent, some statuses undefined', (done) => {
-      const aspToCreate = getAspectJson();
-      aspToCreate.criticalRange = [0, 10];
-      aspToCreate.warningRange = [20, 50];
-      delete aspToCreate.infoRange;
-      delete aspToCreate.okRange;
-      aspToCreate.valueType = aspectUtils.aspValueTypes.percent;
+        it('identical non-edge singular ranges', () =>
+          validateNumericRanges({
+            criticalRange: [0, 4],
+            warningRange: [5, 5],
+            infoRange: [5, 5],
+            okRange: [6, 10],
+          })
+          .should.eventually.be.fulfilled
+        );
 
-      const aspInst = Aspect.build(aspToCreate);
-      try {
-        aspectUtils.validateAspectStatusRanges(aspInst);
-        done();
-      } catch (err) {
-        done(err);
-      }
-    });
+        it('overlapping ranges', () =>
+          validateNumericRanges({
+            criticalRange: [0, 8],
+            warningRange: [10, 15],
+            infoRange: [5, 12],
+            okRange: null,
+          })
+          .should.eventually.be.rejectedWith('Ranges cannot overlap')
+        );
 
-    it('ok, aspect valueType=percent, same/overlapping statuses', (done) => {
-      const aspToCreate = getAspectJson();
-      aspToCreate.criticalRange = [0, 60];
-      aspToCreate.okRange = [50, 80];
-      aspToCreate.valueType = aspectUtils.aspValueTypes.percent;
+        it('encompassing ranges', () =>
+          validateNumericRanges({
+            criticalRange: [2, 3],
+            warningRange: [5, 6],
+            infoRange: [0, 10],
+            okRange: null,
+          })
+          .should.eventually.be.rejectedWith('Ranges cannot overlap')
+        );
 
-      const aspInst = Aspect.build(aspToCreate);
-      try {
-        aspectUtils.validateAspectStatusRanges(aspInst);
-        done();
-      } catch (err) {
-        done(err);
-      }
-    });
+        it('infinite ranges', () =>
+          validateNumericRanges({
+            criticalRange: [Number.MIN_SAFE_INTEGER, -1],
+            warningRange: [0, 0],
+            infoRange: [1, Number.MAX_SAFE_INTEGER],
+            okRange: null,
+          })
+            .should.eventually.be.fulfilled
+        );
 
-    it('not ok, aspect valueType=percent, invalid status ranges', (done) => {
-      const aspToCreate = getAspectJson();
-      aspToCreate.criticalRange = [-1, 1];
-      aspToCreate.okRange = [0, 110];
-      aspToCreate.valueType = aspectUtils.aspValueTypes.percent;
-
-      const aspInst = Aspect.build(aspToCreate);
-      try {
-        aspectUtils.validateAspectStatusRanges(aspInst);
-        done('Expecting error');
-      } catch (err) {
-        const msg = 'Value type: PERCENT can only have ranges with ' +
-        'min value: 0, max value: 100';
-        expect(err.name).to.be.equal('InvalidAspectStatusRange');
-        expect(err.message).to.be.equal(msg);
-        done();
-      }
+        it('decimals', () =>
+          validateNumericRanges({
+            criticalRange: [0, 2.5],
+            warningRange: [2.5, 3.1],
+            infoRange: [3.2, 5],
+            okRange: null,
+          })
+          .should.eventually.be.fulfilled
+        );
+      });
     });
   });
+
+  function validateNumericRanges(ranges) {
+    return validateRanges('NUMERIC', ranges);
+  }
+
+  function validateBooleanRanges(ranges) {
+    return validateRanges('BOOLEAN', ranges);
+  }
+
+  function validatePercentRanges(ranges) {
+    return validateRanges('PERCENT', ranges);
+  }
+
+  function validateRanges(valueType, ranges) {
+    const aspInst = Aspect.build({
+      name: u.name,
+      timeout: '1s',
+      isPublished: true,
+      valueType,
+      ...ranges,
+    });
+
+    return Promise.resolve().then(() =>
+      aspectUtils.validateAspectStatusRanges(aspInst)
+    );
+  }
 });
