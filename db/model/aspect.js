@@ -131,7 +131,7 @@ module.exports = function aspect(seq, dataTypes) {
     hooks: {
       beforeCreate(inst /* , opts */) {
         u.validateAspectStatusRanges(inst);
-      }, // hooks.afterCreate
+      }, // hooks.beforeCreate
       /**
        * TODO:
        * 1. Have a look at the sampleStore logic and confirm that it is
@@ -147,6 +147,7 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       afterCreate(inst /* , opts */) {
+
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
         return Promise.join(
@@ -196,10 +197,7 @@ module.exports = function aspect(seq, dataTypes) {
           promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
             .each((samp) => {
               if (samp) {
-                publishSample(
-                  samp, seq.models.Subject, sampleEventNames.del,
-                  seq.models.Aspect
-                );
+                publishSample(samp, sampleEventNames.del);
               }
             })
           );
@@ -331,10 +329,7 @@ module.exports = function aspect(seq, dataTypes) {
             promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
               .each((samp) => {
                 if (samp) {
-                  publishSample(
-                    samp, seq.models.Subject, sampleEventNames.add,
-                    seq.models.Aspect
-                  );
+                  publishSample(samp, sampleEventNames.add);
                 }
               })
             );

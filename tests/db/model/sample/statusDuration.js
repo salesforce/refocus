@@ -23,7 +23,7 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const Op = require('sequelize').Op;
 
-describe('tests/db/model/sample/statusDuration.js >', () => {
+describe.skip('tests/db/model/sample/statusDuration.js >', () => {
   let globalAspect;
   let sample;
   const milliSecond = 1000;

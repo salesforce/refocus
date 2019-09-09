@@ -155,10 +155,8 @@ function removeRelatedSamples(subject, seq) {
          * the subject here before publishing the sample.
          */
         if (sample) {
-          sample.subject = subject;
           sample.updatedAt = now;
-          promises.push(publishSample(sample, null, sampleEvent.del,
-            seq.models.Aspect));
+          promises.push(publishSample(sample, sampleEvent.del));
         }
       });
     }

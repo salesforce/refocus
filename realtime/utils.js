@@ -73,7 +73,6 @@ function getNewObjAsString(key, obj) {
       updatedAt: obj.updatedAt,
       aspect: {
         name: obj.aspect.name,
-        timeout: obj.aspect.timeout, // needed by lens
       },
     };
   } else {

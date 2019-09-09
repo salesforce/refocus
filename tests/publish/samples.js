@@ -20,8 +20,8 @@ const api = supertest(require('../../express').app);
 const tu = require('../testUtils');
 const Subject = tu.db.Subject;
 const redisPublisher = require('../../realtime/redisPublisher');
-const sampleEvents = require('../../realtime/constants').events.sample;
 const aspectEvents = require('../../realtime/constants').events.aspect;
+const sampleEvents = require('../../realtime/constants').events.sample;
 const subjectEvents = require('../../realtime/constants').events.subject;
 const samstoinit = require('../../cache/sampleStoreInit');
 const doTimeout = require('../../cache/sampleStoreTimeout').doTimeout;
@@ -39,6 +39,7 @@ const addAspect = (name, token, timeout = '1h') => api.post('/v1/aspects')
     timeout,
     isPublished: true,
     criticalRange: [0, 0],
+    tags: ['aspTag1', 'aspTag2'],
   })
   .then(() => api.get(`/v1/aspects/${name}`).set('Authorization', token));
 
@@ -59,6 +60,31 @@ describe('tests/publish/samples.js >', () => {
   let token;
   let subscriber;
   let subscribeTracker = [];
+  const sampleAttributes = [
+    'createdAt',
+    'user',
+    'status',
+    'name',
+    'relatedLinks',
+    'provider',
+    'updatedAt',
+    'previousStatus',
+    'statusChangedAt',
+    'value',
+    'absolutePath',
+    'aspect',
+    'subject',
+  ];
+
+  function checkSampleAspSubjAttr(sample) {
+    expect(sample.aspect).to.have.all.keys('name', 'tags');
+    expect(sample.subject).to.have.all.keys('absolutePath', 'tags');
+  }
+
+  function checkSampleAttributes(sample) {
+    expect(sample).to.have.all.keys(...sampleAttributes);
+    checkSampleAspSubjAttr(sample);
+  }
 
   before((done) => {
     before(() => tu.toggleOverride('enableRedisSampleStore', true));
@@ -107,18 +133,12 @@ describe('tests/publish/samples.js >', () => {
           const s1 = JSON.parse(subscribeTracker[1]);
           expect(s1).to.have.property(sampleEvents.del);
           const s1Body = s1[sampleEvents.del];
-          expect(s1Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
-            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
-            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
-            'absolutePath');
+          checkSampleAttributes(s1Body);
 
           const s2 = JSON.parse(subscribeTracker[2]);
           expect(s2).to.have.property(sampleEvents.del);
           const s2Body = s2[sampleEvents.del];
-          expect(s2Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
-            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
-            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
-            'absolutePath');
+          checkSampleAttributes(s2Body);
           done();
         });
     });
@@ -162,15 +182,9 @@ describe('tests/publish/samples.js >', () => {
           expect(aspDelEvent).to.not.be.null;
           expect(aspAddEvent).to.not.be.null;
           const sampDelBody = sampDelEvent[sampleEvents.del];
-          expect(sampDelBody).to.include.keys('createdAt', 'subjectId',
-            'aspectId', 'user', 'status', 'name', 'relatedLinks', 'provider',
-            'updatedAt', 'previousStatus', 'statusChangedAt', 'aspect',
-            'subject', 'absolutePath');
+          expect(sampDelBody).to.have.all.keys(...sampleAttributes);
           const sampAddBody = sampAddEvent[sampleEvents.add];
-          expect(sampAddBody).to.include.keys('createdAt', 'subjectId',
-            'aspectId', 'user', 'status', 'name', 'relatedLinks', 'provider',
-            'updatedAt', 'previousStatus', 'statusChangedAt', 'aspect',
-            'subject', 'absolutePath');
+          expect(sampAddBody).to.have.all.keys(...sampleAttributes);
           done();
         });
     });
@@ -210,27 +224,24 @@ describe('tests/publish/samples.js >', () => {
           }
 
           expect(subscribeTracker).to.have.length(3);
-          const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(sampleEvents.del);
-          const s0Body = s0[sampleEvents.del];
-          expect(s0Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
-            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
-            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
-            'absolutePath');
+          const sampDelEvents = [];
+          let subjDelEvent = null;
+          subscribeTracker.forEach((e) => {
+            const event = JSON.parse(e);
+            if (event.hasOwnProperty(sampleEvents.del)) {
+              sampDelEvents.push(event);
+            } else if (event.hasOwnProperty(subjectEvents.del)) {
+              subjDelEvent = event;
+            }
+          });
 
-          const s1 = JSON.parse(subscribeTracker[1]);
-          expect(s1).to.have.property(sampleEvents.del);
-          const s1Body = s1[sampleEvents.del];
-          expect(s1Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
-            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
-            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
-            'absolutePath');
+          sampDelEvents.forEach((sampDelEvent) => {
+            checkSampleAttributes(sampDelEvent[sampleEvents.del]);
+          });
 
-          const s3 = JSON.parse(subscribeTracker[2]);
-          expect(s3).to.have.property(subjectEvents.del);
-          const s3Body = s3[subjectEvents.del];
-          expect(s3Body)
-            .to.have.property('absolutePath', `${tu.namePrefix}S9`);
+          const subjDelBody = subjDelEvent[subjectEvents.del];
+          expect(subjDelBody).to.have.property(
+            'absolutePath', `${tu.namePrefix}S9`);
           done();
         });
     });
@@ -422,10 +433,10 @@ describe('tests/publish/samples.js >', () => {
           const s0 = JSON.parse(subscribeTracker[0]);
           expect(s0).to.have.property(sampleEvents.add);
           const s0Body = s0[sampleEvents.add];
-          expect(s0Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
-            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
-            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
-            'absolutePath');
+          expect(s0Body).to.have.all.keys(...sampleAttributes,
+            'aspectId', 'subjectId');
+          expect(s0Body.aspect).to.have.all.keys('name', 'tags');
+          expect(s0Body.subject).to.have.all.keys('absolutePath', 'tags');
           done();
         });
     });
@@ -445,12 +456,10 @@ describe('tests/publish/samples.js >', () => {
           const s0 = JSON.parse(subscribeTracker[0]);
           expect(s0).to.have.property(sampleEvents.add);
           const s0Body = s0[sampleEvents.add];
-          expect(s0Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
-            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
-            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
-            'absolutePath');
+          expect(s0Body).to.have.all.keys(...sampleAttributes);
           done();
-        });
+        })
+        .catch(done);
     });
 
     it('sample.update event, sample.nochange event', (done) => {
@@ -469,10 +478,7 @@ describe('tests/publish/samples.js >', () => {
           const s0 = JSON.parse(subscribeTracker[0]);
           expect(s0).to.have.property(sampleEvents.upd);
           const s0Body = s0[sampleEvents.upd];
-          expect(s0Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
-            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
-            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
-            'absolutePath');
+          expect(s0Body).to.have.all.keys(...sampleAttributes);
           subscribeTracker = [];
 
           api.post('/v1/samples/upsert')
@@ -487,11 +493,12 @@ describe('tests/publish/samples.js >', () => {
               }
 
               expect(subscribeTracker).to.have.length(1);
-              const s0 = JSON.parse(subscribeTracker[0]);
-              expect(s0).to.have.property(sampleEvents.nc);
-              const s0Body = s0[sampleEvents.nc];
-              expect(s0Body).to.include.keys('absolutePath', 'aspect', 'name',
-                'status', 'subject', 'updatedAt');
+              const sNC = JSON.parse(subscribeTracker[0]);
+              expect(sNC).to.have.property(sampleEvents.nc);
+              const sNCBody = sNC[sampleEvents.nc];
+              expect(sNCBody).to.have.all.keys('name', 'status', 'updatedAt',
+                'absolutePath', 'aspect', 'subject');
+              checkSampleAspSubjAttr(sNCBody);
               done();
             });
         });
@@ -510,16 +517,14 @@ describe('tests/publish/samples.js >', () => {
       .then(() => (subscribeTracker = [])));
 
     it('got sample.update event', (done) => {
+
       doTimeout(mockUpdatedAt)
         .then((timeoutResponse) => {
           expect(subscribeTracker).to.have.length(1);
           const s0 = JSON.parse(subscribeTracker[0]);
           expect(s0).to.have.property(sampleEvents.upd);
           const s0Body = s0[sampleEvents.upd];
-          expect(s0Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
-            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
-            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
-            'absolutePath');
+          expect(s0Body).to.have.all.keys(...sampleAttributes);
           expect(s0Body).to.have.property('status', 'Timeout');
         })
         .then(() => done())
@@ -547,10 +552,7 @@ describe('tests/publish/samples.js >', () => {
           const s0 = JSON.parse(subscribeTracker[0]);
           expect(s0).to.have.property(sampleEvents.upd);
           const s0Body = s0[sampleEvents.upd];
-          expect(s0Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
-            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
-            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
-            'absolutePath');
+          expect(s0Body).to.have.all.keys(...sampleAttributes, 'apiLinks');
           expect(s0Body.relatedLinks).to.deep.equal([
             { name: 'b', url: 'b.com' },
             { name: 'c', url: 'c.com' },
@@ -580,10 +582,7 @@ describe('tests/publish/samples.js >', () => {
           const s0 = JSON.parse(subscribeTracker[0]);
           expect(s0).to.have.property(sampleEvents.upd);
           const s0Body = s0[sampleEvents.upd];
-          expect(s0Body).to.include.keys('createdAt', 'subjectId', 'aspectId',
-            'user', 'status', 'name', 'relatedLinks', 'provider', 'updatedAt',
-            'previousStatus', 'statusChangedAt', 'aspect', 'subject',
-            'absolutePath');
+          expect(s0Body).to.have.all.keys(...sampleAttributes, 'apiLinks');
           expect(s0Body.relatedLinks).to.deep.equal([]);
           done();
         });

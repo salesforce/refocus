@@ -294,8 +294,7 @@ module.exports = {
       // instead of beginning of function
       tracker.trackSampleRequest(sample.name, sample.updatedAt,
         req.timestamp);
-      return publisher.publishSample(sample, helper.associatedModels.subject,
-        realtimeEvents.sample.add, helper.associatedModels.aspect);
+      return publisher.publishSample(sample, realtimeEvents.sample.add);
     })
     .then(() => {
       if (s.hasOwnProperty('aspect')) delete s.aspect;
@@ -402,7 +401,7 @@ module.exports = {
          * Send the upserted sample to the client by publishing it to the redis
          * channel.
          */
-        return publisher.publishSample(samp, subHelper.model);
+        return publisher.publishSample(samp, null);
       })
       .then(() => {
         u.logAPI(req, resultObj, dataValues);
@@ -476,7 +475,7 @@ module.exports = {
         tracker.trackSampleRequest(sample.name,
           sample.updatedAt, resultObj.reqStartTime);
         if (!sample.isFailed) {
-          publisher.publishSample(sample, subHelper.model);
+          publisher.publishSample(sample, null);
         }
       }));
       u.logAPI(req, resultObj, body, value.length);
@@ -519,10 +518,7 @@ module.exports = {
       tracker.trackSampleRequest(o.name,
         o.updatedAt, resultObj.reqStartTime);
 
-      return publisher.publishSample(
-        o, helper.associatedModels.subject, u.realtimeEvents.sample.upd,
-        helper.associatedModels.aspect
-      );
+      return publisher.publishSample(o, u.realtimeEvents.sample.upd);
     })
       .then(() => {
         u.logAPI(req, resultObj, retval);
