@@ -244,7 +244,8 @@ function calculateJobPriority(prioritize, deprioritize, req) {
     low: 'low',
   };
 
-  if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj')) {
+  if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') ||
+   featureToggles.isFeatureEnabled('enableBullForbulkPostEventsQueue')) {
     // ranges from 1 (highest priority) to MAX_INT  (lowest priority)
     jobPriority.high = 1;
     jobPriority.normal = 50;

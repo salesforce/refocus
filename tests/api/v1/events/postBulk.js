@@ -74,10 +74,7 @@ describe('tests/api/v1/events/postBulk.js >', () => {
     .send(eventsArray)
     .expect(constants.httpStatus.OK)
     .end((err, res) => {
-      console.log("***************************************")
-      console.log("MY RES", res)
       if (err) {
-        console.log("my err", err)
         return done(err);
       }
 
