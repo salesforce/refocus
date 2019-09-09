@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const { jobQueue, bulkDelSubQueue, bulkPostEventsQueue,
- createAuditEventsQueue } = require('../jobQueue/jobWrapper');
+ createAuditEventsQueue, } = require('../jobQueue/jobWrapper');
 const executeClockJob = require('./jobs/executeClockJob');
 const featureToggles = require('feature-toggles');
 
@@ -23,10 +23,12 @@ module.exports = {
         jobName === bulkDelSubQueue.name) {
         bulkDelSubQueue.process(Number(concurrency), job);
       }
+
       if (featureToggles.isFeatureEnabled('enableBullForbulkPostEvents') &&
         jobName === bulkPostEventsQueue.name) {
         bulkPostEventsQueue.process(Number(concurrency), job);
       }
+
       if (featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents') &&
         jobName === createAuditEventsQueue.name) {
         createAuditEventsQueue.process(Number(concurrency), job);
