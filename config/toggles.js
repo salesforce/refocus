@@ -225,8 +225,11 @@ const shortTermToggles = {
   enableBullForBulkDelSubj: environmentVariableTrue(
     pe, 'ENABLE_BULL_FOR_BULK_DEL_SUBJ'),
 
-  enableBullForbulkPostEventsQueue: environmentVariableTrue(
+  enableBullForBulkPostEvents: environmentVariableTrue(
     pe, 'ENABLE_BULL_FOR_BULK_POST_EVENTS'),
+
+  enableBullForCreateAuditEvents: environmentVariableTrue(
+    pe, 'ENABLE_BULL_FOR_CREATE_AUDIT_EVENTS'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

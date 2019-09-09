@@ -158,7 +158,7 @@ module.exports = {
         wrappedBulkPostData.user = user;
         wrappedBulkPostData.reqStartTime = resultObj.reqStartTime;
         const jobPromise = jobWrapper
-          .createPromisifiedJob(jobType.bulkPostEventsQueue,
+          .createPromisifiedJob(jobType.bulkPostEvents,
             wrappedBulkPostData, req);
         return jobPromise.then((job) => {
           // Set the jobId in the response object before it is returned

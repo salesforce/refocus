@@ -18,8 +18,10 @@ module.exports = (startTime, job) => {
     let jobPriority;
     if ((featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
       job.type === jobType.bulkDeleteSubjects) ||
-      (featureToggles.isFeatureEnabled('enableBullForbulkPostEventsQueue') &&
-    job.type === jobType.bulkPostEventsQueue)) {
+      (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
+    job.type === jobType.bulkPostEvents) ||
+      (featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents') &&
+    job.type === jobType.createAuditEvents)) {
       jobPriority = job.opts.priority;
     } else {
       jobPriority = job._priority;

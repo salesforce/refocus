@@ -18,6 +18,7 @@ const jobSetup = require('./setup');
 const jobQueue = jobSetup.jobQueue;
 const bulkDelSubQueue = jobSetup.bulkDelSubQueue;
 const bulkPostEventsQueue = jobSetup.bulkPostEventsQueue;
+const createAuditEventsQueue = jobSetup.createAuditEventsQueue;
 const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
@@ -97,6 +98,34 @@ bulkDelSubQueue.on('completed', (job, jobResultObj) => {
 });
 
 bulkPostEventsQueue.on('completed', (job, jobResultObj) => {
+  const logObject = {
+    jobType: job.type,
+    jobId: job.id,
+  };
+
+  Object.assign(logObject, jobResultObj.requestInfo);
+
+  // when enableWorkerActivityLogs are enabled, update the logObject
+  if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs') &&
+    jobResultObj && logObject) {
+    mapJobResultsToLogObject(jobResultObj, logObject);
+
+    // Update queueStatsActivityLogs
+    if (featureToggles
+      .isFeatureEnabled('enableQueueStatsActivityLogs')) {
+      queueTimeActivityLogs
+        .update(jobResultObj.recordCount, jobResultObj.queueTime);
+    }
+
+    /*
+    * The second argument should match the activity logging type in
+    * /config/activityLog.js
+    */
+    activityLogUtil.printActivityLogString(logObject, 'worker');
+  }
+});
+
+createAuditEventsQueue.on('completed', (job, jobResultObj) => {
   const logObject = {
     jobType: job.type,
     jobId: job.id,
@@ -245,7 +274,8 @@ function calculateJobPriority(prioritize, deprioritize, req) {
   };
 
   if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') ||
-   featureToggles.isFeatureEnabled('enableBullForbulkPostEventsQueue')) {
+   featureToggles.isFeatureEnabled('enableBullForbulkPostEvents') ||
+   featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents')) {
     // ranges from 1 (highest priority) to MAX_INT  (lowest priority)
     jobPriority.high = 1;
     jobPriority.normal = 50;
@@ -295,8 +325,8 @@ function createPromisifiedJob(jobName, data, req) {
       });
   }
 
-  if (featureToggles.isFeatureEnabled('enableBullForbulkPostEventsQueue') &&
-    jobName === jobType.bulkPostEventsQueue) {
+  if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
+    jobName === jobType.bulkPostEvents) {
     data.requestInfo = getRequestInfo(req);
 
     const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
@@ -304,7 +334,22 @@ function createPromisifiedJob(jobName, data, req) {
 
     return bulkPostEventsQueue.add(data, { priority: jobPriority })
       .then((job) => {
-        job.type = jobType.bulkPostEventsQueue;
+        job.type = jobType.bulkPostEvents;
+        logJobCreate(startTime, job);
+        return job;
+      });
+  }
+
+  if (featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents') &&
+    jobName === jobType.bulkPostEvents) {
+    data.requestInfo = getRequestInfo(req);
+
+    const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
+      conf.deprioritizeJobsFrom, req);
+
+    return createAuditEventsQueue.add(data, { priority: jobPriority })
+      .then((job) => {
+        job.type = jobType.createAuditEvents;
         logJobCreate(startTime, job);
         return job;
       });

@@ -58,6 +58,7 @@
     "test-extra": "npm run test-api-log && npm run test-cache && npm run test-jobQueue && npm run test-view && npm run test-disablehttp && npm run test-cors && npm run test-limiter && npm run test-xfwd && npm run test-routes-enabled && npm run test-routes-disabled && npm run test-realtime-application",
     "test-jobQueue": "ENABLE_BULL_FOR_BULK_DEL_SUBJ=false npm run test-with-coverage -- --recursive tests/jobQueue && ENABLE_BULL_FOR_BULK_DEL_SUBJ=true npm run test-with-coverage -- --recursive tests/jobQueue ",
     "test-pBulk": "ENABLE_BULL_FOR_BULK_POST_EVENTS=false npm run test-with-coverage -- --recursive tests/api/v1/events && ENABLE_BULL_FOR_BULK_POST_EVENTS=true npm run test-with-coverage -- --recursive tests/api/v1/events ",
+    "test-createAudit": "ENABLE_BULL_FOR_CREATE_AUDIT_EVENTS=false npm run test-with-coverage -- --recursive tests/api/v1/auditEvents && ENABLE_BULL_FOR_CREATE_AUDIT_EVENTS=true npm run test-with-coverage -- --recursive tests/api/v1/auditEvents ",
     "test-limiter": "npm run test-with-coverage -- tests/limiter/limiter.js",
     "test-main": "npm run test-with-coverage -- --recursive tests/api tests/clock tests/config tests/db tests/enforceToken tests/realtime tests/enableCache tests/logging tests/publish",
     "test-realtime-application": "REALTIME_APPLICATION=https://abc.def npm run test-with-coverage -- tests/realtime/pubSub.js",
