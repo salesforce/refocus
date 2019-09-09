@@ -103,7 +103,6 @@ if (featureToggles.isFeatureEnabled('instrumentKue')) {
 
 module.exports = {
   jobType: conf.jobType,
-  bullJobs: conf.bullJobs,
   jobQueue,
   resetJobQueue,
   gracefulShutdown,

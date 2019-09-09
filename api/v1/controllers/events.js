@@ -195,7 +195,7 @@ module.exports = {
     const reqParams = req.swagger.params;
     const jobId = reqParams.key.value;
 
-    if (featureToggles.isFeatureEnabled('enableBullForbulkPostEventsQueue')) {
+    if (featureToggles.isFeatureEnabled('enableBullForbulkPostEvents')) {
       let bulkPostEventsJob;
       bulkPostEventsQueue.getJobFromId(jobId)
         .then((job) => {
@@ -203,7 +203,7 @@ module.exports = {
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
           if (!job ||
-            job.queue.name !== queueSetup.jobType.bulkDeleteSubjects) {
+            job.queue.name !== queueSetup.jobType.bulkPostEvents) {
             const err = new apiErrors.ResourceNotFoundError();
             throw err;
           }

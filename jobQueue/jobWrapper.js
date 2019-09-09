@@ -274,7 +274,7 @@ function calculateJobPriority(prioritize, deprioritize, req) {
   };
 
   if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') ||
-   featureToggles.isFeatureEnabled('enableBullForbulkPostEvents') ||
+   featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') ||
    featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents')) {
     // ranges from 1 (highest priority) to MAX_INT  (lowest priority)
     jobPriority.high = 1;
@@ -341,7 +341,7 @@ function createPromisifiedJob(jobName, data, req) {
   }
 
   if (featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents') &&
-    jobName === jobType.bulkPostEvents) {
+    jobName === jobType.createAuditEvents) {
     data.requestInfo = getRequestInfo(req);
 
     const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
@@ -417,4 +417,5 @@ module.exports = {
   mapJobResultsToLogObject,
   bulkDelSubQueue,
   bulkPostEventsQueue,
+  createAuditEventsQueue,
 }; // exports

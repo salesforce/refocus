@@ -136,12 +136,6 @@ const jobType = {
   bulkDeleteSubjects: 'bulkDeleteSubjects',
 };
 
-const bullJobs = {
-  bulkPostEvents: 'bulkPostEvents',
-  bulkDeleteSubjects: 'bulkDeleteSubjects',
-  createAuditEvents: 'createAuditEvents',
-};
-
 const clockJobConfig = {
   intervals: {
     checkMissedCollectorHeartbeat:
@@ -326,7 +320,6 @@ module.exports = {
   ipWhitelistService,
   jobConcurrency,
   jobType,
-  bullJobs,
   kueShutdownTimeout,
   logEnvVars: {
     MASK_LIST: pe.LOG_ENV_VARS_MASK_LIST ?
