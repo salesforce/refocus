@@ -194,14 +194,11 @@ module.exports = {
     const resultObj = { reqStartTime: req.timestamp };
     const reqParams = req.swagger.params;
     const jobId = reqParams.key.value;
-    console.log("featureToggles.isFeatureEnabled('enableBullForBulkPostEvents')",featureToggles.isFeatureEnabled('enableBullForbulkPostEvents'))
 
     if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents')) {
-      console.log("****************INSIDE IF*******************")
       let bulkPostEventsJob;
       bulkPostEventsQueue.getJobFromId(jobId)
         .then((job) => {
-          console.log("**************INSIDE IF JOB******************",job.getState())
           bulkPostEventsJob = job;
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
