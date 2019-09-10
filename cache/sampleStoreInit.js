@@ -24,6 +24,7 @@ const constants = samsto.constants;
 const infoLoggingEnabled =
   featureToggles.isFeatureEnabled('enableSampleStoreInfoLogging');
 const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
+const redisOps = require('./redisOps');
 const ONE = 1;
 const ZERO = 0;
 
@@ -105,11 +106,11 @@ function eradicate() {
            * delete aspect tags/writers/ranges keys
            */
           keys.forEach((key) => {
-            const aspName = key.split(constants.separator)[2]
+            const aspName = key.split(constants.separator)[2];
             keys.push(samsto.toKey(constants.objectType.aspTags, aspName));
             keys.push(samsto.toKey(constants.objectType.aspWriters, aspName));
             keys.push(samsto.toKey(constants.objectType.aspRanges, aspName));
-          })
+          });
         }
 
         if (constants.indexKey[s] === constants.indexKey.subject) {
@@ -117,9 +118,9 @@ function eradicate() {
            * delete subject tags/writers/ranges keys
            */
           keys.forEach((key) => {
-            const subName = key.split(constants.separator)[2]
+            const subName = key.split(constants.separator)[2];
             keys.push(samsto.toKey(constants.objectType.subTags, subName));
-          })
+          });
         }
 
         keys.push(constants.indexKey[s]);
@@ -177,6 +178,23 @@ function populateAspects() {
       writersArray[i].forEach((writer) => {
         a.dataValues.writers.push(writer.dataValues.name);
       });
+
+      // add writers keys
+      if (a.dataValues.writers.length) {
+        const aspWritersKey = samsto.toKey(
+          constants.objectType.aspWriters, a.name);
+        cmds.push(['sadd', aspWritersKey, a.dataValues.writers]);
+      }
+
+      // add tags keys
+      if (a.tags.length) {
+        const aspTagsKey = redisOps.getAspectTagsKey(a.name);
+        cmds.push(['sadd', aspTagsKey, a.tags]);
+      }
+
+      // add ranges keys
+      redisOps.addRangesCmds(a, cmds);
+
       const key = samsto.toKey(constants.objectType.aspect, a.name);
       aspectIdx.push(key);
       const cleanedAspect = samsto.cleanAspect(a);
@@ -216,6 +234,12 @@ function populateSubjects() {
 
       // add the subject absoluePath to the master subject index
       cmds.push(['sadd', constants.indexKey.subject, key]);
+
+      // add tags key
+      if (s.tags.length) {
+        const subjTagsKey = redisOps.getSubjectTagsKey(s.absolutePath);
+        cmds.push(['sadd', subjTagsKey, s.tags]);
+      }
 
       // create a mapping of subject absolutePath to subject object
       const cleanedSubject = samsto.cleanSubject(s);

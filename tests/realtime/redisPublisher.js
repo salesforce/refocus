@@ -42,11 +42,13 @@ describe('tests/realtime/redisPublisher.js >', () => {
           { name: 'Google', value: 'http://www.google.com' },
           { name: 'Yahoo', value: 'http://www.yahoo.com' },
         ],
+        tags: ['asp1', 'aspTag'],
       })
         .then((created) => (a1 = created))
         .then(() => Subject.create({
           isPublished: true,
           name: subjectName,
+          tags: ['subj1', 'subTag'],
         }))
         .then((created) => (s1 = created))
         .then(() => Sample.create({
@@ -73,7 +75,10 @@ describe('tests/realtime/redisPublisher.js >', () => {
           expect(pubObj.aspect).to.not.equal(null);
           expect(pubObj.aspect.name).to.equal(aspectName);
           expect(pubObj.aspect.writers).to.be.undefined;
-          expect(Array.isArray(pubObj.aspect.relatedLinks)).to.be.true;
+          expect(Array.isArray(pubObj.aspect.relatedLinks)).to.be.false;
+          expect(pubObj.aspect.tags.length).to.equal(2);
+          expect(pubObj.aspect.tags.sort()).to.deep.equal(
+            ['asp1', 'aspTag'].sort());
           expect(pubObj.subject).to.not.have.property('helpEmail');
           done();
         })
@@ -85,8 +90,11 @@ describe('tests/realtime/redisPublisher.js >', () => {
         .then((sam) => redisPublisher.publishSample(sam, event.upd))
         .then((pubObj) => {
           expect(pubObj.subject).to.not.equal(null);
-          expect(pubObj.subject.name).to.equal(subjectName);
+          expect(pubObj.subject.name).to.equal(undefined);
+          expect(pubObj.subject.absolutePath).to.equal('___Subject');
           expect(pubObj.subject).to.not.have.property('relatedLinks');
+          expect(pubObj.subject.tags.sort()).to.deep.equal(
+            ['subj1', 'subTag'].sort());
           expect(pubObj.subject).to.not.have.property('helpEmail');
           done();
         })
@@ -105,12 +113,12 @@ describe('tests/realtime/redisPublisher.js >', () => {
           expect(pubObj.aspect).to.not.equal(null);
           expect(pubObj.aspect.name).to.equal(aspectName);
           expect(pubObj.aspect.writers).to.be.undefined;
-          expect(Array.isArray(pubObj.aspect.relatedLinks)).to.be.true;
+          expect(Array.isArray(pubObj.aspect.relatedLinks)).to.be.false;
           expect(pubObj.subject).to.not.have.property('helpEmail');
 
           // check subject is still there
           expect(pubObj.subject).to.not.equal(null);
-          expect(pubObj.subject.name).to.equal(subjectName);
+          expect(pubObj.subject.absolutePath).to.equal(subjectName);
           expect(pubObj.subject).to.not.have.property('writers');
           expect(pubObj.subject).to.not.have.property('relatedLinks');
           expect(pubObj.subject).to.not.have.property('helpEmail');
@@ -124,6 +132,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
     const subjectNA = {
       name: `${tu.namePrefix}NorthAmerica`,
       isPublished: true,
+      tags: ['NA'],
     };
     const subjectSA = {
       name: `${tu.namePrefix}SouthAmerica`,
@@ -137,6 +146,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
       name: `${tu.namePrefix}humidity`,
       timeout: '60s',
       isPublished: true,
+      tags: ['humi'],
     };
     before((done) => {
       Subject.create(subjectNA)
@@ -166,11 +176,11 @@ describe('tests/realtime/redisPublisher.js >', () => {
             .publishSample(sam, event.upd))
           .then((pubObj) => {
             expect(pubObj.subject).to.not.equal(null);
-            expect(pubObj.subject.name).to.equal(subjectNA.name);
+            expect(pubObj.subject.absolutePath).to.equal(subjectNA.name);
             expect(pubObj.subject).to.not.have.property('helpEmail');
-            expect(pubObj.subject.tags.length).to.equal(0);
+            expect(pubObj.subject.tags.length).to.equal(1);
             expect(pubObj.absolutePath).to.equal(subjectNA.name);
-            expect(pubObj.aspect.tags.length).to.equal(0);
+            expect(pubObj.aspect.tags.length).to.equal(1);
             expect(pubObj.aspect.writers).to.be.undefined;
             done();
           })
@@ -183,11 +193,11 @@ describe('tests/realtime/redisPublisher.js >', () => {
           .then((sam) => redisPublisher.publishSample(sam, null))
           .then((pubObj) => {
             expect(pubObj.subject).to.not.equal(null);
-            expect(pubObj.subject.name).to.equal(subjectNA.name);
+            expect(pubObj.subject.absolutePath).to.equal(subjectNA.name);
             expect(pubObj.subject).to.not.have.property('helpEmail');
-            expect(pubObj.subject.tags.length).to.equal(0);
+            expect(pubObj.subject.tags.length).to.equal(1);
             expect(pubObj.absolutePath).to.equal(subjectNA.name);
-            expect(pubObj.aspect.tags.length).to.equal(0);
+            expect(pubObj.aspect.tags.length).to.equal(1);
             expect(pubObj.aspect.writers).to.be.undefined;
             done();
           })
@@ -206,33 +216,16 @@ describe('tests/realtime/redisPublisher.js >', () => {
             expect(pubObj.aspect).to.not.equal(null);
             expect(pubObj.aspect.name).to.equal(humidity.name);
             expect(pubObj.subject).to.not.have.property('helpEmail');
-            expect(pubObj.aspect.tags.length).to.equal(0);
+            expect(pubObj.aspect.tags.length).to.equal(1);
             expect(pubObj.subject).to.not.equal(null);
-            expect(pubObj.subject.name).to.equal(subjectNA.name);
-            expect(pubObj.subject.tags.length).to.equal(0);
+            expect(pubObj.subject.absolutePath).to.equal(subjectNA.name);
+            expect(pubObj.subject.tags.length).to.equal(1);
             expect(pubObj.absolutePath).to.equal(subjectNA.name);
-            expect(pubObj.aspect.tags.length).to.equal(0);
             expect(pubObj.aspect.writers).to.be.undefined;
             expect(pubObj.subject.absolutePath).to.be.equal(pubObj.absolutePath);
             done();
           })
           .catch(done);
-      });
-    });
-
-    it('Must return an undefined promise when Error from real time ' +
-      'attachAspectSubject', (done) => {
-      sinon.stub(realTimeUtils, 'attachAspectSubject')
-        .rejects(Error());
-
-      Sample.findOne(sampleName)
-        .then((sam) => redisPublisher
-          .publishSample(sam, event.upd))
-        .then((sample) => {
-          expect(sample).to.equal(undefined);
-          done();
-        }).finally(() => {
-        realTimeUtils.attachAspectSubject.restore();
       });
     });
 
@@ -319,7 +312,7 @@ describe('tests/realtime/redisPublisher.js >', () => {
         .then((sam) => redisPublisher.publishSample(sam, event.upd))
         .then((pubObj) => {
           expect(pubObj.subject).to.not.equal(null);
-          expect(pubObj.subject.name).to.equal(subjectName);
+          expect(pubObj.subject.absolutePath).to.equal(subjectName);
           expect(pubObj.subject).to.not.have.property('relatedLinks');
           expect(pubObj.subject).to.not.have.property('helpEmail');
           done();

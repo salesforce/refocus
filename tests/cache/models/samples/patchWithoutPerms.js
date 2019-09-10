@@ -72,16 +72,14 @@ describe('tests/cache/models/samples/patchWithoutPerms.js, ' +
           { name: 'link', url: 'https://samples.com' },
         ],
       })
-      .expect(constants.httpStatus.FORBIDDEN)
+      .expect(constants.httpStatus.OK)
       .end((err, res) => {
         if (err) {
           return done(err);
         }
 
-        console.log(err, res.body);
         return done();
       });
-    // .end(done);
   });
 
   it('patching without permission should return 403 status', (done) => {
@@ -101,6 +99,5 @@ describe('tests/cache/models/samples/patchWithoutPerms.js, ' +
 
         return done();
       });
-    // .end(done);
   });
 });

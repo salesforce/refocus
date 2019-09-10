@@ -197,11 +197,11 @@ function publishSample(sample, event) {
   const subjTagsKey = redisOps.getSubjectTagsKey(sample.absolutePath);
   cmds.push(['smembers', subjTagsKey]);
 
-  const aspTagsKey = redisOps.getSubjectTagsKey(sample.aspect.name);
+  const aspTagsKey = redisOps.getAspectTagsKey(sample.aspect.name);
   cmds.push(['smembers', aspTagsKey]);
 
   return redisOps.executeBatchCmds(cmds)
-    .then((res) => { // TODO: check that it returns empty arr if value not present
+    .then((res) => {
       sample.subject.tags = res[0]; // for socket.io perspective filtering
       sample.aspect.tags = res[1]; // for socket.io perspective filtering
     })

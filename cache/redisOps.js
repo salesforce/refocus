@@ -572,6 +572,24 @@ module.exports = {
   },
 
   /**
+   * Get tags key for an aspect
+   * @param aspectName - aspect name
+   * @returns {String} - aspect tags key
+   */
+  getAspectTagsKey(aspectName) {
+    return redisStore.toKey(keyType.aspTags, aspectName);
+  },
+
+  /**
+   * Get writers key for an aspect
+   * @param aspectName - aspect name
+   * @returns {String} - aspect writers key
+   */
+  getAspectWritersKey(aspectName) {
+    return redisStore.toKey(keyType.aspWriters, aspectName);
+  },
+
+  /**
    * Setup writers, tags, and ranges for this aspect.
    *
    * @param  {Object} aspect
@@ -792,6 +810,37 @@ module.exports = {
     function getRangeKey({ type, precedence, status }) {
       return `${precedence[type]}:${type}:${status}`;
     }
+  },
+
+  /**
+   * Set ranges keys for this aspect.
+   *
+   * @param  {Object} aspect - aspect object from Redis
+   * @param  {Boolean} preview - preview mode
+   * @param  {Array} redisCmds - redis commands array
+   */
+  addRangesCmds(aspect, redisCmds) {
+    const key = redisStore.toKey(keyType.aspRanges, aspect.name);
+    const ranges = {
+      Critical: aspect.criticalRange,
+      Warning: aspect.warningRange,
+      Info: aspect.infoRange,
+      OK: aspect.okRange,
+    };
+
+    Object.entries(ranges)
+      .filter(([status, range]) => range)
+      .reduce((redisCmds, [status, [min, max]]) => {
+        const { minKey, maxKey } = module.exports.getRangesKeys(
+          status, [min, max]);
+        const minCmd = ['zadd', key, min, minKey];
+        const maxCmd = ['zadd', key, max, maxKey];
+
+        redisCmds.push(minCmd);
+        redisCmds.push(maxCmd);
+
+        return redisCmds;
+      }, redisCmds);
   },
 
   parseRange([key, score]) {

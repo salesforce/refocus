@@ -98,6 +98,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
        */
       sampleInstNA.absolutePath = rootSubjNA;
       sampleInstNA.subject = rootSubjNAObj;
+      sampleInstNA.aspect = { name: aspectOne.name, tags: aspectOne.tags };
     })
     .then(() => u.doSetup())
     .then((createdLens) => {
@@ -558,7 +559,6 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
           updatedAt: testEvents[key].updatedAt,
           aspect: {
             name: testEvents[key].aspect.name,
-            timeout: testEvents[key].aspect.timeout,
           },
         };
         expect(obj[key]).to.deep.equal(nc);

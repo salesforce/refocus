@@ -34,7 +34,7 @@ function doDelete(req, res, next, props) {
   let obj;
   if (props.modelName === 'Sample') {
     const sampleName = req.swagger.params.key.value.toLowerCase();
-    delPromise = redisModelSample.deleteSample(sampleName, req.user);
+    delPromise = redisModelSample.deleteSample(sampleName, req.user.name);
   } else {
     delPromise = u.findByKey(props, req.swagger.params)
     .then((o) => u.isWritable(req, o))
