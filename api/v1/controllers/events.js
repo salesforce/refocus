@@ -194,11 +194,14 @@ module.exports = {
     const resultObj = { reqStartTime: req.timestamp };
     const reqParams = req.swagger.params;
     const jobId = reqParams.key.value;
+    console.log("featureToggles.isFeatureEnabled('enableBullForBulkPostEvents')",featureToggles.isFeatureEnabled('enableBullForbulkPostEvents'))
 
-    if (featureToggles.isFeatureEnabled('enableBullForbulkPostEvents')) {
+    if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents')) {
+      console.log("****************INSIDE IF*******************")
       let bulkPostEventsJob;
       bulkPostEventsQueue.getJobFromId(jobId)
         .then((job) => {
+          console.log("**************INSIDE IF JOB******************",job.getState())
           bulkPostEventsJob = job;
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
@@ -232,7 +235,7 @@ module.exports = {
       kue.Job.get(jobId, (_err, job) => {
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
-        if (_err || !job || job.type !== queueSetup.jobType.bulkPostEventsQueue) {
+        if (_err || !job || job.type !== queueSetup.jobType.bulkPostEvents) {
           const err = new apiErrors.ResourceNotFoundError();
           return u.handleError(next, err, helper.modelName);
         }

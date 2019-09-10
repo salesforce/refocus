@@ -21,7 +21,7 @@ const constants = require('../../../api/v1/constants');
 const path = '/v1/events/bulk';
 const getStatusPath = '/v1/events/bulk/{jobId}/status';
 const bulkPostEventsJob = require('../../../worker/jobs/bulkPostEvents');
-const timeoutMillis = 500;
+const timeoutMillis = 300;
 
 describe('tests/jobQueue/v1/getBulkPostEventStatus.js, ' +
 `api: GET ${getStatusPath} >`, () => {
