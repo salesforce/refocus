@@ -13,52 +13,52 @@ const expect = require('chai').expect;
 const utils = require('../../../view/perspective/utils');
 const v1hierarchy = require('./v1hierarchy');
 const v2hierarchy = require('./v2hierarchy');
+const allAspects = require('./v2aspects');
 
 describe('tests/view/perspectives/reconstructV1Hierarchy.js >', () => {
   it('hierarchy already had v1 shape', () => {
-    const h = utils.reconstructV1Hierarchy(v1hierarchy);
+    const h = utils.reconstructV1Hierarchy(v1hierarchy, allAspects);
     expect(h).to.deep.equal(v1hierarchy);
   });
 
   it('reconstruct v1 hierarchy from v2 hierarchy', () => {
-    const h = utils.reconstructV1Hierarchy(v2hierarchy);
+    const h = utils.reconstructV1Hierarchy(v2hierarchy, allAspects);
     expect(h).to.deep.equal(v1hierarchy);
   });
 
   it('aspect name case insensitivity', () => {
+    const aspects = [
+      {
+        name: 'A1',
+        timeout: '10m',
+        id: '123-345',
+      },
+    ];
     const v2 = {
-      hierarchy: {
-        absolutePath: 'a',
-        children: [
-          {
-            absolutePath: 'a.b',
-            samples: [
-              {
-                name: 'a.b|a1',
-                value: '1',
-              }
-            ],
-          },
-          {
-            absolutePath: 'a.c',
-            samples: [
-              {
-                name: 'a.c|A1',
-                value: '2',
-              }
-            ],
-          },
-        ],
-      },
-      aspects: {
-        'A1': {
-          name: 'A1',
-          timeout: '10m',
-          id: '123-345',
-        }
-      },
+      absolutePath: 'a',
+      children: [
+        {
+          absolutePath: 'a.b',
+          samples: [
+            {
+              name: 'a.b|a1',
+              value: '1',
+            }
+          ],
+        },
+        {
+          absolutePath: 'a.c',
+          samples: [
+            {
+              name: 'a.c|A1',
+              value: '2',
+            }
+          ],
+        },
+      ],
     };
-    const h = utils.reconstructV1Hierarchy(v2);
+
+    const h = utils.reconstructV1Hierarchy(v2, aspects);
     expect(h).to.deep.equal({
       "absolutePath": "a",
       "children": [
