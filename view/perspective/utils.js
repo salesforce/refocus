@@ -296,15 +296,18 @@ function getValuesObject(accumulatorObject) {
       });
 
     const filterString = getFilterQuery(perspective);
-    const getHierarchy = getPromiseWithUrl('/v1/subjects/' +
-      perspective.rootSubject + '/hierarchy' + filterString)
-      .then((res) => {
-        // if gotLens is false, hierarchyLoadEvent will be assigned
-        // and NOT dispatched. Otherwise dispatch the hierarchy event
-        hierarchyLoadEvent = handleHierarchyEvent(res.body, gotLens);
-
-        valuesObj.rootSubject = res.body;
-      });
+    const getHierarchy = Promise.all([
+      getPromiseWithUrl(`/v1/subjects/${perspective.rootSubject}/hierarchy${filterString}`),
+      getPromiseWithUrl('/v1/aspects'),
+    ])
+    .then(([hierarchy, allAspects]) => {
+      // if gotLens is false, hierarchyLoadEvent will be assigned
+      // and NOT dispatched. Otherwise dispatch the hierarchy event
+      hierarchyLoadEvent = handleHierarchyEvent(
+        hierarchy.body, allAspects.body, valuesObj.perspective, gotLens
+      );
+      valuesObj.rootSubject = hierarchy.body;
+    });
 
     return [getLens, getHierarchy];
   }
@@ -425,26 +428,20 @@ function getValuesObject(accumulatorObject) {
  * version 2. Traverse the hierarchy and attach the aspect to each of the
  * samples.
  *
- * @param hierarchyResponse
+ * @param hierarchy - hierarchy response
+ * @param aspects - separate list of aspects
  * @returns {boolean|string}
  */
-function reconstructV1Hierarchy(h) {
-  /*
-   * If for some reason this gets called with a v1 hierarchy, just return it
-   * unchanged.
-   */
-  if (!h.hasOwnProperty('aspects')) return h;
-
-  const lowerCaseAspectMap = {};
-  Object.keys(h.aspects).forEach((a) => {
-    lowerCaseAspectMap[a.toLowerCase()] = h.aspects[a];
-  });
+function reconstructV1Hierarchy(hierarchy, aspects) {
+  const aspMap = aspects.reduce((aspMap, asp) => (
+    { [asp.name.toLowerCase()]: asp, ...aspMap }
+  ), {});
 
   function traverse(subj) {
     if (subj.hasOwnProperty('samples')) {
       subj.samples.forEach((samp) => {
         const aspectName = samp.name.split('|')[1].toLowerCase();
-        const aspect = lowerCaseAspectMap[aspectName];
+        const aspect = aspMap[aspectName];
         samp.aspectId = aspect.id;
         samp.aspect = aspect;
       });
@@ -457,7 +454,7 @@ function reconstructV1Hierarchy(h) {
     return subj;
   } // traverse
 
-  const v1h = traverse(h.hierarchy);
+  const v1h = traverse(hierarchy);
   return v1h;
 } // reconstructV1Hierarchy
 
@@ -469,6 +466,5 @@ module.exports = {
   getConfig,
   getArray,
   getTagsFromResources,
-  hierarchyIsV1: (h) => !h.hasOwnProperty('aspects'),
   reconstructV1Hierarchy,
 };
