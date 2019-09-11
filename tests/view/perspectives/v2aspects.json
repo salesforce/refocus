@@ -1,0 +1,118 @@
+[
+  {
+    "valueLabel": "F",
+    "tags": [
+      "High"
+    ],
+    "createdBy": "0000000a-0000-0000-0000-000000000000",
+    "timeout": "2m",
+    "criticalRange": [
+      95,
+      999
+    ],
+    "helpEmail": "jdoe@weather.gov",
+    "id": "00000000-0000-0e00-0000-000000000000",
+    "createdAt": "2019-01-01T00:00:00.000Z",
+    "isPublished": true,
+    "infoRange": [
+      85,
+      90
+    ],
+    "description": "Current high temperature in Fahrenheit",
+    "updatedAt": "2019-01-01T00:00:00.000Z",
+    "relatedLinks": [
+      {
+        "name": "Weather",
+        "url": "https://www.accuweather.com"
+      }
+    ],
+    "okRange": [
+      -999,
+      85
+    ],
+    "name": "Temp-High",
+    "valueType": "NUMERIC",
+    "valueLabel": "F",
+    "warningRange": [
+      90,
+      95
+    ]
+  }, {
+    "valueLabel": "F",
+    "tags": [
+      "Low"
+    ],
+    "createdBy": "0000000a-0000-0000-0000-000000000000",
+    "timeout": "2m",
+    "criticalRange": [
+      95,
+      999
+    ],
+    "helpEmail": "jdoe@weather.gov",
+    "id": "00000000-0000-0e00-0000-000000000000",
+    "createdAt": "2019-01-01T00:00:00.000Z",
+    "isPublished": true,
+    "infoRange": [
+      85,
+      90
+    ],
+    "description": "Current high temperature in Fahrenheit",
+    "updatedAt": "2019-01-01T00:00:00.000Z",
+    "relatedLinks": [
+      {
+        "name": "Weather",
+        "url": "https://www.accuweather.com"
+      }
+    ],
+    "okRange": [
+      -999,
+      85
+    ],
+    "name": "Temp-Low",
+    "valueType": "NUMERIC",
+    "valueLabel": "F",
+    "warningRange": [
+      90,
+      95
+    ]
+  }, {
+    "valueLabel": "F",
+    "tags": [
+      "High",
+      "Low"
+    ],
+    "createdBy": "0000000a-0000-0000-0000-000000000000",
+    "timeout": "2m",
+    "criticalRange": [
+      95,
+      999
+    ],
+    "helpEmail": "jdoe@weather.gov",
+    "id": "00000000-0000-0e00-0000-000000000000",
+    "createdAt": "2019-01-01T00:00:00.000Z",
+    "isPublished": true,
+    "infoRange": [
+      85,
+      90
+    ],
+    "description": "Current high temperature in Fahrenheit",
+    "updatedAt": "2019-01-01T00:00:00.000Z",
+    "relatedLinks": [
+      {
+        "name": "Weather",
+        "url": "https://www.accuweather.com"
+      }
+    ],
+    "okRange": [
+      -999,
+      85
+    ],
+    "name": "Temp-Avg",
+    "valueType": "NUMERIC",
+    "valueLabel": "F",
+    "warningRange": [
+      90,
+      95
+    ]
+  }
+]

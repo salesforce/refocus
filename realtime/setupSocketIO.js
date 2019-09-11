@@ -17,6 +17,7 @@ const perspective = require('../db/index').Perspective;
 const room = require('../db/index').Room;
 const toggle = require('feature-toggles');
 const rtUtils = require('./utils');
+const emitUtils = require('./emitUtils');
 const jwtUtils = require('../utils/jwtUtil');
 const redisClient = require('../cache/redisCache').client.realtimeLogging;
 const conf = require('../config');
@@ -63,9 +64,9 @@ function getUserFromSession(sid, redisStore) {
  */
 function setupNamespace(io) {
   const perspPromise = perspective.scope('namespace').findAll()
-    .map((p) => rtUtils.initializePerspectiveNamespace(p, io));
+    .map((p) => emitUtils.initializePerspectiveNamespace(p, io));
   const roomPromise = room.scope('namespace').findAll()
-    .map((r) => rtUtils.initializeBotNamespace(r, io));
+    .map((r) => emitUtils.initializeBotNamespace(r, io));
   return Promise.all([perspPromise, roomPromise]);
 } // setupNamespace
 
