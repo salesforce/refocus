@@ -1,311 +1,268 @@
 {
-  "hierarchy": {
-    "absolutePath": "NorthAmerica",
-    "childCount": 3,
-    "description": "This subject represents a continent.",
-    "helpEmail": "help@help.com",
-    "id": "00000000-0000-0000-0000-000000000000",
-    "isPublished": true,
-    "name": "NorthAmerica",
-    "parentAbsolutePath": "",
-    "relatedLinks": [
-      {
-        "name": "Weather",
-        "url": "https://www.accuweather.com/en/north-america-weather"
-      }
-    ],
-    "tags": ["Continent"],
-    "sortBy": "",
-    "createdAt": "2019-01-01T00:00:00.000Z",
-    "updatedAt": "2019-01-01T00:00:00.000Z",
-    "hierarchyLevel": 1,
-    "parentId": "",
-    "children": [
-      {
-        "absolutePath": "NorthAmerica.Canada",
-        "childCount": 0,
-        "id": "00000000-0000-0000-0000-000000000001",
-        "isPublished": true,
-        "name": "Canada",
-        "parentAbsolutePath": "NorthAmerica",
-        "relatedLinks": [
-          {
-            "name": "Weather",
-            "url": "https://www.accuweather.com/en/ca/canada-weather"
-          }
-        ],
-        "tags": [
-          "Country"
-        ],
-        "sortBy": "",
-        "createdAt": "2019-01-01T00:00:00.000Z",
-        "updatedAt": "2019-01-01T00:00:00.000Z",
-        "hierarchyLevel": 2,
-        "parentId": "00000000-0000-0000-0000-000000000000",
-        "ownerId": "0000000a-0000-0000-0000-000000000000",
-        "createdBy": "0000000a-0000-0000-0000-000000000000",
-        "user": {
-          "id": "0000000a-0000-0000-0000-000000000000",
-          "name": "jdoe@weather.gov",
-          "email": "jdoe@weather.gov",
-          "fullName": "John Doe",
-          "profile": {
-            "id": "00000000-d000-0000-0000-000000000000",
-            "name": "RefocusUser"
-          }
-        },
-        "owner": {
-          "id": "0000000a-0000-0000-0000-000000000000",
-          "name": "jdoe@weather.gov",
-          "email": "jdoe@weather.gov",
-          "fullName": "John Doe",
-          "profile": {
-            "id": "00000000-d000-0000-0000-000000000000",
-            "name": "RefocusUser"
-          }
-        },
-        "samples": [
-          {
-            "messageCode": "",
-            "status": "OK",
-            "provider": "0000000a-0000-0000-0000-000000000000",
-            "value": "74.6",
-            "user": {
-              "name": "jdoe@weather.gov",
-              "email": "jdoe@weather.gov",
-              "profile": {
-                "name": "RefocusUser"
-              }
-            },
-            "subjectId": "00000000-0000-0000-0000-000000000001",
-            "messageBody": "High of 74.6F",
-            "previousStatus": "OK",
-            "statusChangedAt": "2019-06-10T12:52:54.163Z",
-            "createdAt": "2019-01-02T00:00:00.000Z",
-            "updatedAt": "2019-06-10T15:52:54.163Z",
-            "name": "NorthAmerica.Canada|Temp-High",
-            "relatedLinks": [
-              {
-                "name": "Weather",
-                "url": "https://www.accuweather.com/en/ca/canada-weather"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "absolutePath": "NorthAmerica.Mexico",
-        "childCount": 0,
-        "id": "00000000-0000-0000-0000-000000000002",
-        "isPublished": true,
-        "name": "Mexico",
-        "parentAbsolutePath": "NorthAmerica",
-        "relatedLinks": [
-          {
-            "name": "Weather",
-            "url": "https://www.accuweather.com/en/mx/mexico-weather"
-          }
-        ],
-        "tags": [
-          "Country"
-        ],
-        "sortBy": "",
-        "createdAt": "2019-01-01T00:00:00.000Z",
-        "updatedAt": "2019-01-01T00:00:00.000Z",
-        "hierarchyLevel": 2,
-        "parentId": "00000000-0000-0000-0000-000000000000",
-        "ownerId": "0000000a-0000-0000-0000-000000000000",
-        "createdBy": "0000000a-0000-0000-0000-000000000000",
-        "user": {
-          "id": "0000000a-0000-0000-0000-000000000000",
-          "name": "jdoe@weather.gov",
-          "email": "jdoe@weather.gov",
-          "fullName": "John Doe",
-          "profile": {
-            "id": "00000000-d000-0000-0000-000000000000",
-            "name": "RefocusUser"
-          }
-        },
-        "owner": {
-          "id": "0000000a-0000-0000-0000-000000000000",
-          "name": "jdoe@weather.gov",
-          "email": "jdoe@weather.gov",
-          "fullName": "John Doe",
-          "profile": {
-            "id": "00000000-d000-0000-0000-000000000000",
-            "name": "RefocusUser"
-          }
-        },
-        "samples": [
-          {
-            "messageCode": "",
-            "status": "OK",
-            "provider": "0000000a-0000-0000-0000-000000000000",
-            "value": "84.8",
-            "user": {
-              "name": "jdoe@weather.gov",
-              "email": "jdoe@weather.gov",
-              "profile": {
-                "name": "RefocusUser"
-              }
-            },
-            "subjectId": "00000000-0000-0000-0000-000000000002",
-            "messageBody": "High of 84.8F",
-            "previousStatus": "Warning",
-            "statusChangedAt": "2019-06-10T15:52:54.163Z",
-            "createdAt": "2019-01-02T00:00:00.000Z",
-            "updatedAt": "2019-06-10T15:52:54.163Z",
-            "name": "NorthAmerica.Mexico|Temp-High",
-            "relatedLinks": [
-              {
-                "name": "Weather",
-                "url": "https://www.accuweather.com/en/mx/mexico-weather"
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "absolutePath": "NorthAmerica.UnitedStates",
-        "childCount": 0,
-        "id": "00000000-0000-0000-0000-000000000003",
-        "isPublished": true,
-        "name": "UnitedStates",
-        "parentAbsolutePath": "NorthAmerica",
-        "relatedLinks": [
-          {
-            "name": "Weather",
-            "url": "https://www.accuweather.com/en/us/united-states-weather"
-          }
-        ],
-        "tags": [
-          "Country"
-        ],
-        "sortBy": "",
-        "createdAt": "2019-01-01T00:00:00.000Z",
-        "updatedAt": "2019-01-01T00:00:00.000Z",
-        "hierarchyLevel": 2,
-        "parentId": "00000000-0000-0000-0000-000000000000",
-        "ownerId": "0000000a-0000-0000-0000-000000000000",
-        "createdBy": "0000000a-0000-0000-0000-000000000000",
-        "user": {
-          "id": "0000000a-0000-0000-0000-000000000000",
-          "name": "jdoe@weather.gov",
-          "email": "jdoe@weather.gov",
-          "fullName": "John Doe",
-          "profile": {
-            "id": "00000000-d000-0000-0000-000000000000",
-            "name": "RefocusUser"
-          }
-        },
-        "owner": {
-          "id": "0000000a-0000-0000-0000-000000000000",
-          "name": "jdoe@weather.gov",
-          "email": "jdoe@weather.gov",
-          "fullName": "John Doe",
-          "profile": {
-            "id": "00000000-d000-0000-0000-000000000000",
-            "name": "RefocusUser"
-          }
-        },
-        "samples": [
-          {
-            "messageCode": "",
-            "status": "OK",
-            "provider": "0000000a-0000-0000-0000-000000000000",
-            "value": "61.0",
-            "user": {
-              "name": "netsec@salesforce.com",
-              "email": "netsec@salesforce.com",
-              "profile": {
-                "name": "RefocusUser"
-              }
-            },
-            "subjectId": "00000000-0000-0000-0000-000000000003",
-            "messageBody": "High of 61.0F",
-            "previousStatus": "OK",
-            "statusChangedAt": "2019-06-10T15:52:54.163Z",
-            "createdAt": "2019-04-03T19:55:54.573Z",
-            "updatedAt": "2019-06-12T22:14:02.903Z",
-            "name": "NorthAmerica.UnitedStates|Temp-High",
-            "relatedLinks": [
-              {
-                "name": "Weather",
-                "url": "https://www.accuweather.com/en/us/united-states-weather"
-              }
-            ]
-          }
-        ]
-      }
-    ],
-    "apiLinks": [
-      {
-        "href": "/v1/subjects/00000000-0000-0000-0000-000000000000",
-        "method": "DELETE",
-        "rel": "Delete this subject"
-      },
-      {
-        "href": "/v1/subjects/00000000-0000-0000-0000-000000000000",
-        "method": "GET",
-        "rel": "Retrieve this subject"
-      },
-      {
-        "href": "/v1/subjects/00000000-0000-0000-0000-000000000000",
-        "method": "PATCH",
-        "rel": "Update selected attributes of this subject"
-      },
-      {
-        "href": "/v1/subjects",
-        "method": "POST",
-        "rel": "Create a new subject"
-      },
-      {
-        "href": "/v1/subjects/00000000-0000-0000-0000-000000000000",
-        "method": "PUT",
-        "rel": "Overwrite all attributes of this subject"
-      }
-    ],
-    "samples": []
-  },
-  "aspects": {
-    "Temp-High": {
-      "valueLabel": "F",
-      "tags": [
-        "Weather"
-      ],
-      "createdBy": "0000000a-0000-0000-0000-000000000000",
-      "timeout": "2m",
-      "criticalRange": [
-        95,
-        999
-      ],
-      "helpEmail": "jdoe@weather.gov",
-      "id": "00000000-0000-0e00-0000-000000000000",
-      "createdAt": "2019-01-01T00:00:00.000Z",
+  "absolutePath": "NorthAmerica",
+  "childCount": 3,
+  "description": "This subject represents a continent.",
+  "helpEmail": "help@help.com",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "isPublished": true,
+  "name": "NorthAmerica",
+  "parentAbsolutePath": "",
+  "relatedLinks": [
+    {
+      "name": "Weather",
+      "url": "https://www.accuweather.com/en/north-america-weather"
+    }
+  ],
+  "tags": ["Continent"],
+  "sortBy": "",
+  "createdAt": "2019-01-01T00:00:00.000Z",
+  "updatedAt": "2019-01-01T00:00:00.000Z",
+  "hierarchyLevel": 1,
+  "parentId": "",
+  "children": [
+    {
+      "absolutePath": "NorthAmerica.Canada",
+      "childCount": 0,
+      "id": "00000000-0000-0000-0000-000000000001",
       "isPublished": true,
-      "infoRange": [
-        85,
-        90
-      ],
-      "description": "Current high temperature in Fahrenheit",
-      "updatedAt": "2019-01-01T00:00:00.000Z",
+      "name": "Canada",
+      "parentAbsolutePath": "NorthAmerica",
       "relatedLinks": [
         {
           "name": "Weather",
-          "url": "https://www.accuweather.com"
+          "url": "https://www.accuweather.com/en/ca/canada-weather"
         }
       ],
-      "okRange": [
-        -999,
-        85
+      "tags": [
+        "Country"
       ],
-      "name": "Temp-High",
-      "valueType": "NUMERIC",
-      "valueLabel": "F",
-      "warningRange": [
-        90,
-        95
+      "sortBy": "",
+      "createdAt": "2019-01-01T00:00:00.000Z",
+      "updatedAt": "2019-01-01T00:00:00.000Z",
+      "hierarchyLevel": 2,
+      "parentId": "00000000-0000-0000-0000-000000000000",
+      "ownerId": "0000000a-0000-0000-0000-000000000000",
+      "createdBy": "0000000a-0000-0000-0000-000000000000",
+      "user": {
+        "id": "0000000a-0000-0000-0000-000000000000",
+        "name": "jdoe@weather.gov",
+        "email": "jdoe@weather.gov",
+        "fullName": "John Doe",
+        "profile": {
+          "id": "00000000-d000-0000-0000-000000000000",
+          "name": "RefocusUser"
+        }
+      },
+      "owner": {
+        "id": "0000000a-0000-0000-0000-000000000000",
+        "name": "jdoe@weather.gov",
+        "email": "jdoe@weather.gov",
+        "fullName": "John Doe",
+        "profile": {
+          "id": "00000000-d000-0000-0000-000000000000",
+          "name": "RefocusUser"
+        }
+      },
+      "samples": [
+        {
+          "messageCode": "",
+          "status": "OK",
+          "provider": "0000000a-0000-0000-0000-000000000000",
+          "value": "74.6",
+          "user": {
+            "name": "jdoe@weather.gov",
+            "email": "jdoe@weather.gov",
+            "profile": {
+              "name": "RefocusUser"
+            }
+          },
+          "subjectId": "00000000-0000-0000-0000-000000000001",
+          "messageBody": "High of 74.6F",
+          "previousStatus": "OK",
+          "statusChangedAt": "2019-06-10T12:52:54.163Z",
+          "createdAt": "2019-01-02T00:00:00.000Z",
+          "updatedAt": "2019-06-10T15:52:54.163Z",
+          "name": "NorthAmerica.Canada|Temp-High",
+          "relatedLinks": [
+            {
+              "name": "Weather",
+              "url": "https://www.accuweather.com/en/ca/canada-weather"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "absolutePath": "NorthAmerica.Mexico",
+      "childCount": 0,
+      "id": "00000000-0000-0000-0000-000000000002",
+      "isPublished": true,
+      "name": "Mexico",
+      "parentAbsolutePath": "NorthAmerica",
+      "relatedLinks": [
+        {
+          "name": "Weather",
+          "url": "https://www.accuweather.com/en/mx/mexico-weather"
+        }
+      ],
+      "tags": [
+        "Country"
+      ],
+      "sortBy": "",
+      "createdAt": "2019-01-01T00:00:00.000Z",
+      "updatedAt": "2019-01-01T00:00:00.000Z",
+      "hierarchyLevel": 2,
+      "parentId": "00000000-0000-0000-0000-000000000000",
+      "ownerId": "0000000a-0000-0000-0000-000000000000",
+      "createdBy": "0000000a-0000-0000-0000-000000000000",
+      "user": {
+        "id": "0000000a-0000-0000-0000-000000000000",
+        "name": "jdoe@weather.gov",
+        "email": "jdoe@weather.gov",
+        "fullName": "John Doe",
+        "profile": {
+          "id": "00000000-d000-0000-0000-000000000000",
+          "name": "RefocusUser"
+        }
+      },
+      "owner": {
+        "id": "0000000a-0000-0000-0000-000000000000",
+        "name": "jdoe@weather.gov",
+        "email": "jdoe@weather.gov",
+        "fullName": "John Doe",
+        "profile": {
+          "id": "00000000-d000-0000-0000-000000000000",
+          "name": "RefocusUser"
+        }
+      },
+      "samples": [
+        {
+          "messageCode": "",
+          "status": "OK",
+          "provider": "0000000a-0000-0000-0000-000000000000",
+          "value": "84.8",
+          "user": {
+            "name": "jdoe@weather.gov",
+            "email": "jdoe@weather.gov",
+            "profile": {
+              "name": "RefocusUser"
+            }
+          },
+          "subjectId": "00000000-0000-0000-0000-000000000002",
+          "messageBody": "High of 84.8F",
+          "previousStatus": "Warning",
+          "statusChangedAt": "2019-06-10T15:52:54.163Z",
+          "createdAt": "2019-01-02T00:00:00.000Z",
+          "updatedAt": "2019-06-10T15:52:54.163Z",
+          "name": "NorthAmerica.Mexico|Temp-High",
+          "relatedLinks": [
+            {
+              "name": "Weather",
+              "url": "https://www.accuweather.com/en/mx/mexico-weather"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "absolutePath": "NorthAmerica.UnitedStates",
+      "childCount": 0,
+      "id": "00000000-0000-0000-0000-000000000003",
+      "isPublished": true,
+      "name": "UnitedStates",
+      "parentAbsolutePath": "NorthAmerica",
+      "relatedLinks": [
+        {
+          "name": "Weather",
+          "url": "https://www.accuweather.com/en/us/united-states-weather"
+        }
+      ],
+      "tags": [
+        "Country"
+      ],
+      "sortBy": "",
+      "createdAt": "2019-01-01T00:00:00.000Z",
+      "updatedAt": "2019-01-01T00:00:00.000Z",
+      "hierarchyLevel": 2,
+      "parentId": "00000000-0000-0000-0000-000000000000",
+      "ownerId": "0000000a-0000-0000-0000-000000000000",
+      "createdBy": "0000000a-0000-0000-0000-000000000000",
+      "user": {
+        "id": "0000000a-0000-0000-0000-000000000000",
+        "name": "jdoe@weather.gov",
+        "email": "jdoe@weather.gov",
+        "fullName": "John Doe",
+        "profile": {
+          "id": "00000000-d000-0000-0000-000000000000",
+          "name": "RefocusUser"
+        }
+      },
+      "owner": {
+        "id": "0000000a-0000-0000-0000-000000000000",
+        "name": "jdoe@weather.gov",
+        "email": "jdoe@weather.gov",
+        "fullName": "John Doe",
+        "profile": {
+          "id": "00000000-d000-0000-0000-000000000000",
+          "name": "RefocusUser"
+        }
+      },
+      "samples": [
+        {
+          "messageCode": "",
+          "status": "OK",
+          "provider": "0000000a-0000-0000-0000-000000000000",
+          "value": "61.0",
+          "user": {
+            "name": "netsec@salesforce.com",
+            "email": "netsec@salesforce.com",
+            "profile": {
+              "name": "RefocusUser"
+            }
+          },
+          "subjectId": "00000000-0000-0000-0000-000000000003",
+          "messageBody": "High of 61.0F",
+          "previousStatus": "OK",
+          "statusChangedAt": "2019-06-10T15:52:54.163Z",
+          "createdAt": "2019-04-03T19:55:54.573Z",
+          "updatedAt": "2019-06-12T22:14:02.903Z",
+          "name": "NorthAmerica.UnitedStates|Temp-High",
+          "relatedLinks": [
+            {
+              "name": "Weather",
+              "url": "https://www.accuweather.com/en/us/united-states-weather"
+            }
+          ]
+        }
       ]
     }
-  }
+  ],
+  "apiLinks": [
+    {
+      "href": "/v1/subjects/00000000-0000-0000-0000-000000000000",
+      "method": "DELETE",
+      "rel": "Delete this subject"
+    },
+    {
+      "href": "/v1/subjects/00000000-0000-0000-0000-000000000000",
+      "method": "GET",
+      "rel": "Retrieve this subject"
+    },
+    {
+      "href": "/v1/subjects/00000000-0000-0000-0000-000000000000",
+      "method": "PATCH",
+      "rel": "Update selected attributes of this subject"
+    },
+    {
+      "href": "/v1/subjects",
+      "method": "POST",
+      "rel": "Create a new subject"
+    },
+    {
+      "href": "/v1/subjects/00000000-0000-0000-0000-000000000000",
+      "method": "PUT",
+      "rel": "Overwrite all attributes of this subject"
+    }
+  ],
+  "samples": []
 }
