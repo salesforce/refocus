@@ -171,7 +171,7 @@ function perspectiveEmit(nspComponents, obj) {
   }
 
   if (objectType === ObjectType.Aspect) {
-    return applyFilter(aspectFilter, obj.aspect.name) &&
+    return applyFilter(aspectFilter, obj.name) &&
       applyFilter(aspectTagFilter, obj.tags);
   }
 
@@ -215,17 +215,20 @@ function shouldIEmitThisObj(nspString, obj, pubOpts) {
   const nspComponents = nspString.split(constants.filterSeperator);
   const absPathNsp = nspComponents[constants.asbPathIndex];
   const absolutePathObj = '/' + obj.absolutePath;
+  const isPerspectiveNamespace = nspComponents.length === 5;
+  const isBotNamespace = (absPathNsp === botAbsolutePath);
+  const isAspect = obj.hasOwnProperty('timeout');
 
   /*
    * Note: we are using `str1.indexOf(str2) === 0` here instead of the more
    * intuitve `str1.startsWith(str2)` because performance tested better.
    */
-  if (absolutePathObj.indexOf(absPathNsp) === 0) {
+  if (isPerspectiveNamespace && isAspect || absolutePathObj.indexOf(absPathNsp) === 0) {
     return perspectiveEmit(nspComponents, obj);
   }
 
   // OLD - remove along with namespace toggles
-  if (absPathNsp === botAbsolutePath) {
+  if (isBotNamespace) {
     return botEmit(nspComponents, obj, pubOpts);
   }
 
