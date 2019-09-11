@@ -781,12 +781,12 @@ module.exports = {
   /**
    * Calculate the sample status based on the ranges set for this sample's aspect.
    *
-   * @param  {Object} sample
+   * @param  {Object} sampleName - Sample name
+   * @param  {Object} value - Sample value
    * @returns {Promise}
    */
-  calculateSampleStatus(sample) {
-    const aspName = sample.name.split('|')[1];
-    const { value } = sample;
+  calculateSampleStatus(sampleName, value) {
+    const aspName = sampleName.split('|')[1];
 
     // Invalid if value is not a non-empty string!
     if (typeof value !== 'string' || value.length === 0) {
