@@ -222,7 +222,7 @@ const shortTermToggles = {
   optimizeSampleFilteredGets: environmentVariableTrue(pe,
     'OPTIMIZE_SAMPLE_FILTERED_GETS'),
 
-    // Bull toggles
+  // Bull toggles
   enableBullForBulkDelSubj: envVarIncludes(pe, 'ENABLE_BULL', 'delSubj'),
 
   enableBullForBulkPostEvents: envVarIncludes(pe, 'ENABLE_BULL',
@@ -231,7 +231,8 @@ const shortTermToggles = {
   enableBullForCreateAuditEvents: envVarIncludes(pe, 'ENABLE_BULL',
     'auditEvents'),
 
-  anyBullEnabled: pe.hasOwnProperty('ENABLE_BULL')&& pe.ENABLE_BULL !== 'false',
+  anyBullEnabled: pe.hasOwnProperty('ENABLE_BULL') &&
+   pe.ENABLE_BULL !== 'false',
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

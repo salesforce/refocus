@@ -32,7 +32,6 @@ const queueTimeActivityLogs =
 const TIME_TO_LIVE =
   1000 * jobSetup.ttlForJobsAsync; // eslint-disable-line no-magic-numbers
 
-
 /**
  * Set log object params from job results.
  *
@@ -70,6 +69,12 @@ function mapJobResultsToLogObject(jobResultObj, logObject) {
   }
 }
 
+/**
+ * If activity logs are enabled, update logObject and print log
+ *
+ * @param {Object} job - Job object to be cleaned up from the queue
+ * @param {Object} jobResultObj - Object holding Result of job
+ */
 function logCompletedJob(job, jobResultObj) {
   const logObject = {
     jobType: job.type,
@@ -248,7 +253,18 @@ function calculateJobPriority(prioritize, deprioritize, req) {
   return jobPriority.normal;
 } // calculateJobPriority
 
-function createBullJob(data, req, queueType, jobName){
+/**
+ * Function to Create a Bull job
+ *
+ *  listening for this jobName to process the jobs.
+ * @param {Object} data - Data for the job to work with.
+ * @param {Object} req - Request object.
+ * @param {Object} queueType - Queue object.
+ * @param {String} jobName - The job name. A worker process will be
+ * @returns {Promise} - resolves to job object. The job object will be null
+ *  when the jobQueue is created in test mode.
+ */
+function createBullJob(data, req, queueType, jobName) {
   const startTime = Date.now();
   data.requestInfo = getRequestInfo(req);
 
