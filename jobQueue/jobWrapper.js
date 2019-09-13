@@ -32,6 +32,7 @@ const queueTimeActivityLogs =
 const TIME_TO_LIVE =
   1000 * jobSetup.ttlForJobsAsync; // eslint-disable-line no-magic-numbers
 
+
 /**
  * Set log object params from job results.
  *
@@ -69,7 +70,7 @@ function mapJobResultsToLogObject(jobResultObj, logObject) {
   }
 }
 
-bulkDelSubQueue.on('completed', (job, jobResultObj) => {
+function logCompletedJob(job, jobResultObj) {
   const logObject = {
     jobType: job.type,
     jobId: job.id,
@@ -95,63 +96,16 @@ bulkDelSubQueue.on('completed', (job, jobResultObj) => {
     */
     activityLogUtil.printActivityLogString(logObject, 'worker');
   }
-});
+}
 
-bulkPostEventsQueue.on('completed', (job, jobResultObj) => {
-  const logObject = {
-    jobType: job.type,
-    jobId: job.id,
-  };
+bulkDelSubQueue.on('completed', (job, jobResultObj) =>
+  logCompletedJob(job, jobResultObj));
 
-  Object.assign(logObject, jobResultObj.requestInfo);
+bulkPostEventsQueue.on('completed', (job, jobResultObj) =>
+  logCompletedJob(job, jobResultObj));
 
-  // when enableWorkerActivityLogs are enabled, update the logObject
-  if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs') &&
-    jobResultObj && logObject) {
-    mapJobResultsToLogObject(jobResultObj, logObject);
-
-    // Update queueStatsActivityLogs
-    if (featureToggles
-      .isFeatureEnabled('enableQueueStatsActivityLogs')) {
-      queueTimeActivityLogs
-        .update(jobResultObj.recordCount, jobResultObj.queueTime);
-    }
-
-    /*
-    * The second argument should match the activity logging type in
-    * /config/activityLog.js
-    */
-    activityLogUtil.printActivityLogString(logObject, 'worker');
-  }
-});
-
-createAuditEventsQueue.on('completed', (job, jobResultObj) => {
-  const logObject = {
-    jobType: job.type,
-    jobId: job.id,
-  };
-
-  Object.assign(logObject, jobResultObj.requestInfo);
-
-  // when enableWorkerActivityLogs are enabled, update the logObject
-  if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs') &&
-    jobResultObj && logObject) {
-    mapJobResultsToLogObject(jobResultObj, logObject);
-
-    // Update queueStatsActivityLogs
-    if (featureToggles
-      .isFeatureEnabled('enableQueueStatsActivityLogs')) {
-      queueTimeActivityLogs
-        .update(jobResultObj.recordCount, jobResultObj.queueTime);
-    }
-
-    /*
-    * The second argument should match the activity logging type in
-    * /config/activityLog.js
-    */
-    activityLogUtil.printActivityLogString(logObject, 'worker');
-  }
-});
+createAuditEventsQueue.on('completed', (job, jobResultObj) =>
+  logCompletedJob(job, jobResultObj));
 
 /**
  * Listen for a job completion event. If activity logs are enabled,
@@ -273,9 +227,7 @@ function calculateJobPriority(prioritize, deprioritize, req) {
     low: 'low',
   };
 
-  if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') ||
-   featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') ||
-   featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents')) {
+  if (featureToggles.isFeatureEnabled('anyBullEnabled')) {
     // ranges from 1 (highest priority) to MAX_INT  (lowest priority)
     jobPriority.high = 1;
     jobPriority.normal = 50;
@@ -296,6 +248,21 @@ function calculateJobPriority(prioritize, deprioritize, req) {
   return jobPriority.normal;
 } // calculateJobPriority
 
+function createBullJob(data, req, queueType, jobName){
+  const startTime = Date.now();
+  data.requestInfo = getRequestInfo(req);
+
+  const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
+    conf.deprioritizeJobsFrom, req);
+
+  return queueType.add(data, { priority: jobPriority })
+      .then((job) => {
+        job.type = jobName;
+        logJobCreate(startTime, job);
+        return job;
+      });
+}
+
 /**
  * This is a promisified version of the createJob function which resolves to
  * the job created and saved by the Kue api.
@@ -312,47 +279,17 @@ function createPromisifiedJob(jobName, data, req) {
 
   if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
     jobName === jobType.bulkDeleteSubjects) {
-    data.requestInfo = getRequestInfo(req);
-
-    const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
-      conf.deprioritizeJobsFrom, req);
-
-    return bulkDelSubQueue.add(data, { priority: jobPriority })
-      .then((job) => {
-        job.type = jobType.bulkDeleteSubjects;
-        logJobCreate(startTime, job);
-        return job;
-      });
+    return createBullJob(data, req, bulkDelSubQueue, jobName);
   }
 
   if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
     jobName === jobType.bulkPostEvents) {
-    data.requestInfo = getRequestInfo(req);
-
-    const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
-      conf.deprioritizeJobsFrom, req);
-
-    return bulkPostEventsQueue.add(data, { priority: jobPriority })
-      .then((job) => {
-        job.type = jobType.bulkPostEvents;
-        logJobCreate(startTime, job);
-        return job;
-      });
+    return createBullJob(data, req, bulkPostEventsQueue, jobName);
   }
 
   if (featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents') &&
     jobName === jobType.createAuditEvents) {
-    data.requestInfo = getRequestInfo(req);
-
-    const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
-      conf.deprioritizeJobsFrom, req);
-
-    return createAuditEventsQueue.add(data, { priority: jobPriority })
-      .then((job) => {
-        job.type = jobType.createAuditEvents;
-        logJobCreate(startTime, job);
-        return job;
-      });
+    return createBullJob(data, req, createAuditEventsQueue, jobName);
   }
 
   const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
