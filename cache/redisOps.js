@@ -15,6 +15,7 @@ const Promise = require('bluebird');
 const redisStore = require('./sampleStore');
 const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
 const redisClient = require('./redisCache').client.sampleStore;
+const statusCalculation = require('./statusCalculation');
 const rsConstant = redisStore.constants;
 const keyType = redisStore.constants.objectType;
 const subjectType = keyType.subject;
@@ -728,106 +729,31 @@ module.exports = {
    * @returns {Promise}
    */
   setRanges(aspect) {
-    const key = redisStore.toKey(keyType.aspRanges, aspect.name);
-    const ranges = {
-      Critical: aspect.criticalRange,
-      Warning: aspect.warningRange,
-      Info: aspect.infoRange,
-      OK: aspect.okRange,
-    };
-
-    return Object.entries(ranges)
-    .filter(([status, range]) => range)
-    .reduce((batch, [status, [min, max]]) => {
-      const { minKey, maxKey } = module.exports.getRangesKeys(status, [min, max]);
-      return batch
-      .zadd(key, min, minKey)
-      .zadd(key, max, maxKey);
-    }, redisClient.batch())
-    .execAsync();
+    let ranges = statusCalculation.getAspectRanges(aspect);
+    ranges = statusCalculation.preprocessOverlaps(ranges);
+    return statusCalculation.setRanges(ranges, aspect.name);
   }, // setRanges
-
-  getRangesKeys(status, range) {
-    const [min, max] = range;
-
-    const precedence = {};
-    if (min === max) { // make sure min is first for flat ranges
-      precedence.min = 1;
-      precedence.max = 2;
-    } else { // ties go to the lower range
-      precedence.max = 0;
-      precedence.min = 3;
-    }
-
-    const minKey = getRangeKey({ type: 'min', status, precedence });
-    const maxKey = getRangeKey({ type: 'max', status, precedence });
-    return { minKey, maxKey };
-
-    function getRangeKey({ type, precedence, status }) {
-      return `${precedence[type]}:${type}:${status}`;
-    }
-  },
-
-  parseRange([key, score]) {
-    if (key) {
-      score = Number(score);
-      let [precedence, rangeType, status] = key.split(':'); // jscs:ignore
-      return { score, precedence, rangeType, status };
-    } else {
-      return {};
-    }
-  },
 
   /**
    * Calculate the sample status based on the ranges set for this sample's aspect.
    *
    * @param  {Object} sample
-   * @returns {Promise}
+   * @returns {Promise} - resolves to the sample status
    */
   calculateSampleStatus(sample) {
+    // aspect name
     const aspName = sample.name.split('|')[1];
-    const { value } = sample;
 
-    // Invalid if value is not a non-empty string!
-    if (typeof value !== 'string' || value.length === 0) {
-      return Promise.resolve(Status.Invalid);
+    // value
+    let value;
+    try {
+      value = statusCalculation.prepareValue(sample.value);
+    } catch (err) {
+      return Status[err.message] ? Promise.resolve(err.message) : Promise.reject(err);
     }
 
-    // "Timeout" special case
-    if (value === Status.Timeout) {
-      return Promise.resolve(Status.Timeout);
-    }
-
-    let num;
-
-    // Boolean value type: Case-insensitive 'true'
-    if (value.toLowerCase() === 'true') {
-      num = 1;
-    } else if (value.toLowerCase() === 'false') {
-      // Boolean value type: Case-insensitive 'false'
-      num = 0;
-    } else {
-      num = Number(value);
-    }
-
-    // If not true|false|Timeout, then value must be convertible to number!
-    if (isNaN(num)) {
-      return Promise.resolve(Status.Invalid);
-    }
-
-    // Set status based on ranges
-    const key = redisStore.toKey(keyType.aspRanges, aspName);
-    return redisClient.zrangebyscoreAsync(key, num, '+inf', 'WITHSCORES', 'LIMIT', 0, 1)
-    .then((result) => {
-      const { score, rangeType, status } = module.exports.parseRange(result);
-      if (rangeType === 'max') {
-        return status;
-      } else if (rangeType === 'min' && num === score) {
-        return status;
-      }
-
-      return Status.Invalid;
-    });
+    // calculate
+    return statusCalculation.calculateStatus(aspName, value);
   }, // calculateSampleStatus
 
   renameKey,

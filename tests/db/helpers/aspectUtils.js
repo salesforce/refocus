@@ -214,7 +214,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
           .should.eventually.be.fulfilled
         );
 
-        it('singular range', () =>
+        it('flat range', () =>
           validateNumericRanges({
             criticalRange: [0, 3],
             warningRange: [5, 5],
@@ -224,7 +224,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
           .should.eventually.be.fulfilled
         );
 
-        it('singular range, reverse', () =>
+        it('flat range, reverse', () =>
           validateNumericRanges({
             criticalRange: [7, 10],
             warningRange: [5, 5],
@@ -234,7 +234,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
           .should.eventually.be.fulfilled
         );
 
-        it('touching edges, singular ranges', () =>
+        it('touching edges, flat ranges', () =>
           validateNumericRanges({
             criticalRange: [10, 10],
             warningRange: [5, 10],
@@ -261,7 +261,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [5, 9],
             okRange: [10, 14],
           })
-          .should.eventually.be.rejectedWith('Ranges cannot overlap')
+          .should.eventually.be.fulfilled
         );
 
         it('identical non-edge singular ranges', () =>
@@ -281,7 +281,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [5, 12],
             okRange: null,
           })
-          .should.eventually.be.rejectedWith('Ranges cannot overlap')
+          .should.eventually.be.fulfilled
         );
 
         it('encompassing ranges', () =>
@@ -291,7 +291,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [0, 10],
             okRange: null,
           })
-          .should.eventually.be.rejectedWith('Ranges cannot overlap')
+          .should.eventually.be.fulfilled
         );
 
         it('infinite ranges', () =>

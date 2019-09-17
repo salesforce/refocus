@@ -166,7 +166,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('touching edges (lower value has precedence) >', () => {
+    describe('touching edges (more severe has precedence) >', () => {
       beforeEach(() =>
         setupRanges({
           criticalRange: [0, 5],
@@ -180,16 +180,32 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         calculateAndExpect('4', constants.statuses.Critical)
       );
 
+      it('just under the edge (decimal)', () =>
+        calculateAndExpect('4.999 ', constants.statuses.Critical)
+      );
+
+      it('just under the edge (decimal - high precision)', () =>
+        calculateAndExpect('4.999999999999999', constants.statuses.Critical)
+      );
+
       it('on the edge (critical-warning)', () =>
         calculateAndExpect('5', constants.statuses.Critical)
       );
 
-      it('within the second range only', () =>
-        calculateAndExpect('6', constants.statuses.Warning)
+      it('just over the edge (decimal)', () =>
+        calculateAndExpect('5.001', constants.statuses.Warning)
       );
 
-      it('within the second range only (decimal)', () =>
-        calculateAndExpect('5.1', constants.statuses.Warning)
+      it('just over the edge (decimal - high precision)', () =>
+        calculateAndExpect('5.000000000000001', constants.statuses.Warning)
+      );
+
+      it('just over the edge (decimal - too precise (rounded down))', () =>
+        calculateAndExpect('5.0000000000000001', constants.statuses.Critical)
+      );
+
+      it('within the second range only', () =>
+        calculateAndExpect('6', constants.statuses.Warning)
       );
 
       it('on the edge (warning-info)', () =>
@@ -201,7 +217,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('touching edges reverse order (lower value has precedence) >', () => {
+    describe('touching edges reverse order (more severe has precedence) >', () => {
       beforeEach(() =>
         setupRanges({
           criticalRange: [10, 15],
@@ -215,8 +231,28 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         calculateAndExpect('12', constants.statuses.Critical)
       );
 
+      it('just over the edge (decimal)', () =>
+        calculateAndExpect('10.001', constants.statuses.Critical)
+      );
+
+      it('just under the edge (decimal - high precision)', () =>
+        calculateAndExpect('10.000000000000001', constants.statuses.Critical)
+      );
+
       it('on the edge (critical-warning)', () =>
-        calculateAndExpect('10', constants.statuses.Warning)
+        calculateAndExpect('10', constants.statuses.Critical)
+      );
+
+      it('just under the edge (decimal)', () =>
+        calculateAndExpect('9.999', constants.statuses.Warning)
+      );
+
+      it('just under the edge (decimal - high precision)', () =>
+        calculateAndExpect('9.999999999999999', constants.statuses.Warning)
+      );
+
+      it('just under the edge (decimal - too precise (rounded up))', () =>
+        calculateAndExpect('9.9999999999999999', constants.statuses.Critical)
       );
 
       it('within the second range only (decimal)', () =>
@@ -228,7 +264,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
 
       it('on the edge (warning-info)', () =>
-        calculateAndExpect('5', constants.statuses.Info)
+        calculateAndExpect('5', constants.statuses.Warning)
       );
 
       it('within the first range only', () =>
@@ -236,7 +272,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('singular range >', () => {
+    describe('flat range >', () => {
       beforeEach(() =>
         setupRanges({
           criticalRange: [0, 3],
@@ -254,7 +290,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         calculateAndExpect('4', constants.statuses.Invalid)
       );
 
-      it('within the singular range', () =>
+      it('within the flat range', () =>
         calculateAndExpect('5', constants.statuses.Warning)
       );
 
@@ -267,7 +303,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('singular range reverse order >', () => {
+    describe('flat range reverse order >', () => {
       beforeEach(() =>
         setupRanges({
           criticalRange: [7, 10],
@@ -285,7 +321,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         calculateAndExpect('4', constants.statuses.Invalid)
       );
 
-      it('within the singular range', () =>
+      it('within the flat range', () =>
         calculateAndExpect('5', constants.statuses.Warning)
       );
 
@@ -298,7 +334,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('touching edges, singular ranges (lower value has precedence) >', () => {
+    describe('touching edges, flat ranges (more severe has precedence) >', () => {
       beforeEach(() =>
         setupRanges({
           criticalRange: [10, 10],
@@ -313,7 +349,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
 
       it('on the edge (three ranges)', () =>
-        calculateAndExpect('5', constants.statuses.OK)
+        calculateAndExpect('5', constants.statuses.Warning)
       );
 
       it('within the second range only', () =>
@@ -321,11 +357,11 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
 
       it('on the edge (two ranges)', () =>
-        calculateAndExpect('10', constants.statuses.Warning)
+        calculateAndExpect('10', constants.statuses.Critical)
       );
     });
 
-    describe('touching edges, singular ranges, reverse (lower value has precedence) >', () => {
+    describe('touching edges, flat ranges, reverse (more severe has precedence) >', () => {
       beforeEach(() =>
         setupRanges({
           criticalRange: [0, 5],
@@ -352,7 +388,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('identical edge ranges', () => {
+    describe('identical edge ranges (more severe has precedence)', () => {
       beforeEach(() =>
         setupRanges({
           criticalRange: [5, 10],
@@ -367,7 +403,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
 
       it('on the edge (four ranges)', () =>
-        calculateAndExpect('5', constants.statuses.OK)
+        calculateAndExpect('5', constants.statuses.Critical)
       );
 
       it('within the fourth range only', () =>
@@ -375,7 +411,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('identical edge ranges, reverse', () => {
+    describe('identical edge ranges, reverse (more severe has precedence)', () => {
       beforeEach(() =>
         setupRanges({
           criticalRange: [1, 5],
@@ -398,7 +434,30 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('identical non-edge singular ranges', () => {
+    describe('identical non-flat ranges (more severe has precedence)', () => {
+      beforeEach(() =>
+        setupRanges({
+          criticalRange: [0, 4],
+          warningRange: [5, 9],
+          infoRange: [5, 9],
+          okRange: [10, 14],
+        })
+      );
+
+      it('within the first range only', () =>
+        calculateAndExpect('4', constants.statuses.Critical)
+      );
+
+      it('within the identical ranges (Info-Warning)', () =>
+        calculateAndExpect('6', constants.statuses.Warning)
+      );
+
+      it('within the fourth range only', () =>
+        calculateAndExpect('12', constants.statuses.OK)
+      );
+    });
+
+    describe('identical non-edge flat ranges (more severe has precedence)', () => {
       beforeEach(() =>
         setupRanges({
           criticalRange: [0, 4],
@@ -412,8 +471,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         calculateAndExpect('4', constants.statuses.Critical)
       );
 
-      it('singular ranges', () =>
-        calculateAndExpect('5', constants.statuses.Info)
+      it('flat ranges', () =>
+        calculateAndExpect('5', constants.statuses.Warning)
       );
 
       it('within the fourth range only', () =>
@@ -421,7 +480,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('identical non-edge singular ranges, reverse', () => {
+    describe('identical non-edge flat ranges, reverse (more severe has precedence)', () => {
       beforeEach(() =>
         setupRanges({
           criticalRange: [6, 10],
@@ -435,11 +494,119 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         calculateAndExpect('4', constants.statuses.OK)
       );
 
-      it('singular ranges', () =>
-        calculateAndExpect('5', constants.statuses.Info)
+      it('flat ranges', () =>
+        calculateAndExpect('5', constants.statuses.Warning)
       );
 
       it('within the fourth range only', () =>
+        calculateAndExpect('8', constants.statuses.Critical)
+      );
+    });
+
+    describe('overlapping ranges (more severe has precedence)', () => {
+      beforeEach(() =>
+        setupRanges({
+          criticalRange: [0, 8],
+          warningRange: [5, 12],
+          infoRange: [13, 15],
+          okRange: null,
+        })
+      );
+
+      it('within the first range only', () =>
+        calculateAndExpect('4', constants.statuses.Critical)
+      );
+
+      it('within the overlap', () =>
+        calculateAndExpect('6', constants.statuses.Critical)
+      );
+
+      it('within the second range only', () =>
+        calculateAndExpect('9', constants.statuses.Warning)
+      );
+    });
+
+    describe('overlapping ranges, reverse (more severe has precedence)', () => {
+      beforeEach(() =>
+        setupRanges({
+          criticalRange: [13, 15],
+          warningRange: [5, 12],
+          infoRange: [0, 8],
+          okRange: null,
+        })
+      );
+
+      it('within the first range only', () =>
+        calculateAndExpect('4', constants.statuses.Info)
+      );
+
+      it('within the overlap', () =>
+        calculateAndExpect('6', constants.statuses.Warning)
+      );
+
+      it('within the second range only', () =>
+        calculateAndExpect('9', constants.statuses.Warning)
+      );
+    });
+
+    describe('encompassing ranges (more severe has precedence)', () => {
+      beforeEach(() =>
+        setupRanges({
+          criticalRange: [2, 3],
+          warningRange: [5, 6],
+          infoRange: [0, 10],
+          okRange: null,
+        })
+      );
+
+      it('within the first range only', () =>
+        calculateAndExpect('1', constants.statuses.Info)
+      );
+
+      it('within the first overlap', () =>
+        calculateAndExpect('2', constants.statuses.Critical)
+      );
+
+      it('within the first range only', () =>
+        calculateAndExpect('4', constants.statuses.Info)
+      );
+
+      it('within the second overlap', () =>
+        calculateAndExpect('5', constants.statuses.Warning)
+      );
+
+      it('within the first range only', () =>
+        calculateAndExpect('8', constants.statuses.Info)
+      );
+    });
+
+    describe('encompassing ranges, reverse (more severe has precedence)', () => {
+      beforeEach(() =>
+        setupRanges({
+          criticalRange: [0, 10],
+          warningRange: [5, 6],
+          infoRange: [2, 3],
+          okRange: null,
+        })
+      );
+
+      it('within the first range only', () =>
+        calculateAndExpect('1', constants.statuses.Critical)
+      );
+
+      it('within the first overlap', () =>
+        calculateAndExpect('2', constants.statuses.Critical)
+      );
+
+      it('within the first range only', () =>
+        calculateAndExpect('4', constants.statuses.Critical)
+      );
+
+      it('within the second overlap', () =>
+        calculateAndExpect('5', constants.statuses.Critical)
+      );
+
+      it('within the first range only', () =>
         calculateAndExpect('8', constants.statuses.Critical)
       );
     });
@@ -482,7 +649,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
 
       it('within first range (decimal)', () =>
-        calculateAndExpect('2.4', constants.statuses.Critical)
+        calculateAndExpect('2.499', constants.statuses.Critical)
       );
 
       it('on the edge', () =>
@@ -490,7 +657,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
 
       it('within second range (decimal)', () =>
-        calculateAndExpect('2.51', constants.statuses.Warning)
+        calculateAndExpect('2.511', constants.statuses.Warning)
       );
 
       it('between the cracks', () =>
