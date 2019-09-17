@@ -60,11 +60,13 @@ function getAspectRanges(aspect) {
  */
 function setRanges(ranges, aspName) {
   const setKey = redisStore.toKey(keyType.aspRanges, aspName);
-  return ranges.reduce((batch, range) => {
-    return batch
-    .zadd(setKey, range.min, getRangeKey('min', range.status, range.min))
-    .zadd(setKey, range.max, getRangeKey('max', range.status, range.max));
-  }, redisClient.batch())
+  return ranges.reduce(
+    (batch, range) =>
+      batch
+      .zadd(setKey, range.min, getRangeKey('min', range.status, range.min))
+      .zadd(setKey, range.max, getRangeKey('max', range.status, range.max)),
+    redisClient.batch()
+  )
   .execAsync();
 }
 
