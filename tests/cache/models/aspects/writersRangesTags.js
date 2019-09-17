@@ -105,9 +105,9 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
           criticalRange: [6, 7],
         })
         .then(expectRanges.where([
-          '3:min:OK', '0', '0:max:OK', '1', '3:min:Info', '2', '0:max:Info',
-          '3', '3:min:Warning', '4', '0:max:Warning', '5', '3:min:Critical',
-          '6', '0:max:Critical', '7',
+          '0:min:OK:0', '0', '1:max:OK:1', '1', '0:min:Info:2', '2', '1:max:Info:3',
+          '3', '0:min:Warning:4', '4', '1:max:Warning:5', '5', '0:min:Critical:6',
+          '6', '1:max:Critical:7', '7',
         ]))
       );
 
@@ -116,7 +116,7 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
           okRange: [0, 1],
         })
         .then(expectRanges.where([
-          '3:min:OK', '0', '0:max:OK', '1',
+          '0:min:OK:0', '0', '1:max:OK:1', '1',
         ]))
       );
 
@@ -142,9 +142,9 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
           tags: ['tag1', 'tag2'],
           writers: [user1.name, user2.name],
           ranges: [
-            '3:min:OK', '0', '0:max:OK', '1', '3:min:Info', '2', '0:max:Info',
-            '3', '3:min:Warning', '4', '0:max:Warning', '5', '3:min:Critical',
-            '6', '0:max:Critical', '7',
+            '0:min:OK:0', '0', '1:max:OK:1', '1', '0:min:Info:2', '2', '1:max:Info:3',
+            '3', '0:min:Warning:4', '4', '1:max:Warning:5', '5', '0:min:Critical:6',
+            '6', '1:max:Critical:7', '7',
           ],
         }))
       );
@@ -183,14 +183,14 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
         .then(expectAll.where({
           tags: ['tag1', 'tag2'],
           writers: [user1.name, user2.name],
-          ranges: ['3:min:OK', '0', '0:max:OK', '1'],
+          ranges: ['0:min:OK:0', '0', '1:max:OK:1', '1'],
         }))
         .then(rename.where(asp1, asp2))
         .then(expectAllEmpty.for(asp1))
         .then(expectAll.for(asp2).where({
           tags: ['tag1', 'tag2'],
           writers: [user1.name, user2.name],
-          ranges: ['3:min:OK', '0', '0:max:OK', '1'],
+          ranges: ['0:min:OK:0', '0', '1:max:OK:1', '1'],
         }))
       );
 
@@ -218,7 +218,7 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
         .then(expectAll.where({
           tags: ['tag1', 'tag2'],
           writers: [user1.name, user2.name],
-          ranges: ['3:min:OK', '0', '0:max:OK', '1'],
+          ranges: ['0:min:OK:0', '0', '1:max:OK:1', '1'],
         }))
         .then(unPublish)
         .then(expectAllEmpty)
@@ -242,7 +242,7 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
         .then(expectAll.where({
           tags: ['tag1', 'tag2'],
           writers: [user1.name, user2.name],
-          ranges: ['3:min:OK', '0', '0:max:OK', '1'],
+          ranges: ['0:min:OK:0', '0', '1:max:OK:1', '1'],
         }))
       );
     });
@@ -328,8 +328,8 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
         describe('ranges changed >', () => {
           it('update', () => Promise.resolve()
             .then(expectRanges.where([
-              '3:min:OK', '0', '0:max:OK', '1', '3:min:Info', '2', '0:max:Info',
-              '3', '3:min:Warning', '4', '0:max:Warning', '5',
+              '0:min:OK:0', '0', '1:max:OK:1', '1', '0:min:Info:2', '2', '1:max:Info:3',
+              '3', '0:min:Warning:4', '4', '1:max:Warning:5', '5',
             ]))
             .then(updateWithRanges.where({
               okRange: [0, 2],
@@ -337,60 +337,60 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
               warningRange: [6, 8],
             }))
             .then(expectRanges.where([
-              '3:min:OK', '0', '0:max:OK', '2', '3:min:Info', '3', '0:max:Info',
-              '5', '3:min:Warning', '6', '0:max:Warning', '8',
+              '0:min:OK:0', '0', '1:max:OK:2', '2', '0:min:Info:3', '3', '1:max:Info:5',
+              '5', '0:min:Warning:6', '6', '1:max:Warning:8', '8',
             ]))
           );
 
           it('add', () => Promise.resolve()
             .then(expectRanges.where([
-              '3:min:OK', '0', '0:max:OK', '1', '3:min:Info', '2', '0:max:Info',
-              '3', '3:min:Warning', '4', '0:max:Warning', '5',
+              '0:min:OK:0', '0', '1:max:OK:1', '1', '0:min:Info:2', '2', '1:max:Info:3',
+              '3', '0:min:Warning:4', '4', '1:max:Warning:5', '5',
             ]))
             .then(updateWithRanges.where({
               criticalRange: [6, 8],
             }))
             .then(expectRanges.where([
-              '3:min:OK', '0', '0:max:OK', '1', '3:min:Info', '2', '0:max:Info',
-              '3', '3:min:Warning', '4', '0:max:Warning', '5', '3:min:Critical',
-              '6', '0:max:Critical', '8',
+              '0:min:OK:0', '0', '1:max:OK:1', '1', '0:min:Info:2', '2', '1:max:Info:3',
+              '3', '0:min:Warning:4', '4', '1:max:Warning:5', '5', '0:min:Critical:6',
+              '6', '1:max:Critical:8', '8',
             ]))
           );
 
           it('remove', () => Promise.resolve()
             .then(expectRanges.where([
-              '3:min:OK', '0', '0:max:OK', '1', '3:min:Info', '2', '0:max:Info',
-              '3', '3:min:Warning', '4', '0:max:Warning', '5',
+              '0:min:OK:0', '0', '1:max:OK:1', '1', '0:min:Info:2', '2', '1:max:Info:3',
+              '3', '0:min:Warning:4', '4', '1:max:Warning:5', '5',
             ]))
             .then(updateWithRanges.where({
               warningRange: null,
             }))
             .then(expectRanges.where([
-              '3:min:OK', '0', '0:max:OK', '1', '3:min:Info', '2', '0:max:Info',
+              '0:min:OK:0', '0', '1:max:OK:1', '1', '0:min:Info:2', '2', '1:max:Info:3',
               '3',
             ]))
           );
 
           it('add/remove', () => Promise.resolve()
             .then(expectRanges.where([
-              '3:min:OK', '0', '0:max:OK', '1', '3:min:Info', '2', '0:max:Info',
-              '3', '3:min:Warning', '4', '0:max:Warning', '5',
+              '0:min:OK:0', '0', '1:max:OK:1', '1', '0:min:Info:2', '2', '1:max:Info:3',
+              '3', '0:min:Warning:4', '4', '1:max:Warning:5', '5',
             ]))
             .then(updateWithRanges.where({
               okRange: null,
               criticalRange: [6, 8],
             }))
             .then(expectRanges.where([
-              '3:min:Info', '2', '0:max:Info',
-              '3', '3:min:Warning', '4', '0:max:Warning', '5', '3:min:Critical',
-              '6', '0:max:Critical', '8',
+              '0:min:Info:2', '2', '1:max:Info:3',
+              '3', '0:min:Warning:4', '4', '1:max:Warning:5', '5', '0:min:Critical:6',
+              '6', '1:max:Critical:8', '8',
             ]))
           );
 
           it('replace', () => Promise.resolve()
             .then(expectRanges.where([
-              '3:min:OK', '0', '0:max:OK', '1', '3:min:Info', '2', '0:max:Info',
-              '3', '3:min:Warning', '4', '0:max:Warning', '5',
+              '0:min:OK:0', '0', '1:max:OK:1', '1', '0:min:Info:2', '2', '1:max:Info:3',
+              '3', '0:min:Warning:4', '4', '1:max:Warning:5', '5',
             ]))
             .then(updateWithRanges.where({
               okRange: null,
@@ -399,14 +399,14 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
               criticalRange: [6, 8],
             }))
             .then(expectRanges.where([
-              '3:min:Critical', '6', '0:max:Critical', '8',
+              '0:min:Critical:6', '6', '1:max:Critical:8', '8',
             ]))
           );
 
           it('remove all', () => Promise.resolve()
             .then(expectRanges.where([
-              '3:min:OK', '0', '0:max:OK', '1', '3:min:Info', '2', '0:max:Info',
-              '3', '3:min:Warning', '4', '0:max:Warning', '5',
+              '0:min:OK:0', '0', '1:max:OK:1', '1', '0:min:Info:2', '2', '1:max:Info:3',
+              '3', '0:min:Warning:4', '4', '1:max:Warning:5', '5',
             ]))
             .then(updateWithRanges.where({
               okRange: null,
@@ -424,8 +424,8 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
               tags: ['tag1', 'tag2'],
               writers: [user1.name, user2.name],
               ranges: [
-                '3:min:OK', '0', '0:max:OK', '1', '3:min:Info', '2', '0:max:Info',
-                '3', '3:min:Warning', '4', '0:max:Warning', '5',
+                '0:min:OK:0', '0', '1:max:OK:1', '1', '0:min:Info:2', '2', '1:max:Info:3',
+                '3', '0:min:Warning:4', '4', '1:max:Warning:5', '5',
               ],
             }))
             .then(updateWithAll.where({
@@ -442,8 +442,8 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
               tags: ['tag3'],
               writers: [user1.name],
               ranges: [
-                '3:min:OK', '0', '0:max:OK', '2', '3:min:Info', '3', '0:max:Info',
-                '5', '3:min:Warning', '6', '0:max:Warning', '8',
+                '0:min:OK:0', '0', '1:max:OK:2', '2', '0:min:Info:3', '3', '1:max:Info:5',
+                '5', '0:min:Warning:6', '6', '1:max:Warning:8', '8',
               ],
             }))
           );
@@ -534,13 +534,13 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
         .then(expectAll.where({
           tags: ['tag1', 'tag2'],
           writers: [user1.name, user2.name],
-          ranges: ['3:min:OK', '0', '0:max:OK', '1'],
+          ranges: ['0:min:OK:0', '0', '1:max:OK:1', '1'],
         }))
         .then(update.where({ timeout: '10s', description: '...' }))
         .then(expectAll.where({
           tags: ['tag1', 'tag2'],
           writers: [user1.name, user2.name],
-          ranges: ['3:min:OK', '0', '0:max:OK', '1'],
+          ranges: ['0:min:OK:0', '0', '1:max:OK:1', '1'],
         }))
       );
     });
@@ -565,9 +565,9 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
         tags: ['tag1', 'tag2'],
         writers: [user1.name, user2.name],
         ranges: [
-          '3:min:OK', '0', '0:max:OK', '1', '3:min:Info', '2', '0:max:Info',
-          '3', '3:min:Warning', '4', '0:max:Warning', '5', '3:min:Critical',
-          '6', '0:max:Critical', '7',
+          '0:min:OK:0', '0', '1:max:OK:1', '1', '0:min:Info:2', '2', '1:max:Info:3',
+          '3', '0:min:Warning:4', '4', '1:max:Warning:5', '5', '0:min:Critical:6',
+          '6', '1:max:Critical:7', '7',
         ],
       }))
       .then(destroy)
