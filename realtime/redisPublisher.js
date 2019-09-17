@@ -20,6 +20,7 @@ const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const pubSubStats = require('./pubSubStats');
 const ONE = 1;
+const tracker = require('./kafkaTracking');
 
 /**
  * Returns a random integer between min (inclusive) and max (inclusive).
@@ -179,7 +180,10 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
-    return publishSampleNoChange(sampleInst);
+    return publishSampleNoChange(sampleInst).then(() => {
+      tracker.trackSamplePublish(sampleInst.name,
+        sampleInst.updatedAt);
+    });
   }
 
   const eventType = event || getSampleEventType(sampleInst);
@@ -198,7 +202,11 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
       if (sample) {
         sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
         return publishObject(sample, eventType)
-          .then(() => sample);
+          .then(() => {
+            tracker.trackSamplePublish(sample.name,
+              sample.updatedAt);
+            return sample;
+          });
       }
     })
     .catch((err) => {

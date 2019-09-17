@@ -737,17 +737,17 @@ module.exports = {
   /**
    * Calculate the sample status based on the ranges set for this sample's aspect.
    *
-   * @param  {Object} sample
+   * @param  {Object} sampleName - Sample name
+   * @param  {Object} value - Sample value
    * @returns {Promise} - resolves to the sample status
    */
-  calculateSampleStatus(sample) {
+  calculateSampleStatus(sampleName, value) {
     // aspect name
-    const aspName = sample.name.split('|')[1];
+    const aspName = sampleName.split('|')[1];
 
     // value
-    let value;
     try {
-      value = statusCalculation.prepareValue(sample.value);
+      value = statusCalculation.prepareValue(value);
     } catch (err) {
       return Status[err.message] ? Promise.resolve(err.message) : Promise.reject(err);
     }

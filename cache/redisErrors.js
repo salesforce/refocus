@@ -12,6 +12,7 @@
  * Redis Error Definitions
  */
 
+'use strict'; // eslint-disable-line strict
 const errors = require('errors');
 
 errors.create({
@@ -28,7 +29,7 @@ errors.create({
   code: 11100,
   status: 400,
   name: 'ValidationError',
-  parent: this.RefocusRedisError,
+  parent: exports.RefocusRedisError,
   fields: [],
 });
 
@@ -40,7 +41,7 @@ errors.create({
   code: 11200,
   status: 404,
   name: 'ResourceNotFoundError',
-  parent: this.RefocusRedisError,
+  parent: exports.RefocusRedisError,
   resourceType: '',
   resourceKey: '',
 });
@@ -53,7 +54,7 @@ errors.create({
   code: 11300,
   status: 403,
   name: 'UpdateDeleteForbidden',
-  parent: this.RefocusRedisError,
+  parent: exports.RefocusRedisError,
   fields: [],
 });
 
@@ -65,7 +66,7 @@ errors.create({
   code: 11400,
   status: 403,
   name: 'ForbiddenError',
-  parent: this.RefocusRedisError,
+  parent: exports.RefocusRedisError,
   defaultMessage: 'Forbidden',
   resourceType: '',
   resourceKey: '',

@@ -10,22 +10,22 @@
  * ./realtime/socketIOEmitter.js
  */
 'use strict'; // eslint-disable-line strict
-const rtUtils = require('./utils');
+const emitUtils = require('./emitUtils');
 const initPerspectiveEvent =
   'refocus.internal.realtime.perspective.namespace.initialize';
 const initBotEvent = 'refocus.internal.realtime.bot.namespace.initialize';
 
 module.exports = (io, key, obj, pubOpts) => {
   // newObjectAsString contains { key: {new: obj }}
-  const newObjectAsString = rtUtils.getNewObjAsString(key, obj);
+  const newObjectAsString = emitUtils.getNewObjAsString(key, obj);
 
   // Initialize namespace when perspective initialize namespace event is sent
   if (key.startsWith(initPerspectiveEvent)) {
-    rtUtils.initializePerspectiveNamespace(obj, io);
+    emitUtils.initializePerspectiveNamespace(obj, io);
   }
 
   if (key.startsWith(initBotEvent)) {
-    rtUtils.initializeBotNamespace(obj, io);
+    emitUtils.initializeBotNamespace(obj, io);
   }
 
   /*
@@ -49,7 +49,7 @@ module.exports = (io, key, obj, pubOpts) => {
     const connections = Object.keys(namespace.connected);
     if (connections.length > 0) {
       /* Check the perspective/room filters before emitting. */
-      if (rtUtils.shouldIEmitThisObj(n, obj, pubOpts)) {
+      if (emitUtils.shouldIEmitThisObj(n, obj, pubOpts)) {
         namespace.emit(key, newObjectAsString);
       }
     }

@@ -26,7 +26,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
   } // setupRanges
 
   function calculateAndExpect(value, expectedStatus) {
-    return redisOps.calculateSampleStatus({ name: 'sub1.sub2|asp1', value })
+    return redisOps.calculateSampleStatus('sub1.sub2|asp1', value)
            .should.eventually.equal(expectedStatus);
   }
 
