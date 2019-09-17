@@ -61,10 +61,9 @@ function getAspectRanges(aspect) {
 function setRanges(ranges, aspName) {
   const setKey = redisStore.toKey(keyType.aspRanges, aspName);
   return ranges.reduce((batch, range) => {
-    const { minKey, maxKey } = getRangesKeys(range);
     return batch
-    .zadd(setKey, range.min, minKey)
-    .zadd(setKey, range.max, maxKey);
+    .zadd(setKey, range.min, getRangeKey('min', range.status, range.min))
+    .zadd(setKey, range.max, getRangeKey('max', range.status, range.max));
   }, redisClient.batch())
   .execAsync();
 }
@@ -72,28 +71,14 @@ function setRanges(ranges, aspName) {
 /**
  * Get set members for a given range
  *
- * @param  {Object} range
+ * @param  {String} type - "min" or "max"
+ * @param  {String} status - "Critical"/"Warning"/"Info"/"OK"
+ * @param  {String} score - range score
  * @returns {Object} - { minKey, maxKey }
  */
-function getRangesKeys(range) {
-  const { status, min, max } = range;
-
-  const precedence = {};
-  if (min === max) { // make sure min is first for flat ranges
-    precedence.min = 1;
-    precedence.max = 2;
-  } else { // ties go to the lower range
-    precedence.max = 0;
-    precedence.min = 3;
-  }
-
-  const minKey = getRangeKey('min', status, min, precedence);
-  const maxKey = getRangeKey('max', status, max, precedence);
-  return { minKey, maxKey };
-
-  function getRangeKey(type, status, value, precedence) {
-    return `${precedence[type]}:${type}:${status}:${value}`;
-  }
+function getRangeKey(type, status, score) {
+  const order = (type === 'min') ? 0 : 1; // min comes before max
+  return `${order}:${type}:${status}:${score}`;
 }
 
 /**
