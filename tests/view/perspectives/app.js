@@ -242,7 +242,7 @@ describe('tests/view/perspectives/app.js >', () => {
 
     function mockAspectEventWithTimeouts(eventType, timeout) {
       if (Array.isArray(timeout)) {
-        mockAspectEvent(eventType, { timeout: timeout[1] }, { timeout: timeout[0] });
+        mockAspectEvent(eventType, { timeout: timeout[1] });
       } else {
         mockAspectEvent(eventType, { timeout });
       }
@@ -490,7 +490,7 @@ describe('tests/view/perspectives/app.js >', () => {
       after(() => app.exportForTesting.setLensEventApiVersion(1));
       afterEach(() => eventsQueue.splice(0));
 
-      let newSample, oldSample, newAspect, oldAspect;
+      let newSample, newAspect;
 
       it('aspects are attached to sample events to match the v1 format', () => {
         app.exportForTesting.handleHierarchyEvent(
@@ -518,10 +518,9 @@ describe('tests/view/perspectives/app.js >', () => {
         });
 
         // sample update
-        oldSample = JSON.parse(JSON.stringify(MexicoHigh));
         newSample = JSON.parse(JSON.stringify(MexicoHigh));
         newSample.status = 'Info';
-        mockSampleEvent('update', newSample, oldSample);
+        mockSampleEvent('update', newSample);
         expect(eventsQueue[2]).to.deep.equal({
           'sample.update': {
             new: {
@@ -529,34 +528,22 @@ describe('tests/view/perspectives/app.js >', () => {
               status: 'Info',
               aspect: high,
             },
-            old: {
-              name: 'NorthAmerica.Mexico|Temp-High',
-              status: 'OK',
-              aspect: high,
-            },
           },
         });
 
         // update aspect
-        oldAspect = JSON.parse(JSON.stringify(high));
         newAspect = JSON.parse(JSON.stringify(high));
         newAspect.timeout = '10m';
-        mockAspectEvent('update', newAspect, oldAspect);
+        mockAspectEvent('update', newAspect);
 
-        oldSample = JSON.parse(JSON.stringify(CanadaHigh));
         newSample = JSON.parse(JSON.stringify(CanadaHigh));
         newSample.status = 'Info';
-        mockSampleEvent('update', newSample, oldSample);
+        mockSampleEvent('update', newSample);
         expect(eventsQueue[3]).to.deep.equal({
           'sample.update': {
             new: {
               name: 'NorthAmerica.Canada|Temp-High',
               status: 'Info',
-              aspect: newAspect,
-            },
-            old: {
-              name: 'NorthAmerica.Canada|Temp-High',
-              status: 'OK',
               aspect: newAspect,
             },
           },
@@ -598,7 +585,7 @@ describe('tests/view/perspectives/app.js >', () => {
       after(() => app.exportForTesting.setLensEventApiVersion(1));
       afterEach(() => eventsQueue.splice(0));
 
-      let newSample, oldSample, newAspect, oldAspect;
+      let newSample, newAspect;
 
       it('sample events do not have aspects attached', () => {
         app.exportForTesting.handleHierarchyEvent(
@@ -624,42 +611,31 @@ describe('tests/view/perspectives/app.js >', () => {
         });
 
         // sample update
-        oldSample = JSON.parse(JSON.stringify(MexicoHigh));
         newSample = JSON.parse(JSON.stringify(MexicoHigh));
         newSample.status = 'Info';
-        mockSampleEvent('update', newSample, oldSample);
+        mockSampleEvent('update', newSample);
         expect(eventsQueue[2]).to.deep.equal({
           'sample.update': {
             new: {
               name: 'NorthAmerica.Mexico|Temp-High',
               status: 'Info',
             },
-            old: {
-              name: 'NorthAmerica.Mexico|Temp-High',
-              status: 'OK',
-            },
           },
         });
 
         // update aspect
-        oldAspect = JSON.parse(JSON.stringify(high));
         newAspect = JSON.parse(JSON.stringify(high));
         newAspect.timeout = '10m';
-        mockAspectEvent('update', newAspect, oldAspect);
+        mockAspectEvent('update', newAspect);
 
-        oldSample = JSON.parse(JSON.stringify(CanadaHigh));
         newSample = JSON.parse(JSON.stringify(CanadaHigh));
         newSample.status = 'Info';
-        mockSampleEvent('update', newSample, oldSample);
+        mockSampleEvent('update', newSample);
         expect(eventsQueue[3]).to.deep.equal({
           'sample.update': {
             new: {
               name: 'NorthAmerica.Canada|Temp-High',
               status: 'Info',
-            },
-            old: {
-              name: 'NorthAmerica.Canada|Temp-High',
-              status: 'OK',
             },
           },
         });
@@ -694,7 +670,7 @@ describe('tests/view/perspectives/app.js >', () => {
   });
 });
 
-function mockAspectEvent(eventType, aspect, oldAspect) {
+function mockAspectEvent(eventType, aspect) {
   const eventData = {};
   let eventTypeName;
   if (eventType === 'add') {
@@ -706,9 +682,7 @@ function mockAspectEvent(eventType, aspect, oldAspect) {
   }
 
   if (eventType === 'update') {
-    eventData[eventTypeName] = {};
-    eventData[eventTypeName].new = aspect;
-    eventData[eventTypeName].old = oldAspect;
+    eventData[eventTypeName] = { new: aspect };
   } else {
     eventData[eventTypeName] = aspect;
   }
@@ -716,7 +690,7 @@ function mockAspectEvent(eventType, aspect, oldAspect) {
   app.handleEvent(JSON.stringify(eventData), eventTypeName);
 }
 
-function mockSampleEvent(eventType, sample, oldSample) {
+function mockSampleEvent(eventType, sample) {
   const eventData = {};
   let eventTypeName;
   if (eventType === 'add') {
@@ -728,9 +702,7 @@ function mockSampleEvent(eventType, sample, oldSample) {
   }
 
   if (eventType === 'update') {
-    eventData[eventTypeName] = {};
-    eventData[eventTypeName].new = sample;
-    eventData[eventTypeName].old = oldSample;
+    eventData[eventTypeName] = { new: sample };
   } else {
     eventData[eventTypeName] = sample;
   }
