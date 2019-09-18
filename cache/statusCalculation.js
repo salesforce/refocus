@@ -148,31 +148,27 @@ function calculateStatus(aspName, value) {
  * Find all overlapping ranges, merging them together in-place to form new
  * non-overlapping ranges based on the status precedence
  *
- * @param  {Array<Object>} ranges - list of ranges, in ascending order.
+ * @param  {Array<Object>} rangesToMerge - list of ranges, in ascending order.
+ * @returns {Array<Object>} - list of ranges with no overlaps, in ascending order
  */
-function preprocessOverlaps(ranges) {
+function preprocessOverlaps(rangesToMerge) {
   const mergedRanges = [];
-  let range1;
-  let range2;
-  while (range1 = ranges.shift()) {
-    range2 = ranges.shift();
-    let merged;
-    let next;
-    const newRanges = mergeOverlappingRanges(range1, range2);
+  while (rangesToMerge.length) {
+    const ranges = [rangesToMerge.shift(), rangesToMerge.shift()];
+    const mergeResult = mergeOverlappingRanges(...ranges);
 
-    if (!range2) {
-      merged = [range1];
-      next = [];
-    } else if (newRanges.length === 1) {
-      merged = [];
-      next = newRanges;
+    let done;
+    let next;
+    if (mergeResult.length > 1) {
+      [done, ...next] = mergeResult;
+    } else if (mergeResult.length === 1) {
+      [...next] = mergeResult;
     } else {
-      merged = newRanges.slice(0, 1);
-      next = newRanges.slice(1);
+      [done] = ranges;
     }
 
-    mergedRanges.push(...merged);
-    ranges.unshift(...next);
+    done && mergedRanges.push(done);
+    next && rangesToMerge.unshift(...next);
   }
 
   return mergedRanges;
@@ -187,15 +183,16 @@ function preprocessOverlaps(ranges) {
  * @returns Array<Object>
  */
 function mergeOverlappingRanges(range1, range2) {
-  if (!range1 || !range2) return;
+  if (!range1 || !range2) return [];
 
   const range1Priority = statusPrecedence[range1.status];
   const range2Priority = statusPrecedence[range2.status];
+
   const encompassing = (range1.min <= range2.min)
-    && (range2.max <= range1.max);
+                       && (range2.max <= range1.max);
   const overlapping = (range1.min < range2.min)
-    && (range1.max > range2.min)
-    && (range1.max < range2.max);
+                      && (range1.max > range2.min)
+                      && (range1.max < range2.max);
   const touching = !encompassing && (range1.max === range2.min);
 
   if (touching) {
