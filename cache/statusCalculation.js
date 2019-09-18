@@ -259,7 +259,7 @@ function adjustDown(n) {
 }
 
 /**
- * Adjust the given value down by the smallest possible amount that is
+ * Adjust the given value up by the smallest possible amount that is
  * representable in floating point
  *
  * @param  {Number} n
