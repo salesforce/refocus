@@ -24,7 +24,7 @@ module.exports = {
         bulkDelSubQueue.process(Number(concurrency), job);
       }
 
-      if (featureToggles.isFeatureEnabled('enableBullForbulkPostEvents') &&
+      if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
         jobName === bulkPostEventsQueue.name) {
         bulkPostEventsQueue.process(Number(concurrency), job);
       }
