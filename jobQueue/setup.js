@@ -22,7 +22,7 @@ const kue = require('kue');
 const BullQueue = require('bull');
 const Promise = require('bluebird');
 const activityLogUtil = require('../utils/activityLog');
-
+const jobQueues = [];
 const redisOptions = {
   redis: conf.redis.instanceUrl.queue,
 };
@@ -35,16 +35,33 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
   redisUrlForBull = 'redis:' + redisUrlForBull;
 }
 
+/**
+ * Creates a job queue and adds it to the list of queues
+ * @param {string} name  - Name of the new queue
+ * @param {string} redisUrl  - Url of redis instance
+ * @param {Array} jobQueueList  - the list of current job queues
+ * @returns {BullQueue} the newly created job queue
+ */
+function createJobQueue(name, redisUrl, jobQueueList) {
+  const newJobQueue = new BullQueue(name, redisUrl);
+  jobQueueList.push(newJobQueue);
+  return newJobQueue;
+}
+
 const jobQueue = kue.createQueue(redisOptions);
-const bulkDelSubQueue = new BullQueue(
-  conf.jobType.bulkDeleteSubjects, redisUrlForBull);
+const bulkDelSubQueue = createJobQueue(conf.jobType.bulkDeleteSubjects,
+  redisUrlForBull, jobQueues);
 
 function resetJobQueue() {
   return Promise.map(jobQueue.workers, (w) =>
     new Promise((resolve) => w.shutdown(resolve))
   )
-  .then(() => jobQueue.workers = [])
-    .then(() => bulkDelSubQueue.empty());
+  .then(() => {
+    jobQueue.workers = [];
+    jobQueues.forEach((queue) => {
+      queue.empty();
+    });
+  });
 }
 
 /**
@@ -60,26 +77,28 @@ function gracefulShutdown() {
     activityLogUtil.printActivityLogString(logWrapper, 'sigterm');
   }
 
-  bulkDelSubQueue.close()
-    .then(() => {
-      if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
-        const status = '"Bull Job queue shutdown: OK"';
-        printLog(status);
-      }
+  Promise.map(jobQueues, (queue) => {
+    return queue.close();
+  })
+  .then(() => {
+    if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
+      const status = '"Bull Job queue shutdown: OK"';
+      printLog(status);
+    }
 
-      return jobQueue.shutdown(conf.kueShutdownTimeout, (err) => {
-        if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
-          const status = '"Kue Job queue shutdown: ' + (err || 'OK') + '"';
-          printLog(status);
-        }
-      });
-    })
-    .catch((err) => {
+    return jobQueue.shutdown(conf.kueShutdownTimeout, (err) => {
       if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
-        const status = '"Kue Job queue shutdown: ' + err + '"';
+        const status = '"Kue Job queue shutdown: ' + (err || 'OK') + '"';
         printLog(status);
       }
     });
+  })
+  .catch((err) => {
+    if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
+      const status = '"Kue Job queue shutdown: ' + err + '"';
+      printLog(status);
+    }
+  });
 }
 
 jobQueue.on('error', (err) => {
