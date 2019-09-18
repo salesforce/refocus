@@ -151,7 +151,6 @@ function interceptEvent(eventTypeName, eventData) {
       eventData.aspect = getTrackedAspect(eventData);
     } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_UPD) {
       eventData.new.aspect = getTrackedAspect(eventData.new);
-      eventData.old.aspect = getTrackedAspect(eventData.new);
     } else if (eventTypeName === eventsQueue.eventType.INTRNL_ASP_ADD) {
       trackedAspects[eventData.name] = eventData;
       updateTimeoutValues(eventData.timeout);
