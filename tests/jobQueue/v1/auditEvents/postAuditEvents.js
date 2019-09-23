@@ -72,7 +72,7 @@ describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
           expect(o.length).to.be.at.least(3);
           done();
         }).catch(done);
-      }, 200);
+      }, 400);
     });
   });
 
