@@ -15,9 +15,11 @@ const expect = chai.expect;
 import { getFilterQuery,
   getTagsFromArrays } from '../../../view/perspective/utils.js';
 const app = require('../../../view/perspective/app.js');
-const eventsQueue = require('../../../view/perspective/eventsQueue.js');
+const eventTypes = require('../../../view/perspective/eventsQueue.js').eventType;
+const eventsQueue = app.exportForTesting.eventsQueue.queue;
 const v1hierarchy = require('./v1hierarchy');
 const v2hierarchy = require('./v2hierarchy');
+const allAspects = require('./v2aspects');
 
 describe('tests/view/perspectives/app.js >', () => {
   describe('get filter query >', () => {
@@ -238,67 +240,23 @@ describe('tests/view/perspectives/app.js >', () => {
 
   describe('timeout check >', () => {
 
-    const subjectObj = {
-      samples: [],
-      children: []
-    };
-    const sampleObj = {
-      aspect: {
-        timeout: '10s'
-      }
-    };
-
-    function getSampleWithTimeout(timeout) {
-      const sample = JSON.parse(JSON.stringify(sampleObj));
-      sample.aspect.timeout = timeout;
-      return sample;
-    }
-
-    function getSubjectWithTimeouts(...timeoutArray) {
-      const subject = JSON.parse(JSON.stringify(subjectObj));
-      timeoutArray.forEach((timeout) => {
-        subject.samples.push(getSampleWithTimeout(timeout));
-      });
-      return subject;
-    }
-
-    function mockEvent(eventType, timeout) {
-      const eventData = {};
-      let eventTypeName;
-      if (eventType === 'add') {
-        eventTypeName = eventsQueue.eventType.INTRNL_SMPL_ADD;
-      } else if (eventType === 'update') {
-        eventTypeName = eventsQueue.eventType.INTRNL_SMPL_UPD;
-      } else if (eventType === 'delete') {
-        eventTypeName = eventsQueue.eventType.INTRNL_SMPL_DEL;
-      }
-
-      if (eventType === 'update') {
-        const newSample = JSON.parse(JSON.stringify(sampleObj));
-        const oldSample = JSON.parse(JSON.stringify(sampleObj));
-        oldSample.aspect.timeout = timeout[0];
-        newSample.aspect.timeout = timeout[1];
-        eventData[eventTypeName] = {};
-        eventData[eventTypeName].new = newSample;
-        eventData[eventTypeName].old = oldSample;
+    function mockAspectEventWithTimeouts(eventType, timeout) {
+      if (Array.isArray(timeout)) {
+        mockAspectEvent(eventType, { timeout: timeout[1] });
       } else {
-        const sample = JSON.parse(JSON.stringify(sampleObj));
-        sample.aspect.timeout = timeout;
-        eventData[eventTypeName] = sample;
+        mockAspectEvent(eventType, { timeout });
       }
-
-      app.handleEvent(JSON.stringify(eventData), eventTypeName);
     }
 
+    function getAspectsWithTimeouts(...timeoutArray) {
+      return timeoutArray.map((timeout) => (
+        { timeout }
+      ));
+    }
 
     it('setupAspectTimeout', () => {
-      const rootSubject = JSON.parse(JSON.stringify(subjectObj));
-      rootSubject.children.push(getSubjectWithTimeouts('5s', '6s'));
-      rootSubject.children.push(getSubjectWithTimeouts('1m'));
-      rootSubject.children[0].children.push(getSubjectWithTimeouts('5s', '5s'));
-      rootSubject.children[1].children.push(getSubjectWithTimeouts('2m'));
-
-      app.setupAspectTimeout(rootSubject);
+      const aspects = getAspectsWithTimeouts('5s', '6s', '1m', '5s', '5s', '2m');
+      app.setupAspectTimeout(aspects);
       expect(app.getTimeoutValues().minAspectTimeout).to.equal(5000);
       expect(app.getTimeoutValues().maxAspectTimeout).to.equal(120000);
       expect(app.getTimeoutValues().minTimeoutCount).to.equal(3);
@@ -309,7 +267,7 @@ describe('tests/view/perspectives/app.js >', () => {
       let intervalId2;
 
       intervalId1 = app.getTimeoutValues().intervalId;
-      mockEvent('delete', '5s');
+      mockAspectEventWithTimeouts('delete', '5s');
       intervalId2 = app.getTimeoutValues().intervalId;
       expect(app.getTimeoutValues().minAspectTimeout).to.equal(5000);
       expect(app.getTimeoutValues().maxAspectTimeout).to.equal(120000);
@@ -318,7 +276,7 @@ describe('tests/view/perspectives/app.js >', () => {
       expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
 
       intervalId1 = app.getTimeoutValues().intervalId;
-      mockEvent('add', '4s');
+      mockAspectEventWithTimeouts('add', '4s');
       intervalId2 = app.getTimeoutValues().intervalId;
       expect(app.getTimeoutValues().minAspectTimeout).to.equal(4000);
       expect(app.getTimeoutValues().maxAspectTimeout).to.equal(120000);
@@ -327,7 +285,7 @@ describe('tests/view/perspectives/app.js >', () => {
       expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
 
       intervalId1 = app.getTimeoutValues().intervalId;
-      mockEvent('add', '3m');
+      mockAspectEventWithTimeouts('add', '3m');
       intervalId2 = app.getTimeoutValues().intervalId;
       expect(app.getTimeoutValues().minAspectTimeout).to.equal(4000);
       expect(app.getTimeoutValues().maxAspectTimeout).to.equal(180000);
@@ -336,7 +294,7 @@ describe('tests/view/perspectives/app.js >', () => {
       expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
 
       intervalId1 = app.getTimeoutValues().intervalId;
-      mockEvent('delete', '4s');
+      mockAspectEventWithTimeouts('delete', '4s');
       intervalId2 = app.getTimeoutValues().intervalId;
       expect(app.getTimeoutValues().minAspectTimeout).to.equal(180000);
       expect(app.getTimeoutValues().maxAspectTimeout).to.equal(180000);
@@ -345,7 +303,7 @@ describe('tests/view/perspectives/app.js >', () => {
       expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
 
       intervalId1 = app.getTimeoutValues().intervalId;
-      mockEvent('add', '10s');
+      mockAspectEventWithTimeouts('add', '10s');
       intervalId2 = app.getTimeoutValues().intervalId;
       expect(app.getTimeoutValues().minAspectTimeout).to.equal(10000);
       expect(app.getTimeoutValues().maxAspectTimeout).to.equal(180000);
@@ -354,7 +312,7 @@ describe('tests/view/perspectives/app.js >', () => {
       expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
 
       intervalId1 = app.getTimeoutValues().intervalId;
-      mockEvent('update', ['10s', '6s']);
+      mockAspectEventWithTimeouts('update', ['10s', '6s']);
       intervalId2 = app.getTimeoutValues().intervalId;
       expect(app.getTimeoutValues().minAspectTimeout).to.equal(6000);
       expect(app.getTimeoutValues().maxAspectTimeout).to.equal(180000);
@@ -363,7 +321,7 @@ describe('tests/view/perspectives/app.js >', () => {
       expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
 
       intervalId1 = app.getTimeoutValues().intervalId;
-      mockEvent('update', ['10s', '6s']);
+      mockAspectEventWithTimeouts('update', ['10s', '6s']);
       intervalId2 = app.getTimeoutValues().intervalId;
       expect(app.getTimeoutValues().minAspectTimeout).to.equal(6000);
       expect(app.getTimeoutValues().maxAspectTimeout).to.equal(180000);
@@ -372,7 +330,7 @@ describe('tests/view/perspectives/app.js >', () => {
       expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
 
       intervalId1 = app.getTimeoutValues().intervalId;
-      mockEvent('update', ['10s', '4m']);
+      mockAspectEventWithTimeouts('update', ['10s', '4m']);
       intervalId2 = app.getTimeoutValues().intervalId;
       expect(app.getTimeoutValues().minAspectTimeout).to.equal(6000);
       expect(app.getTimeoutValues().maxAspectTimeout).to.equal(240000);
@@ -387,7 +345,7 @@ describe('tests/view/perspectives/app.js >', () => {
         setTimeout(() => {
           const time1 = Date.now();
           expect(app.getTimeoutValues().lastUpdateTime).to.be.below(time1);
-          mockEvent('update', ['30s', '60s']);
+          mockAspectEventWithTimeouts('update', ['30s', '60s']);
           const time2 = Date.now();
           expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
           done();
@@ -398,7 +356,7 @@ describe('tests/view/perspectives/app.js >', () => {
         setTimeout(() => {
           const time1 = Date.now();
           expect(app.getTimeoutValues().lastUpdateTime).to.be.below(time1);
-          mockEvent('add', '30s');
+          mockAspectEventWithTimeouts('add', '30s');
           const time2 = Date.now();
           expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
           done();
@@ -409,7 +367,7 @@ describe('tests/view/perspectives/app.js >', () => {
         setTimeout(() => {
           const time1 = Date.now();
           expect(app.getTimeoutValues().lastUpdateTime).to.be.below(time1);
-          mockEvent('delete', '30s');
+          mockAspectEventWithTimeouts('delete', '30s');
           const time2 = Date.now();
           expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
           done();
@@ -420,7 +378,7 @@ describe('tests/view/perspectives/app.js >', () => {
         setTimeout(() => {
           const time1 = Date.now();
           expect(app.getTimeoutValues().lastUpdateTime).to.be.below(time1);
-          app.setupAspectTimeout({});
+          app.setupAspectTimeout([]);
           const time2 = Date.now();
           expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
           done();
@@ -441,16 +399,313 @@ describe('tests/view/perspectives/app.js >', () => {
   });
 
   describe('handleHierarchyEvent >', () => {
-    it('with v1 hierarchy', () => {
-      const hierarchyLoadEvent =
-        app.exportForTesting.handleHierarchyEvent(v1hierarchy, false);
-      expect(hierarchyLoadEvent.detail).to.deep.equal(v1hierarchy);
+
+    const perspective = {
+      aspectFilterType: 'INCLUDE',
+      aspectFilter: ['Temp-High', 'Temp-Low'],
+      statusFilterType: 'EXCLUDE',
+      statusFilter: [],
+      subjectTagFilterType: 'EXCLUDE',
+      subjectTagFilter: [],
+      aspectTagFilterType: 'INCLUDE',
+      aspectTagFilter: ['High'],
+    };
+
+    describe('v1 lens', () => {
+      it('with v1 hierarchy', () => {
+        const hierarchyLoadEvent =
+          app.exportForTesting.handleHierarchyEvent(
+            v1hierarchy, allAspects, perspective, false
+          );
+        expect(hierarchyLoadEvent.detail).to.deep.equal(v1hierarchy);
+      });
+
+      it('with v2 hierarchy', () => {
+        const hierarchyLoadEvent =
+          app.exportForTesting.handleHierarchyEvent(
+            v2hierarchy, allAspects, perspective, false
+          );
+        expect(hierarchyLoadEvent.detail).to.deep.equal(v1hierarchy);
+      });
     });
 
-    it('with v2 hierarchy', () => {
-      const hierarchyLoadEvent =
-        app.exportForTesting.handleHierarchyEvent(v2hierarchy, false);
-      expect(hierarchyLoadEvent.detail).to.deep.equal(v1hierarchy);
+    describe('v2 lens', () => {
+      before(() => app.exportForTesting.setLensEventApiVersion(2));
+      after(() => app.exportForTesting.setLensEventApiVersion(1));
+
+      it('with v1 hierarchy', () => {
+        const hierarchyLoadEvent =
+          app.exportForTesting.handleHierarchyEvent(
+            v1hierarchy, allAspects, perspective, false
+          );
+        expect(hierarchyLoadEvent.detail).to.have.keys('aspects', 'hierarchy');
+        expect(hierarchyLoadEvent.detail.aspects.map(a => a.name))
+          .to.deep.equal(['Temp-High']);
+        expect(hierarchyLoadEvent.detail.hierarchy).to.deep.equal(v1hierarchy);
+      });
+
+      it('with v2 hierarchy', () => {
+        const hierarchyLoadEvent =
+          app.exportForTesting.handleHierarchyEvent(
+            v2hierarchy, allAspects, perspective, false
+          );
+        expect(hierarchyLoadEvent.detail).to.have.keys('aspects', 'hierarchy');
+        expect(hierarchyLoadEvent.detail.aspects.map(a => a.name))
+          .to.deep.equal(['Temp-High']);
+        expect(hierarchyLoadEvent.detail.hierarchy).to.deep.equal(v2hierarchy);
+      });
+    });
+  });
+
+  describe('event interception >', () => {
+    const perspective = {
+      aspectFilterType: 'INCLUDE',
+      aspectFilter: ['Temp-High', 'Temp-Low'],
+      statusFilterType: 'EXCLUDE',
+      statusFilter: [],
+      subjectTagFilterType: 'EXCLUDE',
+      subjectTagFilter: [],
+      aspectTagFilterType: 'INCLUDE',
+      aspectTagFilter: ['High'],
+    };
+
+    const high = allAspects.find(a => a.name === 'Temp-High');
+    const low = allAspects.find(a => a.name === 'Temp-Low');
+    const avg = allAspects.find(a => a.name === 'Temp-Avg');
+    const CanadaHigh = {
+      name: 'NorthAmerica.Canada|Temp-High',
+      status: 'OK',
+    };
+    const UnitedStatesHigh = {
+      name: 'NorthAmerica.UnitedStates|Temp-High',
+      status: 'OK',
+    };
+    const MexicoHigh = {
+      name: 'NorthAmerica.Mexico|Temp-High',
+      status: 'OK',
+    };
+
+    describe('v1 lens >', () => {
+      before(() => app.exportForTesting.setLensEventApiVersion(1));
+      after(() => app.exportForTesting.setLensEventApiVersion(1));
+      afterEach(() => eventsQueue.splice(0));
+
+      let newSample, newAspect;
+
+      it('aspects are attached to sample events to match the v1 format', () => {
+        app.exportForTesting.handleHierarchyEvent(
+          v2hierarchy, allAspects, perspective, false
+        );
+
+        // sample add
+        mockSampleEvent('add', CanadaHigh);
+        expect(eventsQueue[0]).to.deep.equal({
+          'sample.add': {
+            name: 'NorthAmerica.Canada|Temp-High',
+            status: 'OK',
+            aspect: high,
+          },
+        });
+
+        // sample delete
+        mockSampleEvent('delete', UnitedStatesHigh);
+        expect(eventsQueue[1]).to.deep.equal({
+          'sample.remove': {
+            name: 'NorthAmerica.UnitedStates|Temp-High',
+            status: 'OK',
+            aspect: high,
+          },
+        });
+
+        // sample update
+        newSample = JSON.parse(JSON.stringify(MexicoHigh));
+        newSample.status = 'Info';
+        mockSampleEvent('update', newSample);
+        expect(eventsQueue[2]).to.deep.equal({
+          'sample.update': {
+            new: {
+              name: 'NorthAmerica.Mexico|Temp-High',
+              status: 'Info',
+              aspect: high,
+            },
+          },
+        });
+
+        // update aspect
+        newAspect = JSON.parse(JSON.stringify(high));
+        newAspect.timeout = '10m';
+        mockAspectEvent('update', newAspect);
+
+        newSample = JSON.parse(JSON.stringify(CanadaHigh));
+        newSample.status = 'Info';
+        mockSampleEvent('update', newSample);
+        expect(eventsQueue[3]).to.deep.equal({
+          'sample.update': {
+            new: {
+              name: 'NorthAmerica.Canada|Temp-High',
+              status: 'Info',
+              aspect: newAspect,
+            },
+          },
+        });
+
+        // delete aspect
+        mockAspectEvent('delete', high);
+        mockSampleEvent('add', UnitedStatesHigh);
+        expect(eventsQueue[4]).to.deep.equal({
+          'sample.add': {
+            name: 'NorthAmerica.UnitedStates|Temp-High',
+            status: 'OK',
+            aspect: undefined,
+          },
+        });
+
+        // add aspect
+        newAspect = JSON.parse(JSON.stringify(low));
+        newAspect.tags.push('High');
+        const UnitedStatesLow = {
+          name: 'NorthAmerica.UnitedStates|Temp-Low',
+          status: 'OK',
+        };
+
+        mockAspectEvent('add', newAspect);
+        mockSampleEvent('add', UnitedStatesLow);
+        expect(eventsQueue[5]).to.deep.equal({
+          'sample.add': {
+            name: 'NorthAmerica.UnitedStates|Temp-Low',
+            status: 'OK',
+            aspect: newAspect,
+          },
+        });
+      });
+    });
+
+    describe('v2 lens >', () => {
+      before(() => app.exportForTesting.setLensEventApiVersion(2));
+      after(() => app.exportForTesting.setLensEventApiVersion(1));
+      afterEach(() => eventsQueue.splice(0));
+
+      let newSample, newAspect;
+
+      it('sample events do not have aspects attached', () => {
+        app.exportForTesting.handleHierarchyEvent(
+          v2hierarchy, allAspects, perspective, false
+        );
+
+        // sample add
+        mockSampleEvent('add', CanadaHigh);
+        expect(eventsQueue[0]).to.deep.equal({
+          'sample.add': {
+            name: 'NorthAmerica.Canada|Temp-High',
+            status: 'OK',
+          },
+        });
+
+        // sample delete
+        mockSampleEvent('delete', UnitedStatesHigh);
+        expect(eventsQueue[1]).to.deep.equal({
+          'sample.remove': {
+            name: 'NorthAmerica.UnitedStates|Temp-High',
+            status: 'OK',
+          },
+        });
+
+        // sample update
+        newSample = JSON.parse(JSON.stringify(MexicoHigh));
+        newSample.status = 'Info';
+        mockSampleEvent('update', newSample);
+        expect(eventsQueue[2]).to.deep.equal({
+          'sample.update': {
+            new: {
+              name: 'NorthAmerica.Mexico|Temp-High',
+              status: 'Info',
+            },
+          },
+        });
+
+        // update aspect
+        newAspect = JSON.parse(JSON.stringify(high));
+        newAspect.timeout = '10m';
+        mockAspectEvent('update', newAspect);
+
+        newSample = JSON.parse(JSON.stringify(CanadaHigh));
+        newSample.status = 'Info';
+        mockSampleEvent('update', newSample);
+        expect(eventsQueue[3]).to.deep.equal({
+          'sample.update': {
+            new: {
+              name: 'NorthAmerica.Canada|Temp-High',
+              status: 'Info',
+            },
+          },
+        });
+
+        // delete aspect
+        mockAspectEvent('delete', high);
+        mockSampleEvent('add', UnitedStatesHigh);
+        expect(eventsQueue[4]).to.deep.equal({
+          'sample.add': {
+            name: 'NorthAmerica.UnitedStates|Temp-High',
+            status: 'OK',
+          },
+        });
+
+        // add aspect
+        newAspect = JSON.parse(JSON.stringify(low));
+        newAspect.tags.push('High');
+        const UnitedStatesLow = {
+          name: 'NorthAmerica.UnitedStates|Temp-Low',
+          status: 'OK',
+        };
+        mockAspectEvent('add', newAspect);
+        mockSampleEvent('add', UnitedStatesLow);
+        expect(eventsQueue[5]).to.deep.equal({
+          'sample.add': {
+            name: 'NorthAmerica.UnitedStates|Temp-Low',
+            status: 'OK',
+          },
+        });
+      });
     });
   });
 });
+
+function mockAspectEvent(eventType, aspect) {
+  const eventData = {};
+  let eventTypeName;
+  if (eventType === 'add') {
+    eventTypeName = eventTypes.INTRNL_ASP_ADD;
+  } else if (eventType === 'update') {
+    eventTypeName = eventTypes.INTRNL_ASP_UPD;
+  } else if (eventType === 'delete') {
+    eventTypeName = eventTypes.INTRNL_ASP_DEL;
+  }
+
+  if (eventType === 'update') {
+    eventData[eventTypeName] = { new: aspect };
+  } else {
+    eventData[eventTypeName] = aspect;
+  }
+
+  app.handleEvent(JSON.stringify(eventData), eventTypeName);
+}
+
+function mockSampleEvent(eventType, sample) {
+  const eventData = {};
+  let eventTypeName;
+  if (eventType === 'add') {
+    eventTypeName = eventTypes.INTRNL_SMPL_ADD;
+  } else if (eventType === 'update') {
+    eventTypeName = eventTypes.INTRNL_SMPL_UPD;
+  } else if (eventType === 'delete') {
+    eventTypeName = eventTypes.INTRNL_SMPL_DEL;
+  }
+
+  if (eventType === 'update') {
+    eventData[eventTypeName] = { new: sample };
+  } else {
+    eventData[eventTypeName] = sample;
+  }
+
+  app.handleEvent(JSON.stringify(eventData), eventTypeName);
+}

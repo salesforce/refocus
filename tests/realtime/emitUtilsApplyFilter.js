@@ -7,13 +7,13 @@
  */
 
 /**
- * tests/realtime/realtimeUtilsApplyFilter.js
+ * tests/realtime/emitUtilsApplyFilter.js
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
-const applyFilter = require('../../realtime/utils').applyFilter;
+const applyFilter = require('../../realtime/emitUtils').applyFilter;
 
-describe('tests/realtime/realtimeUtilsApplyFilter.js >', () => {
+describe('tests/realtime/emitUtilsApplyFilter.js >', () => {
   it('filter undefined', () => expect(applyFilter()).to.be.true);
 
   describe('exclude filter >', () => {
