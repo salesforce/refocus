@@ -11,7 +11,7 @@
  */
 'use strict';
 const jobSetup = require('../../../jobQueue/setup');
-const jobQueue = jobSetup.jobQueue;
+const jobQueueKue = jobSetup.jobQueue;
 const jobType = jobSetup.jobType;
 const bulkUpsertSamplesJob = require('../../../worker/jobs/bulkUpsertSamples');
 const getHierarchyJob = require('../../../worker/jobs/getHierarchy');
@@ -26,6 +26,8 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 const logger = require('../../../utils/activityLog').logger;
+const featureToggles =require('feature-toggles');
+const bulkUpsertSamplesQueue = jobSetup.bulkUpsertSamplesQueue;
 const RADIX = 10;
 
 describe('tests/cache/jobQueue/bulkUpsert.js, ' +
@@ -38,7 +40,6 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enableApiActivityLogs', false);
     tu.toggleOverride('enableWorkerActivityLogs', false);
-    jobQueue.process(jobType.bulkUpsertSamples, bulkUpsertSamplesJob);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
@@ -46,6 +47,27 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
       done();
     })
     .catch(done);
+  });
+
+  before(() => {
+    const simulateFailure = false;
+    if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+      bulkUpsertSamplesQueue.process((job, done) => {
+        if (simulateFailure) {
+          done(new Error('Job Failed'));
+        } else {
+          bulkUpsertSamplesJob(job, done);
+        }
+      });
+    } else {
+      jobQueueKue.process(jobType.bulkDeleteSubjects, (job, done) => {
+        if (simulateFailure) {
+          done('Job Failed');
+        } else {
+          bulkUpsertSamplesJob(job, done);
+        }
+      });
+    }
   });
 
   before((done) => {

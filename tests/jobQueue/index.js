@@ -11,6 +11,7 @@
  */
 const expect = require('chai').expect;
 const { fork } = require('child_process');
+const toggles = require('feature-toggles');
 
 describe('tests/jobQueue/index.js >', () => {
   let subprocess;
@@ -19,17 +20,29 @@ describe('tests/jobQueue/index.js >', () => {
   it('default config', () =>
     runWorker()
     .then((workerCount) => {
-      expect(workerCount).to.deep.equal({
-        createAuditEvents: 1,
-        bulkUpsertSamples: 1,
-        deleteUnusedTokens: 1,
-        getHierarchy: 1,
-        bulkDeleteSubjects: 1,
-        bulkPostEvents: 1,
-        checkMissedCollectorHeartbeat: 1,
-        jobCleanup: 1,
-        sampleTimeout: 1,
-      });
+      if (toggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+        expect(workerCount).to.deep.equal({
+          createAuditEvents: 1,
+          bulkPostEvents: 1,
+          deleteUnusedTokens: 1,
+          getHierarchy: 1,
+          checkMissedCollectorHeartbeat: 1,
+          jobCleanup: 1,
+          sampleTimeout: 1
+        });
+      } else {
+        expect(workerCount).to.deep.equal({
+          createAuditEvents: 1,
+          bulkUpsertSamples: 1,
+          deleteUnusedTokens: 1,
+          getHierarchy: 1,
+          bulkDeleteSubjects: 1,
+          bulkPostEvents: 1,
+          checkMissedCollectorHeartbeat: 1,
+          jobCleanup: 1,
+          sampleTimeout: 1
+        });
+      }
     })
   );
 
