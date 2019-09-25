@@ -83,11 +83,8 @@ let _realtimeEventThrottleMilliseconds;
 let _userSession;
 let _io;
 
-let minAspectTimeout;
-let minTimeoutCount;
-let maxAspectTimeout;
 let lastUpdateTime;
-let intervalId;
+let timeoutCheckInterval;
 let lensEventApiVersion = 1;
 
 const trackedAspects = {};
@@ -116,9 +113,20 @@ function handleError(err) {
  * @param  {Function} trackEndToEndTime - Callback to send event receipt time back to server
  */
 function handleEvent(eventData, eventTypeName, trackEndToEndTime) {
-  trackEndToEndTime && trackEndToEndTime(Date.now());
+  // track event receipt
+  const now = Date.now();
+  trackEndToEndTime && trackEndToEndTime(now);
+  lastUpdateTime = now;
 
+  // parse event data
   const obj = JSON.parse(eventData)[eventTypeName];
+
+  // intercept events to support v1 lenses
+  if (lensEventApiVersion < 2) {
+    interceptV1Event(eventTypeName, obj);
+  }
+
+  // log event data
   if (DEBUG_REALTIME) {
     console.log({ // eslint-disable-line no-console
       handleEventTimestamp: new Date(),
@@ -126,9 +134,7 @@ function handleEvent(eventData, eventTypeName, trackEndToEndTime) {
     });
   }
 
-  // intercept events to support v1 lenses, and track timeouts for auto-reload.
-  interceptEvent(eventTypeName, obj);
-
+  // dispatch event to lens
   eventsQueue.enqueueEvent(eventTypeName, obj);
   if (_realtimeEventThrottleMilliseconds === ZERO) {
     eventsQueue.createAndDispatchLensEvent(eventsQueue.queue, LENS_DIV);
@@ -137,30 +143,24 @@ function handleEvent(eventData, eventTypeName, trackEndToEndTime) {
 } // handleEvent
 
 /**
- * Intercept events. Attach aspects to support v1 lenses, and track timeouts
- * for auto-reload.
+ * Intercept events to support v1 lenses.
  *
  * @param  {String} eventTypeName - Event type
  * @param  {Object} eventData - object that will be sent to the lens
  */
-function interceptEvent(eventTypeName, eventData) {
-  if (lensEventApiVersion < 2) {
-    if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_ADD) {
-      eventData.aspect = getTrackedAspect(eventData);
-    } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_DEL) {
-      eventData.aspect = getTrackedAspect(eventData);
-    } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_UPD) {
-      eventData.new.aspect = getTrackedAspect(eventData.new);
-    } else if (eventTypeName === eventsQueue.eventType.INTRNL_ASP_ADD) {
-      trackedAspects[eventData.name] = eventData;
-      updateTimeoutValues(eventData.timeout);
-    } else if (eventTypeName === eventsQueue.eventType.INTRNL_ASP_DEL) {
-      delete trackedAspects[eventData.name];
-      updateDeletedTimeoutValues(eventData.timeout);
-    } else if (eventTypeName === eventsQueue.eventType.INTRNL_ASP_UPD) {
-      trackedAspects[eventData.new.name] = eventData.new;
-      updateTimeoutValues(eventData.new.timeout);
-    }
+function interceptV1Event(eventTypeName, eventData) {
+  if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_ADD) {
+    eventData.aspect = getTrackedAspectForSample(eventData);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_DEL) {
+    eventData.aspect = getTrackedAspectForSample(eventData);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_UPD) {
+    eventData.new.aspect = getTrackedAspectForSample(eventData.new);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_ASP_ADD) {
+    trackAspect(eventData);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_ASP_DEL) {
+    untrackAspect(eventData);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_ASP_UPD) {
+    trackAspect(eventData.new);
   }
 }
 
@@ -168,9 +168,41 @@ function interceptEvent(eventTypeName, eventData) {
  * Get the tracked aspect for the given sample
  * @param {Object} sample - sample object
  */
-function getTrackedAspect(sample) {
+function getTrackedAspectForSample(sample) {
   const [absPath, aspName] = sample.name.split('|');
-  return trackedAspects[aspName];
+  return trackedAspects[aspName.toLowerCase()];
+}
+
+/**
+ * Get the tracked aspect by name
+ * @param {String} aspName - aspect name
+ */
+function getTrackedAspect(aspName) {
+  return trackedAspects[aspName.toLowerCase()];
+}
+
+/**
+ * Add the aspect to the tracking map.
+ * @param {Object} aspect - aspect object
+ */
+function trackAspect(aspect) {
+  trackedAspects[aspect.name.toLowerCase()] = aspect;
+}
+
+/**
+ * Track all aspects
+ * @param {Array} aspects - array of aspects
+ */
+function trackAspects(aspects) {
+  aspects.forEach(trackAspect);
+}
+
+/**
+ * Remove the aspect from the tracking map.
+ * @param {Object} aspect - aspect object
+ */
+function untrackAspect(aspect) {
+  delete trackedAspects[aspect.name.toLowerCase()];
 }
 
 /**
@@ -293,127 +325,74 @@ function handleLibraryFiles(lib) {
  * else return hierarchyLoadEvent.
  */
 function handleHierarchyEvent(hierarchy, allAspects, perspective, gotLens) {
-  let eventDetail;
-
-  // filter aspects based on perspective filters
-  const nspStr = emitUtils.getPerspectiveNamespaceString(perspective);
-  const aspects = allAspects.filter((asp) =>
-    emitUtils.shouldIEmitThisObj(nspStr, asp)
-  );
-
-  // setup aspect timeouts
-  setupAspectTimeout(aspects);
+  // perspective aspects - all aspects that could potentially be included in this perspective
+  const perspectiveAspects = filterPerspectiveAspects(allAspects, perspective);
 
   // track aspects to be used for intercepting v1 events
-  aspects.forEach((asp) =>
-    trackedAspects[asp.name] = asp
-  );
+  trackAspects(perspectiveAspects);
 
-  // set event detail
+  // setup auto-reload based on the lowest aspect timeout
+  setupAutoReload(hierarchy);
+
+  // prepare hierarchy event
+  const hierarchyLoadEvent = prepareHierarchyEventForLens(hierarchy, perspectiveAspects);
+
+  // dispatch to lens. if not ready, return the event, to be dispatched on lens arrival.
+  if (gotLens) {
+    LENS_DIV.dispatchEvent(hierarchyLoadEvent);
+  } else {
+    return hierarchyLoadEvent;
+  }
+}
+
+/**
+ * Filter aspects based on the perspective filters.
+ *
+ * @param {Object} allAspects
+ * @param {Object} perspective
+ */
+function filterPerspectiveAspects(allAspects, perspective) {
+  const nspStr = emitUtils.getPerspectiveNamespaceString(perspective);
+  return allAspects.filter((asp) =>
+    emitUtils.shouldIEmitThisObj(nspStr, asp)
+  );
+}
+
+function prepareHierarchyEventForLens(hierarchy, aspects) {
+  let eventDetail;
   if (lensEventApiVersion < 2) {
     eventDetail = pu.reconstructV1Hierarchy(hierarchy, aspects);
   } else {
     eventDetail = { hierarchy, aspects };
   }
 
-  const hierarchyLoadEvent = new window.CustomEvent(
-    'refocus.lens.hierarchyLoad', { detail: eventDetail });
-
-  /*
-   * The order of events matters so only dispatch the hierarchyLoad event if
-   * we received the lens response back.
-   */
-  if (gotLens) {
-    LENS_DIV.dispatchEvent(hierarchyLoadEvent);
-    return;
-  }
-
-  /*
-   * Lens not here yet. Return the hierarchyLoad event--it will be dispatched
-   * from getLens once the lens arrives.
-   */
-  return hierarchyLoadEvent;
+  return new window.CustomEvent(
+    'refocus.lens.hierarchyLoad', { detail: eventDetail }
+  );
 }
 
 /**
- * Initialize the aspect timeout values, then setup
- * an interval to check that the page is still receiving events.
+ * Setup an interval to check that the page is still receiving events,
+ * based on the lowest timeout for an aspect in the hierarchy.
  *
- * @param {Object} aspects - List of aspects
+ * @param {Object} hierarchy
  */
-function setupAspectTimeout(aspects) {
-  lastUpdateTime = Date.now();
-  minAspectTimeout = Infinity;
-  minTimeoutCount = 0;
-  maxAspectTimeout = 0;
-
-  aspects.forEach((aspect) =>
-    updateTimeoutValues(aspect.timeout)
+function setupAutoReload(hierarchy) {
+  const minAspectTimeout = (
+    pu.aspectNamesInHierarchy(hierarchy)
+    .map(getTrackedAspect)
+    .filter(Boolean)
+    .map((a) => parseTimeout(a.timeout))
+    .reduce((a, b) => Math.min(a, b), Infinity)
   );
 
+  lastUpdateTime =  Date.now();
   if (minAspectTimeout < Infinity) {
-    setupTimeoutInterval();
-  }
-}
-
-/**
- * Setup an interval to check that the page is still receiving events. Do a
- * reload if not. If there is an existing interval, clear it and set a new one
- * based on the current value of minAspectTimeout
- */
-function setupTimeoutInterval() {
-  if (intervalId) {
-    clearInterval(intervalId);
-  }
-
-  intervalId = setInterval(() => {
-    if (Date.now() - lastUpdateTime > minAspectTimeout * 2) {
-      window.location.reload();
-    }
-  }, minAspectTimeout);
-}
-
-/**
- * Check if the aspect timeout values need to be updated when a sample is
- * added or updated.
- * @param {String} timeoutString - a timeout string from a sample
- */
-function updateTimeoutValues(timeoutString) {
-  lastUpdateTime = Date.now();
-  const timeout = parseTimeout(timeoutString);
-
-  if (timeout === minAspectTimeout) {
-    minTimeoutCount++;
-  }
-
-  if (timeout < minAspectTimeout) {
-    minAspectTimeout = timeout;
-    minTimeoutCount = 1;
-    setupTimeoutInterval();
-  }
-
-  if (timeout > maxAspectTimeout) {
-    maxAspectTimeout = timeout;
-  }
-}
-
-/**
- * Check if the aspect timeout values need to be updated when a sample is
- * deleted.
- * @param {String} timeoutString - a timeout string from a sample
- */
-function updateDeletedTimeoutValues(timeoutString) {
-  lastUpdateTime = Date.now();
-  const timeout = parseTimeout(timeoutString);
-
-  if (timeout === minAspectTimeout) {
-    if (minTimeoutCount === 1) {
-      // reset. It will settle to the correct value as more events come in.
-      minAspectTimeout = maxAspectTimeout;
-      setupTimeoutInterval();
-    } else {
-      minTimeoutCount--;
-    }
+    timeoutCheckInterval = setInterval(() => {
+      if (Date.now() - lastUpdateTime >= minAspectTimeout * 2) {
+        window.location.reload();
+      }
+    }, minAspectTimeout);
   }
 }
 
@@ -549,11 +528,8 @@ function loadController(values) {
 // For Testing
 function getTimeoutValues() {
   return {
-    minAspectTimeout,
-    minTimeoutCount,
-    maxAspectTimeout,
     lastUpdateTime,
-    intervalId,
+    timeoutCheckInterval,
   };
 }
 
@@ -561,13 +537,24 @@ function setLensEventApiVersion(version) {
   lensEventApiVersion = version;
 }
 
+// For Testing
+function resetState() {
+  clearInterval(timeoutCheckInterval);
+  timeoutCheckInterval = undefined;
+  lastUpdateTime = undefined;
+  Object.keys(trackedAspects).forEach((key) =>
+    delete trackedAspects[key]
+  );
+  eventsQueue.queue.splice(0);
+}
+
 module.exports = {
   getTimeoutValues,
   handleEvent,
   parseTimeout,
-  setupAspectTimeout,
-  setupTimeoutInterval,
+  setupAutoReload,
   exportForTesting: {
+    resetState,
     handleHierarchyEvent,
     setLensEventApiVersion,
     eventsQueue,
