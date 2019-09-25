@@ -251,7 +251,7 @@ function updateValues(seq, instance) {
           });
 
           // Find bot data to update
-          promises.push(BotData.findOne(whereConst));
+          promises.push(BotData.findOne(whereConst).catch((err) => err));
           promises.push(syncValue);
         });
       }
@@ -270,7 +270,7 @@ function updateValues(seq, instance) {
       for (let i = ZERO; i < data.length; i += TWO) {
         if (data[i] && data[i].value) {
           newValue = combineValue(data[i].value, data[i + ONE]);
-          updates.push(data[i].update({ value: newValue }));
+          updates.push(data[i].update({ value: newValue }).catch((err) => err));
         }
       }
 
