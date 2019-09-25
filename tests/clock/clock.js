@@ -32,7 +32,6 @@ describe('tests/clock/clock.js >', function () {
   it('default config', () => {
     const expectedCount = {
       checkMissedCollectorHeartbeat: intervalsInDay('15s'),
-      deactivateRooms: intervalsInDay('5m'),
       jobCleanup: intervalsInDay('30m'),
       resetJobCounter: intervalsInDay('2h'),
       sampleTimeout: intervalsInDay('30s'),
@@ -53,7 +52,6 @@ describe('tests/clock/clock.js >', function () {
 
     const expectedCount = {
       checkMissedCollectorHeartbeat: intervalsInHour('15s'),
-      deactivateRooms: intervalsInHour('5m'),
       deleteUnusedTokens: intervalsInHour('1d'),
       jobCleanup: intervalsInHour('30m'),
       resetJobCounter: intervalsInHour('2h'),
@@ -76,7 +74,6 @@ describe('tests/clock/clock.js >', function () {
 
     const expectedCount = {
       checkMissedCollectorHeartbeat: intervalsInHour('15s'),
-      deactivateRooms: intervalsInHour('5m'),
       jobCleanup: intervalsInHour('30m'),
       kueStatsActivityLogs: intervalsInHour('1m'),
       queueStatsActivityLogs: intervalsInHour('1m'),
@@ -96,7 +93,6 @@ describe('tests/clock/clock.js >', function () {
     const env = {
       // eslint-disable-next-line camelcase
       CLOCK_JOB_INTERVAL_checkMissedCollectorHeartbeat: '1m',
-      CLOCK_JOB_INTERVAL_deactivateRooms: '2m', // eslint-disable-line camelcase
       CLOCK_JOB_INTERVAL_jobCleanup: '3m', // eslint-disable-line camelcase
       CLOCK_JOB_INTERVAL_resetJobCounter: '4m', // eslint-disable-line camelcase
       CLOCK_JOB_INTERVAL_sampleTimeout: '5m', // eslint-disable-line camelcase
@@ -104,7 +100,6 @@ describe('tests/clock/clock.js >', function () {
 
     const expectedCount = {
       checkMissedCollectorHeartbeat: intervalsInHour('1m'),
-      deactivateRooms: intervalsInHour('2m'),
       jobCleanup: intervalsInHour('3m'),
       resetJobCounter: intervalsInHour('4m'),
       sampleTimeout: intervalsInHour('5m'),
