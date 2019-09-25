@@ -151,36 +151,34 @@ describe('tests/jobQueue/v1/bulkUpsert.js, ' +
   });
 
   describe('force create job to return error >', () => {
-    before((done) => {
-      if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
-        bulkUpsertSamplesQueue.close();
-      } else {
+    if (!featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+      before((done) => {
         jobQueueKue.testMode.enter();
-      }
-      done();
-    });
-    after((done) => {
-      jobQueueKue.testMode.exit();
-      done();
-    });
-    it('should return 400: bad request', (done) => {
-      api.post(path)
-      .set('Authorization', token)
-      .send([
-        {
-          name: `${tu.namePrefix}NOT_EXIST|${tu.namePrefix}Aspect1`,
-          value: '2',
-        }, {
-          name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
-          value: '4',
-        }, {
-          name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
-          value: '4',
-        },
-      ])
-      .expect(constants.httpStatus.BAD_REQUEST)
-      .end(done);
-    });
+        done();
+      });
+      after((done) => {
+        jobQueueKue.testMode.exit();
+        done();
+      });
+      it('should return 400: bad request', (done) => {
+        api.post(path)
+        .set('Authorization', token)
+        .send([
+          {
+            name: `${tu.namePrefix}NOT_EXIST|${tu.namePrefix}Aspect1`,
+            value: '2',
+          }, {
+            name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect1`,
+            value: '4',
+          }, {
+            name: `${tu.namePrefix}Subject|${tu.namePrefix}Aspect2`,
+            value: '4',
+          },
+        ])
+        .expect(constants.httpStatus.BAD_REQUEST)
+        .end(done);
+      });
+    }
   });
 });
 

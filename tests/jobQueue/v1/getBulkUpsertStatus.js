@@ -11,8 +11,10 @@
  */
 'use strict'; // eslint-disable-line strict
 const jobSetup = require('../../../jobQueue/setup');
-const jobQueue = jobSetup.jobQueue;
+const jobQueueKue = jobSetup.jobQueue;
+const bulkUpsertSamplesQueue = jobSetup.bulkUpsertSamplesQueue;
 const expect = require('chai').expect;
+const featureToggles = require('feature-toggles');
 const supertest = require('supertest');
 const api = supertest(require('../../../express').app);
 const tu = require('../../testUtils');
@@ -25,6 +27,9 @@ const getStatusPath = '/v1/samples/upsert/bulk/{jobId}/status';
 const bulkUpsertSamplesJob =
   require('../../../worker/jobs/bulkUpsertSamples');
 const timeoutMillis = 500;
+const jobCompleteStatusString = featureToggles
+  .isFeatureEnabled('enableBullForBulkUpsertSamples') ?
+    'completed' : 'complete';
 
 describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
 `api: GET ${getStatusPath} >`, () => {
@@ -65,6 +70,13 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     .catch((err) => done(err));
   });
 
+  before(() => {
+    if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+      bulkUpsertSamplesQueue.process(jobSetup.jobType.bulkUpsertSamples,
+        bulkUpsertSamplesJob);
+    }
+  });
+
   before(u.populateRedis);
   after(u.forceDelete);
   after(tu.forceDeleteUser);
@@ -97,8 +109,10 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
+      if (!featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+        jobQueueKue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
+      }
 
       /*
        * Bulk API is asynchronous. The delay is used to give time for upsert
@@ -111,8 +125,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
           if (err) {
             return done(err);
           }
-
-          expect(res.body.status).to.equal('complete');
+          expect(res.body.status).to.equal(jobCompleteStatusString);
           expect(res.body.errors.length).to.equal(0);
           done();
         });
@@ -153,8 +166,10 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
+      if (!featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+        jobQueueKue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
+      }
 
       /*
        * the bulk api is asynchronous. The delay is used to give sometime for
@@ -168,7 +183,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
             return done(err);
           }
 
-          expect(res.body.status).to.equal('complete');
+          expect(res.body.status).to.equal(jobCompleteStatusString);
           expect(res.body.errors.length).to.equal(2);
           expect(res.body.errors[0].name).to.equal('ValidationError');
           expect(res.body.errors[1].name).to.equal('ResourceNotFoundError');
@@ -226,8 +241,10 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
+      if (!featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+        jobQueueKue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
+      }
 
       /*
        * the bulk api is asynchronous. The delay is used to give sometime for
@@ -241,7 +258,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
             return done(err);
           }
 
-          expect(res.body.status).to.equal('complete');
+          expect(res.body.status).to.equal(jobCompleteStatusString);
           expect(res.body.errors.length).to.equal(40);
           return done();
         });
