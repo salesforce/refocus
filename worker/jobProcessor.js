@@ -10,7 +10,7 @@
  * /worker/jobProcessor.js
  */
 'use strict'; // eslint-disable-line strict
-const { jobQueue, bulkDelSubQueue } = require('../jobQueue/jobWrapper');
+const { jobQueue, bulkDelSubQueue, executeClockJobQueue, bulkUpsertSamplesQueue } = require('../jobQueue/jobWrapper');
 const executeClockJob = require('./jobs/executeClockJob');
 const featureToggles = require('feature-toggles');
 
@@ -21,16 +21,23 @@ module.exports = {
       if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
         jobName === bulkDelSubQueue.name) {
         bulkDelSubQueue.process(Number(concurrency), job);
+      } else if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples') &&
+        jobName === bulkUpsertSamplesQueue.name) {
+        bulkUpsertSamplesQueue.process(Number(concurrency), job);
+      } else {
+        jobQueue.process(jobName, concurrency, job);
       }
-
-      jobQueue.process(jobName, concurrency, job);
     });
   },
 
   processClockJobs(clockJobs, clockJobConfig) {
     Object.keys(clockJobs).forEach((jobName) => {
       if (clockJobConfig.useWorker[jobName]) {
-        jobQueue.process(jobName, 1, executeClockJob);
+        if (featureToggles.isFeatureEnabled('enableBullForExecuteClockJobs')) {
+          executeClockJobQueue.process(1, executeClockJob);
+        } else {
+          jobQueue.process(jobName, 1, executeClockJob);
+        }
       }
     });
   },

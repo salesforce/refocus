@@ -224,6 +224,12 @@ const shortTermToggles = {
 
   enableBullForBulkDelSubj: environmentVariableTrue(
     pe, 'ENABLE_BULL_FOR_BULK_DEL_SUBJ'),
+
+  enableBullForExecuteClockJob: environmentVariableTrue(
+    pe, 'ENABLE_BULL_FOR_EXEC_CLOCK_JOB'),
+
+  enableBullForBulkUpsertSamples: environmentVariableTrue(
+    pe, 'ENABLE_BULL_FOR_BULK_SAMPLE_UPSERT'),
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

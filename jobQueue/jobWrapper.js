@@ -17,7 +17,7 @@
 const jobSetup = require('./setup');
 const jobQueue = jobSetup.jobQueue;
 const bulkDelSubQueue = jobSetup.bulkDelSubQueue;
-const jwtUtil = require('../utils/jwtUtil');
+const bulkUpsertSamplesQueue = jobSetup.bulkUpsertSamplesQueue;
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
 const conf = require('../config');
@@ -68,6 +68,34 @@ function mapJobResultsToLogObject(jobResultObj, logObject) {
 }
 
 bulkDelSubQueue.on('completed', (job, jobResultObj) => {
+  const logObject = {
+    jobType: job.type,
+    jobId: job.id,
+  };
+
+  Object.assign(logObject, jobResultObj.requestInfo);
+
+  // when enableWorkerActivityLogs are enabled, update the logObject
+  if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs') &&
+    jobResultObj && logObject) {
+    mapJobResultsToLogObject(jobResultObj, logObject);
+
+    // Update queueStatsActivityLogs
+    if (featureToggles
+      .isFeatureEnabled('enableQueueStatsActivityLogs')) {
+      queueTimeActivityLogs
+        .update(jobResultObj.recordCount, jobResultObj.queueTime);
+    }
+
+    /*
+    * The second argument should match the activity logging type in
+    * /config/activityLog.js
+    */
+    activityLogUtil.printActivityLogString(logObject, 'worker');
+  }
+});
+
+bulkUpsertSamplesQueue.on('completed', (job, jobResultObj) => {
   const logObject = {
     jobType: job.type,
     jobId: job.id,
@@ -215,7 +243,7 @@ function calculateJobPriority(prioritize, deprioritize, req) {
     low: 'low',
   };
 
-  if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj')) {
+  if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') || featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
     // ranges from 1 (highest priority) to MAX_INT  (lowest priority)
     jobPriority.high = 1;
     jobPriority.normal = 50;
@@ -249,13 +277,11 @@ function calculateJobPriority(prioritize, deprioritize, req) {
  */
 function createPromisifiedJob(jobName, data, req) {
   const startTime = Date.now();
-
+  const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
+    conf.deprioritizeJobsFrom, req);
   if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
     jobName === jobType.bulkDeleteSubjects) {
     data.requestInfo = getRequestInfo(req);
-
-    const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
-      conf.deprioritizeJobsFrom, req);
 
     return bulkDelSubQueue.add(data, { priority: jobPriority })
       .then((job) => {
@@ -265,9 +291,17 @@ function createPromisifiedJob(jobName, data, req) {
       });
   }
 
-  const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
-    conf.deprioritizeJobsFrom, req);
+  if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples') &&
+    jobName === jobType.bulkUpsertSamples) {
+    data.requestInfo = getRequestInfo(req);
+    return bulkUpsertSamplesQueue.add(data, { priority: jobPriority })
+    .then((job) => {
+      job.type = jobType.bulkUpsertSamples;
+      logJobCreate(startTime, job);
 
+      return job;
+    });
+  }
   return new Promise((resolve, reject) => {
     const job = jobQueue.create(jobName, data);
     job.ttl(TIME_TO_LIVE)
@@ -278,7 +312,6 @@ function createPromisifiedJob(jobName, data, req) {
             `Error adding ${jobName} job (id ${job.id}) to the worker queue`;
           return reject(msg);
         }
-
         logJobOnComplete(req, job);
         logJobCreate(startTime, job);
         return resolve(job);
@@ -326,4 +359,5 @@ module.exports = {
   logJobOnComplete,
   mapJobResultsToLogObject,
   bulkDelSubQueue,
+  bulkUpsertSamplesQueue
 }; // exports

@@ -19,6 +19,9 @@ module.exports = (startTime, job) => {
     if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
       job.type === jobType.bulkDeleteSubjects) {
       jobPriority = job.opts.priority;
+    } else if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples') &&
+      job.type === jobType.bulkUpsertSamples) {
+      jobPriority = job.opts.priority;
     } else {
       jobPriority = job._priority;
     }

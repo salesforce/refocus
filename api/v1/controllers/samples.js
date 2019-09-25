@@ -24,8 +24,9 @@ const sampleModel = require('../../../cache/models/samples');
 const utils = require('./utils');
 const publisher = u.publisher;
 const realtimeEvents = u.realtimeEvents;
-const kueSetup = require('../../../jobQueue/setup');
-const kue = kueSetup.kue;
+const queueSetup = require('../../../jobQueue/setup');
+const kue = queueSetup.kue;
+const bulkUpsertSamplesQueue = queueSetup.bulkUpsertSamplesQueue;
 const getSamplesWildcardCacheInvalidation = require('../../../config')
   .getSamplesWildcardCacheInvalidation;
 const redisCache = require('../../../cache/redisCache').client.cache;
@@ -217,25 +218,59 @@ module.exports = {
     const resultObj = { reqStartTime: req.timestamp };
     const reqParams = req.swagger.params;
     const jobId = reqParams.key.value;
-    kue.Job.get(jobId, (_err, job) => {
-      resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
-      /*
-       * throw the "ResourceNotFoundError" if there is an error in getting the
-       * job or the job is not a bulkUpsert job
-       */
-      if (_err || !job || job.type !== kueSetup.jobType.bulkUpsertSamples) {
+    if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+      let bulkUpsertSamplesJob;
+      bulkUpsertSamplesQueue.getJobFromId(parseInt(jobId, 10))
+      .then((job) => {
+        bulkUpsertSamplesJob = job;
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+
+        if (!job ||
+          job.queue.name !== queueSetup.jobType.bulkUpsertSamples) {
+          const err = new apiErrors.ResourceNotFoundError();
+          throw err;
+        }
+
+        return job.getState();
+      })
+      .then((jobState) => {
+        const ret = {};
+        ret.status = jobState;
+        if (jobState === 'completed' && bulkUpsertSamplesJob.returnvalue.errors) {
+          ret.errors = bulkUpsertSamplesJob.returnvalue.errors;
+        } else if (jobState === 'failed') {
+          ret.error = bulkUpsertSamplesJob.failedReason;
+        }
+
+        u.logAPI(req, resultObj, ret);
+        return res.status(httpStatus.OK).json(ret);
+      })
+      .catch(() => {
         const err = new apiErrors.ResourceNotFoundError();
         return u.handleError(next, err, helper.modelName);
-      }
+      });
+    } else {
+      kue.Job.get(jobId, (_err, job) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
 
-      // return the job status and the errors in the response
-      const ret = {};
-      ret.status = job._state;
-      ret.errors = job.result ? job.result.errors : [];
-      u.logAPI(req, resultObj, ret);
-      return res.status(httpStatus.OK).json(ret);
-    });
+        /*
+        * throw the "ResourceNotFoundError" if there is an error in getting the
+        * job or the job is not a bulkUpsert job
+        */
+        if (_err || !job || job.type !== queueSetup.jobType.bulkUpsertSamples) {
+          const err = new apiErrors.ResourceNotFoundError();
+          return u.handleError(next, err, helper.modelName);
+        }
+
+        // return the job status and the errors in the response
+        const ret = {};
+        ret.status = job._state;
+        ret.errors = job.result ? job.result.errors : [];
+        u.logAPI(req, resultObj, ret);
+        return res.status(httpStatus.OK).json(ret);
+      });
+    }
   },
 
   /**
@@ -458,11 +493,17 @@ module.exports = {
             wrappedBulkUpsertData, req);
         return jobPromise.then((job) => {
           // set the job id in the response object before it is returned
-          body.jobId = job.id;
+          if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+            body.jobId = parseInt(job.id, 10);
+          } else {
+            body.jobId = job.id;
+          }
           u.logAPI(req, resultObj, body, value.length);
-          return res.status(httpStatus.OK).json(body);
+          return res.json(body);
         })
-        .catch((err) => u.handleError(next, err, helper.modelName));
+        .catch((err) => {
+          u.handleError(next, err, helper.modelName);
+        });
       }
 
       /*
@@ -482,9 +523,10 @@ module.exports = {
       u.logAPI(req, resultObj, body, value.length);
       return Promise.resolve(res.status(httpStatus.OK).json(body));
     } // bulkUpsert
-
     return validateNonRunningCollectors(req)
-      .then(() => bulkUpsert(req.user))
+      .then(() => {
+        bulkUpsert(req.user);
+      })
       .catch((err) => u.handleError(next, err, helper.modelName));
   }, // bulkUpsertSample
 

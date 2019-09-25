@@ -42,14 +42,18 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
  * @param {Array} jobQueueList  - the list of current job queues
  * @returns {BullQueue} the newly created job queue
  */
-function createJobQueue(name, redisUrl, jobQueueList) {
+function createBullJobQueue(name, redisUrl, jobQueueList) {
   const newJobQueue = new BullQueue(name, redisUrl);
   jobQueueList.push(newJobQueue);
   return newJobQueue;
 }
 
 const jobQueue = kue.createQueue(redisOptions);
-const bulkDelSubQueue = createJobQueue(conf.jobType.bulkDeleteSubjects,
+const bulkDelSubQueue = createBullJobQueue(conf.jobType.bulkDeleteSubjects,
+  redisUrlForBull, jobQueues);
+const executeClockJobQueue = createBullJobQueue(conf.executeClockJob,
+  redisUrlForBull, jobQueues);
+const bulkUpsertSamplesQueue = createBullJobQueue(conf.jobType.bulkUpsertSamples,
   redisUrlForBull, jobQueues);
 
 function resetJobQueue() {
@@ -122,4 +126,6 @@ module.exports = {
   delayToRemoveJobs: conf.JOB_REMOVAL_DELAY_SECONDS,
   kue,
   bulkDelSubQueue,
+  executeClockJobQueue,
+  bulkUpsertSamplesQueue,
 }; // exports
