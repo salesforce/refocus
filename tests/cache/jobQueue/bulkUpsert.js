@@ -161,5 +161,5 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
     });
 
     jobQueueTu.testWorkerAPiActivityLogs(done);
-  }).timeout(4000);
+  }).timeout(10000);
 });
