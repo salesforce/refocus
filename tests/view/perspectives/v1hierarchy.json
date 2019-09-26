@@ -93,7 +93,8 @@
           "aspect": {
             "valueLabel": "F",
             "tags": [
-              "Weather"
+              "Weather",
+              "High"
             ],
             "createdBy": "0000000a-0000-0000-0000-000000000000",
             "timeout": "2m",
@@ -205,7 +206,8 @@
           "aspect": {
             "valueLabel": "F",
             "tags": [
-              "Weather"
+              "Weather",
+              "High"
             ],
             "createdBy": "0000000a-0000-0000-0000-000000000000",
             "timeout": "2m",
@@ -317,7 +319,8 @@
           "aspect": {
             "valueLabel": "F",
             "tags": [
-              "Weather"
+              "Weather",
+              "High"
             ],
             "createdBy": "0000000a-0000-0000-0000-000000000000",
             "timeout": "2m",

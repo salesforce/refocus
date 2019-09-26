@@ -184,14 +184,4 @@ describe('tests/view/perspectives/utils.js, Config perspective functions >',
         expect(tags).to.deep.equal(['tag1', 'tag2', 'tag3', 'tag4']);
       });
     });
-
-    describe('hierarchyIsV1', () => {
-      it('is v2 if has "aspects" property', () => {
-        expect(utils.hierarchyIsV1({ hierarchy: {}, aspects: {} }))
-          .to.be.false;
-        expect(utils.hierarchyIsV1({ absolutePath: 'a' }))
-          .to.be.true;
-        expect(utils.hierarchyIsV1({})).to.be.true;
-      });
-    });
   });

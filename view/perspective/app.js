@@ -53,6 +53,7 @@ const u = require('../utils');
 const pu = require('./utils');
 const constants = require('../constants');
 const eventsQueue = require('./eventsQueue');
+const emitUtils = require('../../realtime/emitUtils');
 const pcValues = {};
 const ZERO = 0;
 const ONE = 1;
@@ -89,6 +90,8 @@ let lastUpdateTime;
 let intervalId;
 let lensEventApiVersion = 1;
 
+const trackedAspects = {};
+
 /**
  * Add error message to the errorInfo div in the page.
  * Remove the spinner.
@@ -115,34 +118,60 @@ function handleError(err) {
 function handleEvent(eventData, eventTypeName, trackEndToEndTime) {
   trackEndToEndTime && trackEndToEndTime(Date.now());
 
-  const j = JSON.parse(eventData);
+  const obj = JSON.parse(eventData)[eventTypeName];
   if (DEBUG_REALTIME) {
     console.log({ // eslint-disable-line no-console
       handleEventTimestamp: new Date(),
-      eventData: j,
+      eventData: obj,
     });
   }
 
-  eventsQueue.enqueueEvent(eventTypeName, j[eventTypeName]);
+  // intercept events to support v1 lenses, and track timeouts for auto-reload.
+  interceptEvent(eventTypeName, obj);
+
+  eventsQueue.enqueueEvent(eventTypeName, obj);
   if (_realtimeEventThrottleMilliseconds === ZERO) {
     eventsQueue.createAndDispatchLensEvent(eventsQueue.queue, LENS_DIV);
     eventsQueue.queue.length = ZERO;
   }
-
-  if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_ADD) {
-    const sample = j[eventTypeName];
-    updateTimeoutValues(sample.aspect.timeout);
-  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_UPD) {
-    const newSample = j[eventTypeName].new;
-    updateTimeoutValues(newSample.aspect.timeout);
-  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_DEL) {
-    const sample = j[eventTypeName];
-    updateDeletedTimeoutValues(sample.aspect.timeout);
-  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_NC) {
-    const sample = j[eventTypeName];
-    updateTimeoutValues(sample.aspect.timeout);
-  }
 } // handleEvent
+
+/**
+ * Intercept events. Attach aspects to support v1 lenses, and track timeouts
+ * for auto-reload.
+ *
+ * @param  {String} eventTypeName - Event type
+ * @param  {Object} eventData - object that will be sent to the lens
+ */
+function interceptEvent(eventTypeName, eventData) {
+  if (lensEventApiVersion < 2) {
+    if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_ADD) {
+      eventData.aspect = getTrackedAspect(eventData);
+    } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_DEL) {
+      eventData.aspect = getTrackedAspect(eventData);
+    } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_UPD) {
+      eventData.new.aspect = getTrackedAspect(eventData.new);
+    } else if (eventTypeName === eventsQueue.eventType.INTRNL_ASP_ADD) {
+      trackedAspects[eventData.name] = eventData;
+      updateTimeoutValues(eventData.timeout);
+    } else if (eventTypeName === eventsQueue.eventType.INTRNL_ASP_DEL) {
+      delete trackedAspects[eventData.name];
+      updateDeletedTimeoutValues(eventData.timeout);
+    } else if (eventTypeName === eventsQueue.eventType.INTRNL_ASP_UPD) {
+      trackedAspects[eventData.new.name] = eventData.new;
+      updateTimeoutValues(eventData.new.timeout);
+    }
+  }
+}
+
+/**
+ * Get the tracked aspect for the given sample
+ * @param {Object} sample - sample object
+ */
+function getTrackedAspect(sample) {
+  const [absPath, aspName] = sample.name.split('|');
+  return trackedAspects[aspName];
+}
 
 /**
  * Setup the socket.io client to listen to a namespace, where the namespace is
@@ -256,29 +285,35 @@ function handleLibraryFiles(lib) {
  * Setup the aspect timeout check. If the lens has already been loaded,
  * dispatch the "hierarchyLoad" event. If not, return the hierarchyLoad event.
  *
- * @param {Object} hierarchyResponse
+ * @param {Object} hierarchy - hierarchy response
+ * @param {Object} allAspects - aspects response
+ * @param {Object} perspective - perspective object
  * @param {Boolean} gotLens
  * @returns {CustomEvent} if lens is received, return undefined,
  * else return hierarchyLoadEvent.
  */
-function handleHierarchyEvent(hierarchyResponse, gotLens) {
-  setupAspectTimeout(hierarchyResponse);
-
+function handleHierarchyEvent(hierarchy, allAspects, perspective, gotLens) {
   let eventDetail;
-  const hierarchyIsV1 = pu.hierarchyIsV1(hierarchyResponse);
-  if (hierarchyIsV1) {
-    if (lensEventApiVersion < 2) {
-      eventDetail = hierarchyResponse; // just pass through as is
-    } else {
-      console.error('This instance of Refocus is not ready for lenses with ' +
-        'lensEventApiVersion 2 yet.');
-    }
-  } else { // hierarchy is "new" format with separate list of aspects
-    if (lensEventApiVersion < 2) {
-      eventDetail = pu.reconstructV1Hierarchy(hierarchyResponse);
-    } else {
-      eventDetail = hierarchyResponse; // just pass through as is
-    }
+
+  // filter aspects based on perspective filters
+  const nspStr = emitUtils.getPerspectiveNamespaceString(perspective);
+  const aspects = allAspects.filter((asp) =>
+    emitUtils.shouldIEmitThisObj(nspStr, asp)
+  );
+
+  // setup aspect timeouts
+  setupAspectTimeout(aspects);
+
+  // track aspects to be used for intercepting v1 events
+  aspects.forEach((asp) =>
+    trackedAspects[asp.name] = asp
+  );
+
+  // set event detail
+  if (lensEventApiVersion < 2) {
+    eventDetail = pu.reconstructV1Hierarchy(hierarchy, aspects);
+  } else {
+    eventDetail = { hierarchy, aspects };
   }
 
   const hierarchyLoadEvent = new window.CustomEvent(
@@ -301,30 +336,20 @@ function handleHierarchyEvent(hierarchyResponse, gotLens) {
 }
 
 /**
- * Traverse the hierarchy to initialize the aspect timeout values, then setup
+ * Initialize the aspect timeout values, then setup
  * an interval to check that the page is still receiving events.
  *
- * @param {Object} rootSubject - the root of the hierarchy to traverse
+ * @param {Object} aspects - List of aspects
  */
-function setupAspectTimeout(rootSubject) {
+function setupAspectTimeout(aspects) {
   lastUpdateTime = Date.now();
   minAspectTimeout = Infinity;
   minTimeoutCount = 0;
   maxAspectTimeout = 0;
 
-  (function traverseHierarchy(subject) {
-    if (subject.samples) {
-      subject.samples.forEach((sample) => {
-        updateTimeoutValues(sample.aspect.timeout);
-      });
-    }
-
-    if (subject.children) {
-      subject.children.forEach((child) => {
-        traverseHierarchy(child);
-      });
-    }
-  })(rootSubject);
+  aspects.forEach((aspect) =>
+    updateTimeoutValues(aspect.timeout)
+  );
 
   if (minAspectTimeout < Infinity) {
     setupTimeoutInterval();
@@ -425,7 +450,7 @@ function parseTimeout(timeoutString) {
  */
 function handleLensDomEvent(lensEventApiVer, library, hierarchyLoadEvent) {
   handleLibraryFiles(library); // inject lens library files in perspective view
-  lensEventApiVersion = lensEventApiVer; // save lens event api version
+  setLensEventApiVersion(lensEventApiVer); // save lens event api version
   u.removeSpinner(SPINNER_ID);
 
   /*
@@ -532,6 +557,10 @@ function getTimeoutValues() {
   };
 }
 
+function setLensEventApiVersion(version) {
+  lensEventApiVersion = version;
+}
+
 module.exports = {
   getTimeoutValues,
   handleEvent,
@@ -540,5 +569,7 @@ module.exports = {
   setupTimeoutInterval,
   exportForTesting: {
     handleHierarchyEvent,
+    setLensEventApiVersion,
+    eventsQueue,
   },
 };
