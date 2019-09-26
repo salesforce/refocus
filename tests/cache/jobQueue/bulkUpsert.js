@@ -136,9 +136,6 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
   it('logging', (done) => {
     tu.toggleOverride('enableApiActivityLogs', true);
     tu.toggleOverride('enableWorkerActivityLogs', true);
-    logger.on('logging', testLogMessage);
-    let workerLogged = false;
-    let apiLogged = false;
 
     api.post(path)
     .set('Authorization', token)
