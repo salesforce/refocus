@@ -23,7 +23,7 @@ const subAspMapType = keyType.subAspMap;
 const aspSubMapType = keyType.aspSubMap;
 const aspectType = keyType.aspect;
 const sampleType = keyType.sample;
-const subjectTagsType = redisStore.constants.objectType.subjectTags;
+const subjectTagsType = redisStore.constants.objectType.subTags;
 const Status = require('../db/constants').statuses;
 
 const rangeNameToStatus = {
@@ -772,7 +772,7 @@ module.exports = {
     // calculate
     return statusCalculation.calculateStatus(aspName, value);
   }, // calculateSampleStatus
-   
+
   /**
    * Get tags key for a subject
    * @param absolutePath - subject absolute path
