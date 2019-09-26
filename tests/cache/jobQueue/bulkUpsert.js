@@ -134,7 +134,6 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
   });
 
   it('logging', (done) => {
-    this.timeout(4000);
     tu.toggleOverride('enableApiActivityLogs', true);
     tu.toggleOverride('enableWorkerActivityLogs', true);
 
@@ -162,5 +161,5 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
     });
 
     jobQueueTu.testWorkerAPiActivityLogs(done);
-  });
+  }).timeout(4000);
 });
