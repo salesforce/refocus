@@ -61,7 +61,7 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
         }
       });
     } else {
-      jobQueueKue.process(jobType.bulkDeleteSubjects, (job, done) => {
+      jobQueueKue.process(jobType.bulkUpsertSamples, (job, done) => {
         if (simulateFailure) {
           done('Job Failed');
         } else {
@@ -161,5 +161,5 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
     });
 
     jobQueueTu.testWorkerAPiActivityLogs(done);
-  }).timeout(10000);
+  });
 });
