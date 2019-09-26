@@ -502,9 +502,7 @@ module.exports = {
           u.logAPI(req, resultObj, body, value.length);
           return res.status(httpStatus.OK).json(body);
         })
-        .catch((err) => {
-          u.handleError(next, err, helper.modelName);
-        });
+        .catch((err) => u.handleError(next, err, helper.modelName));
       }
 
       /*
@@ -526,9 +524,7 @@ module.exports = {
     } // bulkUpsert
 
     return validateNonRunningCollectors(req)
-      .then(() => {
-        bulkUpsert(req.user);
-      })
+      .then(() => bulkUpsert(req.user))
       .catch((err) => u.handleError(next, err, helper.modelName));
   }, // bulkUpsertSample
 
