@@ -23,6 +23,7 @@ const IllegalSelfParenting = require('../dbErrors')
 const SubjectAlreadyExistsUnderParent = require('../dbErrors')
   .SubjectAlreadyExistsUnderParent;
 const redisOps = require('../../cache/redisOps');
+const sampleStore = require('../../cache/sampleStore');
 const subjectType = redisOps.subjectType;
 const subAspMapType = redisOps.subAspMapType;
 const publishSample = require('../../realtime/redisPublisher').publishSample;
@@ -180,7 +181,10 @@ function removeRelatedSamples(subject, seq) {
  * @returns {Promise}
  */
 function removeFromRedis(subject, seq) {
-  return Promise.join(redisOps.deleteKey(subjectType, subject.absolutePath),
+  const subjTagsKey = redisOps.getSubjectTagsKey(subject.absolutePath);
+  const cmds = [['del', subjTagsKey]]; // remove subject tags from sample store
+  return Promise.join(
+    redisOps.deleteKey(subjectType, subject.absolutePath, cmds),
     removeRelatedSamples(subject, seq));
 } // removeFromRedis
 
