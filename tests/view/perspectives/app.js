@@ -239,150 +239,288 @@ describe('tests/view/perspectives/app.js >', () => {
   });
 
   describe('timeout check >', () => {
-
-    function mockAspectEventWithTimeouts(eventType, timeout) {
-      if (Array.isArray(timeout)) {
-        mockAspectEvent(eventType, { timeout: timeout[1] });
-      } else {
-        mockAspectEvent(eventType, { timeout });
+    describe('setupAutoReload', () => {
+      function getAspectsWithTimeouts(aspMap) {
+        return Object.entries(aspMap).map(([aspName, timeout]) => ({
+          name: aspName,
+          timeout,
+        }));
       }
-    }
 
-    function getAspectsWithTimeouts(...timeoutArray) {
-      return timeoutArray.map((timeout) => (
-        { timeout }
-      ));
-    }
+      function getSamplesForAspects(subName, aspNames) {
+        return aspNames.map((aspName) => ({
+          name: `${subName}|${aspName}`,
+        }));
+      }
 
-    it('setupAspectTimeout', () => {
-      const aspects = getAspectsWithTimeouts('5s', '6s', '1m', '5s', '5s', '2m');
-      app.setupAspectTimeout(aspects);
-      expect(app.getTimeoutValues().minAspectTimeout).to.equal(5000);
-      expect(app.getTimeoutValues().maxAspectTimeout).to.equal(120000);
-      expect(app.getTimeoutValues().minTimeoutCount).to.equal(3);
-    });
+      function buildChildrenWithSamples(sampleMap) {
+        return Object.entries(sampleMap).map(([subName, aspNames]) => ({
+          absolutePath: `root.${subName}`,
+          samples: getSamplesForAspects(`root.${subName}`, aspNames),
+        }));
+      }
 
-    it('handleEvent', () => {
-      let intervalId1;
-      let intervalId2;
+      function expectInterval(expectedInterval) {
+        const interval = app.getTimeoutValues().timeoutCheckInterval;
+        if (expectedInterval) {
+          expect(interval._repeat).to.equal(expectedInterval);
+        } else {
+          expect(interval).to.not.exist;
+        }
+      }
 
-      intervalId1 = app.getTimeoutValues().intervalId;
-      mockAspectEventWithTimeouts('delete', '5s');
-      intervalId2 = app.getTimeoutValues().intervalId;
-      expect(app.getTimeoutValues().minAspectTimeout).to.equal(5000);
-      expect(app.getTimeoutValues().maxAspectTimeout).to.equal(120000);
-      expect(app.getTimeoutValues().minTimeoutCount).to.equal(2);
-      expect(intervalId1).to.equal(intervalId2);
-      expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
+      let aspects, perspective, hierarchy;
 
-      intervalId1 = app.getTimeoutValues().intervalId;
-      mockAspectEventWithTimeouts('add', '4s');
-      intervalId2 = app.getTimeoutValues().intervalId;
-      expect(app.getTimeoutValues().minAspectTimeout).to.equal(4000);
-      expect(app.getTimeoutValues().maxAspectTimeout).to.equal(120000);
-      expect(app.getTimeoutValues().minTimeoutCount).to.equal(1);
-      expect(intervalId1).to.not.equal(intervalId2);
-      expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
+      beforeEach(() => {
+        aspects = getAspectsWithTimeouts({
+          a1: '5s', a2: '6s', a3: '1m',
+        });
 
-      intervalId1 = app.getTimeoutValues().intervalId;
-      mockAspectEventWithTimeouts('add', '3m');
-      intervalId2 = app.getTimeoutValues().intervalId;
-      expect(app.getTimeoutValues().minAspectTimeout).to.equal(4000);
-      expect(app.getTimeoutValues().maxAspectTimeout).to.equal(180000);
-      expect(app.getTimeoutValues().minTimeoutCount).to.equal(1);
-      expect(intervalId1).to.equal(intervalId2);
-      expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
+        perspective = {
+          aspectFilterType: 'EXCLUDE',
+          subjectTagFilterType: 'EXCLUDE',
+          aspectTagFilterType: 'EXCLUDE',
+          statusFilterType: 'EXCLUDE',
+        };
 
-      intervalId1 = app.getTimeoutValues().intervalId;
-      mockAspectEventWithTimeouts('delete', '4s');
-      intervalId2 = app.getTimeoutValues().intervalId;
-      expect(app.getTimeoutValues().minAspectTimeout).to.equal(180000);
-      expect(app.getTimeoutValues().maxAspectTimeout).to.equal(180000);
-      expect(app.getTimeoutValues().minTimeoutCount).to.equal(1);
-      expect(intervalId1).to.not.equal(intervalId2);
-      expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
+        hierarchy = {
+          absolutePath: 'root',
+          children: buildChildrenWithSamples({
+            sub1: ['a1', 'a2', 'a3'],
+            sub2: ['a1', 'a2', 'a3'],
+          }),
+        };
+      });
 
-      intervalId1 = app.getTimeoutValues().intervalId;
-      mockAspectEventWithTimeouts('add', '10s');
-      intervalId2 = app.getTimeoutValues().intervalId;
-      expect(app.getTimeoutValues().minAspectTimeout).to.equal(10000);
-      expect(app.getTimeoutValues().maxAspectTimeout).to.equal(180000);
-      expect(app.getTimeoutValues().minTimeoutCount).to.equal(1);
-      expect(intervalId1).to.not.equal(intervalId2);
-      expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
+      afterEach(() => app.exportForTesting.resetState());
 
-      intervalId1 = app.getTimeoutValues().intervalId;
-      mockAspectEventWithTimeouts('update', ['10s', '6s']);
-      intervalId2 = app.getTimeoutValues().intervalId;
-      expect(app.getTimeoutValues().minAspectTimeout).to.equal(6000);
-      expect(app.getTimeoutValues().maxAspectTimeout).to.equal(180000);
-      expect(app.getTimeoutValues().minTimeoutCount).to.equal(1);
-      expect(intervalId1).to.not.equal(intervalId2);
-      expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
+      it('basic', () => {
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(5000);
+      });
 
-      intervalId1 = app.getTimeoutValues().intervalId;
-      mockAspectEventWithTimeouts('update', ['10s', '6s']);
-      intervalId2 = app.getTimeoutValues().intervalId;
-      expect(app.getTimeoutValues().minAspectTimeout).to.equal(6000);
-      expect(app.getTimeoutValues().maxAspectTimeout).to.equal(180000);
-      expect(app.getTimeoutValues().minTimeoutCount).to.equal(2);
-      expect(intervalId1).to.equal(intervalId2);
-      expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
+      it('aspects spread across hierarchy', () => {
+        hierarchy.children = buildChildrenWithSamples({
+          sub1: ['a2', 'a3'],
+          sub2: ['a3', 'a1'],
+          sub3: ['a2'],
+        });
 
-      intervalId1 = app.getTimeoutValues().intervalId;
-      mockAspectEventWithTimeouts('update', ['10s', '4m']);
-      intervalId2 = app.getTimeoutValues().intervalId;
-      expect(app.getTimeoutValues().minAspectTimeout).to.equal(6000);
-      expect(app.getTimeoutValues().maxAspectTimeout).to.equal(240000);
-      expect(app.getTimeoutValues().minTimeoutCount).to.equal(2);
-      expect(intervalId1).to.equal(intervalId2);
-      expect(intervalId2._repeat).to.equal(app.getTimeoutValues().minAspectTimeout);
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(5000);
+      });
 
+      it('aspects buried in hierarchy', () => {
+        hierarchy.children = [
+          {
+            absolutePath: 'root.sub1',
+            samples: getSamplesForAspects(`root.sub1`, ['a2']),
+          },
+          {
+            absolutePath: 'root.sub2',
+            children: [
+              {
+                absolutePath: 'root.sub2.sub3',
+                children: [
+                  {
+                    absolutePath: 'root.sub2.sub3.sub5',
+                    samples: getSamplesForAspects(`root.sub2.sub3.sub5`, ['a1']),
+                  },
+                ],
+              },
+              {
+                absolutePath: 'root.sub2.sub4',
+                samples: getSamplesForAspects(`root.sub2.sub4`, ['a3']),
+              },
+            ],
+          },
+        ];
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(5000);
+      });
+
+      it('aspects not in perspective filters', () => {
+        perspective.aspectFilter = ['a1'];
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(6000);
+      });
+
+      it('aspects not in hierarchy', () => {
+        hierarchy.children = buildChildrenWithSamples({
+          sub1: ['a2'],
+          sub2: ['a3'],
+        });
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(6000);
+      });
+
+      it('case mismatch ok (1)', () => {
+        hierarchy.children = buildChildrenWithSamples({
+          sub1: ['A1', 'A2', 'A3'],
+        });
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(5000);
+      });
+
+      it('case mismatch ok (2)', () => {
+        aspects = getAspectsWithTimeouts({
+          A1: '5s', A2: '6s', A3: '1m',
+        });
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(5000);
+      });
+
+      it('no aspects', () => {
+        aspects = [];
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(null);
+      });
+
+      it('no aspects that match perspective filters', () => {
+        perspective.aspectFilterType = 'INCLUDE';
+        perspective.aspectFilter = ['a4', 'a5'];
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(null);
+      });
+
+      it('no aspects that match hierarchy', () => {
+        hierarchy.children = buildChildrenWithSamples({
+          sub1: ['a4', 'a5'],
+        });
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(null);
+      });
+
+      it('no children', () => {
+        delete hierarchy.children;
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(null);
+      });
+
+      it('null children', () => {
+        hierarchy.children = null;
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(null);
+      });
+
+      it('empty children', () => {
+        hierarchy.children = [];
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(null);
+      });
+
+      it('no samples', () => {
+        delete hierarchy.children[0].samples;
+        delete hierarchy.children[1].samples;
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(null);
+      });
+
+      it('null samples', () => {
+        hierarchy.children[0].samples = null;
+        hierarchy.children[1].samples = null;
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(null);
+      });
+
+      it('empty samples', () => {
+        hierarchy.children[0].samples = [];
+        hierarchy.children[1].samples = [];
+
+        app.exportForTesting.handleHierarchyEvent(hierarchy, aspects, perspective);
+        expectInterval(null);
+      });
     });
 
     describe('lastUpdateTime >', () => {
-      it('update', (done) => {
-        setTimeout(() => {
-          const time1 = Date.now();
-          expect(app.getTimeoutValues().lastUpdateTime).to.be.below(time1);
-          mockAspectEventWithTimeouts('update', ['30s', '60s']);
-          const time2 = Date.now();
-          expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
-          done();
-        }, 10);
+      it('setup', () => {
+        const time1 = Date.now();
+        app.setupAutoReload({});
+        const time2 = Date.now();
+        expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
       });
 
-      it('add', (done) => {
-        setTimeout(() => {
-          const time1 = Date.now();
-          expect(app.getTimeoutValues().lastUpdateTime).to.be.below(time1);
-          mockAspectEventWithTimeouts('add', '30s');
-          const time2 = Date.now();
-          expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
-          done();
-        }, 10);
+      it('sample update', () => {
+        const time1 = Date.now();
+        mockSampleEvent('update', { name: 'root.sub1|asp1' });
+        const time2 = Date.now();
+        expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
       });
 
-      it('delete', (done) => {
-        setTimeout(() => {
-          const time1 = Date.now();
-          expect(app.getTimeoutValues().lastUpdateTime).to.be.below(time1);
-          mockAspectEventWithTimeouts('delete', '30s');
-          const time2 = Date.now();
-          expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
-          done();
-        }, 10);
+      it('sample add', () => {
+        const time1 = Date.now();
+        mockSampleEvent('update', { name: 'root.sub1|asp1' });
+        const time2 = Date.now();
+        expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
       });
 
-      it('setup', (done) => {
-        setTimeout(() => {
-          const time1 = Date.now();
-          expect(app.getTimeoutValues().lastUpdateTime).to.be.below(time1);
-          app.setupAspectTimeout([]);
-          const time2 = Date.now();
-          expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
-          done();
-        }, 10);
+      it('sample delete', () => {
+        const time1 = Date.now();
+        mockSampleEvent('update', { name: 'root.sub1|asp1' });
+        const time2 = Date.now();
+        expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
+      });
+
+      it('sample nochange', () => {
+        const time1 = Date.now();
+        mockSampleEvent('nochange', { name: 'root.sub1|asp1' });
+        const time2 = Date.now();
+        expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
+      });
+
+      it('aspect update', () => {
+        const time1 = Date.now();
+        mockAspectEvent('update', { name: 'asp1' });
+        const time2 = Date.now();
+        expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
+      });
+
+      it('aspect add', () => {
+        const time1 = Date.now();
+        mockAspectEvent('update', { name: 'asp1' });
+        const time2 = Date.now();
+        expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
+      });
+
+      it('aspect delete', () => {
+        const time1 = Date.now();
+        mockAspectEvent('update', { name: 'asp1' });
+        const time2 = Date.now();
+        expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
+      });
+
+      it('subject update', () => {
+        const time1 = Date.now();
+        mockSubjectEvent('update', { name: 'sub1' });
+        const time2 = Date.now();
+        expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
+      });
+
+      it('subject add', () => {
+        const time1 = Date.now();
+        mockSubjectEvent('update', { name: 'sub1' });
+        const time2 = Date.now();
+        expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
+      });
+
+      it('subject delete', () => {
+        const time1 = Date.now();
+        mockSubjectEvent('update', { name: 'sub1' });
+        const time2 = Date.now();
+        expect(app.getTimeoutValues().lastUpdateTime).to.be.within(time1, time2);
       });
     });
 
@@ -488,6 +626,7 @@ describe('tests/view/perspectives/app.js >', () => {
     describe('v1 lens >', () => {
       before(() => app.exportForTesting.setLensEventApiVersion(1));
       after(() => app.exportForTesting.setLensEventApiVersion(1));
+      beforeEach(() => eventsQueue.splice(0));
       afterEach(() => eventsQueue.splice(0));
 
       let newSample, newAspect;
@@ -699,12 +838,34 @@ function mockSampleEvent(eventType, sample) {
     eventTypeName = eventTypes.INTRNL_SMPL_UPD;
   } else if (eventType === 'delete') {
     eventTypeName = eventTypes.INTRNL_SMPL_DEL;
+  } else if (eventType === 'nochange') {
+    eventTypeName = eventTypes.INTRNL_SMPL_NC;
   }
 
   if (eventType === 'update') {
     eventData[eventTypeName] = { new: sample };
   } else {
     eventData[eventTypeName] = sample;
+  }
+
+  app.handleEvent(JSON.stringify(eventData), eventTypeName);
+}
+
+function mockSubjectEvent(eventType, subject) {
+  const eventData = {};
+  let eventTypeName;
+  if (eventType === 'add') {
+    eventTypeName = eventTypes.INTRNL_SUBJ_ADD;
+  } else if (eventType === 'update') {
+    eventTypeName = eventTypes.INTRNL_SUBJ_UPD;
+  } else if (eventType === 'delete') {
+    eventTypeName = eventTypes.INTRNL_SUBJ_DEL;
+  }
+
+  if (eventType === 'update') {
+    eventData[eventTypeName] = { new: subject };
+  } else {
+    eventData[eventTypeName] = subject;
   }
 
   app.handleEvent(JSON.stringify(eventData), eventTypeName);

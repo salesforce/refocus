@@ -57,7 +57,7 @@ const constants = {
     subject: 'subject',
     subAspMap: 'subaspmap',
     aspSubMap: 'aspsubmap',
-    subTags: 'subTags',
+    subjectTags: 'subTags',
     aspTags: 'aspTags',
     aspWriters: 'aspWriters',
     aspRanges: 'aspRanges',

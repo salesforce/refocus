@@ -298,7 +298,7 @@ function getValuesObject(accumulatorObject) {
     const filterString = getFilterQuery(perspective);
     const getHierarchy = Promise.all([
       getPromiseWithUrl(`/v1/subjects/${perspective.rootSubject}/hierarchy${filterString}`),
-      getPromiseWithUrl('/v1/aspects'),
+      getPromiseWithUrl('/v1/aspects?isPublished=true'),
     ])
     .then(([hierarchy, allAspects]) => {
       // if gotLens is false, hierarchyLoadEvent will be assigned
@@ -438,16 +438,18 @@ function reconstructV1Hierarchy(hierarchy, aspects) {
   ), {});
 
   function traverse(subj) {
-    if (subj.hasOwnProperty('samples')) {
+    if (subj.samples) {
       subj.samples.forEach((samp) => {
         const aspectName = samp.name.split('|')[1].toLowerCase();
         const aspect = aspMap[aspectName];
-        samp.aspectId = aspect.id;
-        samp.aspect = aspect;
+        if (aspect) {
+          samp.aspectId = aspect.id;
+          samp.aspect = aspect;
+        }
       });
     }
 
-    if (subj.hasOwnProperty('children')) {
+    if (subj.children) {
       subj.children.forEach(traverse);
     };
 
@@ -458,6 +460,31 @@ function reconstructV1Hierarchy(hierarchy, aspects) {
   return v1h;
 } // reconstructV1Hierarchy
 
+/**
+ * Return a list of aspect names that are referenced in the hierarchy
+ *
+ * @param hierarchy - hierarchy response
+ * @returns {Array<String>}
+ */
+function aspectNamesInHierarchy(hierarchy) {
+  const allAspects = new Set();
+  traverse(hierarchy);
+  return Array.from(allAspects);
+
+  function traverse(sub) {
+    if (sub.samples) {
+      sub.samples.map((samp) => {
+        const aspName = samp.name.split('|')[1].toLowerCase();
+        allAspects.add(aspName);
+      });
+    }
+
+    if (sub.children) {
+      sub.children.forEach(traverse);
+    }
+  }
+}
+
 module.exports = {
   getValuesObject,
   getTagsFromArrays,
@@ -467,4 +494,5 @@ module.exports = {
   getArray,
   getTagsFromResources,
   reconstructV1Hierarchy,
+  aspectNamesInHierarchy,
 };
