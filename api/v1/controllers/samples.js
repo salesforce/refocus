@@ -499,7 +499,7 @@ module.exports = {
             body.jobId = job.id;
           }
           u.logAPI(req, resultObj, body, value.length);
-          return res.json(body);
+          return res.status(httpStatus.OK).json(body);
         })
         .catch((err) => {
           u.handleError(next, err, helper.modelName);
