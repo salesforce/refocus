@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const { jobQueue, bulkDelSubQueue,
-  executeClockJobQueue, bulkUpsertSamplesQueue } =
+  executeClockJobQueue, bulkUpsertSamplesQueue, } =
   require('../jobQueue/jobWrapper');
 const executeClockJob = require('./jobs/executeClockJob');
 const featureToggles = require('feature-toggles');
