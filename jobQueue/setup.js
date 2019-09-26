@@ -81,9 +81,7 @@ function gracefulShutdown() {
     activityLogUtil.printActivityLogString(logWrapper, 'sigterm');
   }
 
-  Promise.map(jobQueues, (queue) => {
-    return queue.close();
-  })
+  Promise.map(jobQueues, (queue) => queue.close())
   .then(() => {
     if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
       const status = '"Bull Job queue shutdown: OK"';

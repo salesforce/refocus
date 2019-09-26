@@ -26,7 +26,7 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 const logger = require('../../../utils/activityLog').logger;
-const featureToggles =require('feature-toggles');
+const featureToggles = require('feature-toggles');
 const bulkUpsertSamplesQueue = jobSetup.bulkUpsertSamplesQueue;
 const RADIX = 10;
 

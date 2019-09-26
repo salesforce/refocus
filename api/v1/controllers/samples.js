@@ -498,6 +498,7 @@ module.exports = {
           } else {
             body.jobId = job.id;
           }
+
           u.logAPI(req, resultObj, body, value.length);
           return res.status(httpStatus.OK).json(body);
         })
@@ -523,6 +524,7 @@ module.exports = {
       u.logAPI(req, resultObj, body, value.length);
       return Promise.resolve(res.status(httpStatus.OK).json(body));
     } // bulkUpsert
+
     return validateNonRunningCollectors(req)
       .then(() => {
         bulkUpsert(req.user);

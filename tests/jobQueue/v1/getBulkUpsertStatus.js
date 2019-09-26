@@ -125,6 +125,7 @@ describe('tests/jobQueue/v1/getBulkUpsertStatus.js, ' +
           if (err) {
             return done(err);
           }
+
           expect(res.body.status).to.equal(jobCompleteStatusString);
           expect(res.body.errors.length).to.equal(0);
           done();

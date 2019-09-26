@@ -28,7 +28,7 @@ describe('tests/jobQueue/index.js >', () => {
           getHierarchy: 1,
           checkMissedCollectorHeartbeat: 1,
           jobCleanup: 1,
-          sampleTimeout: 1
+          sampleTimeout: 1,
         });
       } else {
         expect(workerCount).to.deep.equal({
@@ -40,7 +40,7 @@ describe('tests/jobQueue/index.js >', () => {
           bulkPostEvents: 1,
           checkMissedCollectorHeartbeat: 1,
           jobCleanup: 1,
-          sampleTimeout: 1
+          sampleTimeout: 1,
         });
       }
     })

@@ -144,6 +144,7 @@ describe('tests/jobQueue/v1/bulkUpsert.js, ' +
       if (err) {
         return done(err);
       }
+
       // don't call done() yet, need to wait for data to be logged
     });
 

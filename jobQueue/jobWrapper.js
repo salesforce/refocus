@@ -243,7 +243,8 @@ function calculateJobPriority(prioritize, deprioritize, req) {
     low: 'low',
   };
 
-  if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') || featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+  if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') ||
+    featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
     // ranges from 1 (highest priority) to MAX_INT  (lowest priority)
     jobPriority.high = 1;
     jobPriority.normal = 50;
@@ -302,6 +303,7 @@ function createPromisifiedJob(jobName, data, req) {
       return job;
     });
   }
+
   return new Promise((resolve, reject) => {
     const job = jobQueue.create(jobName, data);
     job.ttl(TIME_TO_LIVE)
@@ -312,6 +314,7 @@ function createPromisifiedJob(jobName, data, req) {
             `Error adding ${jobName} job (id ${job.id}) to the worker queue`;
           return reject(msg);
         }
+
         logJobOnComplete(req, job);
         logJobCreate(startTime, job);
         return resolve(job);
@@ -359,5 +362,5 @@ module.exports = {
   logJobOnComplete,
   mapJobResultsToLogObject,
   bulkDelSubQueue,
-  bulkUpsertSamplesQueue
+  bulkUpsertSamplesQueue,
 }; // exports
