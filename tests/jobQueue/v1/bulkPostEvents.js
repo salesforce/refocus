@@ -12,7 +12,6 @@
 
 const jobSetup = require('../../../jobQueue/setup');
 const jobQueue = jobSetup.jobQueue;
-const jobType = jobSetup.jobType;
 const bulkPostEventsJob = require('../../../worker/jobs/bulkPostEvents');
 const expect = require('chai').expect;
 const supertest = require('supertest');
@@ -21,6 +20,8 @@ const tu = require('../../testUtils');
 const u = require('./utils');
 const constants = require('../../../api/v1/constants');
 const path = '/v1/events/bulk';
+const featureToggles = require('feature-toggles');
+const bulkPostEventsQueue = jobSetup.bulkPostEventsQueue;
 
 describe('tests/jobQueue/v1/bulkPostEvents.js, ' +
 `api: POST using worker process ${path} >`, () => {
@@ -33,7 +34,16 @@ describe('tests/jobQueue/v1/bulkPostEvents.js, ' +
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enableApiActivityLogs', false);
     tu.toggleOverride('enableWorkerActivityLogs', false);
-    jobQueue.process(jobType.bulkPostEvents, bulkPostEventsJob);
+    if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
+        featureToggles.isFeatureEnabled('anyBullEnabled')) {
+      bulkPostEventsQueue.process((job, done) => {
+        bulkPostEventsJob(job, done);
+      });
+    } else {
+      jobQueue.process(jobSetup.jobType.bulkPostEvents, (job, done) => {
+        bulkPostEventsJob(job, done);
+      });
+    }
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;

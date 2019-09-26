@@ -21,7 +21,9 @@ const constants = require('../../../api/v1/constants');
 const path = '/v1/events/bulk';
 const getStatusPath = '/v1/events/bulk/{jobId}/status';
 const bulkPostEventsJob = require('../../../worker/jobs/bulkPostEvents');
-const timeoutMillis = 500;
+const timeoutMillis = 800;
+const featureToggles = require('feature-toggles');
+const bulkPostEventsQueue = jobSetup.bulkPostEventsQueue;
 
 describe('tests/jobQueue/v1/getBulkPostEventStatus.js, ' +
 `api: GET ${getStatusPath} >`, () => {
@@ -66,8 +68,13 @@ describe('tests/jobQueue/v1/getBulkPostEventStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.bulkPostEvents,
-        bulkPostEventsJob);
+      if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
+        featureToggles.isFeatureEnabled('anyBullEnabled')) {
+      } else {
+        jobQueue.process(jobSetup.jobType.bulkPostEvents, (job, done) => {
+          bulkPostEventsJob(job, done);
+        });
+      }
 
       /*
        * Bulk API is asynchronous. The delay is used to give time for upsert
@@ -111,8 +118,13 @@ describe('tests/jobQueue/v1/getBulkPostEventStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.bulkPostEvents,
-        bulkPostEventsJob);
+      if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
+        featureToggles.isFeatureEnabled('anyBullEnabled')) {
+      } else {
+        jobQueue.process(jobSetup.jobType.bulkPostEvents, (job, done) => {
+          bulkPostEventsJob(job, done);
+        });
+      }
 
       /*
       * Bulk API is asynchronous. The delay is used to give time for upsert
