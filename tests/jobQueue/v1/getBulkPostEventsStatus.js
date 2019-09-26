@@ -70,6 +70,9 @@ describe('tests/jobQueue/v1/getBulkPostEventStatus.js, ' +
       // call the worker
       if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
         featureToggles.isFeatureEnabled('anyBullEnabled')) {
+        bulkPostEventsQueue.process((job, done) => {
+          bulkPostEventsJob(job, done);
+        });
       } else {
         jobQueue.process(jobSetup.jobType.bulkPostEvents, (job, done) => {
           bulkPostEventsJob(job, done);
@@ -120,6 +123,9 @@ describe('tests/jobQueue/v1/getBulkPostEventStatus.js, ' +
       // call the worker
       if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
         featureToggles.isFeatureEnabled('anyBullEnabled')) {
+        bulkPostEventsQueue.process((job, done) => {
+          bulkPostEventsJob(job, done);
+        });
       } else {
         jobQueue.process(jobSetup.jobType.bulkPostEvents, (job, done) => {
           bulkPostEventsJob(job, done);

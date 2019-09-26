@@ -25,7 +25,6 @@ const featureToggles = require('feature-toggles');
 const queueTestUtils = require('../../../jobQueue/v1/utils');
 const createAuditEventsQueue = jobSetup.createAuditEventsQueue;
 
-
 describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
   before(() => jobSetup.resetJobQueue());
   after(() => jobSetup.resetJobQueue());
