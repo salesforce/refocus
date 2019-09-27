@@ -11,15 +11,12 @@
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
-const featureToggles = require('feature-toggles');
 const supertest = require('supertest');
 const redis = require('redis');
+const Promise = require('bluebird');
 const rconf = require('../../config/redisConfig');
-const constants = require('../../api/v1/constants');
 const api = supertest(require('../../express').app);
 const tu = require('../testUtils');
-const Subject = tu.db.Subject;
-const redisPublisher = require('../../realtime/redisPublisher');
 const aspectEvents = require('../../realtime/constants').events.aspect;
 const sampleEvents = require('../../realtime/constants').events.sample;
 const subjectEvents = require('../../realtime/constants').events.subject;
@@ -86,6 +83,21 @@ describe('tests/publish/samples.js >', () => {
     checkSampleAspSubjAttr(sample);
   }
 
+  function resetSubscribeTracking() {
+    subscribeTracker = [];
+  }
+
+  function awaitSubscribeMessages() {
+    return new Promise((resolve) => {
+      if (subscribeTracker.length) {
+        resolve(subscribeTracker);
+      } else {
+        subscriber.on('message', () => resolve(subscribeTracker));
+      }
+    })
+    .timeout(100);
+  }
+
   before((done) => {
     before(() => tu.toggleOverride('enableRedisSampleStore', true));
     subscriber = redis.createClient(DEFAULT_LOCAL_REDIS_URL);
@@ -107,7 +119,7 @@ describe('tests/publish/samples.js >', () => {
     .then(() => tu.forceDelete(tu.db.Profile))
     .then(() => samstoinit.eradicate()));
 
-  afterEach(() => subscribeTracker = []);
+  afterEach(resetSubscribeTracking);
 
   describe('delete aspect >', () => {
     before(() => addSubject(`${tu.namePrefix}S1`, token)
@@ -115,7 +127,7 @@ describe('tests/publish/samples.js >', () => {
       .then(() => addAspect(`${tu.namePrefix}A1`, token))
       .then(() => upsertSample(`${tu.namePrefix}S1|${tu.namePrefix}A1`, token))
       .then(() => upsertSample(`${tu.namePrefix}S2|${tu.namePrefix}A1`, token))
-      .then(() => (subscribeTracker = [])));
+      .then(() => resetSubscribeTracking()));
 
     it('one sample.remove event per sample for the deleted aspect', (done) => {
       api.delete(`/v1/aspects/${tu.namePrefix}A1`)
@@ -125,21 +137,25 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(3);
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(3);
 
-          const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(aspectEvents.del);
+            const s0 = JSON.parse(messages[0]);
+            expect(s0).to.have.property(aspectEvents.del);
 
-          const s1 = JSON.parse(subscribeTracker[1]);
-          expect(s1).to.have.property(sampleEvents.del);
-          const s1Body = s1[sampleEvents.del];
-          checkSampleAttributes(s1Body);
+            const s1 = JSON.parse(subscribeTracker[1]);
+            expect(s1).to.have.property(sampleEvents.del);
+            const s1Body = s1[sampleEvents.del];
+            checkSampleAttributes(s1Body);
 
-          const s2 = JSON.parse(subscribeTracker[2]);
-          expect(s2).to.have.property(sampleEvents.del);
-          const s2Body = s2[sampleEvents.del];
-          checkSampleAttributes(s2Body);
-          done();
+            const s2 = JSON.parse(subscribeTracker[2]);
+            expect(s2).to.have.property(sampleEvents.del);
+            const s2Body = s2[sampleEvents.del];
+            checkSampleAttributes(s2Body);
+            done();
+          })
+          .catch(done);
         });
     });
   });
@@ -148,7 +164,7 @@ describe('tests/publish/samples.js >', () => {
     before(() => addSubject(`${tu.namePrefix}S3`, token)
       .then(() => addAspect(`${tu.namePrefix}A2`, token))
       .then(() => upsertSample(`${tu.namePrefix}S3|${tu.namePrefix}A2`, token))
-      .then(() => (subscribeTracker = [])));
+      .then(() => resetSubscribeTracking()));
 
     it('edit tags, sample.remove followed by sample.add', (done) => {
       api.patch(`/v1/aspects/${tu.namePrefix}A2`)
@@ -159,33 +175,37 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(4);
-          let sampDelEvent = null;
-          let aspDelEvent = null;
-          let aspAddEvent = null;
-          let sampAddEvent = null;
-          subscribeTracker.forEach((e) => {
-            const event = JSON.parse(e);
-            if (event.hasOwnProperty(sampleEvents.del)) {
-              sampDelEvent = event;
-            } else if (event.hasOwnProperty(aspectEvents.del)) {
-              aspDelEvent = event;
-            } else if (event.hasOwnProperty(aspectEvents.add)) {
-              aspAddEvent = event;
-              expect(aspDelEvent).to.not.be.null;
-            } else if (event.hasOwnProperty(sampleEvents.add)) {
-              sampAddEvent = event;
-              expect(sampDelEvent).to.not.be.null;
-            }
-          });
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(subscribeTracker).to.have.length(4);
+            let sampDelEvent = null;
+            let aspDelEvent = null;
+            let aspAddEvent = null;
+            let sampAddEvent = null;
+            subscribeTracker.forEach((e) => {
+              const event = JSON.parse(e);
+              if (event.hasOwnProperty(sampleEvents.del)) {
+                sampDelEvent = event;
+              } else if (event.hasOwnProperty(aspectEvents.del)) {
+                aspDelEvent = event;
+              } else if (event.hasOwnProperty(aspectEvents.add)) {
+                aspAddEvent = event;
+                expect(aspDelEvent).to.not.be.null;
+              } else if (event.hasOwnProperty(sampleEvents.add)) {
+                sampAddEvent = event;
+                expect(sampDelEvent).to.not.be.null;
+              }
+            });
 
-          expect(aspDelEvent).to.not.be.null;
-          expect(aspAddEvent).to.not.be.null;
-          const sampDelBody = sampDelEvent[sampleEvents.del];
-          expect(sampDelBody).to.have.all.keys(...sampleAttributes);
-          const sampAddBody = sampAddEvent[sampleEvents.add];
-          expect(sampAddBody).to.have.all.keys(...sampleAttributes);
-          done();
+            expect(aspDelEvent).to.not.be.null;
+            expect(aspAddEvent).to.not.be.null;
+            const sampDelBody = sampDelEvent[sampleEvents.del];
+            expect(sampDelBody).to.have.all.keys(...sampleAttributes);
+            const sampAddBody = sampAddEvent[sampleEvents.add];
+            expect(sampAddBody).to.have.all.keys(...sampleAttributes);
+            done();
+          })
+          .catch(done);
         });
     });
 
@@ -198,10 +218,14 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(1);
-          const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(aspectEvents.upd);
-          done();
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(1);
+            const s0 = JSON.parse(messages[0]);
+            expect(s0).to.have.property(aspectEvents.upd);
+            done();
+          })
+          .catch(done);
         });
     });
   });
@@ -213,7 +237,7 @@ describe('tests/publish/samples.js >', () => {
       .then(() => upsertSample(`${tu.namePrefix}S9|${tu.namePrefix}A9`, token))
       .then(() =>
         upsertSample(`${tu.namePrefix}S9|${tu.namePrefix}A10`, token))
-      .then(() => (subscribeTracker = [])));
+      .then(() => resetSubscribeTracking()));
 
     it('one sample.remove event per sample for deleted subject', (done) => {
       api.delete(`/v1/subjects/${tu.namePrefix}S9`)
@@ -223,26 +247,30 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(3);
-          const sampDelEvents = [];
-          let subjDelEvent = null;
-          subscribeTracker.forEach((e) => {
-            const event = JSON.parse(e);
-            if (event.hasOwnProperty(sampleEvents.del)) {
-              sampDelEvents.push(event);
-            } else if (event.hasOwnProperty(subjectEvents.del)) {
-              subjDelEvent = event;
-            }
-          });
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(3);
+            const sampDelEvents = [];
+            let subjDelEvent = null;
+            subscribeTracker.forEach((e) => {
+              const event = JSON.parse(e);
+              if (event.hasOwnProperty(sampleEvents.del)) {
+                sampDelEvents.push(event);
+              } else if (event.hasOwnProperty(subjectEvents.del)) {
+                subjDelEvent = event;
+              }
+            });
 
-          sampDelEvents.forEach((sampDelEvent) => {
-            checkSampleAttributes(sampDelEvent[sampleEvents.del]);
-          });
+            sampDelEvents.forEach((sampDelEvent) => {
+              checkSampleAttributes(sampDelEvent[sampleEvents.del]);
+            });
 
-          const subjDelBody = subjDelEvent[subjectEvents.del];
-          expect(subjDelBody).to.have.property(
-            'absolutePath', `${tu.namePrefix}S9`);
-          done();
+            const subjDelBody = subjDelEvent[subjectEvents.del];
+            expect(subjDelBody).to.have.property(
+              'absolutePath', `${tu.namePrefix}S9`);
+            done();
+          })
+          .catch(done);
         });
     });
   });
@@ -253,7 +281,7 @@ describe('tests/publish/samples.js >', () => {
       .then(() => addAspect(`${tu.namePrefix}A11`, token))
       .then(() =>
         upsertSample(`${tu.namePrefix}S10|${tu.namePrefix}A11`, token)))
-      .then(() => (subscribeTracker = [])));
+      .then(() => resetSubscribeTracking()));
 
     afterEach(() => tu.forceDelete(tu.db.Subject)
       .then(() => tu.forceDelete(tu.db.Aspect)));
@@ -269,16 +297,18 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(2);
-          const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(sampleEvents.del);
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(2);
+            const s0 = JSON.parse(messages[0]);
+            expect(s0).to.have.property(sampleEvents.del);
 
-          const s1 = JSON.parse(subscribeTracker[1]);
-          expect(s1).to.have.property(subjectEvents.del);
+            const s1 = JSON.parse(messages[1]);
+            expect(s1).to.have.property(subjectEvents.del);
 
-          subscribeTracker = [];
+            resetSubscribeTracking();
 
-          api.patch(`/v1/subjects/${tu.namePrefix}S10`, token)
+            api.patch(`/v1/subjects/${tu.namePrefix}S10`, token)
             .set('Authorization', token)
             .send({ isPublished: true })
             .end((err, res) => {
@@ -286,12 +316,18 @@ describe('tests/publish/samples.js >', () => {
                 return done(err);
               }
 
-              expect(subscribeTracker).to.have.length(1);
-              const s0 = JSON.parse(subscribeTracker[0]);
-              expect(s0).to.have.property(subjectEvents.add);
+              awaitSubscribeMessages()
+              .then((messages) => {
+                expect(messages).to.have.length(1);
+                const s0 = JSON.parse(messages[0]);
+                expect(s0).to.have.property(subjectEvents.add);
 
-              done();
+                done();
+              })
+              .catch(done);
             });
+          })
+          .catch(done);
         });
     });
 
@@ -306,17 +342,21 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(3);
-          const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(sampleEvents.del);
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(3);
+            const s0 = JSON.parse(messages[0]);
+            expect(s0).to.have.property(sampleEvents.del);
 
-          const s1 = JSON.parse(subscribeTracker[1]);
-          expect(s1).to.have.property(subjectEvents.del);
+            const s1 = JSON.parse(messages[1]);
+            expect(s1).to.have.property(subjectEvents.del);
 
-          const s2 = JSON.parse(subscribeTracker[2]);
-          expect(s2).to.have.property(subjectEvents.add);
+            const s2 = JSON.parse(messages[2]);
+            expect(s2).to.have.property(subjectEvents.add);
 
-          done();
+            done();
+          })
+          .catch(done);
         });
     });
 
@@ -330,17 +370,21 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(3);
-          const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(sampleEvents.del);
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(3);
+            const s0 = JSON.parse(messages[0]);
+            expect(s0).to.have.property(sampleEvents.del);
 
-          const s1 = JSON.parse(subscribeTracker[1]);
-          expect(s1).to.have.property(subjectEvents.del);
+            const s1 = JSON.parse(messages[1]);
+            expect(s1).to.have.property(subjectEvents.del);
 
-          const s2 = JSON.parse(subscribeTracker[2]);
-          expect(s2).to.have.property(subjectEvents.add);
+            const s2 = JSON.parse(messages[2]);
+            expect(s2).to.have.property(subjectEvents.add);
 
-          done();
+            done();
+          })
+          .catch(done);
         });
     });
 
@@ -354,15 +398,19 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(3);
-          const foundEvents = subscribeTracker.map((st) =>
-            Object.keys(JSON.parse(st))[0]);
-          expect(foundEvents).to.include.members([
-            'refocus.internal.realtime.subject.remove',
-            'refocus.internal.realtime.subject.add',
-            'refocus.internal.realtime.sample.remove',
-          ]);
-          done();
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(3);
+            const foundEvents = messages.map((st) =>
+              Object.keys(JSON.parse(st))[0]);
+            expect(foundEvents).to.include.members([
+              'refocus.internal.realtime.subject.remove',
+              'refocus.internal.realtime.subject.add',
+              'refocus.internal.realtime.sample.remove',
+            ]);
+            done();
+          })
+          .catch(done);
         });
     });
 
@@ -376,10 +424,14 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(1);
-          const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(subjectEvents.upd);
-          done();
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(1);
+            const s0 = JSON.parse(messages[0]);
+            expect(s0).to.have.property(subjectEvents.upd);
+            done();
+          })
+          .catch(done);
         });
     });
 
@@ -393,20 +445,27 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(2);
-          subscribeTracker = [];
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(2);
+            resetSubscribeTracking();
 
-          api.patch(`/v1/subjects/${tu.namePrefix}S10`, token)
+            api.patch(`/v1/subjects/${tu.namePrefix}S10`, token)
             .set('Authorization', token)
-            .send({ name: `${tu.namePrefix}S10b`})
+            .send({ name: `${tu.namePrefix}S10b` })
             .end((err, res) => {
               if (err) {
                 return done(err);
               }
 
-              expect(subscribeTracker).to.have.length(0);
-              done();
+              return awaitSubscribeMessages()
+              .catch((err) => {
+                expect(err).to.be.an.instanceof(Promise.TimeoutError);
+                done();
+              });
             });
+          })
+          .catch(done);
         });
     });
   });
@@ -418,7 +477,7 @@ describe('tests/publish/samples.js >', () => {
       .then((s) => (subj = s.body))
       .then(() => addAspect(`${tu.namePrefix}A3`, token))
       .then((a) => (asp = a.body))
-      .then(() => (subscribeTracker = [])));
+      .then(() => resetSubscribeTracking()));
 
     it('sample.add event', (done) => {
       api.post('/v1/samples', token)
@@ -429,15 +488,19 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(1);
-          const s0 = JSON.parse(subscribeTracker[0]);
+          awaitSubscribeMessages()
+          .then((messages) => {
+          expect(messages).to.have.length(1);
+          const s0 = JSON.parse(messages[0]);
           expect(s0).to.have.property(sampleEvents.add);
           const s0Body = s0[sampleEvents.add];
           expect(s0Body).to.have.all.keys(...sampleAttributes,
             'aspectId', 'subjectId');
           expect(s0Body.aspect).to.have.all.keys('name', 'tags');
           expect(s0Body.subject).to.have.all.keys('absolutePath', 'tags');
-          done();
+            done();
+          })
+          .catch(done);
         });
     });
   });
@@ -447,19 +510,22 @@ describe('tests/publish/samples.js >', () => {
       .then(() => addAspect(`${tu.namePrefix}A4`, token))
       .then(() => addAspect(`${tu.namePrefix}A5`, token))
       .then(() => upsertSample(`${tu.namePrefix}S5|${tu.namePrefix}A5`, token))
-      .then(() => (subscribeTracker = [])));
+      .then(() => resetSubscribeTracking()));
 
     it('new sample, sample.add event', (done) => {
       upsertSample(`${tu.namePrefix}S5|${tu.namePrefix}A4`, token)
         .then(() => {
-          expect(subscribeTracker).to.have.length(1);
-          const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(sampleEvents.add);
-          const s0Body = s0[sampleEvents.add];
-          expect(s0Body).to.have.all.keys(...sampleAttributes);
-          done();
-        })
-        .catch(done);
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(1);
+            const s0 = JSON.parse(messages[0]);
+            expect(s0).to.have.property(sampleEvents.add);
+            const s0Body = s0[sampleEvents.add];
+            expect(s0Body).to.have.all.keys(...sampleAttributes);
+            done();
+          })
+          .catch(done);
+        });
     });
 
     it('sample.update event, sample.nochange event', (done) => {
@@ -474,14 +540,16 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(1);
-          const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(sampleEvents.upd);
-          const s0Body = s0[sampleEvents.upd];
-          expect(s0Body).to.have.all.keys(...sampleAttributes);
-          subscribeTracker = [];
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(1);
+            const s0 = JSON.parse(messages[0]);
+            expect(s0).to.have.property(sampleEvents.upd);
+            const s0Body = s0[sampleEvents.upd];
+            expect(s0Body).to.have.all.keys(...sampleAttributes);
+            resetSubscribeTracking();
 
-          api.post('/v1/samples/upsert')
+            api.post('/v1/samples/upsert')
             .set('Authorization', token)
             .send({
               name: `${tu.namePrefix}S5|${tu.namePrefix}A5`,
@@ -492,15 +560,20 @@ describe('tests/publish/samples.js >', () => {
                 return done(err);
               }
 
-              expect(subscribeTracker).to.have.length(1);
-              const sNC = JSON.parse(subscribeTracker[0]);
-              expect(sNC).to.have.property(sampleEvents.nc);
-              const sNCBody = sNC[sampleEvents.nc];
-              expect(sNCBody).to.have.all.keys('name', 'status', 'updatedAt',
-                'absolutePath', 'aspect', 'subject');
-              checkSampleAspSubjAttr(sNCBody);
-              done();
+              awaitSubscribeMessages()
+              .then((messages) => {
+                expect(messages).to.have.length(1);
+                const sNC = JSON.parse(messages[0]);
+                expect(sNC).to.have.property(sampleEvents.nc);
+                const sNCBody = sNC[sampleEvents.nc];
+                expect(sNCBody).to.have.all.keys('name', 'status', 'updatedAt',
+                  'absolutePath', 'aspect', 'subject');
+                checkSampleAspSubjAttr(sNCBody);
+                done();
+              });
             });
+          })
+          .catch(done);
         });
     });
   });
@@ -514,18 +587,22 @@ describe('tests/publish/samples.js >', () => {
         mockUpdatedAt = new Date(samp.body.updatedAt);
         mockUpdatedAt.setMinutes(mockUpdatedAt.getMinutes() + 20);
       })
-      .then(() => (subscribeTracker = [])));
+      .then(() => resetSubscribeTracking()));
 
     it('got sample.update event', (done) => {
 
       doTimeout(mockUpdatedAt)
         .then((timeoutResponse) => {
-          expect(subscribeTracker).to.have.length(1);
-          const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(sampleEvents.upd);
-          const s0Body = s0[sampleEvents.upd];
-          expect(s0Body).to.have.all.keys(...sampleAttributes);
-          expect(s0Body).to.have.property('status', 'Timeout');
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(1);
+            const s0 = JSON.parse(messages[0]);
+            expect(s0).to.have.property(sampleEvents.upd);
+            const s0Body = s0[sampleEvents.upd];
+            expect(s0Body).to.have.all.keys(...sampleAttributes);
+            expect(s0Body).to.have.property('status', 'Timeout');
+          })
+          .catch(done);
         })
         .then(() => done())
         .catch(done);
@@ -536,7 +613,7 @@ describe('tests/publish/samples.js >', () => {
     before(() => addSubject(`${tu.namePrefix}S6`, token)
       .then(() => addAspect(`${tu.namePrefix}A6`, token))
       .then(() => upsertSample(`${tu.namePrefix}S6|${tu.namePrefix}A6`, token))
-      .then(() => (subscribeTracker = [])));
+      .then(() => resetSubscribeTracking()));
 
     it('sample update event', (done) => {
       const pth =
@@ -548,16 +625,20 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(1);
-          const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(sampleEvents.upd);
-          const s0Body = s0[sampleEvents.upd];
-          expect(s0Body).to.have.all.keys(...sampleAttributes, 'apiLinks');
-          expect(s0Body.relatedLinks).to.deep.equal([
-            { name: 'b', url: 'b.com' },
-            { name: 'c', url: 'c.com' },
-          ]);
-          done();
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(1);
+            const s0 = JSON.parse(messages[0]);
+            expect(s0).to.have.property(sampleEvents.upd);
+            const s0Body = s0[sampleEvents.upd];
+            expect(s0Body).to.have.all.keys(...sampleAttributes, 'apiLinks');
+            expect(s0Body.relatedLinks).to.deep.equal([
+              { name: 'b', url: 'b.com' },
+              { name: 'c', url: 'c.com' },
+            ]);
+            done();
+          })
+          .catch(done);
         });
     });
   });
@@ -566,7 +647,7 @@ describe('tests/publish/samples.js >', () => {
     before(() => addSubject(`${tu.namePrefix}S7`, token)
       .then(() => addAspect(`${tu.namePrefix}A7`, token))
       .then(() => upsertSample(`${tu.namePrefix}S7|${tu.namePrefix}A7`, token))
-      .then(() => (subscribeTracker = [])));
+      .then(() => resetSubscribeTracking()));
 
     it('sample update event', (done) => {
       const pth =
@@ -578,13 +659,17 @@ describe('tests/publish/samples.js >', () => {
             return done(err);
           }
 
-          expect(subscribeTracker).to.have.length(1);
-          const s0 = JSON.parse(subscribeTracker[0]);
-          expect(s0).to.have.property(sampleEvents.upd);
-          const s0Body = s0[sampleEvents.upd];
-          expect(s0Body).to.have.all.keys(...sampleAttributes, 'apiLinks');
-          expect(s0Body.relatedLinks).to.deep.equal([]);
-          done();
+          awaitSubscribeMessages()
+          .then((messages) => {
+            expect(messages).to.have.length(1);
+            const s0 = JSON.parse(messages[0]);
+            expect(s0).to.have.property(sampleEvents.upd);
+            const s0Body = s0[sampleEvents.upd];
+            expect(s0Body).to.have.all.keys(...sampleAttributes, 'apiLinks');
+            expect(s0Body.relatedLinks).to.deep.equal([]);
+            done();
+          })
+          .catch(done);
         });
     });
   });

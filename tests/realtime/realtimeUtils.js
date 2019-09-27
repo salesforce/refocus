@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const realtimeUtils = require('../../realtime/utils');
+const emitUtils = require('../../realtime/emitUtils');
 const rtConstants = require('../../realtime/constants');
 const tu = require('../testUtils');
 const u = require('./utils');
@@ -189,70 +190,70 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
     describe('shouldIEmitThisObject function tests >', () => {
       it('should return false for some randomSubjectRoot', () => {
         const nspString = '/SomRadomSubjectRoo';
-        expect(realtimeUtils.shouldIEmitThisObj(nspString, rootSubjNAUS))
+        expect(emitUtils.shouldIEmitThisObj(nspString, rootSubjNAUS))
           .to.equal(false);
       });
 
       it('should return true for pers rootNA', () => {
-        const nspString = realtimeUtils
+        const nspString = emitUtils
           .getPerspectiveNamespaceString(persRootNA);
-        expect(realtimeUtils.shouldIEmitThisObj(nspString, sampleInstNA))
+        expect(emitUtils.shouldIEmitThisObj(nspString, sampleInstNA))
           .to.equal(true);
       });
 
       it('should return true for pers rootNAUS', () => {
-        const nspString = realtimeUtils
+        const nspString = emitUtils
           .getPerspectiveNamespaceString(persRootNAUS);
-        expect(realtimeUtils.shouldIEmitThisObj(nspString,
+        expect(emitUtils.shouldIEmitThisObj(nspString,
           looksLikeSampleObjNAUS)).to.equal(true);
       });
 
       it('for should return true for roomTest', () => {
-        const nspString = realtimeUtils.getBotsNamespaceString(roomTest);
-        expect(realtimeUtils.shouldIEmitThisObj(nspString, roomTest, true))
+        const nspString = emitUtils.getBotsNamespaceString(roomTest);
+        expect(emitUtils.shouldIEmitThisObj(nspString, roomTest, true))
         .to.equal(true);
       });
 
       it('should return true for botActionTest', () => {
-        const nspString = realtimeUtils.getBotsNamespaceString(botActionTest);
-        expect(realtimeUtils.shouldIEmitThisObj(nspString, botActionTest, true))
+        const nspString = emitUtils.getBotsNamespaceString(botActionTest);
+        expect(emitUtils.shouldIEmitThisObj(nspString, botActionTest, true))
         .to.equal(true);
       });
 
       it('should return true for botEventTest', () => {
-        const nspString = realtimeUtils.getBotsNamespaceString(botEventTest);
-        expect(realtimeUtils.shouldIEmitThisObj(nspString, botEventTest, true))
+        const nspString = emitUtils.getBotsNamespaceString(botEventTest);
+        expect(emitUtils.shouldIEmitThisObj(nspString, botEventTest, true))
         .to.equal(true);
       });
 
       it('should return true for botDataTest', () => {
-        const nspString = realtimeUtils.getBotsNamespaceString(botDataTest);
-        expect(realtimeUtils.shouldIEmitThisObj(nspString, botDataTest, true))
+        const nspString = emitUtils.getBotsNamespaceString(botDataTest);
+        expect(emitUtils.shouldIEmitThisObj(nspString, botDataTest, true))
         .to.equal(true);
       });
 
       it('should return false for some random absolutePath', () => {
         const nspString = '/SomRandomRoom';
-        expect(realtimeUtils.shouldIEmitThisObj(nspString, roomTest, true))
+        expect(emitUtils.shouldIEmitThisObj(nspString, roomTest, true))
           .to.equal(false);
       });
     });
 
     describe('getPerspectiveNamespaceString tests >', () => {
       it('for perspective persNAUS', () => {
-        const nspString = realtimeUtils
+        const nspString = emitUtils
           .getPerspectiveNamespaceString(persRootNAUS);
         expect(nspString)
         .to.equal('/' + rootSubjNAUS + '&EXCLUDE&EXCLUDE&EXCLUDE&EXCLUDE');
       });
 
       it('for roomTest', () => {
-        const nspString = realtimeUtils.getBotsNamespaceString(roomTest);
+        const nspString = emitUtils.getBotsNamespaceString(roomTest);
         expect(nspString).to.equal('/Bots&' + roomTest.name);
       });
 
       it('for perspective persNA', () => {
-        const nspString = realtimeUtils
+        const nspString = emitUtils
           .getPerspectiveNamespaceString(persRootNA);
         expect(nspString)
           .to.equal('/' + rootSubjNA + '&INCLUDE=' + aspectOne.name +
@@ -261,7 +262,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       });
 
       it('for perspective persNAUSCA', () => {
-        const nspString = realtimeUtils
+        const nspString = emitUtils
           .getPerspectiveNamespaceString(persRootNAUSCA);
         expect(nspString)
           .to.equal('/' + rootSubjNAUSCA + '&EXCLUDE=' + aspectOne.name +
@@ -510,7 +511,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
       it('getNewObjAsString for subject.add', () => {
         const key = 'refocus.internal.realtime.subject.add';
-        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        const str = emitUtils.getNewObjAsString(key, testEvents[key]);
         expect(str).to.be.a('string');
         const obj = JSON.parse(str);
         expect(obj[key]).to.deep.equal(testEvents[key]);
@@ -519,7 +520,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
       it('getNewObjAsString for bot.event.add', () => {
         const key =
           'refocus.internal.realtime.bot.event.add';
-        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        const str = emitUtils.getNewObjAsString(key, testEvents[key]);
         expect(str).to.be.a('string');
         const obj = JSON.parse(str);
         expect(obj[key]).to.deep.equal(testEvents[key]);
@@ -527,7 +528,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
       it('getNewObjAsString for sample.add', () => {
         const key = 'refocus.internal.realtime.sample.add';
-        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        const str = emitUtils.getNewObjAsString(key, testEvents[key]);
         expect(str).to.be.a('string');
         const obj = JSON.parse(str);
         expect(obj[key]).to.deep.equal(testEvents[key]);
@@ -535,7 +536,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
       it('getNewObjAsString for sample.update', () => {
         const key = 'refocus.internal.realtime.sample.update';
-        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        const str = emitUtils.getNewObjAsString(key, testEvents[key]);
         expect(str).to.be.a('string');
         const obj = JSON.parse(str);
         expect(obj[key].new).to.deep.equal(testEvents[key]);
@@ -543,7 +544,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
       it('getNewObjAsString for sample.remove', () => {
         const key = 'refocus.internal.realtime.sample.remove';
-        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        const str = emitUtils.getNewObjAsString(key, testEvents[key]);
         expect(str).to.be.a('string');
         const obj = JSON.parse(str);
         expect(obj[key]).to.deep.equal(testEvents[key]);
@@ -551,7 +552,7 @@ describe('tests/realtime/realtimeUtils.js, realtime utils Tests >', () => {
 
       it('getNewObjAsString for sample.nochange', () => {
         const key = 'refocus.internal.realtime.sample.nochange';
-        const str = realtimeUtils.getNewObjAsString(key, testEvents[key]);
+        const str = emitUtils.getNewObjAsString(key, testEvents[key]);
         expect(str).to.be.a('string');
         const obj = JSON.parse(str);
         const nc = {

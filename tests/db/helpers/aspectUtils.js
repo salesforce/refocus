@@ -10,7 +10,6 @@
  * tests/db/helpers/aspectUtils.js
  */
 'use strict'; // eslint-disable-line strict
-const expect = require('chai').expect;
 require('chai').use(require('chai-as-promised')).should();
 const tu = require('../../testUtils');
 const u = require('../model/aspect/utils');
@@ -27,14 +26,14 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
           validateNumericRanges({
             criticalRange: [-1234, 1234],
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
         it('below min', () =>
           validateNumericRanges({
             okRange: [Number.MIN_SAFE_INTEGER - 5, 1234],
           })
-          .should.eventually.be.rejectedWith(
+            .should.eventually.be.rejectedWith(
             'Value type: NUMERIC can only have ranges with min value:' +
             ' -9007199254740991, max value: 9007199254740991',
           )
@@ -44,7 +43,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
           validateNumericRanges({
             criticalRange: [-1234, Number.MAX_SAFE_INTEGER + 10],
           })
-          .should.eventually.be.rejectedWith(
+            .should.eventually.be.rejectedWith(
             'Value type: NUMERIC can only have ranges with min value:' +
             ' -9007199254740991, max value: 9007199254740991',
           )
@@ -56,14 +55,14 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
           validateBooleanRanges({
             okRange: [1, 1],
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
         it('non-boolean', () =>
           validateBooleanRanges({
             okRange: [1, 0],
           })
-          .should.eventually.be.rejectedWith(
+            .should.eventually.be.rejectedWith(
             'Value type: BOOLEAN can only have ranges: [0,0] or [1,1]',
           )
         );
@@ -74,14 +73,14 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
           validatePercentRanges({
             okRange: [25, 50],
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
         it('less than 0', () =>
           validatePercentRanges({
             okRange: [-1, 1],
           })
-          .should.eventually.be.rejectedWith(
+            .should.eventually.be.rejectedWith(
             'Value type: PERCENT can only have ranges with min value:' +
             ' 0, max value: 100',
           )
@@ -91,7 +90,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
           validatePercentRanges({
             okRange: [0, 110],
           })
-          .should.eventually.be.rejectedWith(
+            .should.eventually.be.rejectedWith(
             'Value type: PERCENT can only have ranges with min value:' +
             ' 0, max value: 100',
           )
@@ -106,7 +105,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             criticalRange: [0, 0],
             okRange: [1, 1],
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
         it('duplicate', () =>
@@ -114,7 +113,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             criticalRange: [0, 0],
             okRange: [0, 0],
           })
-          .should.eventually.be.rejectedWith(
+            .should.eventually.be.rejectedWith(
             'Same value range to multiple statuses is not allowed for value type: BOOLEAN'
           )
         );
@@ -125,7 +124,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             warningRange: [1, 1],
             okRange: [1, 1],
           })
-          .should.eventually.be.rejectedWith(
+            .should.eventually.be.rejectedWith(
             'More than 2 status ranges cannot be assigned for value type: BOOLEAN'
           )
         );
@@ -139,7 +138,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [41, 50],
             okRange: [51, 100],
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
       });
 
@@ -151,7 +150,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [4, 4],
             okRange: [5, 10],
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
         it('negative int ranges with null range in the middle', () =>
@@ -161,7 +160,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [0, 0],
             okRange: [1, 10],
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
         it('all null ranges', () =>
@@ -171,7 +170,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: null,
             okRange: null,
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
         it('non-contiguous ranges', () =>
@@ -181,7 +180,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [20, 30],
             okRange: null,
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
         it('out of order ranges', () =>
@@ -191,7 +190,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [21, 30],
             okRange: [-9, -1],
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
         it('touching edges', () =>
@@ -201,7 +200,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [10, 15],
             okRange: null,
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
         it('touching edges, reverse', () =>
@@ -211,37 +210,37 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [0, 5],
             okRange: null,
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
-        it('singular range', () =>
+        it('flat range', () =>
           validateNumericRanges({
             criticalRange: [0, 3],
             warningRange: [5, 5],
             infoRange: [7, 10],
             okRange: null,
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
-        it('singular range, reverse', () =>
+        it('flat range, reverse', () =>
           validateNumericRanges({
             criticalRange: [7, 10],
             warningRange: [5, 5],
             infoRange: [0, 3],
             okRange: null,
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
-        it('touching edges, singular ranges', () =>
+        it('touching edges, flat ranges', () =>
           validateNumericRanges({
             criticalRange: [10, 10],
             warningRange: [5, 10],
             infoRange: [5, 5],
             okRange: [0, 5],
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
         it('identical edge ranges', () =>
@@ -251,7 +250,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [5, 5],
             okRange: [1, 5],
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
         it('identical non-singular ranges', () =>
@@ -261,7 +260,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [5, 9],
             okRange: [10, 14],
           })
-          .should.eventually.be.rejectedWith('Ranges cannot overlap')
+            .should.eventually.be.fulfilled
         );
 
         it('identical non-edge singular ranges', () =>
@@ -271,7 +270,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [5, 5],
             okRange: [6, 10],
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
 
         it('overlapping ranges', () =>
@@ -281,7 +280,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [5, 12],
             okRange: null,
           })
-          .should.eventually.be.rejectedWith('Ranges cannot overlap')
+            .should.eventually.be.fulfilled
         );
 
         it('encompassing ranges', () =>
@@ -291,7 +290,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [0, 10],
             okRange: null,
           })
-          .should.eventually.be.rejectedWith('Ranges cannot overlap')
+            .should.eventually.be.fulfilled
         );
 
         it('infinite ranges', () =>
@@ -311,7 +310,7 @@ describe('tests/db/model/aspect/aspectUtils.js >', () => {
             infoRange: [3.2, 5],
             okRange: null,
           })
-          .should.eventually.be.fulfilled
+            .should.eventually.be.fulfilled
         );
       });
     });

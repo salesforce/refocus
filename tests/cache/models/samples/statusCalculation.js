@@ -19,20 +19,20 @@ const redisOps = rtu.redisOps;
 describe('tests/cache/models/samples/statusCalculation.js, ' +
   'redis: aspect: create >', () => {
 
-  afterEach(rtu.flushRedis);
+  before(rtu.flushRedis);
 
   function setupRanges(ranges) {
     return redisOps.setRanges({ name: 'asp1', ...ranges });
   } // setupRanges
 
   function calculateAndExpect(value, expectedStatus) {
-    return redisOps.calculateSampleStatus({ name: 'sub1.sub2|asp1', value })
-           .should.eventually.equal(expectedStatus);
+    return redisOps.calculateSampleStatus('sub1.sub2|asp1', value)
+      .should.eventually.equal(expectedStatus);
   }
 
   describe('numeric >', () => {
     describe('basic ranges (AND calculate invoked on update) >', () => {
-      beforeEach(() =>
+      before(() =>
         setupRanges({
           criticalRange: [0, 1],
           warningRange: [2, 3],
@@ -40,6 +40,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
           okRange: [5, 10],
         })
       );
+
+      after(rtu.flushRedis);
 
       it('value = range min', () =>
         calculateAndExpect('2', constants.statuses.Warning)
@@ -67,7 +69,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
     });
 
     describe('negative int ranges with null range in the middle >', () => {
-      beforeEach(() =>
+      before(() =>
         setupRanges({
           criticalRange: [-10, -1],
           warningRange: null,
@@ -75,6 +77,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
           okRange: [1, 10],
         })
       );
+
+      after(rtu.flushRedis);
 
       it('value = range min', () =>
         calculateAndExpect('-10', constants.statuses.Critical)
@@ -98,7 +102,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
     });
 
     describe('all null ranges >', () => {
-      beforeEach(() =>
+      before(() =>
         setupRanges({
           criticalRange: null,
           warningRange: null,
@@ -106,6 +110,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
           okRange: null,
         })
       );
+
+      after(rtu.flushRedis);
 
       it('positive integer value should be -1', () =>
         calculateAndExpect('4', constants.statuses.Invalid)
@@ -121,7 +127,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
     });
 
     describe('non-contiguous ranges >', () => {
-      beforeEach(() =>
+      before(() =>
         setupRanges({
           criticalRange: [0, 10],
           warningRange: null,
@@ -129,6 +135,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
           okRange: null,
         })
       );
+
+      after(rtu.flushRedis);
 
       it('between the cracks', () =>
         calculateAndExpect('15', constants.statuses.Invalid)
@@ -144,7 +152,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
     });
 
     describe('out of order ranges >', () => {
-      beforeEach(() =>
+      before(() =>
         setupRanges({
           criticalRange: [10, 20],
           warningRange: [0, 9],
@@ -152,6 +160,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
           okRange: [-9, -1],
         })
       );
+
+      after(rtu.flushRedis);
 
       it('within range 3', () =>
         calculateAndExpect('-4', constants.statuses.OK)
@@ -166,8 +176,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('touching edges (lower value has precedence) >', () => {
-      beforeEach(() =>
+    describe('touching edges (more severe has precedence) >', () => {
+      before(() =>
         setupRanges({
           criticalRange: [0, 5],
           warningRange: [5, 10],
@@ -176,20 +186,38 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         })
       );
 
+      after(rtu.flushRedis);
+
       it('within the first range only', () =>
         calculateAndExpect('4', constants.statuses.Critical)
+      );
+
+      it('just under the edge (decimal)', () =>
+        calculateAndExpect('4.999 ', constants.statuses.Critical)
+      );
+
+      it('just under the edge (decimal - high precision)', () =>
+        calculateAndExpect('4.999999999999999', constants.statuses.Critical)
       );
 
       it('on the edge (critical-warning)', () =>
         calculateAndExpect('5', constants.statuses.Critical)
       );
 
-      it('within the second range only', () =>
-        calculateAndExpect('6', constants.statuses.Warning)
+      it('just over the edge (decimal)', () =>
+        calculateAndExpect('5.001', constants.statuses.Warning)
       );
 
-      it('within the second range only (decimal)', () =>
-        calculateAndExpect('5.1', constants.statuses.Warning)
+      it('just over the edge (decimal - high precision)', () =>
+        calculateAndExpect('5.000000000000001', constants.statuses.Warning)
+      );
+
+      it('just over the edge (decimal - too precise (rounded down))', () =>
+        calculateAndExpect('5.0000000000000001', constants.statuses.Critical)
+      );
+
+      it('within the second range only', () =>
+        calculateAndExpect('6', constants.statuses.Warning)
       );
 
       it('on the edge (warning-info)', () =>
@@ -201,8 +229,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('touching edges reverse order (lower value has precedence) >', () => {
-      beforeEach(() =>
+    describe('touching edges reverse order (more severe has precedence) >', () => {
+      before(() =>
         setupRanges({
           criticalRange: [10, 15],
           warningRange: [5, 10],
@@ -211,12 +239,34 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         })
       );
 
+      after(rtu.flushRedis);
+
       it('within the first range only', () =>
         calculateAndExpect('12', constants.statuses.Critical)
       );
 
+      it('just over the edge (decimal)', () =>
+        calculateAndExpect('10.001', constants.statuses.Critical)
+      );
+
+      it('just under the edge (decimal - high precision)', () =>
+        calculateAndExpect('10.000000000000001', constants.statuses.Critical)
+      );
+
       it('on the edge (critical-warning)', () =>
-        calculateAndExpect('10', constants.statuses.Warning)
+        calculateAndExpect('10', constants.statuses.Critical)
+      );
+
+      it('just under the edge (decimal)', () =>
+        calculateAndExpect('9.999', constants.statuses.Warning)
+      );
+
+      it('just under the edge (decimal - high precision)', () =>
+        calculateAndExpect('9.999999999999999', constants.statuses.Warning)
+      );
+
+      it('just under the edge (decimal - too precise (rounded up))', () =>
+        calculateAndExpect('9.9999999999999999', constants.statuses.Critical)
       );
 
       it('within the second range only (decimal)', () =>
@@ -228,7 +278,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
 
       it('on the edge (warning-info)', () =>
-        calculateAndExpect('5', constants.statuses.Info)
+        calculateAndExpect('5', constants.statuses.Warning)
       );
 
       it('within the first range only', () =>
@@ -236,8 +286,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('singular range >', () => {
-      beforeEach(() =>
+    describe('flat range >', () => {
+      before(() =>
         setupRanges({
           criticalRange: [0, 3],
           warningRange: [5, 5],
@@ -245,6 +295,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
           okRange: null,
         })
       );
+
+      after(rtu.flushRedis);
 
       it('within the first range only', () =>
         calculateAndExpect('2', constants.statuses.Critical)
@@ -254,7 +306,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         calculateAndExpect('4', constants.statuses.Invalid)
       );
 
-      it('within the singular range', () =>
+      it('within the flat range', () =>
         calculateAndExpect('5', constants.statuses.Warning)
       );
 
@@ -267,8 +319,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('singular range reverse order >', () => {
-      beforeEach(() =>
+    describe('flat range reverse order >', () => {
+      before(() =>
         setupRanges({
           criticalRange: [7, 10],
           warningRange: [5, 5],
@@ -276,6 +328,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
           okRange: null,
         })
       );
+
+      after(rtu.flushRedis);
 
       it('within the third range only', () =>
         calculateAndExpect('2', constants.statuses.Info)
@@ -285,7 +339,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         calculateAndExpect('4', constants.statuses.Invalid)
       );
 
-      it('within the singular range', () =>
+      it('within the flat range', () =>
         calculateAndExpect('5', constants.statuses.Warning)
       );
 
@@ -298,8 +352,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('touching edges, singular ranges (lower value has precedence) >', () => {
-      beforeEach(() =>
+    describe('touching edges, flat ranges (more severe has precedence) >', () => {
+      before(() =>
         setupRanges({
           criticalRange: [10, 10],
           warningRange: [5, 10],
@@ -308,12 +362,14 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         })
       );
 
+      after(rtu.flushRedis);
+
       it('within the first range only', () =>
         calculateAndExpect('4', constants.statuses.OK)
       );
 
       it('on the edge (three ranges)', () =>
-        calculateAndExpect('5', constants.statuses.OK)
+        calculateAndExpect('5', constants.statuses.Warning)
       );
 
       it('within the second range only', () =>
@@ -321,12 +377,12 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
 
       it('on the edge (two ranges)', () =>
-        calculateAndExpect('10', constants.statuses.Warning)
+        calculateAndExpect('10', constants.statuses.Critical)
       );
     });
 
-    describe('touching edges, singular ranges, reverse (lower value has precedence) >', () => {
-      beforeEach(() =>
+    describe('touching edges, flat ranges, reverse (more severe has precedence) >', () => {
+      before(() =>
         setupRanges({
           criticalRange: [0, 5],
           warningRange: [5, 5],
@@ -334,6 +390,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
           okRange: [10, 10],
         })
       );
+
+      after(rtu.flushRedis);
 
       it('within the first range only', () =>
         calculateAndExpect('4', constants.statuses.Critical)
@@ -352,8 +410,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('identical edge ranges', () => {
-      beforeEach(() =>
+    describe('identical edge ranges (more severe has precedence)', () => {
+      before(() =>
         setupRanges({
           criticalRange: [5, 10],
           warningRange: [5, 5],
@@ -362,12 +420,14 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         })
       );
 
+      after(rtu.flushRedis);
+
       it('within the first range only', () =>
         calculateAndExpect('4', constants.statuses.OK)
       );
 
       it('on the edge (four ranges)', () =>
-        calculateAndExpect('5', constants.statuses.OK)
+        calculateAndExpect('5', constants.statuses.Critical)
       );
 
       it('within the fourth range only', () =>
@@ -375,8 +435,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('identical edge ranges, reverse', () => {
-      beforeEach(() =>
+    describe('identical edge ranges, reverse (more severe has precedence)', () => {
+      before(() =>
         setupRanges({
           criticalRange: [1, 5],
           warningRange: [5, 5],
@@ -384,6 +444,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
           okRange: [5, 10],
         })
       );
+
+      after(rtu.flushRedis);
 
       it('within the first range only', () =>
         calculateAndExpect('4', constants.statuses.Critical)
@@ -398,8 +460,33 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('identical non-edge singular ranges', () => {
-      beforeEach(() =>
+    describe('identical non-flat ranges (more severe has precedence)', () => {
+      before(() =>
+        setupRanges({
+          criticalRange: [0, 4],
+          warningRange: [5, 9],
+          infoRange: [5, 9],
+          okRange: [10, 14],
+        })
+      );
+
+      after(rtu.flushRedis);
+
+      it('within the first range only', () =>
+        calculateAndExpect('4', constants.statuses.Critical)
+      );
+
+      it('within the identical ranges (Info-Warning)', () =>
+        calculateAndExpect('6', constants.statuses.Warning)
+      );
+
+      it('within the fourth range only', () =>
+        calculateAndExpect('12', constants.statuses.OK)
+      );
+    });
+
+    describe('identical non-edge flat ranges (more severe has precedence)', () => {
+      before(() =>
         setupRanges({
           criticalRange: [0, 4],
           warningRange: [5, 5],
@@ -408,12 +495,14 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         })
       );
 
+      after(rtu.flushRedis);
+
       it('within the first range only', () =>
         calculateAndExpect('4', constants.statuses.Critical)
       );
 
-      it('singular ranges', () =>
-        calculateAndExpect('5', constants.statuses.Info)
+      it('flat ranges', () =>
+        calculateAndExpect('5', constants.statuses.Warning)
       );
 
       it('within the fourth range only', () =>
@@ -421,8 +510,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
-    describe('identical non-edge singular ranges, reverse', () => {
-      beforeEach(() =>
+    describe('identical non-edge flat ranges, reverse (more severe has precedence)', () => {
+      before(() =>
         setupRanges({
           criticalRange: [6, 10],
           warningRange: [5, 5],
@@ -431,12 +520,14 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         })
       );
 
+      after(rtu.flushRedis);
+
       it('within the first range only', () =>
         calculateAndExpect('4', constants.statuses.OK)
       );
 
-      it('singular ranges', () =>
-        calculateAndExpect('5', constants.statuses.Info)
+      it('flat ranges', () =>
+        calculateAndExpect('5', constants.statuses.Warning)
       );
 
       it('within the fourth range only', () =>
@@ -444,8 +535,124 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
     });
 
+    describe('overlapping ranges (more severe has precedence)', () => {
+      before(() =>
+        setupRanges({
+          criticalRange: [0, 8],
+          warningRange: [5, 12],
+          infoRange: [13, 15],
+          okRange: null,
+        })
+      );
+
+      after(rtu.flushRedis);
+
+      it('within the first range only', () =>
+        calculateAndExpect('4', constants.statuses.Critical)
+      );
+
+      it('within the overlap', () =>
+        calculateAndExpect('6', constants.statuses.Critical)
+      );
+
+      it('within the second range only', () =>
+        calculateAndExpect('9', constants.statuses.Warning)
+      );
+    });
+
+    describe('overlapping ranges, reverse (more severe has precedence)', () => {
+      before(() =>
+        setupRanges({
+          criticalRange: [13, 15],
+          warningRange: [5, 12],
+          infoRange: [0, 8],
+          okRange: null,
+        })
+      );
+
+      after(rtu.flushRedis);
+
+      it('within the first range only', () =>
+        calculateAndExpect('4', constants.statuses.Info)
+      );
+
+      it('within the overlap', () =>
+        calculateAndExpect('6', constants.statuses.Warning)
+      );
+
+      it('within the second range only', () =>
+        calculateAndExpect('9', constants.statuses.Warning)
+      );
+    });
+
+    describe('encompassing ranges (more severe has precedence)', () => {
+      before(() =>
+        setupRanges({
+          criticalRange: [2, 3],
+          warningRange: [5, 6],
+          infoRange: [0, 10],
+          okRange: null,
+        })
+      );
+
+      after(rtu.flushRedis);
+
+      it('within the first range only', () =>
+        calculateAndExpect('1', constants.statuses.Info)
+      );
+
+      it('within the first overlap', () =>
+        calculateAndExpect('2', constants.statuses.Critical)
+      );
+
+      it('within the first range only', () =>
+        calculateAndExpect('4', constants.statuses.Info)
+      );
+
+      it('within the second overlap', () =>
+        calculateAndExpect('5', constants.statuses.Warning)
+      );
+
+      it('within the first range only', () =>
+        calculateAndExpect('8', constants.statuses.Info)
+      );
+    });
+
+    describe('encompassing ranges, reverse (more severe has precedence)', () => {
+      before(() =>
+        setupRanges({
+          criticalRange: [0, 10],
+          warningRange: [5, 6],
+          infoRange: [2, 3],
+          okRange: null,
+        })
+      );
+
+      after(rtu.flushRedis);
+
+      it('within the first range only', () =>
+        calculateAndExpect('1', constants.statuses.Critical)
+      );
+
+      it('within the first overlap', () =>
+        calculateAndExpect('2', constants.statuses.Critical)
+      );
+
+      it('within the first range only', () =>
+        calculateAndExpect('4', constants.statuses.Critical)
+      );
+
+      it('within the second overlap', () =>
+        calculateAndExpect('5', constants.statuses.Critical)
+      );
+
+      it('within the first range only', () =>
+        calculateAndExpect('8', constants.statuses.Critical)
+      );
+    });
+
     describe('infinite ranges >', () => {
-      beforeEach(() =>
+      before(() =>
         setupRanges({
           criticalRange: [Number.MIN_SAFE_INTEGER, -1],
           warningRange: [0, 0],
@@ -453,6 +660,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
           okRange: null,
         })
       );
+
+      after(rtu.flushRedis);
 
       it('within a non-infinite range', () =>
         calculateAndExpect('0', constants.statuses.Warning)
@@ -468,7 +677,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
     });
 
     describe('decimal ranges >', () => {
-      beforeEach(() =>
+      before(() =>
         setupRanges({
           criticalRange: [0, 2.5],
           warningRange: [2.5, 3.1],
@@ -477,12 +686,14 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         })
       );
 
+      after(rtu.flushRedis);
+
       it('within first range (integer)', () =>
         calculateAndExpect('1', constants.statuses.Critical)
       );
 
       it('within first range (decimal)', () =>
-        calculateAndExpect('2.4', constants.statuses.Critical)
+        calculateAndExpect('2.499', constants.statuses.Critical)
       );
 
       it('on the edge', () =>
@@ -490,7 +701,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
       );
 
       it('within second range (decimal)', () =>
-        calculateAndExpect('2.51', constants.statuses.Warning)
+        calculateAndExpect('2.511', constants.statuses.Warning)
       );
 
       it('between the cracks', () =>
@@ -499,7 +710,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
     });
 
     describe('integer ranges, decimal values - no rounding expected >', () => {
-      beforeEach(() =>
+      before(() =>
         setupRanges({
           criticalRange: [0, 25],
           warningRange: [25, 49],
@@ -507,6 +718,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
           okRange: [100, 100],
         })
       );
+
+      after(rtu.flushRedis);
 
       it('within first range', () =>
         calculateAndExpect('8.0', constants.statuses.Critical)
@@ -523,7 +736,7 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
   }); // numeric
 
   describe('booleans, etc. >', () => {
-    beforeEach(() =>
+    before(() =>
       setupRanges({
         criticalRange: [0, 0],
         warningRange: null,
@@ -531,6 +744,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         okRange: [1, 1],
       })
     );
+
+    after(rtu.flushRedis);
 
     it('lower case true => status OK', () =>
       calculateAndExpect('true', constants.statuses.OK)
@@ -565,8 +780,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         infoRange: [50, 75],
         okRange: [75, 100],
       })
-      .then(() => calculateAndExpect('25', constants.statuses.Critical))
-      .then(() => calculateAndExpect('99', constants.statuses.OK))
+        .then(() => calculateAndExpect('25', constants.statuses.Critical))
+        .then(() => calculateAndExpect('99', constants.statuses.OK))
     );
   }); // percent
 });
