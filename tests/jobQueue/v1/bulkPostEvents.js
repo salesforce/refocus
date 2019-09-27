@@ -44,6 +44,7 @@ describe('tests/jobQueue/v1/bulkPostEvents.js, ' +
         bulkPostEventsJob(job, done);
       });
     }
+
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;

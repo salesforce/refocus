@@ -197,7 +197,7 @@ module.exports = {
 
     if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents')) {
       let bulkPostEventsJob;
-      bulkPostEventsQueue.getJobFromId(jobId)
+      bulkPostEventsQueue.getJobFromId(parseInt(jobId, 10))
         .then((job) => {
           bulkPostEventsJob = job;
           resultObj.dbTime = new Date() - resultObj.reqStartTime;
@@ -213,7 +213,6 @@ module.exports = {
         .then((jobState) => {
           const ret = {};
           ret.status = jobState;
-
           if (jobState === 'completed' &&
            bulkPostEventsJob.returnvalue.errors) {
             ret.errors = bulkPostEventsJob.returnvalue.errors;
