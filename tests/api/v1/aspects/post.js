@@ -354,7 +354,7 @@ describe('tests/api/v1/aspects/post.js >', () => {
 
     it('OK, valueType=numeric, ranges valid', (done) => {
       aspectToPost.okRange = [-45, 70];
-      aspectToPost.criticalRange = [30, 900];
+      aspectToPost.criticalRange = [70, 900];
       aspectToPost.valueType = 'NUMERIC';
 
       api.post(path)
@@ -363,7 +363,7 @@ describe('tests/api/v1/aspects/post.js >', () => {
       .expect(constants.httpStatus.CREATED)
       .expect((res) => {
         expect(res.body.okRange).to.be.eql([-45, 70]);
-        expect(res.body.criticalRange).to.be.eql([30, 900]);
+        expect(res.body.criticalRange).to.be.eql([70, 900]);
       })
       .end(done);
     });
