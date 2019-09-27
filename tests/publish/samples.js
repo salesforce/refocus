@@ -70,7 +70,7 @@ describe('tests/publish/samples.js >', () => {
       if (subscribeTracker.length) {
         resolve(subscribeTracker);
       } else {
-        subscriber.on('message', resolve);
+        subscriber.on('message', () => resolve(subscribeTracker));
       }
     })
     .timeout(100);
