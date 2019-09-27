@@ -16,8 +16,6 @@
 const constants = require('../constants');
 const dbErrors = require('../dbErrors');
 const Op = require('sequelize').Op;
-const sampleStore = require('../../cache/sampleStore');
-const redisOps = require('../../cache/redisOps');
 const fourByteBase = 2;
 const fourByteExponent = 31;
 const fourByteLimit = Math.pow(fourByteBase, fourByteExponent);

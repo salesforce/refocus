@@ -101,7 +101,7 @@ module.exports = function sample(seq, dataTypes) {
           .then((a) => {
             if (a && a.getDataValue('isPublished')) {
               inst.name += a.name;
-              return redisOps.calculateSampleStatus(inst)
+              return redisOps.calculateSampleStatus(inst.name, inst.value)
                 .then((status) => {
                   inst.status = status;
                   return resolve(inst);
@@ -478,7 +478,7 @@ module.exports = function sample(seq, dataTypes) {
    * Instance method wrapper around computeStatus.
    */
   Sample.prototype.calculateStatus = function () {
-    return redisOps.calculateSampleStatus(this);
+    return redisOps.calculateSampleStatus(this.name, this.value);
   }; // calculateStatus
 
   Sample.prototype.isWritableBy = function (who) {

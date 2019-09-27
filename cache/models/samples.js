@@ -244,7 +244,8 @@ function updateSampleAttributes(curr, prev) {
          * This is a brand new sample so calculate current status based on value,
          * set previous status to invalid, and set status changed at to now.
          */
-        return redisOps.calculateSampleStatus(curr)
+        return redisOps.calculateSampleStatus(
+          curr[sampFields.NAME], curr[sampFields.VALUE])
           .then((status) => {
             curr[sampFields.STATUS] = status;
             curr[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
@@ -264,7 +265,8 @@ function updateSampleAttributes(curr, prev) {
       /*
        * The value is different so we need to calculate the status.
        */
-      return redisOps.calculateSampleStatus(curr)
+      return redisOps.calculateSampleStatus(
+        curr[sampFields.NAME], curr[sampFields.VALUE])
         .then((status) => {
           curr[sampFields.STATUS] = status;
           if (curr[sampFields.STATUS] === prev[sampFields.STATUS]) {
@@ -920,8 +922,7 @@ module.exports = {
     })
     .then(() => {
       if (reqBody.value) {
-        reqBody.name = sampleName;
-        return redisOps.calculateSampleStatus(reqBody)
+        return redisOps.calculateSampleStatus(reqBody.name, reqBody.value)
           .then((status) => {
             if (currSampObj[sampFields.STATUS] !== status) {
               reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
@@ -1018,7 +1019,7 @@ module.exports = {
 
       modelUtils.removeExtraAttributes(reqBody, sampleFieldsArr);
       reqBody.name = sampleName;
-      return redisOps.calculateSampleStatus(reqBody);
+      return redisOps.calculateSampleStatus(reqBody.name, reqBody.value);
     })
     .then((status) => {
       const value = reqBody.value || '';
@@ -1104,10 +1105,8 @@ module.exports = {
         value = reqBody.value;
       }
 
-      reqBody.name = sampleName;
-
       // change these only if status is updated
-      return redisOps.calculateSampleStatus(reqBody);
+      return redisOps.calculateSampleStatus(reqBody.name, value);
     })
     .then((status) => {
       if (currSampObj[sampFields.STATUS] !== status) {

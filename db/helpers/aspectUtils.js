@@ -247,19 +247,6 @@ function validateAspectStatusRanges(inst) {
   aspStatusRanges.forEach((aspRange) => {
     validateRange(aspRange, inst.valueType);
   });
-
-  const byMin = [...aspStatusRanges].sort((a, b) =>
-    a[0] === b[0] ? a[1] > b[1] : a[0] > b[0]
-  );
-  const byMinFlat = byMin.reduce((allVals, range) => [...allVals, ...range], []);
-  const flatSorted = [...byMinFlat].sort((a, b) => a > b);
-  const overlapping = !flatSorted.every((val, i) => val === byMinFlat[i]);
-
-  if (overlapping) {
-    throw new dbErrors.InvalidAspectStatusRange({
-      message: 'Ranges cannot overlap.',
-    });
-  }
 }
 
 module.exports = {
