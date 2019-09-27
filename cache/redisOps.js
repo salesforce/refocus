@@ -26,13 +26,6 @@ const sampleType = keyType.sample;
 const subjectTagsType = keyType.subjectTags;
 const Status = require('../db/constants').statuses;
 
-const rangeNameToStatus = {
-  criticalRange: 'Critical',
-  warningRange: 'Warning',
-  infoRange: 'Info',
-  okRange: 'OK',
-};
-
 /**
  * Capitalize the first letter of the string and returns the modified string.
  *
