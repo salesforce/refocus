@@ -47,7 +47,7 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
     };
     const samp = null;
 
-    return tu.db.Aspect.create({
+    tu.db.Aspect.create({
       isPublished: true,
       name: '___ThreeHours',
       timeout: '3H',
@@ -106,7 +106,7 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
       updatedAt: '2018-10-29T22:42:30.938Z',
     };
 
-    return tu.db.Aspect.create({
+    tu.db.Aspect.create({
       description: 'this is a0 description',
       imageUrl: 'http://www.bar.com/a0.jpg',
       isPublished: true,

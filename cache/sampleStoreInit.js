@@ -25,6 +25,7 @@ const infoLoggingEnabled =
   featureToggles.isFeatureEnabled('enableSampleStoreInfoLogging');
 const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
 const redisOps = require('./redisOps');
+const statusCalculation = require('./statusCalculation');
 const ONE = 1;
 const ZERO = 0;
 
@@ -193,7 +194,9 @@ function populateAspects() {
         }
 
         // add ranges keys
-        redisOps.addRangesCmds(a, cmds);
+        let ranges = statusCalculation.getAspectRanges(a);
+        ranges = statusCalculation.preprocessOverlaps(ranges);
+        statusCalculation.addRangesCmds(ranges, a.name, cmds);
 
         const key = samsto.toKey(constants.objectType.aspect, a.name);
         aspectIdx.push(key);

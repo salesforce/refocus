@@ -114,10 +114,7 @@ function parseName(name) {
  */
 function checkWritePermission(aspectName, userName, isBulk) {
   const redisCmds = [];
-  const aspWritersKey = sampleStore.toKey(
-    sampleStore.constants.objectType.aspWriters, aspectName);
-  redisCmds.push(['exists', aspWritersKey]);
-  redisCmds.push(['sismember', aspWritersKey, userName]);
+  redisOps.checkAspectWriterCmds(redisCmds, aspectName, userName);
 
   return redisOps.executeBatchCmds(redisCmds)
     .then((res) => {
@@ -922,7 +919,7 @@ module.exports = {
     })
     .then(() => {
       if (reqBody.value) {
-        return redisOps.calculateSampleStatus(reqBody.name, reqBody.value)
+        return redisOps.calculateSampleStatus(sampleName, reqBody.value)
           .then((status) => {
             if (currSampObj[sampFields.STATUS] !== status) {
               reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
@@ -1106,7 +1103,7 @@ module.exports = {
       }
 
       // change these only if status is updated
-      return redisOps.calculateSampleStatus(reqBody.name, value);
+      return redisOps.calculateSampleStatus(sampleName, value);
     })
     .then((status) => {
       if (currSampObj[sampFields.STATUS] !== status) {

@@ -793,6 +793,19 @@ module.exports = {
     return statusCalculation.calculateStatus(aspName, value);
   }, // calculateSampleStatus
 
+  /**
+   * Add commands to check whether the aspect is writable by user
+   * @param redisCmds - Commands array
+   * @param aspectName - aspect name
+   * @param userName - user name
+   */
+  checkAspectWriterCmds(redisCmds, aspectName, userName) {
+    const aspWritersKey = redisStore.toKey(
+      redisStore.constants.objectType.aspWriters, aspectName);
+    redisCmds.push(['exists', aspWritersKey]);
+    redisCmds.push(['sismember', aspWritersKey, userName]);
+  }, // checkWriterCmds
+
   renameKey,
 
   deleteKey,
