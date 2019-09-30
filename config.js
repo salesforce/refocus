@@ -140,6 +140,7 @@ const clockJobConfig = {
   intervals: {
     checkMissedCollectorHeartbeat:
       String(collectorConfig.heartbeatIntervalMillis),
+    deactivateRooms: '5m',
     deleteUnusedTokens: '1d',
     jobCleanup: '30m',
     kueStatsActivityLogs: '1m',
@@ -156,6 +157,7 @@ const clockJobConfig = {
   toggles: {
     kueStatsActivityLogs: 'enableKueStatsActivityLogs',
     queueStatsActivityLogs: 'enableQueueStatsActivityLogs',
+    deactivateRooms: 'enableDeactivateRooms',
   },
 };
 

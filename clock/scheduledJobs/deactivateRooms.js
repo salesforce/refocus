@@ -11,12 +11,6 @@
  *
  * Gets an array of all rooms which should be deactivated, then deactivates
  * them and does a sync if this is enabled in the room settings.
- *
- * Note:
- * Deactivate room was removed from the job in Refocus because now
- * GUS/ORG62 must be checked before deactivating. This work has been
- * transferred to Case-Bot (even when there is no a case-bot in the room, it
- * still running as a backend service checking rooms to deactivate).
  */
 const moment = require('moment');
 const Op = require('sequelize').Op;

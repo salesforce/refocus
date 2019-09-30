@@ -86,6 +86,7 @@ const longTermToggles = {
     'collectorAssignment'),
   enableCollectorHeartbeatLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'collectorHeartbeat'),
+  enableDeactivateRooms: environmentVariableTrue(pe, 'ENABLE_DEACTIVATE_ROOMS'),
   enableEnvActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'env'),
   enableJobActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS', 'job'),
   enableJobCleanupActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
