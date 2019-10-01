@@ -12,6 +12,7 @@
 const ft = require('feature-toggles');
 const jobWrapper = require('../jobQueue/jobWrapper');
 const redisClient = require('../cache/redisCache').client.clock;
+const logger = require('@salesforce/refocus-logging-client');
 
 module.exports = function (jobs, config) {
   const startTime = Date.now();
@@ -26,11 +27,14 @@ module.exports = function (jobs, config) {
       useWorker = useWorker && ft.isFeatureEnabled('enableWorkerProcess');
       const jobEnabled = toggle ? ft.isFeatureEnabled(toggle) : true;
 
+      logger.info(`clock/setupIntervals.js (pre) job ${jobName}, interval ${interval} jobEnabled ${jobEnabled} `);
       if (interval && jobEnabled) {
         // wrap job function
         const fn = useWorker ? executeOnWorker(jobName) : job.execute;
 
         const initialRun = runOnceThenSetupInterval(jobName, fn, interval);
+
+        logger.info(`clock/setupIntervals.js (pos) job ${jobName}, interval ${interval} jobEnabled ${jobEnabled} `);
 
         // calculate initial interval
         const lastRunTime = jobTimes[i] || startTime;
