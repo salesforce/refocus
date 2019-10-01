@@ -28,6 +28,7 @@ const conf = require('../../config');
  * @returns {Promise} - Promise that room was deactivated.
  */
 function checkAndDeactivateRoom(room) {
+  console.log('test deactivation');
   // Getting most recent event for this room
   return dbEvent.findOne({
     where: { roomId: room.id },
