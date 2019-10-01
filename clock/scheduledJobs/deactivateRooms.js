@@ -19,6 +19,7 @@ const dbRoom = require('../../db/index').Room;
 const dbEvent = require('../../db/index').Event;
 const dbBotAction = require('../../db/index').BotAction;
 const conf = require('../../config');
+const logger = require('@salesforce/refocus-logging-client');
 
 /**
  * Deactivates a room if there has not been any recent activity in the room.
@@ -28,7 +29,6 @@ const conf = require('../../config');
  * @returns {Promise} - Promise that room was deactivated.
  */
 function checkAndDeactivateRoom(room) {
-  console.log('test deactivation');
   // Getting most recent event for this room
   return dbEvent.findOne({
     where: { roomId: room.id },
@@ -84,6 +84,7 @@ function checkAndDeactivateRoom(room) {
  * @returns {Promise} - Promise that rooms were deactivated
  */
 function execute() {
+  logger.info('clock/scheduledJobs/deactivateRooms.js:::execute');
   const date = new Date();
   date.setMinutes(date.getMinutes() - conf.minRoomDeactivationAge);
   return dbRoom.findAll(
