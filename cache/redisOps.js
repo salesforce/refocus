@@ -11,15 +11,27 @@
  */
 'use strict'; // eslint-disable-line strict
 
+const Promise = require('bluebird');
 const redisStore = require('./sampleStore');
 const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
 const redisClient = require('./redisCache').client.sampleStore;
+const statusCalculation = require('./statusCalculation');
 const rsConstant = redisStore.constants;
-const subjectType = redisStore.constants.objectType.subject;
-const subAspMapType = redisStore.constants.objectType.subAspMap;
-const aspSubMapType = redisStore.constants.objectType.aspSubMap;
-const aspectType = redisStore.constants.objectType.aspect;
-const sampleType = redisStore.constants.objectType.sample;
+const keyType = redisStore.constants.objectType;
+const subjectType = keyType.subject;
+const subAspMapType = keyType.subAspMap;
+const aspSubMapType = keyType.aspSubMap;
+const aspectType = keyType.aspect;
+const sampleType = keyType.sample;
+const subjectTagsType = redisStore.constants.objectType.subTags;
+const Status = require('../db/constants').statuses;
+
+const rangeNameToStatus = {
+  criticalRange: 'Critical',
+  warningRange: 'Warning',
+  infoRange: 'Info',
+  okRange: 'OK',
+};
 
 /**
  * Capitalize the first letter of the string and returns the modified string.
@@ -39,13 +51,19 @@ function capitalizeFirstLetter(str) {
  * @param  {String} name  - Name used to identify the hash
  * @param  {Object} value - The value object's key/value are set as the
  * key/value of the hash that is created or updated.
- * @returns {Promise} - which resolves to true
+ * @returns {Promise|Array} - Promise which resolves to true or command if
+ * returnCmd is true.
  */
-function hmSet(objectName, name, value) {
+function hmSet(objectName, name, value, returnCmd=false) {
   const cleanobj =
     redisStore['clean' + capitalizeFirstLetter(objectName)](value);
   const nameKey = redisStore.toKey(objectName, name);
   logInvalidHmsetValues(nameKey, cleanobj);
+
+  if (returnCmd) {
+    return ['hmset', nameKey, cleanobj];
+  }
+
   return redisClient.hmsetAsync(nameKey, cleanobj)
   .then((ok) => Promise.resolve(ok))
   .catch((err) => Promise.reject(err));
@@ -100,12 +118,17 @@ function getValue(type, name) {
  * @param  {String} type - The type of the master list on which the
  *  set operations are to be performed
  * @param {String} name - Name of the key to be added
- * @returns {Promise} - which resolves to the values returned by the redis
- *  command
+ * @returns {Promise|Array} - Promise which resolves to the values returned
+ * by the redis command | command array if returnCmd is true.
  */
-function addKey(type, name) {
+function addKey(type, name, returnCmd=false) {
   const indexName = redisStore.constants.indexKey[type];
   const nameKey = redisStore.toKey(type, name);
+
+  if (returnCmd) {
+    return ['sadd', indexName, nameKey];
+  }
+
   return redisClient.saddAsync(indexName, nameKey)
   .then((ok) => Promise.resolve(ok))
   .catch((err) => Promise.reject(err));
@@ -117,10 +140,11 @@ function addKey(type, name) {
  * @param  {String} type - The type of the master list on which the
  *  set operations are to be performed
  * @param {String} name - Name of the key to be deleted
+ * @param {Array} additionalCmds - Additional commands which can be batched
  * @returns {Promise} - which resolves to the values returned by the redis
  * batch command
  */
-function deleteKey(type, name) {
+function deleteKey(type, name, additionalCmds=[]) {
   const indexName = redisStore.constants.indexKey[type];
   const key = redisStore.toKey(type, name);
   const cmds = [];
@@ -132,6 +156,10 @@ function deleteKey(type, name) {
 
   // delete the hash
   cmds.push(['del', key]);
+  if (additionalCmds && additionalCmds.length > 0) {
+    cmds.push(...additionalCmds);
+  }
+
   return redisClient.batch(cmds).execAsync()
   .then((ret) => Promise.resolve(ret))
   .catch((err) => Promise.reject(err));
@@ -535,6 +563,225 @@ module.exports = {
     .then((results) => Promise.resolve(results[0]));
   },
 
+  /**
+   * Setup writers, tags, and ranges for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  setupKeysForAspect(aspect) {
+    return Promise.join(
+      module.exports.setTags(aspect),
+      module.exports.setWriters(aspect),
+      module.exports.setRanges(aspect),
+    );
+  },
+
+  /**
+   * Remove writers, tags, and ranges for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  removeKeysForAspect(aspect) {
+    return Promise.join(
+      module.exports.removeTags(aspect),
+      module.exports.removeWriters(aspect),
+      module.exports.removeRanges(aspect),
+    );
+  },
+
+  /**
+   * Reset tags keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  resetTags(aspect) {
+    return Promise.join(
+      module.exports.removeTags(aspect),
+      module.exports.setTags(aspect),
+    );
+  }, // resetTags
+
+  /**
+   * Reset writers keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  resetWriters(aspect) {
+    return Promise.join(
+      module.exports.removeWriters(aspect),
+      module.exports.setWriters(aspect),
+    );
+  }, // resetWriters
+
+  /**
+   * Reset ranges keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  resetRanges(aspect) {
+    return Promise.join(
+      module.exports.removeRanges(aspect),
+      module.exports.setRanges(aspect),
+    );
+  }, // resetRanges
+
+  /**
+   * Remove tags keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  removeTags(aspect) {
+    const key = redisStore.toKey(keyType.aspTags, aspect.name);
+    return redisClient.delAsync(key);
+  }, // removeTags
+
+  /**
+   * Remove writers keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  removeWriters(aspect) {
+    const key = redisStore.toKey(keyType.aspWriters, aspect.name);
+    return redisClient.delAsync(key);
+  }, // removeWriters
+
+  /**
+   * Remove ranges keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  removeRanges(aspect) {
+    const key = redisStore.toKey(keyType.aspRanges, aspect.name);
+    return redisClient.delAsync(key);
+  }, // removeRanges
+
+  /**
+   * Get tags keys for this aspect
+   *
+   * @param  {Object} aspect
+   * @returns {Promise<Array>}
+   */
+  getTags(aspect) {
+    const key = redisStore.toKey(keyType.aspTags, aspect.name);
+    return redisClient.smembersAsync(key);
+  },
+
+  /**
+   * Get writers keys for this aspect
+   *
+   * @param  {Object} aspect
+   * @returns {Promise<Array>}
+   */
+  getWriters(aspect) {
+    const key = redisStore.toKey(keyType.aspWriters, aspect.name);
+    return redisClient.smembersAsync(key);
+  },
+
+  /**
+   * Get ranges keys for this aspect
+   *
+   * @param  {Object} aspect
+   * @returns {Promise<Array>}
+   */
+  getRanges(aspect) {
+    const key = redisStore.toKey(keyType.aspRanges, aspect.name);
+    return redisClient.zrangeAsync(key, 0, -1, 'WITHSCORES');
+  },
+
+  /**
+   * Get ranges keys for this aspect
+   *
+   * @param  {Object} aspect
+   * @returns {Promise<Object>}
+   */
+  getTagsWritersRanges(aspect) {
+    return Promise.join(
+      module.exports.getTags(aspect),
+      module.exports.getWriters(aspect),
+      module.exports.getRanges(aspect),
+    )
+    .then(([tags, writers, ranges]) => ({ tags, writers, ranges }));
+  },
+
+  /**
+   * Set tags keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  setTags(aspect) {
+    const key = redisStore.toKey(keyType.aspTags, aspect.name);
+    if (aspect.tags && aspect.tags.length) {
+      return redisClient.saddAsync(key, aspect.tags);
+    }
+  }, // setTags
+
+  /**
+   * Set writers keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  setWriters(aspect) {
+    const key = redisStore.toKey(keyType.aspWriters, aspect.name);
+    const writerNames = aspect.writers && aspect.writers.map(w => w.name);
+
+    if (writerNames && writerNames.length) {
+      return redisClient.saddAsync(key, writerNames);
+    }
+  }, // setWriters
+
+  /**
+   * Set ranges keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  setRanges(aspect) {
+    let ranges = statusCalculation.getAspectRanges(aspect);
+    ranges = statusCalculation.preprocessOverlaps(ranges);
+    return statusCalculation.setRanges(ranges, aspect.name);
+  }, // setRanges
+
+  /**
+   * Calculate the sample status based on the ranges set for this sample's aspect.
+   *
+   * @param  {Object} sampleName - Sample name
+   * @param  {Object} value - Sample value
+   * @returns {Promise} - resolves to the sample status
+   */
+  calculateSampleStatus(sampleName, value) {
+    // aspect name
+    const aspName = sampleName.split('|')[1];
+
+    // value
+    try {
+      value = statusCalculation.prepareValue(value);
+    } catch (err) {
+      return Status[err.message] ? Promise.resolve(err.message) : Promise.reject(err);
+    }
+
+    // calculate
+    return statusCalculation.calculateStatus(aspName, value);
+  }, // calculateSampleStatus
+
+  /**
+   * Get tags key for a subject
+   * @param absolutePath - subject absolute path
+   * @returns {String} - subject tags key
+   */
+  getSubjectTagsKey(absolutePath) {
+    return redisStore.toKey(subjectTagsType, absolutePath);
+  },
+
   renameKey,
 
   deleteKey,
@@ -556,6 +803,8 @@ module.exports = {
   subAspMapType,
 
   aspSubMapType,
+
+  subjectTagsType,
 
   getValue,
 
