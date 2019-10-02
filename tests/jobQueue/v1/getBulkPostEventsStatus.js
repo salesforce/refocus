@@ -54,6 +54,7 @@ describe('tests/jobQueue/v1/getBulkPostEventStatus.js, ' +
     tu.toggleOverride('enableWorkerProcess', false);
   });
 
+  // skipping as this route is being removed
   it.skip('OK, bulkPostEvents processed without errors should be in complete ' +
     'state without any errors', (done) => {
     let jobId;
@@ -102,6 +103,7 @@ describe('tests/jobQueue/v1/getBulkPostEventStatus.js, ' +
     });
   });
 
+  // skipping as this route is being removed
   it.skip('FAIL, bulkPostEvents is in complete state but processed ' +
     ' with an error', (done) => {
     let jobId;
