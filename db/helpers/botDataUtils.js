@@ -15,6 +15,7 @@
 
 const _ = require('lodash');
 const serialize = require('serialize-javascript');
+const logger = require('@salesforce/refocus-logging-client');
 const Op = require('sequelize').Op;
 const ZERO = 0;
 const ONE = 1;
@@ -251,7 +252,8 @@ function updateValues(seq, instance) {
           });
 
           // Find bot data to update
-          promises.push(BotData.findOne(whereConst).catch((err) => err));
+          promises.push(BotData.findOne(whereConst).catch((err) =>
+            logger.error('Shared Context error ', err)));
           promises.push(syncValue);
         });
       }
@@ -270,7 +272,8 @@ function updateValues(seq, instance) {
       for (let i = ZERO; i < data.length; i += TWO) {
         if (data[i] && data[i].value) {
           newValue = combineValue(data[i].value, data[i + ONE]);
-          updates.push(data[i].update({ value: newValue }).catch((err) => err));
+          updates.push(data[i].update({ value: newValue }).catch((err) =>
+            logger.error('Shared Context error ', err)));
         }
       }
 
