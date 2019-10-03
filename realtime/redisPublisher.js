@@ -10,7 +10,7 @@
  * ./realTime/redisPublisher.js
  */
 'use strict'; // eslint-disable-line strict
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
 const featureToggles = require('feature-toggles');
 const rtUtils = require('./utils');
 const config = require('../config');
@@ -20,6 +20,7 @@ const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const pubSubStats = require('./pubSubStats');
 const ONE = 1;
+const tracker = require('./kafkaTracking');
 
 /**
  * Returns a random integer between min (inclusive) and max (inclusive).
@@ -51,17 +52,18 @@ function trackStats(key, obj) {
     obj.new.hasOwnProperty('updatedAt')) {
     elapsed = Date.now() - new Date(obj.new.updatedAt);
   } else {
-    console.trace('Where is updatedAt? ' + JSON.stringify(obj));
+    logger.verbose('Where is updatedAt? ' + JSON.stringify(obj) + '\n' +
+      new Error().stack);
   }
 
   rcache.hincrbyAsync(pubKeys.count, key, ONE)
     .catch((err) => {
-      console.error('redisPublisher.trackStats HINCRBY', pubKeys.count, key,
+      logger.error('redisPublisher.trackStats HINCRBY', pubKeys.count, key,
         ONE);
     });
   rcache.hincrbyAsync(pubKeys.time, key, elapsed)
     .catch((err) => {
-      console.error('redisPublisher.trackStats HINCRBY', pubKeys.time, key,
+      logger.error('redisPublisher.trackStats HINCRBY', pubKeys.time, key,
         elapsed, err);
     });
 } // trackStats
@@ -155,7 +157,7 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
     try {
       pubSubStats.track('pub', event, obj[event]);
     } catch (err) {
-      console.error(err);
+      logger.error(err);
     }
   }
 
@@ -178,7 +180,10 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  */
 function publishSample(sampleInst, subjectModel, event, aspectModel) {
   if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
-    return publishSampleNoChange(sampleInst);
+    return publishSampleNoChange(sampleInst).then(() => {
+      tracker.trackSamplePublish(sampleInst.name,
+        sampleInst.updatedAt);
+    });
   }
 
   const eventType = event || getSampleEventType(sampleInst);
@@ -197,7 +202,11 @@ function publishSample(sampleInst, subjectModel, event, aspectModel) {
       if (sample) {
         sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
         return publishObject(sample, eventType)
-          .then(() => sample);
+          .then(() => {
+            tracker.trackSamplePublish(sample.name,
+              sample.updatedAt);
+            return sample;
+          });
       }
     })
     .catch((err) => {

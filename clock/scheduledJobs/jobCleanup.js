@@ -13,6 +13,7 @@
  */
 const featureToggles = require('feature-toggles');
 const Promise = require('bluebird');
+const logger = require('@salesforce/refocus-logging-client');
 const kue = require('kue');
 const conf = require('../../config');
 kue.Job.rangeByStateAsync = Promise.promisify(kue.Job.rangeByState);
@@ -74,7 +75,7 @@ function execute() {
     // get n jobs
     return kue.Job.rangeByStateAsync('complete', from, to, 'asc')
       .catch((err) => {
-        console.log('Error getting completed jobs from queue', err);
+        logger.info('Error getting completed jobs from queue', err);
         return Promise.reject(err);
       })
 

@@ -12,10 +12,7 @@
 
 'use strict'; // eslint-disable-line strict
 const activityLogParams = require('../config/activityLog');
-const winston = require('winston');
-const logger = new (winston.Logger)({
-  transports: [new (winston.transports.Console)()],
-});
+const logger = require('@salesforce/refocus-logging-client');
 
 module.exports = {
 
@@ -49,7 +46,7 @@ module.exports = {
     }
 
     // print the log
-    logger.log(logLevel, logStr);
+    logger.log(logStr, logLevel);
   },
 
   /**
@@ -61,6 +58,7 @@ module.exports = {
   updateActivityLogParams(resultObj, tempObj) {
     if (tempObj.dbEndTime) {
       if (tempObj.dbStartTime) {
+
         /* aggregate sequelize time, not necessarily continuous, e.g. the worker
         can make multiple sequelize calls--this should measure the sum of all
         the time spent in sequelize calls */

@@ -100,7 +100,6 @@ describe('tests/api/v1/lenses/get.js >', () => {
           }
 
           const obj = res.body;
-          console.log(obj);
           expect(obj).to.have.property('name', `${tu.namePrefix}testLensName`);
           expect(obj).to.have.property('lensEventApiVersion', 1);
           expect(obj).to.not.have.property('library');

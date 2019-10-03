@@ -163,6 +163,7 @@ const clockJobConfig = {
 // override job concurrency from env vars
 const jobConcurrency = {};
 Object.keys(jobType).forEach((jobName) => {
+
   /*
    * Use underscore (_) as separator here - colon (:) doesn't work consistently
    * in env var names in heroku.
@@ -332,9 +333,14 @@ module.exports = {
   payloadLimit,
   port,
   prioritizeJobsFrom,
+  pubSubAggregationTopic: pe.PUBSUB_AGGREGATION_TOPIC || 'pub-sub-aggregation',
   pubSubStatsLoggingInterval,
   queueTime95thMillis: pe.QUEUESTATS_95TH_WARNING_MILLIS,
   readReplicas,
+  refocusRoomsFeedback: {
+    chatter: pe.REFOCUS_ROOMS_CHATTER_URL || null,
+    email: pe.REFOCUS_ROOMS_CONTACT_EMAIL || null,
+  },
   waitingSigKillTimeout,
   findSamplesSscanCount: pe.FIND_SAMPLES_SSCAN_COUNT_STR ||
     DEFAULT_FIND_SAMPLES_SSCAN_COUNT_STR,

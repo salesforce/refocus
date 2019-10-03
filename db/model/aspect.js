@@ -149,14 +149,12 @@ module.exports = function aspect(seq, dataTypes) {
       afterCreate(inst /* , opts */) {
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-        const promiseArr = [];
-        if (inst.getDataValue('isPublished') === true) {
-          promiseArr.push(publishObject(inst, aspectEventNames.add));
-        }
-
-        promiseArr.push(redisOps.addKey(aspectType, inst.getDataValue('name')));
-        promiseArr.push(redisOps.hmSet(aspectType, inst.name, instDataObj));
-        return Promise.all(promiseArr);
+        return Promise.join(
+          inst.isPublished && publishObject(inst, aspectEventNames.add),
+          redisOps.addKey(aspectType, inst.getDataValue('name')),
+          redisOps.hmSet(aspectType, inst.name, instDataObj),
+          inst.isPublished && redisOps.setupKeysForAspect(inst),
+        );
       }, // hooks.afterCreate
 
       /**
@@ -224,120 +222,138 @@ module.exports = function aspect(seq, dataTypes) {
         const isPublishedChanged =
           inst.previous('isPublished') !== inst.getDataValue('isPublished');
 
-        /*
-         * When the sample store feature is enabled do the following
-         * 1. if aspect name is changed and it is published, rename the entry
-         * on aspectStore and the aspect hash.
-         * 2. if the aspect is updated to published, add an entry to the
-         * aspectStore and create the aspect hash
-         * 3. if the aspect is updated to unpublished, delete the entry in the
-         * aspectStore, delete the aspect hash and delete the related samples
-         * 4. if the aspect that is updated is already published, update the
-         * the aspect with the new values.
-        */
-        if (nameChanged && inst.isPublished) {
-          const newAspName = inst.name;
-          const oldAspectName = inst._previousDataValues.name;
-
-          // rename entry in aspectStore
-          promiseArr.push(redisOps.renameKey(aspectType,
-            oldAspectName, newAspName));
-
-          // duplicate aspect-to-subject resource map with new name
-          promiseArr.push(redisOps.executeCommand(redisOps.duplicateSet(
-            redisOps.aspSubMapType, newAspName, oldAspectName
-          )));
-
-          // add new aspect name entries to subject-to-aspect resource maps
-          promiseArr.push(
-            redisOps.executeCommand(
-              redisOps.getAspSubjMapMembers(oldAspectName)
-            )
-            .map((subjAbsPath) => cmds.push(redisOps.addAspectNameInSubjectSet(
-              subjAbsPath, newAspName)))
-          );
-
+        return Promise.resolve()
+        .then(() => {
+          if (((nameChanged && inst.isPublished) || isPublishedChanged) && !inst.writers) {
+            return inst.getWriters()
+            .then((writers) => inst.writers = writers);
+          }
+        })
+        .then(() => {
           /*
-           * delete multiple possible sample entries in the sample master
-           * list of index and the related sample hashes. Deletes old aspect
-           * name from subject-to-aspect resource maps. Deletes aspect-to-
-           * subject resource map with old aspect name as key.
-           */
-          promiseArr.push(u.removeAspectRelatedSamples(
-            inst._previousDataValues, seq));
+           * When the sample store feature is enabled do the following
+           * 1. if aspect name is changed and it is published, rename the entry
+           * on aspectStore and the aspect hash.
+           * 2. if the aspect is updated to published, add an entry to the
+           * aspectStore and create the aspect hash
+           * 3. if the aspect is updated to unpublished, delete the entry in the
+           * aspectStore, delete the aspect hash and delete the related samples
+           * 4. if the aspect that is updated is already published, update the
+           * the aspect with the new values.
+          */
+          if (nameChanged && inst.isPublished) {
+            const newAspName = inst.name;
+            const oldAspectName = inst._previousDataValues.name;
 
-          promiseArr.push(publishObject(inst._previousDataValues,
-            aspectEventNames.del));
-          promiseArr.push(publishObject(inst, aspectEventNames.add));
-        } else if (isPublishedChanged) {
-          // Prevent any changes to original inst dataValues object
-          const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-          promiseArr.push(redisOps.hmSet(aspectType, inst.name, instDataObj));
+            // rename entry in aspectStore
+            promiseArr.push(redisOps.renameKey(aspectType,
+              oldAspectName, newAspName));
 
-          // add the aspect to the aspect master list regardless of isPublished
-          promiseArr.push(redisOps.addKey(aspectType, inst.name));
-          if (inst.isPublished) {
-            promiseArr.push(publishObject(inst, aspectEventNames.add));
-          } else {
+            // update aspect keys
+            promiseArr.push(redisOps.removeKeysForAspect(inst._previousDataValues));
+            promiseArr.push(redisOps.setupKeysForAspect(inst));
+
+            // duplicate aspect-to-subject resource map with new name
+            promiseArr.push(redisOps.executeCommand(redisOps.duplicateSet(
+              redisOps.aspSubMapType, newAspName, oldAspectName
+            )));
+
+            // add new aspect name entries to subject-to-aspect resource maps
+            promiseArr.push(
+              redisOps.executeCommand(
+                redisOps.getAspSubjMapMembers(oldAspectName)
+              )
+              .map((subjAbsPath) => cmds.push(redisOps.addAspectNameInSubjectSet(
+                subjAbsPath, newAspName)))
+            );
+
             /*
              * delete multiple possible sample entries in the sample master
-             * list of index and the related sample hashes. Deletes aspect
+             * list of index and the related sample hashes. Deletes old aspect
              * name from subject-to-aspect resource maps. Deletes aspect-to-
-             * subject resource map with aspect name as key.
+             * subject resource map with old aspect name as key.
              */
-            promiseArr.push(u.removeAspectRelatedSamples(inst.dataValues, seq));
-            promiseArr.push(publishObject(inst, aspectEventNames.del));
-          }
-        } else if (inst.isPublished) {
-          const instChanged = {};
-          Object.keys(inst._changed)
-          .filter((key) => inst._changed[key])
-          .forEach((key) => {
-            instChanged[key] = inst[key];
-          });
-          promiseArr.push(redisOps.hmSet(aspectType, inst.name, instChanged));
+            promiseArr.push(u.removeAspectRelatedSamples(
+              inst._previousDataValues, seq));
 
-          if (common.tagsChanged(inst)) {
             promiseArr.push(publishObject(inst._previousDataValues,
               aspectEventNames.del));
             promiseArr.push(publishObject(inst, aspectEventNames.add));
-          } else {
-            promiseArr.push(publishObject(inst, aspectEventNames.upd,
-              Object.keys(inst._changed), []));
+          } else if (isPublishedChanged) {
+            // Prevent any changes to original inst dataValues object
+            const instDataObj = JSON.parse(JSON.stringify(inst.get()));
+            promiseArr.push(redisOps.hmSet(aspectType, inst.name, instDataObj));
+
+            // add the aspect to the aspect master list regardless of isPublished
+            promiseArr.push(redisOps.addKey(aspectType, inst.name));
+            if (inst.isPublished) {
+              promiseArr.push(redisOps.setupKeysForAspect(inst));
+              promiseArr.push(publishObject(inst, aspectEventNames.add));
+            } else {
+              promiseArr.push(redisOps.removeKeysForAspect(inst._previousDataValues));
+
+              /*
+               * delete multiple possible sample entries in the sample master
+               * list of index and the related sample hashes. Deletes aspect
+               * name from subject-to-aspect resource maps. Deletes aspect-to-
+               * subject resource map with aspect name as key.
+               */
+              promiseArr.push(u.removeAspectRelatedSamples(inst.dataValues, seq));
+              promiseArr.push(publishObject(inst, aspectEventNames.del));
+            }
+          } else if (inst.isPublished) {
+            const instChanged = {};
+            Object.keys(inst._changed)
+            .filter((key) => inst._changed[key])
+            .forEach((key) => {
+              instChanged[key] = inst[key];
+            });
+            promiseArr.push(redisOps.hmSet(aspectType, inst.name, instChanged));
+
+            if (common.tagsChanged(inst)) {
+              promiseArr.push(redisOps.resetTags(inst));
+              promiseArr.push(publishObject(inst._previousDataValues,
+                aspectEventNames.del));
+              promiseArr.push(publishObject(inst, aspectEventNames.add));
+            } else {
+              promiseArr.push(publishObject(inst, aspectEventNames.upd,
+                Object.keys(inst._changed), []));
+            }
           }
-        }
 
-        /*
-         * If aspect is published and tags change, send an "add" realtime
-         * event for all the samples for this aspect. (The beforeUpdate hook
-         * will already have sent a "delete" event.) This way, perspectives
-         * which filter by aspect tags will get the right samples.
-         */
-        if (inst.isPublished && common.tagsChanged(inst)) {
-          promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
-            .each((samp) => {
-              if (samp) {
-                publishSample(
-                  samp, seq.models.Subject, sampleEventNames.add,
-                  seq.models.Aspect
-                );
-              }
-            })
-          );
-        } // tags changed
+          /*
+           * If aspect is published and tags change, send an "add" realtime
+           * event for all the samples for this aspect. (The beforeUpdate hook
+           * will already have sent a "delete" event.) This way, perspectives
+           * which filter by aspect tags will get the right samples.
+           */
+          if (inst.isPublished && common.tagsChanged(inst)) {
+            promiseArr.push(redisOps.getSamplesFromAspectName(inst.name)
+              .each((samp) => {
+                if (samp) {
+                  publishSample(
+                    samp, seq.models.Subject, sampleEventNames.add,
+                    seq.models.Aspect
+                  );
+                }
+              })
+            );
+          } // tags changed
 
-        /* If aspect is published and any status range changes, delete the
-         samples. Let the next new sample come in and recalculate status based
-         on the new ranges.
-         */
-        if (inst.isPublished && (inst.changed('criticalRange') ||
-         inst.changed('warningRange') || inst.changed('infoRange') ||
-        inst.changed('okRange'))) {
-          promiseArr.push(u.removeAspectRelatedSamples(inst.dataValues, seq));
-        }
+          /* If aspect is published and any status range changes, delete the
+           samples. Let the next new sample come in and recalculate status based
+           on the new ranges.
+           */
+          if (inst.isPublished && (inst.changed('criticalRange') ||
+            inst.changed('warningRange') || inst.changed('infoRange') ||
+            inst.changed('okRange'))) {
+            promiseArr.push(redisOps.resetRanges(inst));
+            promiseArr.push(u.removeAspectRelatedSamples(inst.dataValues, seq));
+          }
 
-        return seq.Promise.all(promiseArr)
+          return seq.Promise.all(promiseArr)
           .then(() => redisOps.executeBatchCmds(cmds));
+        });
       }, // hooks.afterUpdate
 
       /**
@@ -354,6 +370,7 @@ module.exports = function aspect(seq, dataTypes) {
       afterDestroy(inst /* , opts */) {
         const promises = [
           redisOps.deleteKey(aspectType, inst.name),
+          redisOps.removeKeysForAspect(inst),
           u.removeAspectRelatedSamples(inst.dataValues, seq),
         ];
         if (inst.getDataValue('isPublished')) {
@@ -432,6 +449,39 @@ module.exports = function aspect(seq, dataTypes) {
       foreignKey: 'aspectId',
     });
 
+    assoc.writers.through.model.beforeBulkCreate((aspectWriters, options) =>
+      options.individualHooks = true
+    );
+
+    assoc.writers.through.model.beforeBulkDestroy((options) =>
+      options.individualHooks = true
+    );
+
+    assoc.writers.through.model.beforeBulkUpdate((options) =>
+      options.individualHooks = true
+    );
+
+    assoc.writers.through.model.afterCreate((inst) =>
+      updateWriters(inst.aspectId)
+    );
+
+    assoc.writers.through.model.afterUpdate((inst) =>
+      updateWriters(inst.aspectId)
+    );
+
+    assoc.writers.through.model.afterDestroy((inst) =>
+      updateWriters(inst.aspectId)
+    );
+
+    function updateWriters(aspId) {
+      return Aspect.scope('writers').findByPk(aspId)
+      .then((asp) => {
+        if (asp.isPublished) {
+          return redisOps.resetWriters(asp);
+        }
+      });
+    }
+
     Aspect.addScope('baseScope', {
       order: seq.col('name'),
     });
@@ -481,6 +531,15 @@ module.exports = function aspect(seq, dataTypes) {
         },
       ],
     }));
+
+    Aspect.addScope('writers', {
+      include: [
+        {
+          association: assoc.writers,
+          attributes: ['name'],
+        },
+      ],
+    });
   };
 
   /**

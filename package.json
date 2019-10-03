@@ -58,7 +58,7 @@
     "test-extra": "npm run test-api-log && npm run test-cache && npm run test-jobQueue && npm run test-view && npm run test-disablehttp && npm run test-cors && npm run test-limiter && npm run test-xfwd && npm run test-routes-enabled && npm run test-routes-disabled && npm run test-realtime-application",
     "test-jobQueue": "ENABLE_BULL_FOR_BULK_DEL_SUBJ=false npm run test-with-coverage -- --recursive tests/jobQueue && ENABLE_BULL_FOR_BULK_DEL_SUBJ=true npm run test-with-coverage -- --recursive tests/jobQueue ",
     "test-limiter": "npm run test-with-coverage -- tests/limiter/limiter.js",
-    "test-main": "npm run test-with-coverage -- --recursive tests/api tests/clock tests/config tests/db tests/enforceToken tests/realtime tests/enableCache tests/logging",
+    "test-main": "npm run test-with-coverage -- --recursive tests/api tests/clock tests/config tests/db tests/enforceToken tests/realtime tests/enableCache tests/logging tests/publish",
     "test-realtime-application": "REALTIME_APPLICATION=https://abc.def npm run test-with-coverage -- tests/realtime/pubSub.js",
     "test-travis": "npm run test && npm run coveralls",
     "test-routes-enabled": "HIDE_ROUTES=true HIDDEN_ROUTES=aspects mocha -R dot --recursive tests/routeFlag/flagEnabled",
@@ -73,6 +73,7 @@
   },
   "dependencies": {
     "@salesforce/refocus-collector": "^1.2.1",
+    "@salesforce/refocus-logging-client": "^1.0.11",
     "adm-zip": "0.4.11",
     "autoprefixer": "^6.0.3",
     "babel-core": "^6.26.3",
@@ -184,8 +185,7 @@
     "validator": "^4.0.2",
     "vinyl-source-stream": "^1.1.0",
     "webpack": "^1.12.10",
-    "webpack-hot-middleware": "^2.24.3",
-    "winston": "^1.1.2"
+    "webpack-hot-middleware": "^2.24.3"
   },
   "devDependencies": {
     "coveralls": "^2.11.14",

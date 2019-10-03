@@ -38,7 +38,7 @@ const modelsToTest = {
   subjects: ['post', 'put', 'patch'],
 };
 
-const skipByName = ['events', 'generatorTemplates'];
+const skipByName = ['events', 'generatorTemplates', 'botActions', 'botData'];
 
 let adminToken;
 let mainUser;

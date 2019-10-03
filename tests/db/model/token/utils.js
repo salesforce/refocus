@@ -62,7 +62,6 @@ module.exports = {
         return t;
       });
       return tu.db.Token.bulkCreate(toCreate);
-    })
-    .catch(console.error);
+    });
   },
 };

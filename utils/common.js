@@ -12,6 +12,7 @@
 const apiErrors = require('../api/v1/apiErrors');
 const constants = require('../api/v1/constants');
 const featureToggles = require('feature-toggles');
+const logger = require('@salesforce/refocus-logging-client');
 
 /**
  * Logs with stack trace if toggle is on and there are invalid values in hmset
@@ -25,10 +26,11 @@ function logInvalidHmsetValues(key, obj) {
     for (const _key in obj) {
       if (_key === null || obj[_key] === null ||
         (obj[_key] === undefined) || Array.isArray(obj[_key])) {
-        // eslint-disable-next-line no-console
-        const stringified = JSON.stringify(obj, (k, v) => v === undefined ? 'undefined' : v);
-        console.trace('Invalid hmset params: key ' + key +
-          ' with invalid field: ' + _key + ', received: ' + stringified);
+        const stringified = JSON.stringify(obj,
+          (k, v) => v === undefined ? 'undefined' : v);
+        logger.verbose('Invalid hmset params: key ' + key +
+          ' with invalid field: ' + _key + ', received: ' + stringified +
+          '\n' + new Error().stack);
         break;
       }
     }
@@ -97,7 +99,7 @@ function validateAtLeastOneFieldPresent(reqBody, fieldsArr) {
   }
 
   // reqBody should be object and fieldsArr should be a list
-  if ((typeof reqBody !== 'object' || Array.isArray(reqBody))  ||
+  if ((typeof reqBody !== 'object' || Array.isArray(reqBody)) ||
    !Array.isArray(fieldsArr)) {
     throw new apiErrors.ValidationError(
       { explanation: 'Invalid argument type' }

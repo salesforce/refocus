@@ -140,7 +140,7 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
       //don't call done() yet, need to wait for data to be logged
     });
 
-    function testLogMessage(transport, level, msg, meta) {
+    function testLogMessage(msg) {
       const logObj = {};
       msg.split(' ').forEach((entry) => {
         logObj[entry.split('=')[0]] = entry.split('=')[1];

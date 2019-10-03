@@ -20,7 +20,6 @@ const tu = require('../testUtils');
 const Room = tu.db.Room;
 const RoomType = tu.db.RoomType;
 const Bot = tu.db.Bot;
-const BotData = tu.db.BotData;
 const botDataEvents = require('../../realtime/constants').events.botData;
 const path = '/v1/botData';
 const u = require('../api/v1/botData/utils');
@@ -34,14 +33,18 @@ describe('tests/publish/botData.js >', () => {
   let subscriber;
   let subscribeTracker = [];
   const testBotData = u.getStandard();
+  let userId;
 
   before((done) => {
     subscriber = redis.createClient(DEFAULT_LOCAL_REDIS_URL);
     subscriber.subscribe(rconf.botChannelName);
     subscriber.on('message', (channel, msg) => subscribeTracker.push(msg));
 
-    tu.createToken()
-      .then((returnedToken) => (token = returnedToken))
+    tu.createUserAndToken()
+      .then((obj) => {
+        userId = obj.user.id;
+        token = obj.token;
+      })
       .then(() => done())
       .catch(done);
   });
@@ -55,7 +58,7 @@ describe('tests/publish/botData.js >', () => {
       })
       .then((room) => {
         testBotData.roomId = room.id;
-        return Bot.create(b.getStandard());
+        return b.createStandard(userId);
       })
       .then((bot) => {
         testBotData.botId = bot.id;

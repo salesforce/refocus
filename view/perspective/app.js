@@ -53,6 +53,7 @@ const u = require('../utils');
 const pu = require('./utils');
 const constants = require('../constants');
 const eventsQueue = require('./eventsQueue');
+const emitUtils = require('../../realtime/emitUtils');
 const pcValues = {};
 const ZERO = 0;
 const ONE = 1;
@@ -82,12 +83,11 @@ let _realtimeEventThrottleMilliseconds;
 let _userSession;
 let _io;
 
-let minAspectTimeout;
-let minTimeoutCount;
-let maxAspectTimeout;
 let lastUpdateTime;
-let intervalId;
+let timeoutCheckInterval;
 let lensEventApiVersion = 1;
+
+const trackedAspects = {};
 
 /**
  * Add error message to the errorInfo div in the page.
@@ -113,36 +113,97 @@ function handleError(err) {
  * @param  {Function} trackEndToEndTime - Callback to send event receipt time back to server
  */
 function handleEvent(eventData, eventTypeName, trackEndToEndTime) {
-  trackEndToEndTime && trackEndToEndTime(Date.now());
+  // track event receipt
+  const now = Date.now();
+  trackEndToEndTime && trackEndToEndTime(now);
+  lastUpdateTime = now;
 
-  const j = JSON.parse(eventData);
+  // parse event data
+  const obj = JSON.parse(eventData)[eventTypeName];
+
+  // intercept events to support v1 lenses
+  if (lensEventApiVersion < 2) {
+    interceptV1Event(eventTypeName, obj);
+  }
+
+  // log event data
   if (DEBUG_REALTIME) {
     console.log({ // eslint-disable-line no-console
       handleEventTimestamp: new Date(),
-      eventData: j,
+      eventData: obj,
     });
   }
 
-  eventsQueue.enqueueEvent(eventTypeName, j[eventTypeName]);
+  // dispatch event to lens
+  eventsQueue.enqueueEvent(eventTypeName, obj);
   if (_realtimeEventThrottleMilliseconds === ZERO) {
     eventsQueue.createAndDispatchLensEvent(eventsQueue.queue, LENS_DIV);
     eventsQueue.queue.length = ZERO;
   }
-
-  if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_ADD) {
-    const sample = j[eventTypeName];
-    updateTimeoutValues(sample.aspect.timeout);
-  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_UPD) {
-    const newSample = j[eventTypeName].new;
-    updateTimeoutValues(newSample.aspect.timeout);
-  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_DEL) {
-    const sample = j[eventTypeName];
-    updateDeletedTimeoutValues(sample.aspect.timeout);
-  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_NC) {
-    const sample = j[eventTypeName];
-    updateTimeoutValues(sample.aspect.timeout);
-  }
 } // handleEvent
+
+/**
+ * Intercept events to support v1 lenses.
+ *
+ * @param  {String} eventTypeName - Event type
+ * @param  {Object} eventData - object that will be sent to the lens
+ */
+function interceptV1Event(eventTypeName, eventData) {
+  if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_ADD) {
+    eventData.aspect = getTrackedAspectForSample(eventData);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_DEL) {
+    eventData.aspect = getTrackedAspectForSample(eventData);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_SMPL_UPD) {
+    eventData.new.aspect = getTrackedAspectForSample(eventData.new);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_ASP_ADD) {
+    trackAspect(eventData);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_ASP_DEL) {
+    untrackAspect(eventData);
+  } else if (eventTypeName === eventsQueue.eventType.INTRNL_ASP_UPD) {
+    trackAspect(eventData.new);
+  }
+}
+
+/**
+ * Get the tracked aspect for the given sample
+ * @param {Object} sample - sample object
+ */
+function getTrackedAspectForSample(sample) {
+  const [absPath, aspName] = sample.name.split('|');
+  return trackedAspects[aspName.toLowerCase()];
+}
+
+/**
+ * Get the tracked aspect by name
+ * @param {String} aspName - aspect name
+ */
+function getTrackedAspect(aspName) {
+  return trackedAspects[aspName.toLowerCase()];
+}
+
+/**
+ * Add the aspect to the tracking map.
+ * @param {Object} aspect - aspect object
+ */
+function trackAspect(aspect) {
+  trackedAspects[aspect.name.toLowerCase()] = aspect;
+}
+
+/**
+ * Track all aspects
+ * @param {Array} aspects - array of aspects
+ */
+function trackAspects(aspects) {
+  aspects.forEach(trackAspect);
+}
+
+/**
+ * Remove the aspect from the tracking map.
+ * @param {Object} aspect - aspect object
+ */
+function untrackAspect(aspect) {
+  delete trackedAspects[aspect.name.toLowerCase()];
+}
 
 /**
  * Setup the socket.io client to listen to a namespace, where the namespace is
@@ -256,139 +317,82 @@ function handleLibraryFiles(lib) {
  * Setup the aspect timeout check. If the lens has already been loaded,
  * dispatch the "hierarchyLoad" event. If not, return the hierarchyLoad event.
  *
- * @param {Object} hierarchyResponse
+ * @param {Object} hierarchy - hierarchy response
+ * @param {Object} allAspects - aspects response
+ * @param {Object} perspective - perspective object
  * @param {Boolean} gotLens
  * @returns {CustomEvent} if lens is received, return undefined,
  * else return hierarchyLoadEvent.
  */
-function handleHierarchyEvent(hierarchyResponse, gotLens) {
-  setupAspectTimeout(hierarchyResponse);
+function handleHierarchyEvent(hierarchy, allAspects, perspective, gotLens) {
+  // perspective aspects - all aspects that could potentially be included in this perspective
+  const perspectiveAspects = filterPerspectiveAspects(allAspects, perspective);
 
-  let eventDetail;
-  const hierarchyIsV1 = pu.hierarchyIsV1(hierarchyResponse);
-  if (hierarchyIsV1) {
-    if (lensEventApiVersion < 2) {
-      eventDetail = hierarchyResponse; // just pass through as is
-    } else {
-      console.error('This instance of Refocus is not ready for lenses with ' +
-        'lensEventApiVersion 2 yet.');
-    }
-  } else { // hierarchy is "new" format with separate list of aspects
-    if (lensEventApiVersion < 2) {
-      eventDetail = pu.reconstructV1Hierarchy(hierarchyResponse);
-    } else {
-      eventDetail = hierarchyResponse; // just pass through as is
-    }
-  }
+  // track aspects to be used for intercepting v1 events
+  trackAspects(perspectiveAspects);
 
-  const hierarchyLoadEvent = new window.CustomEvent(
-    'refocus.lens.hierarchyLoad', { detail: eventDetail });
+  // setup auto-reload based on the lowest aspect timeout
+  setupAutoReload(hierarchy);
 
-  /*
-   * The order of events matters so only dispatch the hierarchyLoad event if
-   * we received the lens response back.
-   */
+  // prepare hierarchy event
+  const hierarchyLoadEvent = prepareHierarchyEventForLens(hierarchy, perspectiveAspects);
+
+  // dispatch to lens. if not ready, return the event, to be dispatched on lens arrival.
   if (gotLens) {
     LENS_DIV.dispatchEvent(hierarchyLoadEvent);
-    return;
+  } else {
+    return hierarchyLoadEvent;
   }
-
-  /*
-   * Lens not here yet. Return the hierarchyLoad event--it will be dispatched
-   * from getLens once the lens arrives.
-   */
-  return hierarchyLoadEvent;
 }
 
 /**
- * Traverse the hierarchy to initialize the aspect timeout values, then setup
- * an interval to check that the page is still receiving events.
+ * Filter aspects based on the perspective filters.
  *
- * @param {Object} rootSubject - the root of the hierarchy to traverse
+ * @param {Object} allAspects
+ * @param {Object} perspective
  */
-function setupAspectTimeout(rootSubject) {
-  lastUpdateTime = Date.now();
-  minAspectTimeout = Infinity;
-  minTimeoutCount = 0;
-  maxAspectTimeout = 0;
+function filterPerspectiveAspects(allAspects, perspective) {
+  const nspStr = emitUtils.getPerspectiveNamespaceString(perspective);
+  return allAspects.filter((asp) =>
+    emitUtils.shouldIEmitThisObj(nspStr, asp)
+  );
+}
 
-  (function traverseHierarchy(subject) {
-    if (subject.samples) {
-      subject.samples.forEach((sample) => {
-        updateTimeoutValues(sample.aspect.timeout);
-      });
-    }
+function prepareHierarchyEventForLens(hierarchy, aspects) {
+  let eventDetail;
+  if (lensEventApiVersion < 2) {
+    eventDetail = pu.reconstructV1Hierarchy(hierarchy, aspects);
+  } else {
+    eventDetail = { hierarchy, aspects };
+  }
 
-    if (subject.children) {
-      subject.children.forEach((child) => {
-        traverseHierarchy(child);
-      });
-    }
-  })(rootSubject);
+  return new window.CustomEvent(
+    'refocus.lens.hierarchyLoad', { detail: eventDetail }
+  );
+}
 
+/**
+ * Setup an interval to check that the page is still receiving events,
+ * based on the lowest timeout for an aspect in the hierarchy.
+ *
+ * @param {Object} hierarchy
+ */
+function setupAutoReload(hierarchy) {
+  const minAspectTimeout = (
+    pu.aspectNamesInHierarchy(hierarchy)
+    .map(getTrackedAspect)
+    .filter(Boolean)
+    .map((a) => parseTimeout(a.timeout))
+    .reduce((a, b) => Math.min(a, b), Infinity)
+  );
+
+  lastUpdateTime =  Date.now();
   if (minAspectTimeout < Infinity) {
-    setupTimeoutInterval();
-  }
-}
-
-/**
- * Setup an interval to check that the page is still receiving events. Do a
- * reload if not. If there is an existing interval, clear it and set a new one
- * based on the current value of minAspectTimeout
- */
-function setupTimeoutInterval() {
-  if (intervalId) {
-    clearInterval(intervalId);
-  }
-
-  intervalId = setInterval(() => {
-    if (Date.now() - lastUpdateTime > minAspectTimeout * 2) {
-      window.location.reload();
-    }
-  }, minAspectTimeout);
-}
-
-/**
- * Check if the aspect timeout values need to be updated when a sample is
- * added or updated.
- * @param {String} timeoutString - a timeout string from a sample
- */
-function updateTimeoutValues(timeoutString) {
-  lastUpdateTime = Date.now();
-  const timeout = parseTimeout(timeoutString);
-
-  if (timeout === minAspectTimeout) {
-    minTimeoutCount++;
-  }
-
-  if (timeout < minAspectTimeout) {
-    minAspectTimeout = timeout;
-    minTimeoutCount = 1;
-    setupTimeoutInterval();
-  }
-
-  if (timeout > maxAspectTimeout) {
-    maxAspectTimeout = timeout;
-  }
-}
-
-/**
- * Check if the aspect timeout values need to be updated when a sample is
- * deleted.
- * @param {String} timeoutString - a timeout string from a sample
- */
-function updateDeletedTimeoutValues(timeoutString) {
-  lastUpdateTime = Date.now();
-  const timeout = parseTimeout(timeoutString);
-
-  if (timeout === minAspectTimeout) {
-    if (minTimeoutCount === 1) {
-      // reset. It will settle to the correct value as more events come in.
-      minAspectTimeout = maxAspectTimeout;
-      setupTimeoutInterval();
-    } else {
-      minTimeoutCount--;
-    }
+    timeoutCheckInterval = setInterval(() => {
+      if (Date.now() - lastUpdateTime >= minAspectTimeout * 2) {
+        window.location.reload();
+      }
+    }, minAspectTimeout);
   }
 }
 
@@ -425,7 +429,7 @@ function parseTimeout(timeoutString) {
  */
 function handleLensDomEvent(lensEventApiVer, library, hierarchyLoadEvent) {
   handleLibraryFiles(library); // inject lens library files in perspective view
-  lensEventApiVersion = lensEventApiVer; // save lens event api version
+  setLensEventApiVersion(lensEventApiVer); // save lens event api version
   u.removeSpinner(SPINNER_ID);
 
   /*
@@ -524,21 +528,35 @@ function loadController(values) {
 // For Testing
 function getTimeoutValues() {
   return {
-    minAspectTimeout,
-    minTimeoutCount,
-    maxAspectTimeout,
     lastUpdateTime,
-    intervalId,
+    timeoutCheckInterval,
   };
+}
+
+function setLensEventApiVersion(version) {
+  lensEventApiVersion = version;
+}
+
+// For Testing
+function resetState() {
+  clearInterval(timeoutCheckInterval);
+  timeoutCheckInterval = undefined;
+  lastUpdateTime = undefined;
+  Object.keys(trackedAspects).forEach((key) =>
+    delete trackedAspects[key]
+  );
+  eventsQueue.queue.splice(0);
 }
 
 module.exports = {
   getTimeoutValues,
   handleEvent,
   parseTimeout,
-  setupAspectTimeout,
-  setupTimeoutInterval,
+  setupAutoReload,
   exportForTesting: {
+    resetState,
     handleHierarchyEvent,
+    setLensEventApiVersion,
+    eventsQueue,
   },
 };

@@ -9,7 +9,8 @@
 /**
  * /worker/jobs/executeClockJob.js
  */
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
+
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 const jobLog = require('../jobLog');
@@ -18,7 +19,7 @@ module.exports = (job, done) => {
   const { reqStartTime, clockJobName } = job.data;
   if (featureToggles.isFeatureEnabled('instrumentKue')) {
     const msg = `[KJI] Entered executeClockJob.js (${clockJobName})`;
-    console.log(msg); // eslint-disable-line no-console
+    logger.info(msg);
   }
 
   const jobStartTime = Date.now();
@@ -31,7 +32,7 @@ module.exports = (job, done) => {
    * "Error: Cannot find module '../../clock/scheduledJobs/undefined'".
    */
   if (!clockJobName) {
-    console.trace('Missing Clock Job Name', job);
+    logger.verbose('Missing Clock Job Name', job, new Error().stack);
     return Promise.resolve();
   }
 

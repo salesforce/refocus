@@ -9,15 +9,17 @@
 /**
  * /worker/jobs/bulkUpsertSamples.js
  */
-const logger = require('winston');
+const logger = require('@salesforce/refocus-logging-client');
 const subHelper = require('../../api/v1/helpers/nouns/subjects');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../../utils/activityLog');
 const cacheSampleModel = require('../../cache/models/samples');
 const publisher = require('../../realtime/redisPublisher');
 const jobLog = require('../jobLog');
+const tracker = require('../../realtime/kafkaTracking');
 
 module.exports = (job, done) => {
+
   /*
    * The shape of the old jobs objects in redis is different from the shape
    * of the new job objects that will be inserted in redis. The following
@@ -26,6 +28,7 @@ module.exports = (job, done) => {
    * the new ones look like this
    *  {data: {upsertData: [sample1,sample2], user: { name, email, ...}}}
    */
+
   const jobStartTime = Date.now();
   const samples = job.data.length ? job.data : job.data.upsertData;
   const user = job.data.user;
@@ -36,7 +39,7 @@ module.exports = (job, done) => {
     const msg =
       `[KJI] Entered bulkUpsertSamples.js: job.id=${job.id} ` +
       `sampleCount=${samples.length}`;
-    console.log(msg); // eslint-disable-line no-console
+    logger.info(msg);
   }
 
   const dbStartTime = Date.now();
@@ -45,6 +48,7 @@ module.exports = (job, done) => {
   cacheSampleModel.bulkUpsertByName(samples, user, readOnlyFields)
     .then((results) => {
       dbEndTime = Date.now();
+
       /*
        * For each result, if there was an error, track the error to return to
        * to the caller when they check status. If no error, publish the sample
@@ -69,6 +73,11 @@ module.exports = (job, done) => {
         }
 
         successCount++;
+
+        // Need access to the sample, so we are sending the tracking
+        // message here instead of beginning of function
+        tracker.trackSampleRequest(result.name,
+          result.updatedAt, reqStartTime, jobStartTime);
 
         // Wait for publish to complete before resolving the promise.
         return publisher.publishSample(result, subHelper.model);

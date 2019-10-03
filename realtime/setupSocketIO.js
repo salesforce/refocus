@@ -12,10 +12,12 @@
  * Initialize socket.io for sending realtime events out to perspective pages.
  */
 'use strict'; // eslint-disable-line strict
+const logger = require('@salesforce/refocus-logging-client');
 const perspective = require('../db/index').Perspective;
 const room = require('../db/index').Room;
 const toggle = require('feature-toggles');
 const rtUtils = require('./utils');
+const emitUtils = require('./emitUtils');
 const jwtUtils = require('../utils/jwtUtil');
 const redisClient = require('../cache/redisCache').client.realtimeLogging;
 const conf = require('../config');
@@ -62,9 +64,9 @@ function getUserFromSession(sid, redisStore) {
  */
 function setupNamespace(io) {
   const perspPromise = perspective.scope('namespace').findAll()
-    .map((p) => rtUtils.initializePerspectiveNamespace(p, io));
+    .map((p) => emitUtils.initializePerspectiveNamespace(p, io));
   const roomPromise = room.scope('namespace').findAll()
-    .map((r) => rtUtils.initializeBotNamespace(r, io));
+    .map((r) => emitUtils.initializeBotNamespace(r, io));
   return Promise.all([perspPromise, roomPromise]);
 } // setupNamespace
 
@@ -86,7 +88,7 @@ function init(io, redisStore) {
       const sidMatch = SID_REX.exec(socket.handshake.headers.cookie);
       if (!sidMatch || sidMatch.length < 2) {
         // disconnecting socket -- expecting session id in cookie header
-        // console.log('[WSDEBUG] disconnecting socket -- expecting session ' +
+        // logger.info('[WSDEBUG] disconnecting socket -- expecting session ' +
         //   'id in cookie header');
         socket.disconnect();
         return;
@@ -95,8 +97,8 @@ function init(io, redisStore) {
       // Load the session from redisStore.
       const sid = sidMatch[1];
 
-      // console.log('[WSDEBUG] cookie', socket.handshake.headers.cookie);
-      // console.log('[WSDEBUG] sid', sid);
+      // logger.info('[WSDEBUG] cookie', socket.handshake.headers.cookie);
+      // logger.info('[WSDEBUG] sid', sid);
       getUserFromSession(sid, redisStore)
       .then((user) => {
 
@@ -148,7 +150,7 @@ function init(io, redisStore) {
             // Retrieve the logging info for this socket.
             redisClient.get(socket.id, (getErr, getResp) => {
               if (getErr) {
-                console.log('Error ' + // eslint-disable-line no-console
+                logger.info('Error ' +
                   `retrieving socket id ${socket.id} from redis on client ` +
                   'disconnect:', getErr);
               } else { // eslint-disable-line lines-around-comment
@@ -166,11 +168,11 @@ function init(io, redisStore) {
                 // Remove the redis key for this socket.
                 redisClient.del(socket.id, (delErr, delResp) => {
                   if (delErr) {
-                    console.log('Error ' + // eslint-disable-line no-console
+                    logger.info('Error ' +
                       `deleting socket id ${socket.id} from redis on ` +
                       'client disconnect:', delErr);
                   } else if (delResp !== ONE) {
-                    console.log('Expecting' + // eslint-disable-line no-console
+                    logger.info('Expecting' +
                       `unique socket id ${socket.id} to delete from redis on ` +
                       `client disconnect, but ${delResp} were deleted.`);
                   }
@@ -182,7 +184,7 @@ function init(io, redisStore) {
       })
       .catch((err) => {
         // no realtime events :(
-        // console.log('[WSDEBUG] caught error', err);
+        // logger.info('[WSDEBUG] caught error', err);
         socket.disconnect();
         return;
       });
@@ -199,7 +201,7 @@ function init(io, redisStore) {
     } else {
       // Socket handshake must have "cookie" or an "auth" header with connect.sid.
       // disconnecting socket -- expecting header with cookie or auth token
-      // console.log('[WSDEBUG] disconnecting socket -- expecting header ' +
+      // logger.info('[WSDEBUG] disconnecting socket -- expecting header ' +
       //   'with cookie');
       socket.disconnect();
       return;

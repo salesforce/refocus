@@ -94,6 +94,8 @@ const longTermToggles = {
     'jobCreate'),
   enableKueStatsActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'kueStats'),
+  enableKafkaPubSubAggregation: environmentVariableTrue(pe,
+    'ENABLE_KAFKA_PUBSUB_AGGREGATION'),
   enableLimiterActivityLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
     'limiter'),
   enablePubsubStatsLogs: envVarIncludes(pe, 'ENABLE_ACTIVITY_LOGS',
