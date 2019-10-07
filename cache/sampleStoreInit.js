@@ -196,7 +196,8 @@ function populateAspects() {
         // add ranges keys
         let ranges = statusCalculation.getAspectRanges(a);
         ranges = statusCalculation.preprocessOverlaps(ranges);
-        statusCalculation.addRangesCmds(ranges, a.name, cmds);
+        const rangesCmds = statusCalculation.addRangesCmds(ranges, a.name);
+        cmds.push(...rangesCmds);
 
         const key = samsto.toKey(constants.objectType.aspect, a.name);
         aspectIdx.push(key);

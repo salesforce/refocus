@@ -113,8 +113,7 @@ function parseName(name) {
  * @returns {Promise} - which resolves to true if the user has write permission
  */
 function checkWritePermission(aspectName, userName, isBulk) {
-  const redisCmds = [];
-  redisOps.checkAspectWriterCmds(redisCmds, aspectName, userName);
+  const redisCmds = redisOps.checkAspectWriterCmds(aspectName, userName);
 
   return redisOps.executeBatchCmds(redisCmds)
     .then((res) => {

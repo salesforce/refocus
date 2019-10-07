@@ -795,15 +795,17 @@ module.exports = {
 
   /**
    * Add commands to check whether the aspect is writable by user
-   * @param redisCmds - Commands array
    * @param aspectName - aspect name
    * @param userName - user name
+   * @returns - Redis commands array
    */
-  checkAspectWriterCmds(redisCmds, aspectName, userName) {
+  checkAspectWriterCmds(aspectName, userName) {
+    const commands = [];
     const aspWritersKey = redisStore.toKey(
       redisStore.constants.objectType.aspWriters, aspectName);
-    redisCmds.push(['exists', aspWritersKey]);
-    redisCmds.push(['sismember', aspWritersKey, userName]);
+    commands.push(['exists', aspWritersKey]);
+    commands.push(['sismember', aspWritersKey, userName]);
+    return commands;
   }, // checkWriterCmds
 
   renameKey,

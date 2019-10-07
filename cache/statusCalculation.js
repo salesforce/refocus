@@ -76,19 +76,21 @@ function setRanges(ranges, aspName) {
  *
  * @param  {Array<Object>} ranges - sorted, non-overlapping list of aspect ranges
  * @param  {String} aspName - aspect name
- * @param  {Array} cmds - Redis commands
- * @returns {Promise}
+ * @returns  {Array} - Redis commands
  */
-function addRangesCmds(ranges, aspName, cmds) {
+function addRangesCmds(ranges, aspName) {
+  const redisCmds = [];
   const setKey = redisStore.toKey(keyType.aspRanges, aspName);
   ranges.forEach((range) => {
-    cmds.push(['zadd', setKey, range.min,
+    redisCmds.push(['zadd', setKey, range.min,
       getRangeKey('min', range.status, range.min),
     ]);
-    cmds.push(['zadd', setKey, range.max,
+    redisCmds.push(['zadd', setKey, range.max,
       getRangeKey('max', range.status, range.max),
     ]);
   });
+
+  return redisCmds;
 }
 
 /**
