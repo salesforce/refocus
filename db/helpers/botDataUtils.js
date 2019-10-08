@@ -134,6 +134,7 @@ function replaceValue(startingString, replaceString, instance) {
             outputValueObj[property].replace(replaceString, replacementVal);
         }
       }
+
       outputValue = serialize(outputValueObj);
     } else { // Output value is just a string
       outputValue = outputValue.replace(replaceString, replacementVal);

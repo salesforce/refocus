@@ -494,8 +494,26 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
         const replacementToken = '${Oncall-Bot.onCallTTx.tte}';
         const instance = {
           name: 'onCallTTx',
-          /* eslint-disable max-len */
-          value: '{"tte":[{"startTime":"2019-10-02T13:37:16Z","endTime":"2019-10-02T14:04:47Z","team":"Oncall-Bot-Test-Service"},{"startTime":"2019-10-02T14:04:00Z","endTime":"2019-10-02T14:04:54Z","team":"Oncall-Bot-Test-Service"},{"startTime":"2019-10-02T14:04:00Z","endTime":"2019-10-02T14:04:59Z","team":"Oncall-Bot-Test-Service"}]}',
+          value: '{"tte":' +
+            '[' +
+            '{' +
+            '"startTime":"2019-10-02T13:37:16Z",' +
+            '"endTime":"2019-10-02T14:04:47Z",' +
+            '"team":"Oncall-Bot-Test-Service"' +
+            '},' +
+            '{' +
+            '"startTime":"2019-10-02T14:04:00Z",' +
+            '"endTime":' +
+            '"2019-10-02T14:04:54Z",' +
+            '"team":"Oncall-Bot-Test-Service"' +
+            '},' +
+            '{' +
+            '"startTime":"2019-10-02T14:04:00Z",' +
+            '"endTime":"2019-10-02T14:04:59Z",' +
+            '"team":"Oncall-Bot-Test-Service"' +
+            '}' +
+            ']' +
+            '}',
         };
 
         const replaced = bdUtil.replaceValue(toReplace, replacementToken,
