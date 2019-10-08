@@ -74,7 +74,8 @@ function testBulkDeleteSubjects(jobStatus) {
     // Start JobQueue, with the option to simulate a failed job
     let simulateFailure = false;
     before(() => {
-      if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj')) {
+      if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
+        featureToggles.isFeatureEnabled('anyBullEnabled')) {
         bulkDelSubQueue.process((job, done) => {
           if (simulateFailure) {
             done(new Error('Job Failed'));
@@ -383,6 +384,7 @@ function testBulkDeleteSubjects(jobStatus) {
 
 describe('tests/api/v1/subjects/bulkDelete.js  >', () => {
   const toggleName = 'enableBullForBulkDelSubj';
+  const toggle2Name = 'anyBullEnabled';
   describe('enableBullForBulkDelSubj toggle OFF >', () => {
     const jobStatus = {
       complete: 'complete',
@@ -390,9 +392,18 @@ describe('tests/api/v1/subjects/bulkDelete.js  >', () => {
     };
     const initialFeatureState = featureToggles
       .isFeatureEnabled(toggleName);
-    before(() => testUtils.toggleOverride(toggleName, false));
-    after(() => testUtils.toggleOverride(toggleName,
-      initialFeatureState));
+    const initialFeature2State = featureToggles
+      .isFeatureEnabled(toggle2Name);
+    before(() => {
+      testUtils.toggleOverride(toggleName, false);
+      testUtils.toggleOverride(toggle2Name, false);
+    });
+    after(() => {
+      testUtils.toggleOverride(toggleName,
+      initialFeatureState);
+      testUtils.toggleOverride(toggle2Name,
+      initialFeature2State);
+    });
     testBulkDeleteSubjects(jobStatus);
   });
 
@@ -403,9 +414,18 @@ describe('tests/api/v1/subjects/bulkDelete.js  >', () => {
     };
     const initialFeatureState = featureToggles
       .isFeatureEnabled(toggleName);
-    before(() => testUtils.toggleOverride(toggleName, true));
-    after(() => testUtils.toggleOverride(toggleName,
-      initialFeatureState));
+    const initialFeature2State = featureToggles
+      .isFeatureEnabled(toggle2Name);
+    before(() => {
+      testUtils.toggleOverride(toggleName, true);
+      testUtils.toggleOverride(toggle2Name, true);
+    });
+    after(() => {
+      testUtils.toggleOverride(toggleName,
+      initialFeatureState);
+      testUtils.toggleOverride(toggle2Name,
+      initialFeature2State);
+    });
     testBulkDeleteSubjects(jobStatus);
   });
 });

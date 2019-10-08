@@ -38,8 +38,13 @@ function testWorkerAPiActivityLogs(done) {
         expect(logObj.queueResponseTime).to.match(/\d+ms/);
         expect(logObj.workTime).to.match(/\d+ms/);
         expect(logObj.dbTime).to.match(/\d+ms/);
-        expect(logObj.recordCount).to.equal('2');
-        expect(logObj.errorCount).to.equal('1');
+        if (logObj.errorCount > 0) {
+          expect(logObj.recordCount).to.equal('2');
+          expect(logObj.errorCount).to.equal('1');
+        } else {
+          expect(logObj.recordCount).to.equal('3');
+          expect(logObj.errorCount).to.equal('0');
+        }
 
         const totalTime = parseInt(logObj.totalTime, RADIX);
         const queueTime = parseInt(logObj.queueTime, RADIX);
