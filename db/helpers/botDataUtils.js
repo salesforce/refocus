@@ -16,6 +16,7 @@
 const _ = require('lodash');
 const serialize = require('serialize-javascript');
 const Op = require('sequelize').Op;
+const logger = require('@salesforce/refocus-logging-client');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -271,7 +272,8 @@ function updateValues(seq, instance) {
         for (let i = ZERO; i < data.length; i += TWO) {
           if (data[i] && data[i].value) {
             newValue = combineValue(data[i].value, data[i + ONE]);
-            updates.push(data[i].update({ value: newValue }));
+            updates.push(data[i].update({ value: newValue })
+              .catch((err) => logger.error('Shared Context error ', err)));
           }
         }
 
