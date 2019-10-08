@@ -38,13 +38,19 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
 const jobQueue = kue.createQueue(redisOptions);
 const bulkDelSubQueue = new BullQueue(
   conf.jobType.bulkDeleteSubjects, redisUrlForBull);
+const bulkPostEventsQueue = new BullQueue(
+  conf.jobType.bulkPostEvents, redisUrlForBull);
+const createAuditEventsQueue = new BullQueue(
+  conf.jobType.createAuditEvents, redisUrlForBull);
 
 function resetJobQueue() {
   return Promise.map(jobQueue.workers, (w) =>
     new Promise((resolve) => w.shutdown(resolve))
   )
   .then(() => jobQueue.workers = [])
-    .then(() => bulkDelSubQueue.empty());
+    .then(() => bulkDelSubQueue.empty())
+    .then(() => createAuditEventsQueue.empty())
+    .then(() => bulkPostEventsQueue.empty());
 }
 
 /**
@@ -61,6 +67,8 @@ function gracefulShutdown() {
   }
 
   bulkDelSubQueue.close()
+    .then(() => bulkPostEventsQueue.close())
+    .then(() => createAuditEventsQueue.close())
     .then(() => {
       if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
         const status = '"Bull Job queue shutdown: OK"';
@@ -103,4 +111,6 @@ module.exports = {
   delayToRemoveJobs: conf.JOB_REMOVAL_DELAY_SECONDS,
   kue,
   bulkDelSubQueue,
+  bulkPostEventsQueue,
+  createAuditEventsQueue,
 }; // exports
