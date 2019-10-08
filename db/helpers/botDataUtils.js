@@ -253,8 +253,8 @@ function updateValues(seq, instance) {
             });
 
             // Find bot data to update
-            promises.push(BotData.findOne(whereConst)).catch((err) =>
-              logger.error('Shared Context error ', err));
+            promises.push(BotData.findOne(whereConst).catch((err) =>
+              logger.error('Shared Context error ', err)));
             promises.push(syncValue);
           });
         }
