@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const debugUpsertErrors = require('debug')('refocus:sample:upsert:errors');
 const debugfindSamples = require('debug')('refocus:findSamples');
+const Promise = require('bluebird');
 const logInvalidHmsetValues = require('../../utils/common')
   .logInvalidHmsetValues;
 const helper = require('../../api/v1/helpers/nouns/samples');
@@ -432,25 +433,21 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
           });
         }
 
-        const cmds = []; // redis commands for batch processing
+        return redisOps.batchCmds()
 
-        // add the aspect name to the subject-to-aspect resource mapping
-        cmds.push(redisOps.addAspectInSubjSetCmd(absolutePath, aspectName));
+          // add the aspect name to the subject-to-aspect resource mapping
+          .addAspectInSubjSet(absolutePath, aspectName)
 
-        // add sample to the master list of sample index
-        cmds.push(redisOps.addKeyToIndexCmd(sampleType, sampleName));
+          // add sample to the master list of sample index
+          .addKeyToIndex(sampleType, sampleName)
 
-        // create/update hash of sample. Check and log invalid Hmset values
-        cmds.push(
-          redisOps.setHashMultiCmd(sampleType, sampleName, sampleQueryBodyObj)
-        );
+          // create/update hash of sample. Check and log invalid Hmset values
+          .setHashMulti(sampleType, sampleName, sampleQueryBodyObj)
 
-        // add subject absolute path to aspect-to-subject resource mapping
-        cmds.push(redisOps.addSubjectAbsPathInAspectSet(
-          aspectObj.name, subject.absolutePath)
-        );
+          // add subject absolute path to aspect-to-subject resource mapping
+          .addSubjectAbsPathInAspectSet(aspectObj.name, subject.absolutePath)
 
-        return redisOps.executeBatchCmds(cmds);
+          .exec();
       }))
     .then(() => redisClient.hgetallAsync(sampleKey))
     .then((updatedSamp) => {
@@ -587,25 +584,21 @@ function upsertOneParsedSample(sampleQueryBodyObj, parsedSample, isBulk, user) {
       });
     }
 
-    const cmds = []; // redis commands for batch processing
+    return redisOps.batchCmds()
 
-    // add the aspect name to the subject-to-aspect resource mapping
-    cmds.push(redisOps.addAspectInSubjSetCmd(absolutePath, aspectName));
+      // add the aspect name to the subject-to-aspect resource mapping
+      .addAspectInSubjSet(absolutePath, aspectName)
 
-    // add sample to the master list of sample index
-    cmds.push(redisOps.addKeyToIndexCmd(sampleType, sampleName));
+      // add sample to the master list of sample index
+      .addKeyToIndex(sampleType, sampleName)
 
-    // create/update hash of sample. Check and log invalid Hmset values
-    cmds.push(
-      redisOps.setHashMultiCmd(sampleType, sampleName, sampleQueryBodyObj)
-    );
+      // create/update hash of sample. Check and log invalid Hmset values
+      .setHashMulti(sampleType, sampleName, sampleQueryBodyObj)
 
-    // add subject absolute path to aspect-to-subject resource mapping
-    cmds.push(redisOps.addSubjectAbsPathInAspectSet(
-      aspect.name, subject.absolutePath)
-    );
+      // add subject absolute path to aspect-to-subject resource mapping
+      .addSubjectAbsPathInAspectSet(aspect.name, subject.absolutePath)
 
-    return redisOps.executeBatchCmds(cmds);
+      .exec();
   }))
   .then(() => redisClient.hgetallAsync(sampleKey))
   .then((updatedSamp) => {
@@ -766,7 +759,6 @@ module.exports = {
    * @returns {Promise} - Resolves to a sample object
    */
   deleteSample(sampleName, userName) {
-    const cmds = [];
     let parsedSampleName = {};
     try {
       parsedSampleName = parseName(sampleName.toLowerCase());
@@ -778,7 +770,7 @@ module.exports = {
     const aspName = parsedSampleName.aspect.name;
     let sampObjToReturn;
     let aspect;
-    return redisOps.getHashPromise(sampleType, sampleName)
+    return redisOps.getHash(sampleType, sampleName)
     .then((sampleObj) => {
       if (!sampleObj) {
         throw new redisErrors.ResourceNotFoundError({
@@ -789,10 +781,8 @@ module.exports = {
       sampObjToReturn = sampleObj;
       sampObjToReturn.updatedAt = new Date().toISOString();
 
-      cmds.push(redisOps.getHashCmd(aspectType, aspName));
-
       // get the aspect to attach it to the sample
-      return redisOps.getHashPromise(aspectType, aspName);
+      return redisOps.getHash(aspectType, aspName);
     })
     .then((aspObj) => {
       if (!aspObj) {
@@ -815,14 +805,14 @@ module.exports = {
      * (3) delete the subject from aspect-to-subject mapping
      * (4) delete the sample hash.
      */
-    .then(() => {
-      cmds.push(redisOps.delKeyFromIndexCmd(sampleType, sampleName));
-      cmds.push(redisOps.delAspFromSubjSetCmd(subjAbsPath, aspName));
-      cmds.push(redisOps.delSubFromAspSetCmd(aspName, subjAbsPath));
-      cmds.push(redisOps.delHashCmd(sampleType, sampleName));
-      return redisOps.executeBatchCmds(cmds);
-    })
-    .then(() => redisOps.executeBatchCmds(cmds))
+    .then(() =>
+      redisOps.batchCmds()
+        .delKeyFromIndex(sampleType, sampleName)
+        .delAspFromSubjSet(subjAbsPath, aspName)
+        .delSubFromAspSet(aspName, subjAbsPath)
+        .delHash(sampleType, sampleName)
+        .exec()
+    )
 
     /* Attach aspect and links to sample. */
     .then(() => cleanAddAspectToSample(sampObjToReturn, aspect));
@@ -841,7 +831,7 @@ module.exports = {
     const now = new Date().toISOString();
     let currSampObj;
     let aspectObj;
-    return redisOps.getHashPromise(sampleType, sampleName)
+    return redisOps.getHash(sampleType, sampleName)
     .then((sampObj) => {
       if (!sampObj) {
         throw new redisErrors.ResourceNotFoundError({
@@ -850,7 +840,7 @@ module.exports = {
       }
 
       currSampObj = sampObj;
-      return redisOps.getHashPromise(aspectType, aspectName);
+      return redisOps.getHash(aspectType, aspectName);
     })
     .then((aspObj) => {
       if (!aspObj) {
@@ -891,9 +881,9 @@ module.exports = {
         }
       });
 
-      return redisOps.setHashMultiPromise(sampleType, sampleName, hmsetObj);
+      return redisOps.setHashMulti(sampleType, sampleName, hmsetObj);
     })
-    .then(() => redisOps.getHashPromise(sampleType, sampleName))
+    .then(() => redisOps.getHash(sampleType, sampleName))
     .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
   }, // deleteSampleRelatedLinks
 
@@ -920,7 +910,7 @@ module.exports = {
     let currSampObj;
     let aspectObj;
     return checkWritePermission(aspectName, userName)
-    .then(() => redisOps.getHashPromise(sampleType, sampleName))
+    .then(() => redisOps.getHash(sampleType, sampleName))
     .then((sampObj) => {
       if (!sampObj) {
         throw new redisErrors.ResourceNotFoundError({
@@ -930,7 +920,7 @@ module.exports = {
 
       currSampObj = sampObj;
 
-      return redisOps.getHashPromise(aspectType, aspectName);
+      return redisOps.getHash(aspectType, aspectName);
     })
     .then((aspObj) => {
       if (!aspObj || (aspObj.isPublished == 'false')) {
@@ -944,7 +934,7 @@ module.exports = {
         aspObj, constants.fieldsToStringify.aspect
       );
 
-      return redisOps.getHashPromise(subjectType, subjectAbsolutePath);
+      return redisOps.getHash(subjectType, subjectAbsolutePath);
     })
     .then((subjObj) => {
       if (!subjObj || (subjObj.isPublished == 'false')) {
@@ -977,9 +967,9 @@ module.exports = {
           reqBody[field] = JSON.stringify(reqBody[field]);
         }
       });
-      return redisOps.setHashMultiPromise(sampleType, sampleName, reqBody);
+      return redisOps.setHashMulti(sampleType, sampleName, reqBody);
     })
-    .then(() => redisOps.getHashPromise(sampleType, sampleName))
+    .then(() => redisOps.getHash(sampleType, sampleName))
     .then((updatedSamp) => {
       parseName(updatedSamp.name); // throw if invalid name
       return cleanAddAspectToSample(updatedSamp, aspectObj);
@@ -1036,7 +1026,7 @@ module.exports = {
         return Promise.reject(err);
       }
 
-      return redisOps.getHashPromise(sampleType, sampleName);
+      return redisOps.getHash(sampleType, sampleName);
     })
     .then((sampFromRedis) => {
       if (sampFromRedis) {
@@ -1072,25 +1062,23 @@ module.exports = {
         });
       }
 
-      // add the aspect to the subjectSet
-      cmds.push(redisOps.addAspectInSubjSetCmd(
-        subject.absolutePath, aspectObj.name)
-      );
+      return redisOps.batchCmds()
 
-      // add subject absolute path to aspect-to-subject resource mapping
-      cmds.push(redisOps.addSubjectAbsPathInAspectSet(
-        aspectObj.name, subject.absolutePath)
-      );
+        // add the aspect to the subjectSet
+        .addAspectInSubjSet(subject.absolutePath, aspectObj.name)
 
-      // add sample to the master list of sample index
-      cmds.push(redisOps.addKeyToIndexCmd(sampleType, sampleName));
+        // add subject absolute path to aspect-to-subject resource mapping
+        .addSubjectAbsPathInAspectSet(aspectObj.name, subject.absolutePath)
 
-      // create a sample set to store the values
-      cmds.push(redisOps.setHashMultiCmd(sampleType, sampleName, reqBody));
+        // add sample to the master list of sample index
+        .addKeyToIndex(sampleType, sampleName)
 
-      return redisOps.executeBatchCmds(cmds);
+        // create a sample set to store the values
+        .setHashMulti(sampleType, sampleName, reqBody)
+
+        .exec();
     })
-    .then(() => redisOps.getHashPromise(sampleType, sampleName))
+    .then(() => redisOps.getHash(sampleType, sampleName))
     .then((sampleObj) => sampleStore.arrayObjsStringsToJson(
       sampleObj, constants.fieldsToStringify.sample));
   }, // postSample
@@ -1114,7 +1102,7 @@ module.exports = {
     const aspectName = parsedSampleName.aspect.name;
     let currSampObj;
     let aspectObj;
-    return redisOps.getHashPromise(sampleType, sampleName)
+    return redisOps.getHash(sampleType, sampleName)
     .then((sampObj) => {
       if (!sampObj) {
         throw new redisErrors.ResourceNotFoundError({
@@ -1123,7 +1111,7 @@ module.exports = {
       }
 
       currSampObj = sampObj;
-      return redisOps.getHashPromise(aspectType, aspectName);
+      return redisOps.getHash(aspectType, aspectName);
     })
     .then((aspObj) => {
       if (!aspObj || (aspObj.isPublished == 'false')) {
@@ -1136,7 +1124,7 @@ module.exports = {
         aspObj, constants.fieldsToStringify.aspect
       );
 
-      return redisOps.getHashPromise(subjectType, subjectAbsolutePath);
+      return redisOps.getHash(subjectType, subjectAbsolutePath);
     })
     .then((subjObj) => {
       if (!subjObj || (subjObj.isPublished == 'false')) {
@@ -1172,25 +1160,19 @@ module.exports = {
         reqBody[sampFields.RLINKS] = '[]';
       }
 
-      const cmds = [];
+      return redisOps.batchCmds()
 
-      // delete fields with future null value
-      if (!reqBody.messageBody) {
-        cmds.push(
-          redisOps.delHashFieldCmd(sampleType, sampleName, sampFields.MSG_BODY)
-        );
-      }
+        // delete fields with future null value
+        .if(!reqBody.messageBody, (batch) =>
+          batch
+          .delHashField(sampleType, sampleName, sampFields.MSG_BODY)
+          .delHashField(sampleType, sampleName, sampFields.MSG_CODE)
+        )
 
-      if (!reqBody.messageCode) {
-        cmds.push(
-          redisOps.delHashFieldCmd(sampleType, sampleName, sampFields.MSG_CODE)
-        );
-      }
-
-      cmds.push(redisOps.setHashMultiCmd(sampleType, sampleName, reqBody));
-      return redisOps.executeBatchCmds(cmds);
+        .setHashMulti(sampleType, sampleName, reqBody)
+        .exec();
     })
-    .then(() => redisOps.getHashPromise(sampleType, sampleName))
+    .then(() => redisOps.getHash(sampleType, sampleName))
     .then((updatedSamp) => {
       parseName(updatedSamp.name); // throw if invalid name
       return cleanAddAspectToSample(updatedSamp, aspectObj);
@@ -1599,12 +1581,12 @@ module.exports = {
       }
     });
 
-    const getAspectsCmds = [...aspectsSet].map((aspectName) =>
-      redisOps.getHashCmd(aspectType, aspectName)
-    );
-
-    return redisOps.executeBatchCmds(getAspectsCmds) // get aspects
-      .then((aspectsFromRedis) => {
+    return redisOps.batchCmds()
+      .returnAll(aspectsSet, 'aspectsFromRedis', (batch, aspectName) =>
+        batch.getHash(aspectType, aspectName)
+      )
+      .exec()
+      .then(({ aspectsFromRedis }) => {
         aspectsFromRedis.forEach((asp) => {
           if (asp) {
             const aspObj = sampleStore.arrayObjsStringsToJson(asp,

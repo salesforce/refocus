@@ -19,7 +19,9 @@ const InvalidRangeSizeError = require('../dbErrors').InvalidRangeSizeError;
 const redisOps = require('../../cache/redisOps');
 const publishSample = require('../../realtime/redisPublisher').publishSample;
 const aspSubMapType = redisOps.aspSubMapType;
+const sampleType = redisOps.sampleType;
 const dbErrors = require('../dbErrors');
+const Promise = require('bluebird');
 const aspValueTypes = {
   boolean: 'BOOLEAN',
   numeric: 'NUMERIC',
@@ -118,59 +120,50 @@ function validateStatusRange(arr) {
 function removeAspectRelatedSamples(aspect, seq) {
   debugRemoveAspectRelatedSamples(aspect.name, 'Start');
   const now = new Date().toISOString();
-  let samples = [];
-  return redisOps.deleteSampleKeys(aspSubMapType, aspect.name)
-  .tap((_samples) => {
-    debugRemoveAspectRelatedSamples(aspect.name,
-      `deleteSampleKeys (${_samples.length})`);
+  return redisOps.getAspSubjMapMembers(aspect.name)
+  .then((absPaths) => {
+    const sampleNames = absPaths.map((absPath) =>
+      absPath + '|' + aspect.name.toLowerCase()
+    );
+    return redisOps.batchCmds()
+    .deleteAspectFromSubjectResourceMaps(absPaths, aspect.name)
+    .deleteKey(aspSubMapType, aspect.name)
+    .returnAll(sampleNames, 'samples', (batch, sampleName) =>
+      batch.getHash(sampleType, sampleName)
+    )
+    .map(sampleNames, (batch, sampleName) =>
+      batch.deleteKey(sampleType, sampleName)
+    )
+    .exec();
   })
-  .then((_samples) => {
-    samples = _samples;
-
-    // get subjects from aspect-to-subject mapping for this aspect
-    return redisOps.executeCommand(redisOps.getAspSubjMapMembers(aspect.name));
-  })
-  .tap((subjAbsPaths) => {
-    debugRemoveAspectRelatedSamples(aspect.name,
-      `getAspSubjMapMembers (${subjAbsPaths.length})`);
-  })
-  .then((subjAbsPaths) => redisOps.executeBatchCmds(
-    redisOps.deleteAspectFromSubjectResourceMaps(subjAbsPaths, aspect.name)))
-  .tap((n) => {
-    debugRemoveAspectRelatedSamples(aspect.name,
-      'deleteAspectFromSubjectResourceMaps');
-  })
-  .then(() => redisOps.deleteKey(aspSubMapType, aspect.name))
-  .tap((n) => {
-    debugRemoveAspectRelatedSamples(aspect.name, 'deleteKey');
-  })
-  .then(() => {
-    const promises = [];
-
-    // publish the samples only if the sequelize object seq is available
-    if (seq && samples.length) {
-      samples.forEach((sample) => {
-        /*
-         * publishSample attaches the subject and the aspect by fetching it
-         * either from the database or redis. Deleted aspect will not be found
-         * when called from the afterDestroy and afterUpdate hookes. So, attach
-         * the aspect here before publishing the sample.
-         */
-        if (sample) {
-          sample.aspect = aspect;
-          sample.updatedAt = now;
-          promises.push(publishSample(sample, seq.models.Subject, sampleEvent.del,
-            seq.models.Aspect));
-        }
-      });
-    }
-
-    return Promise.all(promises);
-  })
-  .tap((n) => {
-    debugRemoveAspectRelatedSamples(aspect.name, `publish (${n.length})`);
-  });
+  .then(({ samples }) =>
+    Promise.map(samples, (sample) => {
+      if (seq && sample) {
+        sample.aspect = aspect;
+        sample.updatedAt = now;
+        return publishSample(sample, seq.models.Subject, sampleEvent.del,
+          seq.models.Aspect);
+      }
+    })
+  );
 } // removeAspectRelatedSamples
+
+/**
+ * Get samples for a given aspect
+ * @param  {String} aspName - Aspect Name
+ * @returns {Promise} - Resolves to array of samples
+ */
+function getSamplesFromAspectName(aspName) {
+  return redisOps.getAspSubjMapMembers(aspName)
+  .then((absPaths) =>
+    redisOps.batchCmds()
+    .map(absPaths, (batch, absPath) => {
+      const sampleName = `${absPath}|${aspName}`;
+      return batch.getHash(sampleType, sampleName);
+    })
+    .exec()
+  );
+}
 
 /**
  * Validate status range based on aspect value type
@@ -254,6 +247,7 @@ function validateAspectStatusRanges(inst) {
 module.exports = {
   validateStatusRange,
   removeAspectRelatedSamples,
+  getSamplesFromAspectName,
   aspValueTypes,
   validateAspectStatusRanges,
 }; // exports
