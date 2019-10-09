@@ -272,15 +272,11 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
        *
        * 3. subject to aspect mappings should be updated
        */
-      const aspSubjMapKeyOldName = redisStore.toKey('aspsubmap', oldName);
-      cmds.push(['keys', aspSubjMapKeyOldName]);
-
-      const aspSubjMapKeyNewAbsPath = redisStore.toKey('aspsubmap', newName);
-      cmds.push(['smembers', aspSubjMapKeyNewAbsPath]);
-
-      const subjAspMapKey = redisStore.toKey('subaspmap', subjectAbsPath);
-      cmds.push(['smembers', subjAspMapKey]);
-      return redisOps.executeBatchCmds(cmds);
+      return redisOps.batchCmds()
+        .getAspSubjMapMembers(oldName)
+        .getAspSubjMapMembers(newName)
+        .getSubjAspMapMembers(subjectAbsPath)
+        .exec();
     })
     .then((values) => {
       expect(values[0]).to.be.empty;
@@ -326,8 +322,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .then(() => Subject.findByPk(ipar))
     .then((s) => {
       subjectAbsPath = s.absolutePath;
-      return redisOps.executeCommand(
-        redisOps.getSubjAspMapMembers(subjectAbsPath));
+      return redisOps.getSubjAspMapMembers(subjectAbsPath);
     })
     .then((res) => {
       expect(res.length).to.be.equal(2);
@@ -358,8 +353,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       expect(members.length).to.equal(0);
 
       // corresponding subaspmap should not have this aspect
-      return redisOps.executeCommand(
-        redisOps.getSubjAspMapMembers(subjectAbsPath));
+      return redisOps.getSubjAspMapMembers(subjectAbsPath);
     })
     .then((res) => {
       // temperature aspect deleted from subaspmap
@@ -423,7 +417,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .then(() => Subject.findByPk(ipar))
     .then((s) => {
       subjectAbsPath = s.absolutePath;
-      return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subjectAbsPath));
+      return redisOps.getSubjAspMapMembers(subjectAbsPath);
     })
     .then((res) => {
       expect(res.length).to.be.equal(2);
@@ -451,7 +445,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       expect(members.length).to.equal(0);
 
       // corresponding subaspmap should not have this aspect
-      return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subjectAbsPath));
+      return redisOps.getSubjAspMapMembers(subjectAbsPath);
     })
     .then((res) => {
       // temperature aspect deleted from subaspmap
@@ -470,7 +464,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .then(() => Subject.findByPk(ipar))
     .then((s) => {
       subjectAbsPath = s.absolutePath;
-      return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subjectAbsPath));
+      return redisOps.getSubjAspMapMembers(subjectAbsPath);
     })
     .then((res) => {
       expect(res.length).to.be.equal(2);
@@ -498,7 +492,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       expect(members.length).to.equal(0);
 
       // corresponding subaspmap should not have this aspect
-      return redisOps.executeCommand(redisOps.getSubjAspMapMembers(subjectAbsPath));
+      return redisOps.getSubjAspMapMembers(subjectAbsPath);
     })
     .then((res) => {
       // temperature aspect deleted from subaspmap
@@ -614,8 +608,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .then(() => Subject.findByPk(ipar))
     .then((s) => {
       subjectAbsPath = s.absolutePath;
-      return redisOps.executeCommand(
-        redisOps.getSubjAspMapMembers(subjectAbsPath));
+      return redisOps.getSubjAspMapMembers(subjectAbsPath);
     })
     .then((res) => {
       expect(res.length).to.be.equal(2);
@@ -643,8 +636,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       expect(members.length).to.equal(0);
 
       // corresponding subaspmap should not have this aspect
-      return redisOps.executeCommand(
-        redisOps.getSubjAspMapMembers(subjectAbsPath));
+      return redisOps.getSubjAspMapMembers(subjectAbsPath);
     })
     .then((res) => {
       // temperature aspect deleted from subaspmap
