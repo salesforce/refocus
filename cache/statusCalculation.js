@@ -27,7 +27,7 @@ module.exports = {
   setRanges,
   prepareValue,
   calculateStatus,
-  addRangesCmds,
+  getRangesCmds,
 };
 
 /**
@@ -72,13 +72,13 @@ function setRanges(ranges, aspName) {
 }
 
 /**
- * Add redis commands to set keys for the given ranges
+ * Get redis commands to set keys for the given ranges
  *
  * @param  {Array<Object>} ranges - sorted, non-overlapping list of aspect ranges
  * @param  {String} aspName - aspect name
  * @returns  {Array} - Redis commands
  */
-function addRangesCmds(ranges, aspName) {
+function getRangesCmds(ranges, aspName) {
   const redisCmds = [];
   const setKey = redisStore.toKey(keyType.aspRanges, aspName);
   ranges.forEach((range) => {
