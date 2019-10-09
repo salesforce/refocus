@@ -54,7 +54,7 @@ describe(`tests/cache/models/samples/patch.js, api: redisStore: PATCH ${path}`,
       return samstoinit.eradicate();
     })
     .then(() => samstoinit.init())
-    .then(() => redisOps.getHashPromise(objectType.sample, sampleName))
+    .then(() => redisOps.getHash(objectType.sample, sampleName))
     .then((sampleObj) => {
       sampUpdatedAt = new Date(sampleObj.updatedAt);
       sampleValue = sampleObj.value;
@@ -71,7 +71,7 @@ describe(`tests/cache/models/samples/patch.js, api: redisStore: PATCH ${path}`,
     it('on unpublish aspect, sample is removed from cache', (done) => {
       tu.db.Aspect.findByPk(aspectId).then((aspect) =>
         aspect.update({ isPublished: false }))
-      .then(() => redisOps.getHashPromise(redisOps.sampleType, sampleName))
+      .then(() => redisOps.getHash(redisOps.sampleType, sampleName))
       .then((sample) => {
         expect(sample).to.be.null;
         done();
