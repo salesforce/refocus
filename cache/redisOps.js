@@ -754,10 +754,11 @@ class RedisOps {
    */
   setSubjectTags(subject) {
     const key = redisStore.toKey(keyType.subTags, subject.absolutePath);
-    return this
+    return this.batchCmds()
     .if(subject.tags && subject.tags.length, (batch) =>
       batch.sadd(key, subject.tags)
-    );
+    )
+    .exec();
   } // setSubjectTags
 
   /**
@@ -768,10 +769,11 @@ class RedisOps {
    */
   setAspectTags(aspect) {
     const key = redisStore.toKey(keyType.aspTags, aspect.name);
-    return this
+    return this.batchCmds()
     .if(aspect.tags && aspect.tags.length, (batch) =>
       batch.sadd(key, aspect.tags)
-    );
+    )
+    .exec();
   } // setAspectTags
 
   /**
@@ -784,10 +786,11 @@ class RedisOps {
     const key = redisStore.toKey(keyType.aspWriters, aspect.name);
     const writerNames = aspect.writers && aspect.writers.map(w => w.name);
 
-    return this
+    return this.batchCmds()
     .if(writerNames && writerNames.length, (batch) =>
       batch.sadd(key, writerNames)
-    );
+    )
+    .exec();
   } // setAspectWriters
 
   /**
