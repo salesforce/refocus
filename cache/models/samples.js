@@ -106,23 +106,17 @@ function parseName(name) {
  * Checks if the user has the permission to perform the write operation on the
  * sample or not.
 
- * @param  {String}  aspect - Aspect object
+ * @param  {String}  aspectName - Aspect name
  * @param  {String}  userName -  User performing the operation
  * @param  {Boolean} isBulk   - Flag to indicate if the action is a bulk
  *  operation or not
  * @returns {Promise} - which resolves to true if the user has write permission
  */
 function checkWritePermission(aspectName, userName, isBulk) {
-  const redisCmds = redisOps.checkAspectWriterCmds(aspectName, userName);
-
-  return redisOps.executeBatchCmds(redisCmds)
+  return redisOps.getWriters({ name: aspectName })
     .then((res) => {
-      if (res[0] === 0) {
-        return Promise.resolve(true); // default writable
-      }
-
-      // empty writers arr would mean no one has permission
-      if (res[1] === 0) {
+      // empty writers arr would mean everyone has permission
+      if (res.length && !res.includes(userName)) {
         const err = new redisErrors.UpdateDeleteForbidden({
           explanation: `User "${userName}" does not have write permission ` +
             `for aspect "${aspectName}"`,
@@ -211,6 +205,7 @@ function cleanAddSubjectToSample(sampleObj, subjectObj) {
  *
  * @param  {Object} qbObj - current sample (from request body)
  * @param  {Object} prev - previous sample
+ * @returns {Promise} - Empty Promise which updates sample attributes
  */
 function updateSampleAttributes(curr, prev) {
   modelUtils.removeExtraAttributes(curr, sampleFieldsArr);
@@ -415,7 +410,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
         sampleQueryBodyObj.aspectId = aspect.id;
         aspectObj = sampleStore.arrayObjsStringsToJson(aspect,
           constants.fieldsToStringify.aspect);
-        return checkWritePermission(aspectObj, userName, isBulk);
+        return checkWritePermission(aspectObj.name, userName, isBulk);
       })
       .then(() => {
         if (sample && !isSampleChanged(sampleQueryBodyObj, sample)) {
@@ -791,19 +786,7 @@ module.exports = {
       sampObjToReturn = sampleObj;
       sampObjToReturn.updatedAt = new Date().toISOString();
 
-      cmds.push(redisOps.getHashCmd(aspectType, aspName));
-
-      // get the aspect to attach it to the sample
-      return redisOps.getHashPromise(aspectType, aspName);
-    })
-    .then((aspObj) => {
-      if (!aspObj) {
-        throw new redisErrors.ResourceNotFoundError({
-          explanation: 'Aspect not found.',
-        });
-      }
-
-      return checkWritePermission(aspObj.name, userName);
+      return checkWritePermission(aspName, userName);
     })
 
     /*
@@ -820,9 +803,6 @@ module.exports = {
       cmds.push(redisOps.delHashCmd(sampleType, sampleName));
       return redisOps.executeBatchCmds(cmds);
     })
-    .then(() => redisOps.executeBatchCmds(cmds))
-
-    /* Attach aspect and links to sample. */
       .then(() => sampleStore.arrayObjsStringsToJson(sampObjToReturn,
         constants.fieldsToStringify.sample));
   }, // deleteSample

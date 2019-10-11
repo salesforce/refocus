@@ -185,13 +185,10 @@ function publishSample(sample, event) {
     return Promise.resolve();
   }
 
-  sample.subject = {};
-  sample.aspect = {};
-
   const subjAbsolutePath = arr[0];
+  sample.subject = { absolutePath: subjAbsolutePath };
+  sample.aspect = { name: arr[1] }; // for socket.io perspective filtering
   sample.absolutePath = subjAbsolutePath; // used for perspective filtering
-  sample.subject.absolutePath = subjAbsolutePath;
-  sample.aspect.name = arr[1]; // for socket.io perspective filtering
 
   const cmds = [];
   const subjTagsKey = redisOps.getSubjectTagsKey(sample.absolutePath);
@@ -207,13 +204,18 @@ function publishSample(sample, event) {
     })
     .then(() => {
       if (sample.hasOwnProperty('noChange') && sample.noChange === true) {
-        return publishSampleNoChange(sample);
+        return publishSampleNoChange(sample).then(() => {
+          tracker.trackSamplePublish(sample.name, sample.updatedAt);
+        });
       }
 
       const eventType = event || getSampleEventType(sample);
-      return publishObject(sample, eventType);
+      return publishObject(sample, eventType)
+        .then(() => {
+          tracker.trackSamplePublish(sample.name, sample.updatedAt);
+          return sample;
+        });
     })
-    .then(() => sample)
     .catch((err) => {
       // Any failure on publish sample must not stop the next promise.
       logger.error('publishSample error', err);
