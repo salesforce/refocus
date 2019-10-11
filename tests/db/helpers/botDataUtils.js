@@ -22,7 +22,7 @@ const RoomType = tu.db.RoomType;
 const Bot = tu.db.Bot;
 const BotData = tu.db.BotData;
 const bd = require('../model/botData/utils');
-
+/* eslint-disable no-magic-numbers */
 const bot1 = {
   name: 'TestBot1',
   url: 'http://www.bar.com',
@@ -182,79 +182,6 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
     const testString = '\'Test\'';
 
     expect(bdUtil.isJson(testString)).to.equal(false);
-    done();
-  });
-
-  it('ok, String value is replaced single depth', (done) => {
-    const testString = 'this is a ${TestBot.response}';
-    const replacment = '${TestBot.response}';
-    const instance = {
-      name: 'response',
-      value: 'test of replacement.',
-    };
-
-    expect(bdUtil.replaceValue(testString, replacment, instance))
-      .to.equal('this is a test of replacement.');
-    done();
-  });
-
-  it('ok, String value (special chars) replaced single depth', (done) => {
-    const testString = 'this is a ${TestBot.response}';
-    const replacment = '${TestBot.response}';
-    const specialCharString = '!@£$%^&*()":][/|.,/;\n\n\t%';
-    const instance = {
-      name: 'response',
-      value: specialCharString,
-    };
-
-    expect(bdUtil.replaceValue(testString, replacment, instance))
-      .to.contain(specialCharString);
-    done();
-  });
-
-  it('fail, String string is not matched', (done) => {
-    const testString = 'this is a ${TestBot.response}';
-    const replacment = '${TestBot.response2}';
-    const instance = {
-      name: 'response',
-      value: 'test of replacement.',
-    };
-
-    expect(bdUtil.replaceValue(testString, replacment, instance))
-      .to.equal('this is a ${TestBot.response}');
-    done();
-  });
-
-  it('ok, String value is replaced multiple depth', (done) => {
-    const testString = 'this is a ${TestBot.response.newMessage}';
-    const replacment = '${TestBot.response.newMessage}';
-    const instance = {
-      name: 'response',
-      value: '{' +
-        '\"oldMessage\": \"test of replacement.\",' +
-        '\"newMessage\": \"test of replacement depth."' +
-      '}',
-    };
-
-    expect(bdUtil.replaceValue(testString, replacment, instance))
-      .to.equal('this is a test of replacement depth.');
-    done();
-  });
-
-  it('ok, String value (special chars) replaced multiple depth', (done) => {
-    const testString = 'this is a ${TestBot.response.newMessage}';
-    const replacment = '${TestBot.response.newMessage}';
-    const specialCharString = '!@£$%^&*()":][/|.,/;\n\n\t%';
-    const instance = {
-      name: 'response',
-      value:
-        serialize({
-          newMessage: specialCharString,
-        }),
-    };
-
-    expect(bdUtil.replaceValue(testString, replacment, instance))
-      .to.contain(specialCharString);
     done();
   });
 
@@ -488,5 +415,112 @@ describe('tests/db/helpers/botDataUtils.js >', () => {
       expect(bdRes.value).to.equal('{"name": "tausif"}');
       done();
     }).catch(done);
+  });
+
+  describe('Check replacement', () => {
+    it('String must be replaced with single depth', (done) => {
+      const toReplace = 'this is a ${TestBot.response}';
+      const expectedReplacement = 'this is a test of replacement.';
+
+      const replacementToken = '${TestBot.response}';
+      const instance = { name: 'response', value: 'test of replacement.', };
+
+      expect(bdUtil.replaceValue(toReplace, replacementToken, instance))
+        .to.equal(expectedReplacement);
+      done();
+    });
+
+    it('String must be replaced with special chars, single depth', (done) => {
+      const toReplace = 'this is a ${TestBot.response}';
+      const replacementToken = '${TestBot.response}';
+      const specialCharString = '!@£$%^&*()":][/|.,/;\n\n\t%';
+      const expectedReplacement = 'this is a !@£$%^&*()":][/|.,/;\n\n\t%';
+
+      const instance = { name: 'response', value: specialCharString, };
+
+      expect(bdUtil.replaceValue(toReplace, replacementToken, instance))
+        .to.equal(expectedReplacement);
+      done();
+    });
+
+    it('Replacement must not happen when token is not matched', (done) => {
+      const toReplace = 'this is a ${TestBot.response}';
+      const replacementToken = '${TestBot.response2}';
+      const instance = { name: 'response', value: 'blah', };
+
+      expect(bdUtil.replaceValue(toReplace, replacementToken, instance))
+        .to.equal('this is a ${TestBot.response}');
+      done();
+    });
+
+    it('Must be replaced when multiple depth', (done) => {
+      const toReplace = 'this is a ${TestBot.response.newMessage}';
+      const replacementToken = '${TestBot.response.newMessage}';
+      const instance = {
+        name: 'response',
+        value: '{' +
+          '\"oldMessage\": \"test of replacement.\",' +
+          '\"newMessage\": \"test of replacement depth."' +
+          '}',
+      };
+      const expectedReplacement = 'this is a test of replacement depth.';
+
+      expect(bdUtil.replaceValue(toReplace, replacementToken, instance))
+        .to.equal(expectedReplacement);
+      done();
+    });
+
+    it('Must replace special char with multiple depth', (done) => {
+      const toReplace = 'this is a ${TestBot.response.newMessage}';
+      const replacementToken = '${TestBot.response.newMessage}';
+      const specialCharString = '!@£$%^&*()":][/|.,/;\n\n\t%';
+      const instance = {
+        name: 'response',
+        value:
+          serialize({
+            newMessage: specialCharString,
+          }),
+      };
+      const expectedReplacement = 'this is a !@£$%^&*()":][/|.,/;\n\n\t%';
+
+      expect(bdUtil.replaceValue(toReplace, replacementToken, instance))
+        .to.equal(expectedReplacement);
+      done();
+    });
+
+    it('Must be able to replace and convert to an object the value in depth',
+      (done) => {
+        const toReplace = '{"onCallTTe": "${Oncall-Bot.onCallTTx.tte}"}';
+        const replacementToken = '${Oncall-Bot.onCallTTx.tte}';
+        const instance = {
+          name: 'onCallTTx',
+          value: '{"tte":' +
+            '[' +
+            '{' +
+            '"startTime":"2019-10-02T13:37:16Z",' +
+            '"endTime":"2019-10-02T14:04:47Z",' +
+            '"team":"Oncall-Bot-Test-Service"' +
+            '},' +
+            '{' +
+            '"startTime":"2019-10-02T14:04:00Z",' +
+            '"endTime":' +
+            '"2019-10-02T14:04:54Z",' +
+            '"team":"Oncall-Bot-Test-Service"' +
+            '},' +
+            '{' +
+            '"startTime":"2019-10-02T14:04:00Z",' +
+            '"endTime":"2019-10-02T14:04:59Z",' +
+            '"team":"Oncall-Bot-Test-Service"' +
+            '}' +
+            ']' +
+            '}',
+        };
+
+        const replaced = bdUtil.replaceValue(toReplace, replacementToken,
+          instance);
+        const list = JSON.parse(JSON.parse(replaced).onCallTTe);
+        expect(list.length === 3).to.be.equal(true);
+        done();
+      });
   });
 });
