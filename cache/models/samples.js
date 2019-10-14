@@ -36,7 +36,6 @@ const sampleNameSeparator = '|';
 const logger = require('@salesforce/refocus-logging-client');
 const featureToggles = require('feature-toggles');
 const config = require('../../config');
-const Promise = require('bluebird');
 const Op = require('sequelize').Op;
 
 const sampFields = {
@@ -114,7 +113,7 @@ function parseName(name) {
  * @returns {Promise} - which resolves to true if the user has write permission
  */
 function checkWritePermission(aspectName, userName, isBulk) {
-  return redisOps.getWriters({ name: aspectName })
+  return redisOps.getAspectWriters({ name: aspectName })
     .then((res) => {
       // empty writers arr would mean everyone has permission
       if (res.length && !res.includes(userName)) {

@@ -56,31 +56,22 @@ describe('tests/cache/models/samples/helperFunctions.js >', () => {
     after(tu.forceDeleteUser);
     after(() => tu.toggleOverride('enableRedisSampleStore', false));
     it('writers does not exist, anyone can write', (done) => {
-      redisOps.executeCommand(
-          ['exists', redisOps.getAspectWritersKey(aspName)])
-        .then((res) => {
-          expect(res).to.equal(0);
-          return checkWritePerm(aspName, mainUser.name);
-        })
-        .then((res) => {
-          expect(res).to.equal(true);
-          done();
-        })
-        .catch(done);
+      checkWritePerm(aspName, mainUser.name)
+      .then((res) => {
+        expect(res).to.equal(true);
+        done();
+      })
+      .catch(done);
     });
 
     it('writers exist, writer found, only writers can write', (done) => {
-      redisOps.setWriters({
+      redisOps.setAspectWriters({
         name: aspName,
         writers: [mainUser],
       })
-      .then(() => redisOps.executeCommand(
-        ['exists', redisOps.getAspectWritersKey(aspect.name)]
-      ))
-      .then((res) => {
-        expect(res).to.equal(1);
-        return checkWritePerm(aspName, mainUser.name);
-      })
+      .then(() =>
+        checkWritePerm(aspName, mainUser.name)
+      )
       .then((res) => {
         expect(res).to.equal(true);
         checkWritePerm(aspName, otherUser.name)
@@ -96,17 +87,13 @@ describe('tests/cache/models/samples/helperFunctions.js >', () => {
 
     it('isBulk, writers exist, writer found, only writers can write',
       (done) => {
-        redisOps.setWriters({
+        redisOps.setAspectWriters({
           name: aspName,
           writers: [mainUser],
         })
-        .then(() => redisOps.executeCommand(
-          ['exists', redisOps.getAspectWritersKey(aspect.name)]
-        ))
-        .then((res) => {
-          expect(res).to.equal(1);
-          return checkWritePerm(aspName, mainUser.name, true);
-        })
+        .then(() =>
+          checkWritePerm(aspName, mainUser.name, true)
+        )
         .then((res) => {
           expect(res).to.equal(true);
           return checkWritePerm(aspName, otherUser.name, true);

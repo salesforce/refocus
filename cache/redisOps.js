@@ -566,7 +566,7 @@ class RedisOps {
    */
   getSubjectTagsKey(absolutePath) {
     return redisStore.toKey(subjectTagsType, absolutePath);
-  },
+  }
 
   /**
    * Get tags key for an aspect
@@ -575,7 +575,7 @@ class RedisOps {
    */
   getAspectTagsKey(aspectName) {
     return redisStore.toKey(keyType.aspTags, aspectName);
-  },
+  }
 
   /**
    * Get writers key for an aspect
@@ -584,7 +584,7 @@ class RedisOps {
    */
   getAspectWritersKey(aspectName) {
     return redisStore.toKey(keyType.aspWriters, aspectName);
-  },
+  }
 
   /**
    * Setup writers, tags, and ranges for this aspect.
