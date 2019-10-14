@@ -149,9 +149,8 @@ function removeRelatedSamples(subject, seq) {
   .then(({ samples }) =>
     Promise.map(samples, (sample) => {
       if (seq && sample) {
-        sample.subject = subject;
         sample.updatedAt = now;
-        return publishSample(sample, null, sampleEvent.del, seq.models.Aspect);
+        return publishSample(sample, sampleEvent.del);
       }
     })
   );

@@ -22,6 +22,7 @@ const subAspMapType = keyType.subAspMap;
 const aspSubMapType = keyType.aspSubMap;
 const aspectType = keyType.aspect;
 const sampleType = keyType.sample;
+const subjectTagsType = keyType.subjectTags;
 const Status = require('../db/constants').statuses;
 
 const batchableCmds = [
@@ -557,6 +558,33 @@ class RedisOps {
     const toSet = redisStore.toKey(setType, nameTo);
     return this.sunionstore(toSet, fromSet);
   }
+
+  /**
+   * Get tags key for a subject
+   * @param absolutePath - subject absolute path
+   * @returns {String} - subject tags key
+   */
+  getSubjectTagsKey(absolutePath) {
+    return redisStore.toKey(subjectTagsType, absolutePath);
+  },
+
+  /**
+   * Get tags key for an aspect
+   * @param aspectName - aspect name
+   * @returns {String} - aspect tags key
+   */
+  getAspectTagsKey(aspectName) {
+    return redisStore.toKey(keyType.aspTags, aspectName);
+  },
+
+  /**
+   * Get writers key for an aspect
+   * @param aspectName - aspect name
+   * @returns {String} - aspect writers key
+   */
+  getAspectWritersKey(aspectName) {
+    return redisStore.toKey(keyType.aspWriters, aspectName);
+  },
 
   /**
    * Setup writers, tags, and ranges for this aspect.

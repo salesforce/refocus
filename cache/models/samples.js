@@ -36,6 +36,8 @@ const sampleNameSeparator = '|';
 const logger = require('@salesforce/refocus-logging-client');
 const featureToggles = require('feature-toggles');
 const config = require('../../config');
+const Promise = require('bluebird');
+const Op = require('sequelize').Op;
 
 const sampFields = {
   PROVIDER: 'provider',
@@ -105,32 +107,32 @@ function parseName(name) {
  * Checks if the user has the permission to perform the write operation on the
  * sample or not.
 
- * @param  {String}  aspect - Aspect object
+ * @param  {String}  aspectName - Aspect name
  * @param  {String}  userName -  User performing the operation
  * @param  {Boolean} isBulk   - Flag to indicate if the action is a bulk
  *  operation or not
  * @returns {Promise} - which resolves to true if the user has write permission
  */
-function checkWritePermission(aspect, userName, isBulk) {
-  let isWritable = true;
-  if (aspect.writers && aspect.writers.length) {
-    isWritable = aspect.writers.includes(userName);
-  }
+function checkWritePermission(aspectName, userName, isBulk) {
+  return redisOps.getWriters({ name: aspectName })
+    .then((res) => {
+      // empty writers arr would mean everyone has permission
+      if (res.length && !res.includes(userName)) {
+        const err = new redisErrors.UpdateDeleteForbidden({
+          explanation: `User "${userName}" does not have write permission ` +
+            `for aspect "${aspectName}"`,
+        });
 
-  if (!isWritable) {
-    const err = new redisErrors.UpdateDeleteForbidden({
-      explanation: `User "${userName}" does not have write permission ` +
-        `for aspect "${aspect.name}"`,
+        if (isBulk) {
+          return Promise.reject({ isFailed: true, explanation: err });
+        }
+
+        return Promise.reject(err);
+      }
+
+      // If we got this far, the user has write permission on this aspect.
+      return Promise.resolve(true);
     });
-    if (isBulk) {
-      return Promise.reject({ isFailed: true, explanation: err });
-    }
-
-    return Promise.reject(err);
-  }
-
-  // If we got this far, the user has write permission on this aspect.
-  return Promise.resolve(true);
 } // checkWritePermission
 
 /**
@@ -204,9 +206,9 @@ function cleanAddSubjectToSample(sampleObj, subjectObj) {
  *
  * @param  {Object} qbObj - current sample (from request body)
  * @param  {Object} prev - previous sample
- * @param  {Object} aspect - aspect used to recalculate status
+ * @returns {Promise} - Empty Promise which updates sample attributes
  */
-function updateSampleAttributes(curr, prev, aspect) {
+function updateSampleAttributes(curr, prev) {
   modelUtils.removeExtraAttributes(curr, sampleFieldsArr);
   const now = new Date().toISOString();
 
@@ -227,67 +229,78 @@ function updateSampleAttributes(curr, prev, aspect) {
   /* Just in case curr.value was undefined... */
   if (curr[sampFields.VALUE] === undefined) curr[sampFields.VALUE] = '';
 
-  if (!prev) {
-    /*
-     * This is a brand new sample so calculate current status based on value,
-     * set previous status to invalid, and set status changed at to now.
-     */
-    curr[sampFields.STATUS] =
-      sampleUtils.computeStatus(aspect, curr[sampFields.VALUE]);
-    curr[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
-    curr[sampFields.STS_CHANGED_AT] = now;
-  } else if (curr[sampFields.VALUE] === prev[sampFields.VALUE]) {
-    /*
-     * Value is same so no need to recalculate status. Just carry over the
-     * status, previous status, and status changed at from the old sample.
-     */
-    curr[sampFields.STATUS] = prev[sampFields.STATUS];
-    curr[sampFields.PRVS_STATUS] = prev[sampFields.PRVS_STATUS];
-    curr[sampFields.STS_CHANGED_AT] = prev[sampFields.STS_CHANGED_AT];
-  } else {
-    /*
-     * The value is different so we need to calculate the status.
-     */
-    curr[sampFields.STATUS] =
-      sampleUtils.computeStatus(aspect, curr[sampFields.VALUE]);
-    if (curr[sampFields.STATUS] === prev[sampFields.STATUS]) {
+  return Promise.resolve()
+    .then(() => {
+      if (!prev) {
+        /*
+         * This is a brand new sample so calculate current status based on value,
+         * set previous status to invalid, and set status changed at to now.
+         */
+        return redisOps.calculateSampleStatus(
+          curr[sampFields.NAME], curr[sampFields.VALUE])
+          .then((status) => {
+            curr[sampFields.STATUS] = status;
+            curr[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
+            curr[sampFields.STS_CHANGED_AT] = now;
+          });
+      } else if (curr[sampFields.VALUE] === prev[sampFields.VALUE]) {
+        /*
+         * Value is same so no need to recalculate status. Just carry over the
+         * status, previous status, and status changed at from the old sample.
+         */
+        curr[sampFields.STATUS] = prev[sampFields.STATUS];
+        curr[sampFields.PRVS_STATUS] = prev[sampFields.PRVS_STATUS];
+        curr[sampFields.STS_CHANGED_AT] = prev[sampFields.STS_CHANGED_AT];
+        return Promise.resolve();
+      }
+
       /*
-       * The status is the same so carry over the previous status and status
-       * changed at from the old sample.
+       * The value is different so we need to calculate the status.
        */
-      curr[sampFields.PRVS_STATUS] = prev[sampFields.PRVS_STATUS];
-      curr[sampFields.STS_CHANGED_AT] = prev[sampFields.STS_CHANGED_AT];
-    } else {
-      /*
-       * The status is different so assign previous status based on the old
-       * sample's status, and set status changd at to now.
-       */
-      curr[sampFields.PRVS_STATUS] = prev[sampFields.STATUS];
-      curr[sampFields.STS_CHANGED_AT] = now;
-    }
-  }
+      return redisOps.calculateSampleStatus(
+        curr[sampFields.NAME], curr[sampFields.VALUE])
+        .then((status) => {
+          curr[sampFields.STATUS] = status;
+          if (curr[sampFields.STATUS] === prev[sampFields.STATUS]) {
+            /*
+             * The status is the same so carry over the previous status and status
+             * changed at from the old sample.
+             */
+            curr[sampFields.PRVS_STATUS] = prev[sampFields.PRVS_STATUS];
+            curr[sampFields.STS_CHANGED_AT] = prev[sampFields.STS_CHANGED_AT];
+          } else {
+            /*
+             * The status is different so assign previous status based on the old
+             * sample's status, and set status changd at to now.
+             */
+            curr[sampFields.PRVS_STATUS] = prev[sampFields.STATUS];
+            curr[sampFields.STS_CHANGED_AT] = now;
+          }
+        });
+    })
+    .then(() => {
+      let rlinks;
 
-  let rlinks;
+      // if related link is passed in query object
+      if (curr[sampFields.RLINKS]) {
+        rlinks = curr[sampFields.RLINKS];
+      } else if (!prev) { // if we are creating new sample
+        rlinks = []; // default value
+      } else if (prev[sampFields.RLINKS] && prev[sampFields.RLINKS] !== '[]') {
+        /* retain previous related links if query body does not have attribute */
+        rlinks = JSON.parse(prev[sampFields.RLINKS]);
+      }
 
-  // if related link is passed in query object
-  if (curr[sampFields.RLINKS]) {
-    rlinks = curr[sampFields.RLINKS];
-  } else if (!prev) { // if we are creating new sample
-    rlinks = []; // default value
-  } else if (prev[sampFields.RLINKS] && prev[sampFields.RLINKS] !== '[]') {
-    /* retain previous related links if query body does not have attribute */
-    rlinks = JSON.parse(prev[sampFields.RLINKS]);
-  }
+      if (rlinks) {
+        curr[sampFields.RLINKS] = JSON.stringify(rlinks);
+      } else {
+        /* safeguard against sending null argument to hmset command */
+        delete curr[sampFields.RLINKS];
+      }
 
-  if (rlinks) {
-    curr[sampFields.RLINKS] = JSON.stringify(rlinks);
-  } else {
-    /* safeguard against sending null argument to hmset command */
-    delete curr[sampFields.RLINKS];
-  }
-
-  if (!prev) curr[sampFields.CREATED_AT] = now;
-  curr[sampFields.UPD_AT] = now;
+      if (!prev) curr[sampFields.CREATED_AT] = now;
+      curr[sampFields.UPD_AT] = now;
+    });
 } // updateSampleAttributes
 
 /**
@@ -398,7 +411,7 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
         sampleQueryBodyObj.aspectId = aspect.id;
         aspectObj = sampleStore.arrayObjsStringsToJson(aspect,
           constants.fieldsToStringify.aspect);
-        return checkWritePermission(aspectObj, userName, isBulk);
+        return checkWritePermission(aspectObj.name, userName, isBulk);
       })
       .then(() => {
         if (sample && !isSampleChanged(sampleQueryBodyObj, sample)) {
@@ -407,48 +420,49 @@ function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
         }
 
         // sampleQueryBodyObj updated with fields
-        updateSampleAttributes(sampleQueryBodyObj, sample, aspectObj);
-
-        if (sample) { // if sample exists, just update sample
-          delete sampleQueryBodyObj.name; // to avoid updating sample name
-          logInvalidHmsetValues(sampleKey, sampleQueryBodyObj);
-          return redisClient.hmsetAsync(sampleKey, sampleQueryBodyObj);
-        }
-
-        /*
-         * Otherwise the sample is new. Set the name to be the combination of
-         * subject absolutePath and aspect name.
-         */
-        sampleQueryBodyObj.name = subject.absolutePath + '|' + aspectObj.name;
-
-        // Add the provider and user fields.
-        if (user) {
-          sampleQueryBodyObj.provider = user.id;
-          sampleQueryBodyObj.user = JSON.stringify({
-            name: user.name,
-            email: user.email,
-            profile: {
-              name: user.profile.name,
-            },
-          });
-        }
-
-        return redisOps.batchCmds()
-
-          // add the aspect name to the subject-to-aspect resource mapping
-          .addAspectInSubjSet(absolutePath, aspectName)
-
-          // add sample to the master list of sample index
-          .addKeyToIndex(sampleType, sampleName)
-
-          // create/update hash of sample. Check and log invalid Hmset values
-          .setHashMulti(sampleType, sampleName, sampleQueryBodyObj)
-
-          // add subject absolute path to aspect-to-subject resource mapping
-          .addSubjectAbsPathInAspectSet(aspectObj.name, subject.absolutePath)
-
-          .exec();
+        return updateSampleAttributes(sampleQueryBodyObj, sample);
       }))
+    .then(() => {
+      if (sample) { // if sample exists, just update sample
+        delete sampleQueryBodyObj.name; // to avoid updating sample name
+        logInvalidHmsetValues(sampleKey, sampleQueryBodyObj);
+        return redisClient.hmsetAsync(sampleKey, sampleQueryBodyObj);
+      }
+
+      /*
+       * Otherwise the sample is new. Set the name to be the combination of
+       * subject absolutePath and aspect name.
+       */
+      sampleQueryBodyObj.name = subject.absolutePath + '|' + aspectObj.name;
+
+      // Add the provider and user fields.
+      if (user) {
+        sampleQueryBodyObj.provider = user.id;
+        sampleQueryBodyObj.user = JSON.stringify({
+          name: user.name,
+          email: user.email,
+          profile: {
+            name: user.profile.name,
+          },
+        });
+      }
+
+      return redisOps.batchCmds()
+
+        // add the aspect name to the subject-to-aspect resource mapping
+        .addAspectInSubjSet(absolutePath, aspectName)
+
+        // add sample to the master list of sample index
+        .addKeyToIndex(sampleType, sampleName)
+
+        // create/update hash of sample. Check and log invalid Hmset values
+        .setHashMulti(sampleType, sampleName, sampleQueryBodyObj)
+
+        // add subject absolute path to aspect-to-subject resource mapping
+        .addSubjectAbsPathInAspectSet(aspectObj.name, subject.absolutePath)
+
+        .exec();
+    })
     .then(() => redisClient.hgetallAsync(sampleKey))
     .then((updatedSamp) => {
       if (!updatedSamp.name) {
@@ -516,18 +530,7 @@ function upsertOneParsedSample(sampleQueryBodyObj, parsedSample, isBulk, user) {
   const sampleKey = sampleStore.toKey(constants.objectType.sample, sampleName);
   const absolutePath = parsedSample.subject.absolutePath;
   const aspectName = parsedSample.aspect.name;
-  const subjKey = sampleStore.toKey(constants.objectType.subject, absolutePath);
-  const aspect = parsedSample.aspect.item;
-  if (!aspect || aspect.isPublished === 'false') {
-    try {
-      handleUpsertError(constants.objectType.aspect, isBulk, sampleName);
-    } catch (err) {
-      if (isBulk) return err;
-      throw err;
-    }
-  }
 
-  let subject;
   let sample;
   let noChange = false;
 
@@ -536,20 +539,33 @@ function upsertOneParsedSample(sampleQueryBodyObj, parsedSample, isBulk, user) {
    * block and return an error. Otherwise, we return the sample.
    */
   return checkWritePermission(aspectName, userName, isBulk)
-  .then(() => Promise.all([
-    redisClient.hgetallAsync(subjKey),
-    redisClient.hgetallAsync(sampleKey),
-  ])
-  .then((responses) => {
-    [subject, sample] = responses;
+  .then(() => redisClient.hgetallAsync(sampleKey))
+  .then((response) => {
+    sample = response;
 
-    if (!subject || subject.isPublished === 'false') {
-      handleUpsertError(constants.objectType.subject, isBulk, sampleName);
+    if (!sample) { // new sample. check subject/asp is published from db
+      const subjWhereObj = {
+        where: { absolutePath: { [Op.iLike]: absolutePath } },
+      };
+      const aspWhereObj = { where: { name: { [Op.iLike]: aspectName } } };
+      return Promise.join(
+        db.Subject.findOne(subjWhereObj),
+        db.Aspect.findOne(aspWhereObj)
+      )
+      .spread((dbSubj, dbAsp) => {
+        if (!dbSubj || dbSubj.isPublished === false) {
+          handleUpsertError(constants.objectType.subject, isBulk, sampleName);
+        }
+
+        if (!dbAsp || dbAsp.isPublished === false) {
+          handleUpsertError(constants.objectType.aspect, isBulk, sampleName);
+        }
+
+        return Promise.resolve(); // aspect and subject is published
+      });
     }
 
-    sampleQueryBodyObj.subjectId = subject.id;
-    sampleQueryBodyObj.aspectId = aspect.id;
-    return checkWritePermission(aspect, userName, isBulk);
+    return Promise.resolve();
   })
   .then(() => {
     if (sample && !isSampleChanged(sampleQueryBodyObj, sample)) {
@@ -558,19 +574,14 @@ function upsertOneParsedSample(sampleQueryBodyObj, parsedSample, isBulk, user) {
     }
 
     // sampleQueryBodyObj updated with fields
-    updateSampleAttributes(sampleQueryBodyObj, sample, aspect);
-
+    return updateSampleAttributes(sampleQueryBodyObj, sample);
+  })
+  .then(() => {
     if (sample) { // if sample exists, just update sample
       delete sampleQueryBodyObj.name; // to avoid updating sample name
       logInvalidHmsetValues(sampleKey, sampleQueryBodyObj);
       return redisClient.hmsetAsync(sampleKey, sampleQueryBodyObj);
     }
-
-    /*
-     * Otherwise the sample is new. Set the name to be the combination of
-     * subject absolutePath and aspect name.
-     */
-    sampleQueryBodyObj.name = subject.absolutePath + '|' + aspect.name;
 
     // Add the provider and user fields.
     if (user) {
@@ -596,45 +607,32 @@ function upsertOneParsedSample(sampleQueryBodyObj, parsedSample, isBulk, user) {
       .setHashMulti(sampleType, sampleName, sampleQueryBodyObj)
 
       // add subject absolute path to aspect-to-subject resource mapping
-      .addSubjectAbsPathInAspectSet(aspect.name, subject.absolutePath)
+      .addSubjectAbsPathInAspectSet(aspectName, absolutePath)
 
       .exec();
-  }))
+  })
   .then(() => redisClient.hgetallAsync(sampleKey))
   .then((updatedSamp) => {
-    if (!updatedSamp.name) {
-      updatedSamp.name = subject.absolutePath + '|' + aspect.name;
+    if (!updatedSamp.name) { // sample should have name
+      handleUpsertError(constants.objectType.sample, isBulk, sampleName);
     }
 
     // Publish the sample.nochange event
     if (noChange) {
       updatedSamp.noChange = true;
-      updatedSamp.absolutePath = subject.absolutePath;
-      updatedSamp.aspectName = aspect.name;
-      updatedSamp.aspectTags = aspect.tags || [];
-      updatedSamp.aspectTimeout = aspect.timeout;
-
-      if (Array.isArray(subject.tags)) {
-        updatedSamp.subjectTags = subject.tags;
-      } else {
-        try {
-          updatedSamp.subjectTags = JSON.parse(subject.tags);
-        } catch (err) {
-          updatedSamp.subjectTags = [];
-        }
-      }
-
       return updatedSamp; // skip cleanAdd...
     }
 
-    return cleanAddAspectToSample(updatedSamp, aspect);
+    return sampleStore.arrayObjsStringsToJson(updatedSamp,
+      constants.fieldsToStringify.sample);
   })
   .then((updatedSamp) => {
     if (updatedSamp.hasOwnProperty(noChange) && updatedSamp.noChange === true) {
       return updatedSamp;
     }
 
-    return cleanAddSubjectToSample(updatedSamp, subject);
+    return sampleStore.arrayObjsStringsToJson(updatedSamp,
+      constants.fieldsToStringify.sample);
   })
   .catch((err) => {
     debugUpsertErrors('refocus:sample:upsert:errors|upsertOneSample|%s|%o|%o',
@@ -769,7 +767,6 @@ module.exports = {
     const subjAbsPath = parsedSampleName.subject.absolutePath;
     const aspName = parsedSampleName.aspect.name;
     let sampObjToReturn;
-    let aspect;
     return redisOps.getHash(sampleType, sampleName)
     .then((sampleObj) => {
       if (!sampleObj) {
@@ -781,21 +778,7 @@ module.exports = {
       sampObjToReturn = sampleObj;
       sampObjToReturn.updatedAt = new Date().toISOString();
 
-      // get the aspect to attach it to the sample
-      return redisOps.getHash(aspectType, aspName);
-    })
-    .then((aspObj) => {
-      if (!aspObj) {
-        throw new redisErrors.ResourceNotFoundError({
-          explanation: 'Aspect not found.',
-        });
-      }
-
-      aspect = sampleStore.arrayObjsStringsToJson(
-        aspObj, constants.fieldsToStringify.aspect
-      );
-
-      return checkWritePermission(aspect, userName);
+      return checkWritePermission(aspName, userName);
     })
 
     /*
@@ -813,9 +796,8 @@ module.exports = {
         .delHash(sampleType, sampleName)
         .exec()
     )
-
-    /* Attach aspect and links to sample. */
-    .then(() => cleanAddAspectToSample(sampObjToReturn, aspect));
+    .then(() => sampleStore.arrayObjsStringsToJson(sampObjToReturn,
+        constants.fieldsToStringify.sample));
   }, // deleteSample
 
   /**
@@ -830,7 +812,6 @@ module.exports = {
     const aspectName = parsedSampleName.aspect.name;
     const now = new Date().toISOString();
     let currSampObj;
-    let aspectObj;
     return redisOps.getHash(sampleType, sampleName)
     .then((sampObj) => {
       if (!sampObj) {
@@ -840,20 +821,7 @@ module.exports = {
       }
 
       currSampObj = sampObj;
-      return redisOps.getHash(aspectType, aspectName);
-    })
-    .then((aspObj) => {
-      if (!aspObj) {
-        throw new redisErrors.ResourceNotFoundError({
-          explanation: 'Aspect not found.',
-        });
-      }
-
-      aspectObj = sampleStore.arrayObjsStringsToJson(
-        aspObj, constants.fieldsToStringify.aspect
-      );
-
-      return checkWritePermission(aspectObj, userName);
+      return checkWritePermission(aspectName, userName);
     })
     .then(() => {
       let updatedRlinks = [];
@@ -867,7 +835,8 @@ module.exports = {
       // if no change in related links, then return the object.
       if (JSON.stringify(updatedRlinks) ===
         JSON.stringify(currSampObj.relatedLinks)) {
-        Promise.resolve(cleanAddAspectToSample(currSampObj, aspectObj));
+        Promise.resolve(sampleStore.arrayObjsStringsToJson(currSampObj,
+          constants.fieldsToStringify.sample));
       }
 
       const hmsetObj = {};
@@ -884,7 +853,8 @@ module.exports = {
       return redisOps.setHashMulti(sampleType, sampleName, hmsetObj);
     })
     .then(() => redisOps.getHash(sampleType, sampleName))
-    .then((updatedSamp) => cleanAddAspectToSample(updatedSamp, aspectObj));
+      .then((updatedSamp) => sampleStore.arrayObjsStringsToJson(updatedSamp,
+        constants.fieldsToStringify.sample));
   }, // deleteSampleRelatedLinks
 
   isSampleChanged, // export for testing only
@@ -905,10 +875,8 @@ module.exports = {
     const reqBody = params.queryBody.value;
     const sampleName = params.key.value;
     const parsedSampleName = parseName(sampleName.toLowerCase());
-    const subjectAbsolutePath = parsedSampleName.subject.absolutePath;
     const aspectName = parsedSampleName.aspect.name;
     let currSampObj;
-    let aspectObj;
     return checkWritePermission(aspectName, userName)
     .then(() => redisOps.getHash(sampleType, sampleName))
     .then((sampObj) => {
@@ -919,44 +887,25 @@ module.exports = {
       }
 
       currSampObj = sampObj;
-
-      return redisOps.getHash(aspectType, aspectName);
-    })
-    .then((aspObj) => {
-      if (!aspObj || (aspObj.isPublished == 'false')) {
-        throw new redisErrors.ResourceNotFoundError({
-          explanation: 'Aspect not found.',
-        });
-      }
-
       modelUtils.removeExtraAttributes(reqBody, sampleFieldsArr);
-      aspectObj = sampleStore.arrayObjsStringsToJson(
-        aspObj, constants.fieldsToStringify.aspect
-      );
-
-      return redisOps.getHash(subjectType, subjectAbsolutePath);
-    })
-    .then((subjObj) => {
-      if (!subjObj || (subjObj.isPublished == 'false')) {
-        throw new redisErrors.ResourceNotFoundError({
-          explanation: 'Subject not found.',
-        });
-      }
-
-      return checkWritePermission(aspectObj, userName);
     })
     .then(() => {
       if (reqBody.value) {
-        const status = sampleUtils.computeStatus(aspectObj, reqBody.value);
-        if (currSampObj[sampFields.STATUS] !== status) {
-          reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
-          reqBody[sampFields.STS_CHANGED_AT] = now;
-          reqBody[sampFields.STATUS] = status;
-        }
+        return redisOps.calculateSampleStatus(sampleName, reqBody.value)
+          .then((status) => {
+            if (currSampObj[sampFields.STATUS] !== status) {
+              reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
+              reqBody[sampFields.STS_CHANGED_AT] = now;
+              reqBody[sampFields.STATUS] = status;
+            }
 
-        reqBody[sampFields.UPD_AT] = now;
+            reqBody[sampFields.UPD_AT] = now;
+          });
       }
 
+      return Promise.resolve();
+    })
+    .then(() => {
       if (reqBody.relatedLinks) {
         reqBody[sampFields.RLINKS] = reqBody.relatedLinks;
       }
@@ -967,12 +916,14 @@ module.exports = {
           reqBody[field] = JSON.stringify(reqBody[field]);
         }
       });
+
       return redisOps.setHashMulti(sampleType, sampleName, reqBody);
     })
     .then(() => redisOps.getHash(sampleType, sampleName))
     .then((updatedSamp) => {
       parseName(updatedSamp.name); // throw if invalid name
-      return cleanAddAspectToSample(updatedSamp, aspectObj);
+      return sampleStore.arrayObjsStringsToJson(updatedSamp,
+        constants.fieldsToStringify.sample);
     })
     .catch((err) => {
       throw err;
@@ -1037,8 +988,11 @@ module.exports = {
 
       modelUtils.removeExtraAttributes(reqBody, sampleFieldsArr);
       reqBody.name = sampleName;
+      return redisOps.calculateSampleStatus(reqBody.name, reqBody.value);
+    })
+    .then((status) => {
       const value = reqBody.value || '';
-      reqBody[sampFields.STATUS] = sampleUtils.computeStatus(aspectObj, value);
+      reqBody[sampFields.STATUS] = status;
       reqBody[sampFields.VALUE] = value;
       if (reqBody.relatedLinks) {
         reqBody[sampFields.RLINKS] = JSON.stringify(reqBody.relatedLinks);
@@ -1098,10 +1052,9 @@ module.exports = {
     const reqBody = params.queryBody.value;
     const sampleName = params.key.value;
     const parsedSampleName = parseName(sampleName);
-    const subjectAbsolutePath = parsedSampleName.subject.absolutePath;
     const aspectName = parsedSampleName.aspect.name;
+    let value = '';
     let currSampObj;
-    let aspectObj;
     return redisOps.getHash(sampleType, sampleName)
     .then((sampObj) => {
       if (!sampObj) {
@@ -1111,39 +1064,18 @@ module.exports = {
       }
 
       currSampObj = sampObj;
-      return redisOps.getHash(aspectType, aspectName);
-    })
-    .then((aspObj) => {
-      if (!aspObj || (aspObj.isPublished == 'false')) {
-        throw new redisErrors.ResourceNotFoundError({
-          explanation: 'Aspect not found.',
-        });
-      }
-
-      aspectObj = sampleStore.arrayObjsStringsToJson(
-        aspObj, constants.fieldsToStringify.aspect
-      );
-
-      return redisOps.getHash(subjectType, subjectAbsolutePath);
-    })
-    .then((subjObj) => {
-      if (!subjObj || (subjObj.isPublished == 'false')) {
-        throw new redisErrors.ResourceNotFoundError({
-          explanation: 'Subject not found.',
-        });
-      }
-
-      return checkWritePermission(aspectObj, userName);
+      return checkWritePermission(aspectName, userName);
     })
     .then(() => {
       modelUtils.removeExtraAttributes(reqBody, sampleFieldsArr);
-      let value = '';
       if (reqBody.value) {
         value = reqBody.value;
       }
 
       // change these only if status is updated
-      const status = sampleUtils.computeStatus(aspectObj, value);
+      return redisOps.calculateSampleStatus(sampleName, value);
+    })
+    .then((status) => {
       if (currSampObj[sampFields.STATUS] !== status) {
         reqBody[sampFields.PRVS_STATUS] = currSampObj[sampFields.STATUS];
         reqBody[sampFields.STS_CHANGED_AT] = now;
@@ -1175,7 +1107,8 @@ module.exports = {
     .then(() => redisOps.getHash(sampleType, sampleName))
     .then((updatedSamp) => {
       parseName(updatedSamp.name); // throw if invalid name
-      return cleanAddAspectToSample(updatedSamp, aspectObj);
+      return sampleStore.arrayObjsStringsToJson(updatedSamp,
+        constants.fieldsToStringify.sample);
     });
   }, // putSample
 
@@ -1543,14 +1476,7 @@ module.exports = {
       return Promise.reject(err);
     }
 
-    return redisClient.hgetallAsync(sampleStore.toKey(
-      constants.objectType.aspect, parsedSample.aspect.name))
-      .then((asp) => {
-        const aspectObj = sampleStore.arrayObjsStringsToJson(asp,
-          constants.fieldsToStringify.aspect);
-        parsedSample.aspect.item = aspectObj;
-        return upsertOneParsedSample(qbObj, parsedSample, false, user);
-      });
+    return upsertOneParsedSample(qbObj, parsedSample, false, user);
   },
 
   /**
@@ -1566,61 +1492,41 @@ module.exports = {
     }
 
     const parsedSampleNames = {}; // sample name <-> subject and aspect name
-    const aspectsNameToObjMap = {}; // aspect name <-> aspect object
-    const aspectsSet = new Set();
 
-    // parse sample names and create aspects set
+    // parse sample names
     sampleQueryBody.forEach((squery) => {
       const sampleName = squery.name.toLowerCase();
       try {
         const parsedSampleName = parseName(sampleName);
-        aspectsSet.add(parsedSampleName.aspect.name);
         parsedSampleNames[sampleName] = parsedSampleName;
       } catch (err) { // invalid sample name
         parsedSampleNames[sampleName] = err;
       }
     });
 
-    return redisOps.batchCmds()
-      .returnAll(aspectsSet, 'aspectsFromRedis', (batch, aspectName) =>
-        batch.getHash(aspectType, aspectName)
-      )
-      .exec()
-      .then(({ aspectsFromRedis }) => {
-        aspectsFromRedis.forEach((asp) => {
-          if (asp) {
-            const aspObj = sampleStore.arrayObjsStringsToJson(asp,
-              constants.fieldsToStringify.aspect);
-            aspectsNameToObjMap[asp.name.toLowerCase()] = aspObj;
-          }
-        });
+    const promises = sampleQueryBody.map((sampleReq) => {
+      // Throw error if sample is upserted with read-only field.
+      try {
+        commonUtils.noReadOnlyFieldsInReq(sampleReq, readOnlyFields);
+        const sampleName = sampleReq.name.toLowerCase();
+        const parsed = parsedSampleNames[sampleName];
+        if (parsed instanceof Error) { // invalid sample name
+          throw parsed;
+        }
 
-        const promises = sampleQueryBody.map((sampleReq) => {
-          // Throw error if sample is upserted with read-only field.
-          try {
-            commonUtils.noReadOnlyFieldsInReq(sampleReq, readOnlyFields);
-            const sampleName = sampleReq.name.toLowerCase();
-            const parsed = parsedSampleNames[sampleName];
-            if (parsed instanceof Error) { // invalid sample name
-              throw parsed;
-            }
+        // parsed object has subject name, aspect name
+        return upsertOneParsedSample(sampleReq, parsed, true, user);
+      } catch (err) {
+        return Promise.resolve({ isFailed: true, explanation: err });
+      }
+    });
 
-            const aspectObj = aspectsNameToObjMap[parsed.aspect.name];
-            parsed.aspect.item = aspectObj;
-
-            // parsed object has subject name, aspect name and aspect item
-            return upsertOneParsedSample(sampleReq, parsed, true, user);
-          } catch (err) {
-            return Promise.resolve({ isFailed: true, explanation: err });
-          }
-        });
-
-        return Promise.all(promises);
-      });
+    return Promise.all(promises);
   }, // bulkUpsertByName
 
   cleanAddSubjectToSample, // export for testing only
   cleanAddAspectToSample, // export for testing only
   updateSampleAttributes, // export for testing only
   sscanAndFilterSampleKeys, // export for testing only
+  checkWritePermission, // export for testing only
 };

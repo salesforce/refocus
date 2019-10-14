@@ -139,10 +139,8 @@ function removeAspectRelatedSamples(aspect, seq) {
   .then(({ samples }) =>
     Promise.map(samples, (sample) => {
       if (seq && sample) {
-        sample.aspect = aspect;
         sample.updatedAt = now;
-        return publishSample(sample, seq.models.Subject, sampleEvent.del,
-          seq.models.Aspect);
+        return publishSample(sample, sampleEvent.del);
       }
     })
   );
