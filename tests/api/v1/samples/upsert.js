@@ -210,7 +210,7 @@ describe(`tests/api/v1/samples/upsert.js, POST ${path} >`, () => {
           return done(err);
         }
 
-        expect(res.body.name).to.equal(sampleName);
+        expect(res.body.name).to.equal(sampleName.toLowerCase());
         done();
       });
     });

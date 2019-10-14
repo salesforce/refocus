@@ -23,15 +23,8 @@ const subAspMapType = keyType.subAspMap;
 const aspSubMapType = keyType.aspSubMap;
 const aspectType = keyType.aspect;
 const sampleType = keyType.sample;
-const subjectTagsType = redisStore.constants.objectType.subTags;
+const subjectTagsType = keyType.subjectTags;
 const Status = require('../db/constants').statuses;
-
-const rangeNameToStatus = {
-  criticalRange: 'Critical',
-  warningRange: 'Warning',
-  infoRange: 'Info',
-  okRange: 'OK',
-};
 
 /**
  * Capitalize the first letter of the string and returns the modified string.
@@ -564,6 +557,33 @@ module.exports = {
   },
 
   /**
+   * Get tags key for a subject
+   * @param absolutePath - subject absolute path
+   * @returns {String} - subject tags key
+   */
+  getSubjectTagsKey(absolutePath) {
+    return redisStore.toKey(subjectTagsType, absolutePath);
+  },
+
+  /**
+   * Get tags key for an aspect
+   * @param aspectName - aspect name
+   * @returns {String} - aspect tags key
+   */
+  getAspectTagsKey(aspectName) {
+    return redisStore.toKey(keyType.aspTags, aspectName);
+  },
+
+  /**
+   * Get writers key for an aspect
+   * @param aspectName - aspect name
+   * @returns {String} - aspect writers key
+   */
+  getAspectWritersKey(aspectName) {
+    return redisStore.toKey(keyType.aspWriters, aspectName);
+  },
+
+  /**
    * Setup writers, tags, and ranges for this aspect.
    *
    * @param  {Object} aspect
@@ -772,15 +792,6 @@ module.exports = {
     // calculate
     return statusCalculation.calculateStatus(aspName, value);
   }, // calculateSampleStatus
-
-  /**
-   * Get tags key for a subject
-   * @param absolutePath - subject absolute path
-   * @returns {String} - subject tags key
-   */
-  getSubjectTagsKey(absolutePath) {
-    return redisStore.toKey(subjectTagsType, absolutePath);
-  },
 
   renameKey,
 

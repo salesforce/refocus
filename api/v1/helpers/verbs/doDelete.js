@@ -34,7 +34,7 @@ function doDelete(req, res, next, props) {
   let obj;
   if (props.modelName === 'Sample') {
     const sampleName = req.swagger.params.key.value.toLowerCase();
-    delPromise = redisModelSample.deleteSample(sampleName, req.user);
+    delPromise = redisModelSample.deleteSample(sampleName, req.user.name);
   } else {
     delPromise = u.findByKey(props, req.swagger.params)
     .then((o) => u.isWritable(req, o))
@@ -73,9 +73,7 @@ function doDelete(req, res, next, props) {
       // message here instead of beginning of function
       tracker.trackSampleRequest(res.locals.retVal.name,
         res.locals.retVal.updatedAt, res.locals.resultObj.reqStartTime);
-
-      publisher.publishSample(res.locals.retVal, props.associatedModels.subject,
-        event.sample.del);
+      publisher.publishSample(res.locals.retVal, event.sample.del);
     }
 
     // update the cache

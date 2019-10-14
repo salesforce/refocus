@@ -52,7 +52,6 @@ describe('tests/api/v1/samples/patch.js >', () => {
       .catch(done);
     });
 
-    beforeEach(u.populateRedis);
     afterEach(u.forceDelete);
 
     it('reject if name field in request', (done) => {
