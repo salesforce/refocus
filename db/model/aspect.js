@@ -154,7 +154,7 @@ module.exports = function aspect(seq, dataTypes) {
           inst.isPublished && publishObject(inst, aspectEventNames.add),
           redisOps.batchCmds()
             .addKey(aspectType, inst.getDataValue('name'))
-            .hmSet(aspectType, inst.name, instDataObj)
+            .setHash(aspectType, inst.name, instDataObj)
             .if(inst.isPublished, (batch) =>
               batch.setupKeysForAspect(inst)
             )
@@ -292,7 +292,7 @@ module.exports = function aspect(seq, dataTypes) {
 
             return Promise.join(
               redisOps.batchCmds()
-                .hmSet(aspectType, inst.name, instDataObj)
+                .setHash(aspectType, inst.name, instDataObj)
                 .addKey(aspectType, inst.name)
                 .if(inst.isPublished, (batch) =>
                   batch.setupKeysForAspect(inst)
@@ -330,7 +330,7 @@ module.exports = function aspect(seq, dataTypes) {
               // batch redis updates
               redisOps.batchCmds()
 
-                .hmSet(aspectType, inst.name, instChanged)
+                .setHash(aspectType, inst.name, instChanged)
 
                 /*
                  * If aspect is published and tags change, send an "add" realtime

@@ -214,22 +214,20 @@ class RedisOps {
   }
 
   /**
-   * Creates or updates the hash specified by the name argument, with values
-   * specified by the value argument.
+   * Clean and store an object as a hash.
    *
-   * @param  {String} objName - Name of the object.
-   * @param  {String} name  - Name used to identify the hash
-   * @param  {Object} value - The value object's key/value are set as the
-   * key/value of the hash that is created or updated.
+   * @param  {String} objType - Object type (aspect|subject|sample)
+   * @param  {String} name  - Object name (subject absolutePath | aspect name | sample name)
+   * @param  {Object} obj - Object to set as a hash
    * @returns {Promise} - which resolves to true
    */
-  hmSet(objName, name, value) {
-    const capitalizedObjName = objName.charAt(0).toUpperCase() + objName.slice(1);
-    const cleanobj = redisStore[`clean${capitalizedObjName}`](value);
-    const nameKey = redisStore.toKey(objName, name);
+  setHash(objType, name, obj) {
+    const capitalizedObjName = objType.charAt(0).toUpperCase() + objType.slice(1);
+    const cleanobj = redisStore[`clean${capitalizedObjName}`](obj);
+    const nameKey = redisStore.toKey(objType, name);
     logInvalidHmsetValues(nameKey, cleanobj);
     return this.hmset(nameKey, cleanobj);
-  } // hmSet
+  } // setHash
 
   /**
    * Sets the value of the hash specified by the name argument.

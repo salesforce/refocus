@@ -156,7 +156,7 @@ module.exports = function subject(seq, dataTypes) {
               batch.setSubjectTags(inst)
             )
             .addKey(subjectType, inst.getDataValue('absolutePath'))
-            .hmSet(subjectType, inst.getDataValue('absolutePath'), instDataObj)
+            .setHash(subjectType, inst.getDataValue('absolutePath'), instDataObj)
             .exec(),
 
           inst.getParent()
@@ -237,7 +237,7 @@ module.exports = function subject(seq, dataTypes) {
           }
 
           // finally update the subject hash in redis too
-          batch.hmSet(subjectType, inst.absolutePath, instDataObj);
+          batch.setHash(subjectType, inst.absolutePath, instDataObj);
 
           return batch.exec()
           .then((results) => {

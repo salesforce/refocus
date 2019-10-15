@@ -182,7 +182,7 @@ module.exports = {
         Array.from(userSet).forEach((user) => {
           cachedAspect.writers.push(user);
         });
-        return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
+        return redisOps.setHash('aspect', cachedAspect.name, cachedAspect);
       }
 
       // reject the promise if the aspect is not found in the cache
@@ -275,7 +275,7 @@ module.exports = {
     .then((cachedAspect) => {
       if (cachedAspect) {
         cachedAspect.writers = [];
-        return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
+        return redisOps.setHash('aspect', cachedAspect.name, cachedAspect);
       }
 
       // reject the promise if the aspect is not found in the cache
@@ -323,7 +323,7 @@ module.exports = {
       if (cachedAspect) {
         cachedAspect.writers = cachedAspect.writers
             .filter((writer) => writer !== userName);
-        return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
+        return redisOps.setHash('aspect', cachedAspect.name, cachedAspect);
       }
 
       // reject the promise if the aspect is not found in the cache
