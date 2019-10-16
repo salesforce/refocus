@@ -190,22 +190,22 @@ function publishSample(sample, event) {
   sample.aspect = { name: arr[1] }; // for socket.io perspective filtering
   sample.absolutePath = subjAbsolutePath; // used for perspective filtering
 
-  const subjTagsKey = redisOps.getSubjectTagsKey(sample.absolutePath);
-  const aspTagsKey = redisOps.getAspectTagsKey(sample.aspect.name);
-  return Promise.all([
-    redisOps.smembers(subjTagsKey),
-    redisOps.smembers(aspTagsKey),
-  ])
-  .then((res) => {
-    sample.subject.tags = res[0]; // for socket.io perspective filtering
-    sample.aspect.tags = res[1]; // for socket.io perspective filtering
-  })
-  .then(() => {
-    if (sample.hasOwnProperty('noChange') && sample.noChange === true) {
-      return publishSampleNoChange(sample).then(() => {
-        tracker.trackSamplePublish(sample.name, sample.updatedAt);
-      });
-    }
+  return redisOps.batchCmds()
+    .return('subTags', (batch) =>
+      batch.getSubjectTags(sample.subject)
+    )
+    .return('aspTags', (batch) =>
+      batch.getAspectTags(sample.aspect)
+    )
+    .exec()
+    .then(({ subTags, aspTags }) => {
+      sample.subject.tags = subTags; // for socket.io perspective filtering
+      sample.aspect.tags = aspTags; // for socket.io perspective filtering
+    })
+    .then(() => {
+      if (sample.hasOwnProperty('noChange') && sample.noChange === true) {
+        return publishSampleNoChange(sample);
+      }
 
     const eventType = event || getSampleEventType(sample);
     return publishObject(sample, eventType)
