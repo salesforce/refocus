@@ -22,7 +22,6 @@ const subAspMapType = keyType.subAspMap;
 const aspSubMapType = keyType.aspSubMap;
 const aspectType = keyType.aspect;
 const sampleType = keyType.sample;
-const subjectTagsType = keyType.subjectTags;
 const Status = require('../db/constants').statuses;
 
 const batchableCmds = [
@@ -563,7 +562,7 @@ class RedisOps {
    * @returns {String} - subject tags key
    */
   getSubjectTagsKey(absolutePath) {
-    return redisStore.toKey(subjectTagsType, absolutePath);
+    return redisStore.toKey(keyType.subTags, absolutePath);
   }
 
   /**
