@@ -26,7 +26,6 @@ module.exports = {
   setRanges,
   prepareValue,
   calculateStatus,
-  getRangesCmds,
 };
 
 /**
@@ -69,28 +68,6 @@ function setRanges(redisOps, ranges, aspName) {
     .zadd(setKey, range.max, getRangeKey('max', range.status, range.max))
   )
   .exec();
-}
-
-/**
- * Get redis commands to set keys for the given ranges
- *
- * @param  {Array<Object>} ranges - sorted, non-overlapping list of aspect ranges
- * @param  {String} aspName - aspect name
- * @returns  {Array} - Redis commands
- */
-function getRangesCmds(ranges, aspName) {
-  const redisCmds = [];
-  const setKey = redisStore.toKey(keyType.aspRanges, aspName);
-  ranges.forEach((range) => {
-    redisCmds.push(['zadd', setKey, range.min,
-      getRangeKey('min', range.status, range.min),
-    ]);
-    redisCmds.push(['zadd', setKey, range.max,
-      getRangeKey('max', range.status, range.max),
-    ]);
-  });
-
-  return redisCmds;
 }
 
 /**
