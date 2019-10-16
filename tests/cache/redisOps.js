@@ -115,76 +115,6 @@ describe('tests/cache/redisOps >', () => {
     .catch(done);
   });
 
-  describe('deleteSampleKeys tests >', () => {
-    it('should return deleted samples back, aspsubmap association', (done) => {
-      const aspectName = `${tu.namePrefix}Aspect1`;
-      redisOps.deleteSampleKeys(sampleStore.constants.objectType.aspSubMap,
-        aspectName)
-      .then((samples) => {
-        expect(samples).to.have.a.lengthOf(2);
-        expect(samples[0].name).to.be.oneOf([
-          '___Subject1.___Subject2' + '|' + aspectName,
-          '___Subject1.___Subject3' + '|' + aspectName,
-        ]);
-        expect(samples[1].name).to.be.oneOf([
-          '___Subject1.___Subject2' + '|' + aspectName,
-          '___Subject1.___Subject3' + '|' + aspectName,
-        ]);
-        const cmd = [
-          ['hgetall', '___Subject1.___Subject2' + '|' + aspectName],
-          ['hgetall', '___Subject1.___Subject3' + '|' + aspectName],
-        ];
-        return rcli.batch(cmd).execAsync();
-      })
-      .then((samples) => {
-        expect(samples[0]).to.equal(null);
-        expect(samples[1]).to.equal(null);
-        return done();
-      })
-      .catch((err) => done(err));
-    });
-
-    it('should return deleted samples back, subaspmap association', (done) => {
-      const subject2AbsPath = `${tu.namePrefix}Subject1.` +
-        `${tu.namePrefix}Subject2`;
-      redisOps.deleteSampleKeys(sampleStore.constants.objectType.subAspMap,
-        subject2AbsPath)
-      .then((samples) => {
-        expect(samples).to.have.a.lengthOf(2);
-        expect(samples[0].name).to.be.oneOf([
-          subject2AbsPath + '|' + '___Aspect1',
-          subject2AbsPath + '|' + '___Aspect2',
-        ]);
-        expect(samples[1].name).to.be.oneOf([
-          subject2AbsPath + '|' + '___Aspect1',
-          subject2AbsPath + '|' + '___Aspect2',
-        ]);
-        const cmd = [
-          ['hgetall', subject2AbsPath + '|' + '___Aspect1'],
-          ['hgetall', subject2AbsPath + '|' + '___Aspect2'],
-        ];
-        return rcli.batch(cmd).execAsync();
-      })
-      .then((samples) => {
-        expect(samples[0]).to.equal(null);
-        expect(samples[1]).to.equal(null);
-        return done();
-      })
-      .catch((err) => done(err));
-    });
-
-    it('should not return samples if not found', (done) => {
-      const subject1AbsPath = `${tu.namePrefix}Subject1.`;
-      redisOps.deleteSampleKeys(sampleStore.constants.objectType.subAspMap,
-        subject1AbsPath)
-      .then((samples) => {
-        expect(samples).to.have.a.lengthOf(0);
-        return done();
-      })
-      .catch((err) => done(err));
-    });
-  });
-
   describe('deleteSubjectFromAspectResourceMaps >', () => {
     it('subject deleted from aspect resource map', (done) => {
       const aspSubMapAspect2Key = sampleStore.toKey(
@@ -193,9 +123,7 @@ describe('tests/cache/redisOps >', () => {
       rcli.smembersAsync(aspSubMapAspect2Key)
       .then((subjectNames) => {
         expect(subjectNames).to.deep.equal(['___subject1.___subject2']);
-        return redisOps.executeCommand(
-          redisOps.deleteSubjectFromAspectResourceMaps(
-            [a2.name], s2.absolutePath));
+        return redisOps.deleteSubjectFromAspectResourceMaps([a2.name], s2.absolutePath);
       })
       .then(() => rcli.smembersAsync(aspSubMapAspect2Key))
       .then((subNames) => {

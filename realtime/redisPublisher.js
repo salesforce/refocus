@@ -190,37 +190,35 @@ function publishSample(sample, event) {
   sample.aspect = { name: arr[1] }; // for socket.io perspective filtering
   sample.absolutePath = subjAbsolutePath; // used for perspective filtering
 
-  const cmds = [];
   const subjTagsKey = redisOps.getSubjectTagsKey(sample.absolutePath);
-  cmds.push(['smembers', subjTagsKey]);
-
   const aspTagsKey = redisOps.getAspectTagsKey(sample.aspect.name);
-  cmds.push(['smembers', aspTagsKey]);
+  return Promise.all([
+    redisOps.smembers(subjTagsKey),
+    redisOps.smembers(aspTagsKey),
+  ])
+  .then((res) => {
+    sample.subject.tags = res[0]; // for socket.io perspective filtering
+    sample.aspect.tags = res[1]; // for socket.io perspective filtering
+  })
+  .then(() => {
+    if (sample.hasOwnProperty('noChange') && sample.noChange === true) {
+      return publishSampleNoChange(sample).then(() => {
+        tracker.trackSamplePublish(sample.name, sample.updatedAt);
+      });
+    }
 
-  return redisOps.executeBatchCmds(cmds)
-    .then((res) => {
-      sample.subject.tags = res[0]; // for socket.io perspective filtering
-      sample.aspect.tags = res[1]; // for socket.io perspective filtering
-    })
-    .then(() => {
-      if (sample.hasOwnProperty('noChange') && sample.noChange === true) {
-        return publishSampleNoChange(sample).then(() => {
-          tracker.trackSamplePublish(sample.name, sample.updatedAt);
-        });
-      }
-
-      const eventType = event || getSampleEventType(sample);
-      return publishObject(sample, eventType)
-        .then(() => {
-          tracker.trackSamplePublish(sample.name, sample.updatedAt);
-          return sample;
-        });
-    })
-    .catch((err) => {
-      // Any failure on publish sample must not stop the next promise.
-      logger.error('publishSample error', err);
-      return Promise.resolve();
-    });
+    const eventType = event || getSampleEventType(sample);
+    return publishObject(sample, eventType)
+      .then(() => {
+        tracker.trackSamplePublish(sample.name, sample.updatedAt);
+        return sample;
+      });
+  })
+  .catch((err) => {
+    // Any failure on publish sample must not stop the next promise.
+    logger.error('publishSample error', err);
+    return Promise.resolve();
+  });
 } // publishSample
 
 /**

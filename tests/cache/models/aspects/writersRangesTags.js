@@ -662,22 +662,22 @@ describe('tests/cache/models/aspects/writersRangesTags.js >', () => {
 
   function getTags() {
     const asp = this || asp1;
-    return redisOps.getTags(asp);
+    return redisOps.getAspectTags(asp);
   }
 
   function getWriters() {
     const asp = this || asp1;
-    return redisOps.getWriters(asp);
+    return redisOps.getAspectWriters(asp);
   }
 
   function getRanges() {
     const asp = this || asp1;
-    return redisOps.getRanges(asp);
+    return redisOps.getAspectRanges(asp);
   }
 
   function getAll() {
     const asp = this || asp1;
-    return redisOps.getTagsWritersRanges(asp);
+    return redisOps.getAspectTagsWritersRanges(asp);
   }
 
   function destroy() {

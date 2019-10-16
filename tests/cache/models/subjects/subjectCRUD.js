@@ -105,23 +105,17 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     Subject.findByPk(ipar)
     .then((subj) => {
       absolutePath = subj.absolutePath;
-      const key = redisStore.toKey('subject', absolutePath);
-      const cmds = [];
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        absolutePath));
-      cmds.push(['hgetall', key]);
-
-      const subjTagsKey = redisOps.getSubjectTagsKey(absolutePath);
-      subj.tags.forEach((tag) => {
-        cmds.push(['sismember', subjTagsKey, tag]);
-      });
-      return redisOps.executeBatchCmds(cmds);
+      return redisOps.batchCmds()
+        .keyExistsInIndex(objectType.subject, absolutePath)
+        .getHash('subject', absolutePath)
+        .getSubjectTags(subj)
+        .exec();
     })
     .then((res) => {
       expect(res.length).to.equal(3);
       expect(res[0]).to.equal(1);
       expect(res[1].absolutePath).to.equal(absolutePath);
-      expect(res[2]).to.equal(1);
+      expect(res[2]).to.have.members(par.tags);
       done();
     })
     .catch(done);
@@ -135,16 +129,11 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     Subject.findByPk(iparUnPub)
     .then((sub) => {
       subj = sub;
-      key = redisStore.toKey('subject', subj.absolutePath);
-      const cmds = [];
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        subj.absolutePath));
-      cmds.push(['hgetall', key]);
-
-      // tags key should not be found
-      const subjTagKey = redisOps.getSubjectTagsKey(sub.absolutePath);
-      cmds.push(['exists', subjTagKey]);
-      return redisOps.executeBatchCmds(cmds);
+      return redisOps.batchCmds()
+        .keyExistsInIndex(objectType.subject, subj.absolutePath)
+        .getHash('subject', subj.absolutePath)
+        .getSubjectTags(subj)
+        .exec();
     })
     .then((res) => {
       expect(res.length).to.equal(3);
@@ -155,7 +144,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       // confirms that unpublished subject was created in redis
       expect(res[1].absolutePath).to.equal(subj.absolutePath);
       expect(res[1].id).to.equal(iparUnPub);
-      expect(res[2]).to.equal(0);
+      expect(res[2]).to.have.members([]);
       return done();
     })
     .catch(done);
@@ -174,25 +163,14 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     })
     .then((subj) => {
       newAbsPath = subj.absolutePath;
-      const cmds = [];
-      const oldKey = redisStore.toKey('subject', oldAbsPath);
-      const newKey = redisStore.toKey('subject', newAbsPath);
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject, oldAbsPath));
-      cmds.push(['hgetall', oldKey]);
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject, newAbsPath));
-      cmds.push(['hgetall', newKey]);
-
-      // tags key should not be found for old absolute path
-      const oldSubjTagKey = redisOps.getSubjectTagsKey(oldAbsPath);
-      cmds.push(['exists', oldSubjTagKey]);
-
-      // tags should be found for new absolute path
-      const newSubjTagKey = redisOps.getSubjectTagsKey(newAbsPath);
-      subj.tags.forEach((tag) => {
-        cmds.push(['sismember', newSubjTagKey, tag]);
-      });
-
-      return redisOps.executeBatchCmds(cmds);
+      return redisOps.batchCmds()
+        .keyExistsInIndex(objectType.subject, oldAbsPath)
+        .getHash('subject', oldAbsPath)
+        .keyExistsInIndex(objectType.subject, newAbsPath)
+        .getHash('subject', newAbsPath)
+        .getSubjectTags({ absolutePath: oldAbsPath })
+        .getSubjectTags(subj)
+        .exec();
     })
     .then((res) => {
       expect(res.length).to.equal(6);
@@ -210,8 +188,8 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       expect(res[3].id).to.equal(ipar);
       expect(res[3].absolutePath).to.equal(newName);
 
-      expect(res[4]).to.equal(0); // tags keys not found for old abs path
-      expect(res[5]).to.equal(1); // tags found for new abs path
+      expect(res[4]).to.have.members([]); // tags keys not found for old abs path
+      expect(res[5]).to.have.members(par.tags); // tags found for new abs path
       return rcli.keysAsync(newAbsPath + '*');
     })
     .then((ret) => {
@@ -229,7 +207,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     'and the samples should be deleted, tags key should be updated', (done) => {
     let oldAbsPath;
     let newAbsPath;
-    const ARRAY = 'hello'.split('');
+    const ARRAY = 'abcd'.split('');
 
     Subject.findByPk(ipar)
     .then((subj) => {
@@ -238,27 +216,17 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     })
     .then((subj) => {
       newAbsPath = subj.absolutePath;
-      const cmds = [];
-      const oldKey = redisStore.toKey('subject', oldAbsPath);
-      const newKey = redisStore.toKey('subject', newAbsPath);
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject, oldAbsPath));
-      cmds.push(['hgetall', oldKey]);
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject, newAbsPath));
-      cmds.push(['hgetall', newKey]);
-
-      // tags key should not be found for old absolute path
-      const oldSubjTagKey = redisOps.getSubjectTagsKey(oldAbsPath);
-      cmds.push(['exists', oldSubjTagKey]);
-
-      // tags should be updated new absolute path
-      const newSubjTagKey = redisOps.getSubjectTagsKey(newAbsPath);
-      ARRAY.forEach((tag) => {
-        cmds.push(['sismember', newSubjTagKey, tag]);
-      });
-      return redisOps.executeBatchCmds(cmds);
+      return redisOps.batchCmds()
+        .keyExistsInIndex(objectType.subject, oldAbsPath)
+        .getHash('subject', oldAbsPath)
+        .keyExistsInIndex(objectType.subject, newAbsPath)
+        .getHash('subject', newAbsPath)
+        .getSubjectTags({ absolutePath: oldAbsPath })
+        .getSubjectTags(subj)
+        .exec();
     })
     .then((res) => {
-      expect(res.length).to.equal(10);
+      expect(res.length).to.equal(6);
 
       // old abspath should be removed from the subject index
       expect(res[0]).to.equal(0);
@@ -274,13 +242,8 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       expect(res[3].tags).to.deep.equal(JSON.stringify(ARRAY));
       expect(res[3].absolutePath).to.equal(newAbsPath);
 
-      expect(res[4]).to.equal(0); // old abs path tags key not found
-
-      expect(res[5]).to.equal(1); // h tag found
-      expect(res[6]).to.equal(1); // e tag found
-      expect(res[7]).to.equal(1); // l tag found
-      expect(res[8]).to.equal(1); // l tag found
-      expect(res[9]).to.equal(1); // o tag found
+      expect(res[4]).to.have.members([]); // tags keys not found for old abs path
+      expect(res[5]).to.have.members(ARRAY); // tags found for new abs path
 
       return rcli.smembersAsync(sampleIndexName);
     })
@@ -304,7 +267,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
 
       // all the samples related to the subject should be deleted
       expect(samplesWithOldName.length).to.equal(0);
-      const cmds = [];
+
       /*
        * 1. the subject to aspect mapping for the subject with the old
        * absolutepath should also be deleted
@@ -314,28 +277,18 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
        *
        * 3. aspect-to-subject mapping should be updated
        */
-      const subAspMapKeyOldAbsPath = redisStore.toKey('subaspmap', oldAbsPath);
-      cmds.push(['keys', subAspMapKeyOldAbsPath]);
-
-      const subAspMapKeyNewAbsPath = redisStore.toKey('subaspmap', newAbsPath);
-      cmds.push(['smembers', subAspMapKeyNewAbsPath]);
-
-      cmds.push(
-        redisOps.subjAbsPathExistsInAspSetCmd(aspectTemp.name, oldAbsPath)
-      );
-      cmds.push(
-        redisOps.subjAbsPathExistsInAspSetCmd(aspectHumid.name, oldAbsPath)
-      );
-      cmds.push(
-        redisOps.subjAbsPathExistsInAspSetCmd(aspectTemp.name, newAbsPath)
-      );
-      cmds.push(
-        redisOps.subjAbsPathExistsInAspSetCmd(aspectHumid.name, newAbsPath)
-      );
-      return redisOps.executeBatchCmds(cmds);
+      return redisOps.batchCmds()
+        .getSubjAspMapMembers(oldAbsPath)
+        .getSubjAspMapMembers(newAbsPath)
+        .subjAbsPathExistsInAspSet(aspectTemp.name, oldAbsPath)
+        .subjAbsPathExistsInAspSet(aspectHumid.name, oldAbsPath)
+        .subjAbsPathExistsInAspSet(aspectTemp.name, newAbsPath)
+        .subjAbsPathExistsInAspSet(aspectHumid.name, newAbsPath)
+        .exec();
     })
     .then((values) => {
       expect(values[0]).to.be.empty;
+
       expect(values[1].length).to.be.equal(2);
       expect(values[1]).to.include.members(['humidity', 'temperature']);
       expect(values[2]).to.be.equal(0);
@@ -355,23 +308,18 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       found = s;
       return s.destroy();
     })
-    .then((subj) => {
-      const key = redisStore.toKey('subject', found.absolutePath);
-      const cmds = [];
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        found.absolutePath));
-      cmds.push(['hgetall', key]);
-
-      // tags not found
-      const subjTagKey = redisOps.getSubjectTagsKey(found.absolutePath);
-      cmds.push(['exists', subjTagKey]);
-      return redisOps.executeBatchCmds(cmds);
-    })
+    .then((subj) =>
+      redisOps.batchCmds()
+        .keyExistsInIndex(objectType.subject, par.absolutePath)
+        .getHash('subject', par.absolutePath)
+        .getSubjectTags(par)
+        .exec()
+    )
     .then((res) => {
       expect(res.length).to.equal(3);
       expect(res[0]).to.equal(0);
       expect(res[1]).to.equal(null);
-      expect(res[2]).to.equal(0);
+      expect(res[2]).to.have.members([]);
       done();
     })
     .catch(done);
@@ -388,22 +336,17 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     })
     .then((members) => {
       expect(members.length).to.equal(0);
-      const aspSubMapKeyTemp = redisStore.toKey('aspsubmap', aspectTemp.name);
-      const aspSubMapKeyHumid = redisStore.toKey('aspsubmap', aspectHumid.name);
-      const cmds = [];
-      cmds.push(['smembers', aspSubMapKeyTemp]);
-      cmds.push(['smembers', aspSubMapKeyHumid]);
-
-      // tags key should not be found
-      const subjTagKey = redisOps.getSubjectTagsKey(parentName);
-      cmds.push(['exists', subjTagKey]);
-      return redisOps.executeBatchCmds(cmds);
+      return redisOps.batchCmds()
+        .getAspSubjMapMembers(aspectTemp.name)
+        .getAspSubjMapMembers(aspectHumid.name)
+        .getSubjectTags(par)
+        .exec();
     })
     .then((res) => {
       expect(res.length).to.equal(3);
       expect(res[0].length).to.equal(0);
       expect(res[1].length).to.equal(0);
-      expect(res[2]).to.equal(0);
+      expect(res[2]).to.have.members([]);
       return done();
     })
     .catch(done);
@@ -427,22 +370,17 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       expect(members.length).to.equal(0);
 
       // aspsubmaps do not have this subject
-      const aspSubMapKeyTemp = redisStore.toKey('aspsubmap', aspectTemp.name);
-      const aspSubMapKeyHumid = redisStore.toKey('aspsubmap', aspectHumid.name);
-      const cmds = [];
-      cmds.push(['smembers', aspSubMapKeyTemp]);
-      cmds.push(['smembers', aspSubMapKeyHumid]);
-
-      // tags key should not be found
-      const subjTagKey = redisOps.getSubjectTagsKey(parentName);
-      cmds.push(['exists', subjTagKey]);
-      return redisOps.executeBatchCmds(cmds);
+      return redisOps.batchCmds()
+        .getAspSubjMapMembers(aspectTemp.name)
+        .getAspSubjMapMembers(aspectHumid.name)
+        .getSubjectTags(par)
+        .exec();
     })
     .then((res) => {
       expect(res.length).to.equal(3);
       expect(res[0].length).to.equal(0);
       expect(res[1].length).to.equal(0);
-      expect(res[2]).to.equal(0);
+      expect(res[2]).to.have.members([]);
       return done();
     })
     .catch(done);
@@ -471,23 +409,17 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     })
     .then((members) => {
       expect(members.length).to.equal(0);
-      const aspSubMapKeyTemp = redisStore.toKey('aspsubmap', aspectTemp.name);
-      const aspSubMapKeyHumid = redisStore.toKey('aspsubmap', aspectHumid.name);
-      const cmds = [];
-      cmds.push(['smembers', aspSubMapKeyTemp]);
-      cmds.push(['smembers', aspSubMapKeyHumid]);
-
-      // tags key should not be found
-      const subjTagKey = redisOps.getSubjectTagsKey(parentName);
-      cmds.push(['exists', subjTagKey]);
-
-      return redisOps.executeBatchCmds(cmds);
+      return redisOps.batchCmds()
+        .getAspSubjMapMembers(aspectTemp.name)
+        .getAspSubjMapMembers(aspectHumid.name)
+        .getSubjectTags(par)
+        .exec();
     })
     .then((res) => {
       expect(res.length).to.equal(3);
       expect(res[0].length).to.equal(0);
       expect(res[1].length).to.equal(0);
-      expect(res[2]).to.equal(0);
+      expect(res[2]).to.have.members([]);
       return done();
     })
     .catch(done);
@@ -509,16 +441,13 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         { name: 'link name 2', url: 'http://xyz.com' },
       ],
     })
-    .then((subj) => {
-      const subjTagKey = redisOps.getSubjectTagsKey(subj.absolutePath);
-      const key = redisStore.toKey('subject', subj.absolutePath);
-      const cmds = [];
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        subj.absolutePath));
-      cmds.push(['hgetall', key]);
-      cmds.push(['exists', subjTagKey]);
-      return redisOps.executeBatchCmds(cmds);
-    })
+    .then((subj) =>
+      redisOps.batchCmds()
+        .keyExistsInIndex(objectType.subject, subj.absolutePath)
+        .getHash('subject', subj.absolutePath)
+        .getSubjectTags(subj)
+        .exec()
+    )
     .then((res) => {
       expect(res.length).to.equal(3);
       expect(res[0]).to.equal(1);
@@ -533,7 +462,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         { name: 'link name 2', url: 'http://xyz.com' },
       ]);
 
-      expect(res[2]).to.equal(0);
+      expect(res[2]).to.have.members([]);
       return done();
     })
     .catch(done);
@@ -550,21 +479,15 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         { name: 'link name 2', url: 'http://xyz.com' },
       ],
     })
-    .then((subj) => {
-      const key = redisStore.toKey('subject', subj.absolutePath);
-      const cmds = [];
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        subj.absolutePath));
-      cmds.push(['hgetall', key]);
-
-      const subjTagKey = redisOps.getSubjectTagsKey(subj.absolutePath);
-      subj.tags.forEach((tag) => {
-        cmds.push(['sismember', subjTagKey, tag]);
-      });
-      return redisOps.executeBatchCmds(cmds);
-    })
+    .then((subj) =>
+      redisOps.batchCmds()
+        .keyExistsInIndex(objectType.subject, subj.absolutePath)
+        .getHash('subject', subj.absolutePath)
+        .getSubjectTags(subj)
+        .exec()
+    )
     .then((res) => {
-      expect(res.length).to.equal(4);
+      expect(res.length).to.equal(3);
       expect(res[0]).to.equal(1);
       const subj = redisStore.arrayObjsStringsToJson(res[1],
         redisStore.constants.fieldsToStringify.subject);
@@ -576,8 +499,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         { name: 'link name 1', url: 'http://abc.com' },
         { name: 'link name 2', url: 'http://xyz.com' },
       ]);
-      expect(res[2]).to.equal(1);
-      expect(res[3]).to.equal(1);
+      expect(res[2]).to.have.members(['tag1', 'tag2']);
       return done();
     })
     .catch(done);
@@ -595,21 +517,15 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
       ],
     })
     .then((subj) => subj.update({ isPublished: false }))
-    .then((subj) => {
-      const key = redisStore.toKey('subject', subj.absolutePath);
-      const cmds = [];
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        subj.absolutePath));
-      cmds.push(['hgetall', key]);
-
-      const subjTagKey = redisOps.getSubjectTagsKey(subj.absolutePath);
-      subj.tags.forEach((tag) => {
-        cmds.push(['sismember', subjTagKey, tag]);
-      });
-      return redisOps.executeBatchCmds(cmds);
-    })
+    .then((subj) =>
+      redisOps.batchCmds()
+        .keyExistsInIndex(objectType.subject, subj.absolutePath)
+        .getHash('subject', subj.absolutePath)
+        .getSubjectTags(subj)
+        .exec()
+    )
     .then((res) => {
-      expect(res.length).to.equal(4);
+      expect(res.length).to.equal(3);
       expect(res[0]).to.equal(1);
       const subj = redisStore.arrayObjsStringsToJson(res[1],
         redisStore.constants.fieldsToStringify.subject);
@@ -621,8 +537,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         { name: 'link name 1', url: 'http://abc.com' },
         { name: 'link name 2', url: 'http://xyz.com' },
       ]);
-      expect(res[2]).to.equal(0);
-      expect(res[3]).to.equal(0);
+      expect(res[2]).to.have.members([]);
       return done();
     })
     .catch(done);
@@ -640,19 +555,13 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
       ],
     })
     .then((subj) => subj.update({ isPublished: true, tags: ['tags3'] }))
-    .then((subj) => {
-      const key = redisStore.toKey('subject', subj.absolutePath);
-      const cmds = [];
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        subj.absolutePath));
-      cmds.push(['hgetall', key]);
-
-      const subjTagKey = redisOps.getSubjectTagsKey(subj.absolutePath);
-      subj.tags.forEach((tag) => {
-        cmds.push(['sismember', subjTagKey, tag]);
-      });
-      return redisOps.executeBatchCmds(cmds);
-    })
+    .then((subj) =>
+      redisOps.batchCmds()
+        .keyExistsInIndex(objectType.subject, subj.absolutePath)
+        .getHash('subject', subj.absolutePath)
+        .getSubjectTags(subj)
+        .exec()
+    )
     .then((res) => {
       expect(res.length).to.equal(3);
       expect(res[0]).to.equal(1);
@@ -667,7 +576,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
         { name: 'link name 2', url: 'http://xyz.com' },
       ]);
 
-      expect(res[2]).to.equal(1);
+      expect(res[2]).to.have.members(['tags3']);
       return done();
     })
     .catch(done);
@@ -687,12 +596,10 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
     })
     .then((subj) => {
       subInst = subj;
-      const key = redisStore.toKey('subject', subj.absolutePath);
-      const cmds = [];
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        subj.absolutePath));
-      cmds.push(['hgetall', key]);
-      return redisOps.executeBatchCmds(cmds);
+      return redisOps.batchCmds()
+        .keyExistsInIndex(objectType.subject, subj.absolutePath)
+        .getHash('subject', subj.absolutePath)
+        .exec();
     })
     .then((res) => {
       expect(res[0]).to.equal(1);
@@ -708,25 +615,18 @@ describe('tests/cache/models/subjects/subjectCRUD.js> isPublished cases',
       ]);
     })
     .then(() => subInst.destroy())
-    .then((subj) => {
-      const key = redisStore.toKey('subject', subInst.absolutePath);
-      const cmds = [];
-      cmds.push(redisOps.keyExistsInIndexCmd(objectType.subject,
-        subInst.absolutePath));
-      cmds.push(['hgetall', key]);
-
-      const subjTagKey = redisOps.getSubjectTagsKey(subInst.absolutePath);
-      subInst.tags.forEach((tag) => {
-        cmds.push(['sismember', subjTagKey, tag]);
-      });
-      return redisOps.executeBatchCmds(cmds);
-    })
+    .then((subj) =>
+      redisOps.batchCmds()
+        .keyExistsInIndex(objectType.subject, subInst.absolutePath)
+        .getHash('subject', subInst.absolutePath)
+        .getSubjectTags(subInst)
+        .exec()
+    )
     .then((res) => {
-      expect(res.length).to.equal(4);
+      expect(res.length).to.equal(3);
       expect(res[0]).to.equal(0);
       expect(res[1]).to.equal(null);
-      expect(res[2]).to.equal(0);
-      expect(res[3]).to.equal(0);
+      expect(res[2]).to.have.members([]);
       return done();
     })
     .catch(done);
