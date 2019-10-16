@@ -164,7 +164,7 @@ function populateAspects() {
         return batch
         .setupKeysForAspect(asp)
         .setHash(constants.objectType.aspect, asp.name, asp)
-        .addKeyToIndex(constants.objectType.aspect, asp.name)
+        .addKeyToIndex(constants.objectType.aspect, asp.name);
       })
       .exec()
 

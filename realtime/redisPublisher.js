@@ -207,18 +207,18 @@ function publishSample(sample, event) {
         return publishSampleNoChange(sample);
       }
 
-    const eventType = event || getSampleEventType(sample);
-    return publishObject(sample, eventType)
-      .then(() => {
-        tracker.trackSamplePublish(sample.name, sample.updatedAt);
-        return sample;
-      });
-  })
-  .catch((err) => {
-    // Any failure on publish sample must not stop the next promise.
-    logger.error('publishSample error', err);
-    return Promise.resolve();
-  });
+      const eventType = event || getSampleEventType(sample);
+      return publishObject(sample, eventType);
+    })
+    .then(() => {
+      tracker.trackSamplePublish(sample.name, sample.updatedAt);
+      return sample;
+    })
+    .catch((err) => {
+      // Any failure on publish sample must not stop the next promise.
+      logger.error('publishSample error', err);
+      return Promise.resolve();
+    });
 } // publishSample
 
 /**
