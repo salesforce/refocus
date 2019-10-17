@@ -25,7 +25,7 @@ const infoLoggingEnabled =
   featureToggles.isFeatureEnabled('enableSampleStoreInfoLogging');
 const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
 const redisOps = require('./redisOps');
-const statusCalculation = require('./statusCalculation');
+const Promise = require('bluebird');
 const ONE = 1;
 const ZERO = 0;
 
@@ -151,70 +151,30 @@ function eradicate() {
  * @returns {Promise} which resolves to the list of redis batch responses.
  */
 function populateAspects() {
-  let aspects;
-  return Aspect.findAll()
+  return Aspect.scope('writers').findAll()
     .then((allAspects) => {
       if (infoLoggingEnabled) {
         const msg = `Starting to load ${allAspects.length} aspects to cache :|`;
         logger.info(msg);
       }
 
-      aspects = allAspects;
-      const getWritersPromises = [];
+      return redisOps.batchCmds()
+      .map(allAspects, (batch, asp) => {
+        asp.dataValues.writers = asp.dataValues.writers.map(w => w.name);
+        return batch
+        .setupKeysForAspect(asp)
+        .setHash(constants.objectType.aspect, asp.name, asp)
+        .addKeyToIndex(constants.objectType.aspect, asp.name);
+      })
+      .exec()
 
-      // get Writers for all the aspects in the aspect table
-      aspects.forEach((aspect) => {
-        getWritersPromises.push(aspect.getWriters());
+      .then(() => {
+        if (infoLoggingEnabled) {
+          logger.info('Done loading aspects to cache :D');
+        }
+
+        return true;
       });
-      return Promise.all(getWritersPromises);
-    })
-    .then((writersArray) => {
-      const aspectIdx = [];
-      const cmds = [];
-
-      // for each aspect, add the associated writers to its "writers" field.
-      for (let i = 0; i < aspects.length; i++) {
-        const a = aspects[i];
-        a.dataValues.writers = [];
-        writersArray[i].forEach((writer) => {
-          a.dataValues.writers.push(writer.dataValues.name);
-        });
-
-        // add writers keys
-        if (a.dataValues.writers.length) {
-          const aspWritersKey = samsto.toKey(
-            constants.objectType.aspWriters, a.name);
-          cmds.push(['sadd', aspWritersKey, a.dataValues.writers]);
-        }
-
-        // add tags keys
-        if (a.tags.length) {
-          const aspTagsKey = redisOps.getAspectTagsKey(a.name);
-          cmds.push(['sadd', aspTagsKey, a.tags]);
-        }
-
-        // add ranges keys
-        let ranges = statusCalculation.getAspectRanges(a);
-        ranges = statusCalculation.preprocessOverlaps(ranges);
-        const rangesCmds = statusCalculation.getRangesCmds(ranges, a.name);
-        cmds.push(...rangesCmds);
-
-        const key = samsto.toKey(constants.objectType.aspect, a.name);
-        aspectIdx.push(key);
-        const cleanedAspect = samsto.cleanAspect(a);
-        logInvalidHmsetValues(key, cleanedAspect);
-        cmds.push(['hmset', key, cleanedAspect]);
-      }
-
-      cmds.push(['sadd', constants.indexKey.aspect, aspectIdx]);
-      return redisClient.batch(cmds).execAsync()
-        .then(() => {
-          if (infoLoggingEnabled) {
-            logger.info('Done loading aspects to cache :D');
-          }
-
-          return true;
-        });
     })
     .catch(logger.error);
 } // populateAspects
@@ -232,33 +192,22 @@ function populateSubjects() {
         logger.info(msg);
       }
 
-      const cmds = [];
-      subjects.forEach((s) => {
-        const key = samsto.toKey(constants.objectType.subject, s.absolutePath);
+      return redisOps.batchCmds()
+      .map(subjects, (batch, sub) =>
+        batch
+        .setSubjectTags(sub)
+        .addKeyToIndex(constants.objectType.subject, sub.absolutePath)
+        .setHash(constants.objectType.subject, sub.absolutePath, sub)
+      )
+      .exec()
 
-        // add the subject absoluePath to the master subject index
-        cmds.push(['sadd', constants.indexKey.subject, key]);
-
-        // add tags key
-        if (s.tags.length) {
-          const subjTagsKey = redisOps.getSubjectTagsKey(s.absolutePath);
-          cmds.push(['sadd', subjTagsKey, s.tags]);
+      .then(() => {
+        if (infoLoggingEnabled) {
+          logger.info('Done loading subjects to cache :D');
         }
 
-        // create a mapping of subject absolutePath to subject object
-        const cleanedSubject = samsto.cleanSubject(s);
-        logInvalidHmsetValues(key, cleanedSubject);
-        cmds.push(['hmset', key, cleanedSubject]);
+        return true;
       });
-
-      return redisClient.batch(cmds).execAsync()
-        .then(() => {
-          if (infoLoggingEnabled) {
-            logger.info('Done loading subjects to cache :D');
-          }
-
-          return true;
-        });
     })
     .catch(logger.error);
 } // populateSubjects
