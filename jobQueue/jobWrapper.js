@@ -327,17 +327,17 @@ function createPromisifiedJob(jobName, data, req) {
     jobName === jobType.bulkDeleteSubjects) {
     return createBullJob(data, req, bulkDelSubQueue, jobName);
   }
-  
+
   if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples') &&
     jobName === jobType.bulkUpsertSamples) {
     return createBullJob(data, req, bulkUpsertSamplesQueue, jobName);
   }
-  
+
   if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
     jobName === jobType.bulkPostEvents) {
     return createBullJob(data, req, bulkPostEventsQueue, jobName);
   }
-  
+
   if (featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents') &&
     jobName === jobType.createAuditEvents) {
     return createBullJob(data, req, createAuditEventsQueue, jobName);

@@ -20,10 +20,8 @@ describe('tests/jobQueue/index.js >', () => {
   it('default config', () =>
     runWorker()
     .then((workerCount) => {
-      if (toggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+      if (toggles.isFeatureEnabled('anyBullEnabled')) {
         expect(workerCount).to.deep.equal({
-          createAuditEvents: 1,
-          bulkPostEvents: 1,
           deleteUnusedTokens: 1,
           getHierarchy: 1,
           checkMissedCollectorHeartbeat: 1,

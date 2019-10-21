@@ -230,10 +230,10 @@ const shortTermToggles = {
 
   enableBullForCreateAuditEvents: envVarIncludes(pe, 'ENABLE_BULL',
     'auditEvents'),
-  
+
   enableBullForBulkUpsertSamples: envVarIncludes(pe, 'ENABLE_BULL',
     'bulkUpsertSamples'),
-  
+
   enableBullForExecuteClockJob: envVarIncludes(pe, 'ENABLE_BULL',
     'clockJobs'),
 
