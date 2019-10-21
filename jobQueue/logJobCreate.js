@@ -16,8 +16,12 @@ const jobType = require('./setup').jobType;
 module.exports = (startTime, job) => {
   if (featureToggles.isFeatureEnabled('enableJobCreateActivityLogs')) {
     let jobPriority;
-    if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
-      job.type === jobType.bulkDeleteSubjects) {
+    if ((featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
+      job.type === jobType.bulkDeleteSubjects) ||
+      (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
+    job.type === jobType.bulkPostEvents) ||
+      (featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents') &&
+    job.type === jobType.createAuditEvents)) {
       jobPriority = job.opts.priority;
     } else if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples') &&
       job.type === jobType.bulkUpsertSamples) {

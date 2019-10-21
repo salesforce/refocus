@@ -106,8 +106,7 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
     // message here instead of beginning of function
     tracker.trackSampleRequest(returnObj.name,
       returnObj.updatedAt, req.timestamp);
-    publisher.publishSample(returnObj, props.associatedModels.subject,
-      realtimeEvents.sample.upd);
+    publisher.publishSample(returnObj, realtimeEvents.sample.upd);
   }
 
   // update the cache

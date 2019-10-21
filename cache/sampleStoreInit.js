@@ -24,6 +24,8 @@ const constants = samsto.constants;
 const infoLoggingEnabled =
   featureToggles.isFeatureEnabled('enableSampleStoreInfoLogging');
 const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
+const redisOps = require('./redisOps');
+const Promise = require('bluebird');
 const ONE = 1;
 const ZERO = 0;
 
@@ -90,46 +92,46 @@ function eradicate() {
   const promises = Object.getOwnPropertyNames(constants.indexKey)
     .map((s) =>
       redisClient.smembersAsync(constants.indexKey[s])
-      .then((keys) => {
-        if (constants.indexKey[s] === constants.indexKey.sample) {
-          /**
-           * this is done to delete keys prefixed with "samsto:subaspmap:" and
-           * "samsto:aspsubmap:"
-           */
-          keys.push(...getResourceMapsKeys(keys)[ZERO]);
-          keys.push(...getResourceMapsKeys(keys)[ONE]);
-        }
+        .then((keys) => {
+          if (constants.indexKey[s] === constants.indexKey.sample) {
+            /**
+             * this is done to delete keys prefixed with "samsto:subaspmap:" and
+             * "samsto:aspsubmap:"
+             */
+            keys.push(...getResourceMapsKeys(keys)[ZERO]);
+            keys.push(...getResourceMapsKeys(keys)[ONE]);
+          }
 
-        if (constants.indexKey[s] === constants.indexKey.aspect) {
-          /**
-           * delete aspect tags/writers/ranges keys
-           */
-          keys.forEach((key) => {
-            const aspName = key.split(constants.separator)[2];
-            keys.push(samsto.toKey(constants.objectType.aspTags, aspName));
-            keys.push(samsto.toKey(constants.objectType.aspWriters, aspName));
-            keys.push(samsto.toKey(constants.objectType.aspRanges, aspName));
-          });
-        }
+          if (constants.indexKey[s] === constants.indexKey.aspect) {
+            /**
+             * delete aspect tags/writers/ranges keys
+             */
+            keys.forEach((key) => {
+              const aspName = key.split(constants.separator)[2];
+              keys.push(samsto.toKey(constants.objectType.aspTags, aspName));
+              keys.push(samsto.toKey(constants.objectType.aspWriters, aspName));
+              keys.push(samsto.toKey(constants.objectType.aspRanges, aspName));
+            });
+          }
 
-        if (constants.indexKey[s] === constants.indexKey.subject) {
-          /**
-           * delete subject tags/writers/ranges keys
-           */
-          keys.forEach((key) => {
-            const subName = key.split(constants.separator)[2];
-            keys.push(samsto.toKey(constants.objectType.subTags, subName));
-          });
-        }
+          if (constants.indexKey[s] === constants.indexKey.subject) {
+            /**
+             * delete subject tags/writers/ranges keys
+             */
+            keys.forEach((key) => {
+              const subName = key.split(constants.separator)[2];
+              keys.push(samsto.toKey(constants.objectType.subTags, subName));
+            });
+          }
 
-        keys.push(constants.indexKey[s]);
-        return redisClient.delAsync(keys);
-      })
-      .catch((err) => {
-        // NO-OP
-        logger.error(err); // eslint-disable-line
-        Promise.resolve(true);
-      })
+          keys.push(constants.indexKey[s]);
+          return redisClient.delAsync(keys);
+        })
+        .catch((err) => {
+          // NO-OP
+          logger.error(err); // eslint-disable-line
+          Promise.resolve(true);
+        })
     );
   return deletePreviousStatus()
     .then(() => Promise.all(promises))
@@ -149,43 +151,23 @@ function eradicate() {
  * @returns {Promise} which resolves to the list of redis batch responses.
  */
 function populateAspects() {
-  let aspects;
-  return Aspect.findAll()
-  .then((allAspects) => {
-    if (infoLoggingEnabled) {
-      const msg = `Starting to load ${allAspects.length} aspects to cache :|`;
-      logger.info(msg);
-    }
+  return Aspect.scope('writers').findAll()
+    .then((allAspects) => {
+      if (infoLoggingEnabled) {
+        const msg = `Starting to load ${allAspects.length} aspects to cache :|`;
+        logger.info(msg);
+      }
 
-    aspects = allAspects;
-    const getWritersPromises = [];
+      return redisOps.batchCmds()
+      .map(allAspects, (batch, asp) => {
+        asp.dataValues.writers = asp.dataValues.writers.map(w => w.name);
+        return batch
+        .setupKeysForAspect(asp)
+        .setHash(constants.objectType.aspect, asp.name, asp)
+        .addKeyToIndex(constants.objectType.aspect, asp.name);
+      })
+      .exec()
 
-    // get Writers for all the aspects in the aspect table
-    aspects.forEach((aspect) => {
-      getWritersPromises.push(aspect.getWriters());
-    });
-    return Promise.all(getWritersPromises);
-  })
-  .then((writersArray) => {
-    const aspectIdx = [];
-    const cmds = [];
-
-    // for each aspect, add the associated writers to its "writers" field.
-    for (let i = 0; i < aspects.length; i++) {
-      const a = aspects[i];
-      a.dataValues.writers = [];
-      writersArray[i].forEach((writer) => {
-        a.dataValues.writers.push(writer.dataValues.name);
-      });
-      const key = samsto.toKey(constants.objectType.aspect, a.name);
-      aspectIdx.push(key);
-      const cleanedAspect = samsto.cleanAspect(a);
-      logInvalidHmsetValues(key, cleanedAspect);
-      cmds.push(['hmset', key, cleanedAspect]);
-    }
-
-    cmds.push(['sadd', constants.indexKey.aspect, aspectIdx]);
-    return redisClient.batch(cmds).execAsync()
       .then(() => {
         if (infoLoggingEnabled) {
           logger.info('Done loading aspects to cache :D');
@@ -193,8 +175,8 @@ function populateAspects() {
 
         return true;
       });
-  })
-  .catch(logger.error);
+    })
+    .catch(logger.error);
 } // populateAspects
 
 /**
@@ -204,26 +186,21 @@ function populateAspects() {
  */
 function populateSubjects() {
   return Subject.findAll()
-  .then((subjects) => {
-    if (infoLoggingEnabled) {
-      const msg = `Starting to load ${subjects.length} subjects to cache :|`;
-      logger.info(msg);
-    }
+    .then((subjects) => {
+      if (infoLoggingEnabled) {
+        const msg = `Starting to load ${subjects.length} subjects to cache :|`;
+        logger.info(msg);
+      }
 
-    const cmds = [];
-    subjects.forEach((s) => {
-      const key = samsto.toKey(constants.objectType.subject, s.absolutePath);
+      return redisOps.batchCmds()
+      .map(subjects, (batch, sub) =>
+        batch
+        .setSubjectTags(sub)
+        .addKeyToIndex(constants.objectType.subject, sub.absolutePath)
+        .setHash(constants.objectType.subject, sub.absolutePath, sub)
+      )
+      .exec()
 
-      // add the subject absoluePath to the master subject index
-      cmds.push(['sadd', constants.indexKey.subject, key]);
-
-      // create a mapping of subject absolutePath to subject object
-      const cleanedSubject = samsto.cleanSubject(s);
-      logInvalidHmsetValues(key, cleanedSubject);
-      cmds.push(['hmset', key, cleanedSubject]);
-    });
-
-    return redisClient.batch(cmds).execAsync()
       .then(() => {
         if (infoLoggingEnabled) {
           logger.info('Done loading subjects to cache :D');
@@ -231,8 +208,8 @@ function populateSubjects() {
 
         return true;
       });
-  })
-  .catch(logger.error);
+    })
+    .catch(logger.error);
 } // populateSubjects
 
 /**
@@ -242,93 +219,93 @@ function populateSubjects() {
  */
 function populateSamples() {
   return Sample.findAll()
-  .then((samples) => {
-    if (infoLoggingEnabled) {
-      const msg = `Starting to load ${samples.length} samples to cache :|`;
-      logger.info(msg);
-    }
-
-    const sampleIdx = new Set();
-    const subjectSets = {};
-    const aspectResourceMaps = {};
-    const sampleHashes = {};
-    samples.forEach((s) => {
-      const nameParts = s.name.split('|');
-
-      // Generate the redis keys for this aspect, sample and subject.
-      const aspName = nameParts[ONE].toLowerCase();
-      const subjAbsPath = nameParts[ZERO].toLowerCase();
-
-      const samKey = samsto.toKey(constants.objectType.sample, s.name);
-      const subAspMapKey = samsto.toKey(
-        constants.objectType.subAspMap, subjAbsPath
-      );
-      const aspSubMapKey = samsto.toKey(
-        constants.objectType.aspSubMap, aspName
-      );
-
-      // Track each of these in the master indexes for each object type.
-      sampleIdx.add(samKey);
-
-      /*
-       * For creating each individual subject set, which is a mapping of
-       * subject absolutepath and a list aspects
-       */
-      if (subjectSets.hasOwnProperty(subAspMapKey)) {
-        subjectSets[subAspMapKey].push(aspName);
-      } else {
-        subjectSets[subAspMapKey] = [aspName];
+    .then((samples) => {
+      if (infoLoggingEnabled) {
+        const msg = `Starting to load ${samples.length} samples to cache :|`;
+        logger.info(msg);
       }
 
-      /*
-       * Create aspect-to-subject resource map - a mapping of aspect and a list of
-       * subjects for corresponding samples
-       */
-      if (aspectResourceMaps.hasOwnProperty(aspSubMapKey)) {
-        aspectResourceMaps[aspSubMapKey].push(subjAbsPath);
-      } else {
-        aspectResourceMaps[aspSubMapKey] = [subjAbsPath];
-      }
+      const sampleIdx = new Set();
+      const subjectSets = {};
+      const aspectResourceMaps = {};
+      const sampleHashes = {};
+      samples.forEach((s) => {
+        const nameParts = s.name.split('|');
 
-      // For creating each individual sample hash...
-      sampleHashes[samKey] = samsto.cleanSample(s);
-    });
+        // Generate the redis keys for this aspect, sample and subject.
+        const aspName = nameParts[ONE].toLowerCase();
+        const subjAbsPath = nameParts[ZERO].toLowerCase();
 
-    // Batch of commands to create the master sample and subject indexes...
-    const indexCmds = [
-      ['sadd', constants.indexKey.sample, Array.from(sampleIdx)],
-    ];
-    const batchPromises = [redisClient.batch(indexCmds).execAsync()];
+        const samKey = samsto.toKey(constants.objectType.sample, s.name);
+        const subAspMapKey = samsto.toKey(
+          constants.objectType.subAspMap, subjAbsPath
+        );
+        const aspSubMapKey = samsto.toKey(
+          constants.objectType.aspSubMap, aspName
+        );
 
-    // Batch of commands to create each individal subject set...
-    const subjectCmds = Object.keys(subjectSets)
-      .map((key) => ['sadd', key, subjectSets[key]]);
-    batchPromises.push(redisClient.batch(subjectCmds).execAsync());
+        // Track each of these in the master indexes for each object type.
+        sampleIdx.add(samKey);
 
-    // Batch of commands to create each individal aspect resource map...
-    const aspectResouceMapCmds = Object.keys(aspectResourceMaps)
-      .map((key) => ['sadd', key, aspectResourceMaps[key]]);
-    batchPromises.push(redisClient.batch(aspectResouceMapCmds).execAsync());
-
-    // Batch of commands to create each individal sample hash...
-    const sampleCmds = Object.keys(sampleHashes)
-      .map((key) => {
-        logInvalidHmsetValues(key, sampleHashes[key]);
-        return ['hmset', key, sampleHashes[key]];
-      });
-    batchPromises.push(redisClient.batch(sampleCmds).execAsync());
-
-    // Return once all batches have completed.
-    return Promise.all(batchPromises)
-      .then(() => {
-        if (infoLoggingEnabled) {
-          logger.info('Done loading samples to cache :D');
+        /*
+         * For creating each individual subject set, which is a mapping of
+         * subject absolutepath and a list aspects
+         */
+        if (subjectSets.hasOwnProperty(subAspMapKey)) {
+          subjectSets[subAspMapKey].push(aspName);
+        } else {
+          subjectSets[subAspMapKey] = [aspName];
         }
 
-        return true;
+        /*
+         * Create aspect-to-subject resource map - a mapping of aspect and a list of
+         * subjects for corresponding samples
+         */
+        if (aspectResourceMaps.hasOwnProperty(aspSubMapKey)) {
+          aspectResourceMaps[aspSubMapKey].push(subjAbsPath);
+        } else {
+          aspectResourceMaps[aspSubMapKey] = [subjAbsPath];
+        }
+
+        // For creating each individual sample hash...
+        sampleHashes[samKey] = samsto.cleanSample(s);
       });
-  })
-  .catch(logger.error);
+
+      // Batch of commands to create the master sample and subject indexes...
+      const indexCmds = [
+        ['sadd', constants.indexKey.sample, Array.from(sampleIdx)],
+      ];
+      const batchPromises = [redisClient.batch(indexCmds).execAsync()];
+
+      // Batch of commands to create each individal subject set...
+      const subjectCmds = Object.keys(subjectSets)
+        .map((key) => ['sadd', key, subjectSets[key]]);
+      batchPromises.push(redisClient.batch(subjectCmds).execAsync());
+
+      // Batch of commands to create each individal aspect resource map...
+      const aspectResouceMapCmds = Object.keys(aspectResourceMaps)
+        .map((key) => ['sadd', key, aspectResourceMaps[key]]);
+      batchPromises.push(redisClient.batch(aspectResouceMapCmds).execAsync());
+
+      // Batch of commands to create each individal sample hash...
+      const sampleCmds = Object.keys(sampleHashes)
+        .map((key) => {
+          logInvalidHmsetValues(key, sampleHashes[key]);
+          return ['hmset', key, sampleHashes[key]];
+        });
+      batchPromises.push(redisClient.batch(sampleCmds).execAsync());
+
+      // Return once all batches have completed.
+      return Promise.all(batchPromises)
+        .then(() => {
+          if (infoLoggingEnabled) {
+            logger.info('Done loading samples to cache :D');
+          }
+
+          return true;
+        });
+    })
+    .catch(logger.error);
 } // populateSamples
 
 /**
@@ -346,14 +323,14 @@ function populate() {
   let resp;
   const promises = [populateSubjects(), populateAspects()];
   return Promise.all(promises)
-  .then((retval) => {
-    resp = retval;
-    return populateSamples();
-  })
-  .then((sampresp) => {
-    resp.push(sampresp);
-    return resp;
-  });
+    .then((retval) => {
+      resp = retval;
+      return populateSamples();
+    })
+    .then((sampresp) => {
+      resp.push(sampresp);
+      return resp;
+    });
 } // populate
 
 /**
@@ -368,47 +345,47 @@ function populate() {
  */
 function storeSampleToCacheOrDb() {
   const currentStatus = featureToggles.isFeatureEnabled(constants.featureName)
-                                          || false;
+    || false;
   return getPreviousStatus()
-  .then((prevState) => {
-    const previousStatus = (prevState == 'true') || false;
+    .then((prevState) => {
+      const previousStatus = (prevState == 'true') || false;
 
-    // set the previousStatus to the currentStatus
-    redisClient.setAsync(constants.previousStatusKey, currentStatus);
-
-    /*
-     * when the current status and the previous status do not match, actions
-     * needs to be taken based on the current status
-    */
-    if (previousStatus !== currentStatus) {
+      // set the previousStatus to the currentStatus
+      redisClient.setAsync(constants.previousStatusKey, currentStatus);
 
       /*
-       * call "popluate" when "enableRedisSampleStore" flag has been changed
-       * from false to true. Call "eradicate" and "storeSampleToDb" when
-       * "enableRedisSampleStore" flag has been changed from true to false
-       */
-      if (currentStatus) {
-        if (infoLoggingEnabled) {
-          logger.info('"enableRedisSampleStore" flag was switched to true, so ' +
-            'populating the cache from db');
+       * when the current status and the previous status do not match, actions
+       * needs to be taken based on the current status
+      */
+      if (previousStatus !== currentStatus) {
+
+        /*
+         * call "popluate" when "enableRedisSampleStore" flag has been changed
+         * from false to true. Call "eradicate" and "storeSampleToDb" when
+         * "enableRedisSampleStore" flag has been changed from true to false
+         */
+        if (currentStatus) {
+          if (infoLoggingEnabled) {
+            logger.info('"enableRedisSampleStore" flag was switched to true, so ' +
+              'populating the cache from db');
+          }
+
+          return populate();
         }
 
-        return populate();
+        if (infoLoggingEnabled) {
+          logger.info('"enableRedisSampleStore" flag was switched to false so ' +
+            'so persisting to db from cache. The cache will be eradicated ' +
+            'after the samples are persisted to db');
+        }
+
+        return samstoPersist.storeSampleToDb() // populate the sample table
+          .then(() => eradicate()); // eradicate the cache
       }
 
-      if (infoLoggingEnabled) {
-        logger.info('"enableRedisSampleStore" flag was switched to false so ' +
-          'so persisting to db from cache. The cache will be eradicated ' +
-          'after the samples are persisted to db');
-      }
-
-      return samstoPersist.storeSampleToDb() // populate the sample table
-        .then(() => eradicate()); // eradicate the cache
-    }
-
-    // when the current status and previous status are same, resolve to false
-    return Promise.resolve(false);
-  });
+      // when the current status and previous status are same, resolve to false
+      return Promise.resolve(false);
+    });
 } // storeSampleToCacheOrDb
 
 /**
@@ -421,12 +398,12 @@ function storeSampleToCacheOrDb() {
  */
 function init() {
   return storeSampleToCacheOrDb()
-  .then((ret) => Promise.resolve(ret))
-  .catch((err) => {
-    // NO-OP
-    logger.error(err);
-    Promise.resolve(false);
-  });
+    .then((ret) => Promise.resolve(ret))
+    .catch((err) => {
+      // NO-OP
+      logger.error(err);
+      Promise.resolve(false);
+    });
 } // init
 
 module.exports = {

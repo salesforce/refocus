@@ -12924,7 +12924,7 @@ definitions:
           occurs, value is set to null.
       provider:
         readOnly: true
-        $ref: "#/definitions/UsersResponse"
+        type: string
         description: >
           User who provided this sample.
       createdAt:
@@ -12942,11 +12942,6 @@ definitions:
         type: string
         description: >
           Time at which the status changed from one state to another.
-      aspect:
-        readOnly: true
-        $ref: "#/definitions/AspectsResponse"
-        description: >
-          The aspect of this sample.
       relatedLinks:
         readOnly: true
         type: array

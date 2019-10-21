@@ -25,6 +25,7 @@ const SubjectAlreadyExistsUnderParent = require('../dbErrors')
 const redisOps = require('../../cache/redisOps');
 const sampleStore = require('../../cache/sampleStore');
 const subjectType = redisOps.subjectType;
+const sampleType = redisOps.sampleType;
 const subAspMapType = redisOps.subAspMapType;
 const publishSample = require('../../realtime/redisPublisher').publishSample;
 const Promise = require('bluebird');
@@ -129,42 +130,30 @@ function throwNotMatchError(parentId, parentAbsolutePath) {
  */
 function removeRelatedSamples(subject, seq) {
   const now = new Date().toISOString();
-  let samples = [];
-  return redisOps.deleteSampleKeys(subAspMapType, subject.absolutePath)
-  .then((_samples) => {
-    samples = _samples;
-
-    // get aspects from subaspmap mapping for this subject
-    return redisOps.executeCommand(
-      redisOps.getSubjAspMapMembers(subject.absolutePath));
+  return redisOps.getSubjAspMapMembers(subject.absolutePath)
+  .then((aspNames) => {
+    const sampleNames = aspNames.map((aspName) =>
+      subject.absolutePath.toLowerCase() + '|' + aspName
+    );
+    return redisOps.batchCmds()
+    .deleteSubjectFromAspectResourceMaps(aspNames, subject.absolutePath)
+    .deleteKey(subAspMapType, subject.absolutePath)
+    .returnAll(sampleNames, 'samples', (batch, sampleName) =>
+      batch.getHash(sampleType, sampleName)
+    )
+    .map(sampleNames, (batch, sampleName) =>
+      batch.deleteKey(sampleType, sampleName)
+    )
+    .exec();
   })
-  .then((aspectNames) => redisOps.executeBatchCmds(
-    redisOps.deleteSubjectFromAspectResourceMaps(
-      aspectNames, subject.absolutePath)))
-  .then(() => redisOps.deleteKey(subAspMapType, subject.absolutePath))
-  .then(() => {
-    const promises = [];
-
-    // publish the samples only if the sequelize object seq is available
-    if (seq && samples.length) {
-      samples.forEach((sample) => {
-        /*
-         * publishSample attaches the subject and the aspect by fetching it
-         * either from the database or redis. Deleted subject will not be found
-         * when called from the afterDestroy and afterUpdate hookes. So, attach
-         * the subject here before publishing the sample.
-         */
-        if (sample) {
-          sample.subject = subject;
-          sample.updatedAt = now;
-          promises.push(publishSample(sample, null, sampleEvent.del,
-            seq.models.Aspect));
-        }
-      });
-    }
-
-    return Promise.all(promises);
-  });
+  .then(({ samples }) =>
+    Promise.map(samples, (sample) => {
+      if (seq && sample) {
+        sample.updatedAt = now;
+        return publishSample(sample, sampleEvent.del);
+      }
+    })
+  );
 } // removeRelatedSamples
 
 /**
@@ -181,11 +170,11 @@ function removeRelatedSamples(subject, seq) {
  * @returns {Promise}
  */
 function removeFromRedis(subject, seq) {
-  const subjTagsKey = redisOps.getSubjectTagsKey(subject.absolutePath);
-  const cmds = [['del', subjTagsKey]]; // remove subject tags from sample store
   return Promise.join(
-    redisOps.deleteKey(subjectType, subject.absolutePath, cmds),
-    removeRelatedSamples(subject, seq));
+    redisOps.removeSubjectTags(subject),
+    redisOps.deleteKey(subjectType, subject.absolutePath),
+    removeRelatedSamples(subject, seq),
+  );
 } // removeFromRedis
 
 module.exports = {

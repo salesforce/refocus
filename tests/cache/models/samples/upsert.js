@@ -110,9 +110,11 @@ describe('tests/cache/models/samples/upsert.js, ' +
   describe('when subject not present >', () => {
     // unpublish the subjects
     beforeEach((done) => {
-      rcli.delAsync(
-        sampleStore.toKey(sampleStore.constants.objectType.subject, subject.absolutePath)
-      )
+      subject.destroy()
+      .then(() => rcli.delAsync(
+        sampleStore.toKey(
+          sampleStore.constants.objectType.subject, subject.absolutePath)
+      ))
       .then(() => done())
       .catch(done);
     });
@@ -141,9 +143,10 @@ describe('tests/cache/models/samples/upsert.js, ' +
   describe('when aspect not present >', () => {
     // unpublish the aspects
     beforeEach((done) => {
-      rcli.delAsync(
+      aspect.destroy()
+      .then(() => rcli.delAsync(
         sampleStore.toKey(sampleStore.constants.objectType.aspect, aspect.name)
-      )
+      ))
       .then(() => done())
       .catch(done);
     });

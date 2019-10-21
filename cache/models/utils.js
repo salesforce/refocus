@@ -172,8 +172,8 @@ function getSampleKeysUsingMaps(subjectAspExpr, hasSubjectName) {
     getMapMembers = redisOps.getSubjAspMapMembers(subjStr);
   }
 
-  debugfindSamples('redis executeCommand: %o', getMapMembers);
-  return redisOps.executeCommand(getMapMembers)
+  debugfindSamples('redis: %o', getMapMembers);
+  return getMapMembers
     .then((items) => {
       const re = regexToMatchWildcards(wildCardExpr);
       items.forEach((item) => {

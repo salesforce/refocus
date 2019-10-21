@@ -122,7 +122,7 @@ module.exports = {
           payload, req);
       return jobPromise.then((job) => {
         // set the job id in the response object before it is returned
-        body.jobId = job.id;
+        body.jobId = parseInt(job.id, 10);
         u.logAPI(req, resultObj, body, auditEvents.length);
         return res.status(httpStatus.OK).json(body);
       })

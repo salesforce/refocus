@@ -77,7 +77,7 @@ describe('tests/cache/models/aspects/deleteRelatedLinks.js >', () => {
         return done(err);
       }
 
-      redisOps.getHashPromise(objectType.aspect, n.name)
+      redisOps.getHash(objectType.aspect, n.name)
       .then((aspect) => {
         expect(aspect.createdAt)
           .to.equal(new Date(aspect.createdAt).toISOString());
@@ -98,7 +98,7 @@ describe('tests/cache/models/aspects/deleteRelatedLinks.js >', () => {
       }
 
       expect(res.body.relatedLinks).to.have.length(ZERO);
-      redisOps.getHashPromise(objectType.aspect, n.name)
+      redisOps.getHash(objectType.aspect, n.name)
       .then((aspect) => {
         expect(JSON.parse(aspect.relatedLinks)).to.have.length(ZERO);
         done();
@@ -117,7 +117,7 @@ describe('tests/cache/models/aspects/deleteRelatedLinks.js >', () => {
 
       expect(res.body.relatedLinks).to.have.length(ONE);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
-      redisOps.getHashPromise(objectType.aspect, n.name)
+      redisOps.getHash(objectType.aspect, n.name)
       .then((aspect) => {
         const rlinks = JSON.parse(aspect.relatedLinks);
         expect(rlinks).to.have.length(ONE);
@@ -138,7 +138,7 @@ describe('tests/cache/models/aspects/deleteRelatedLinks.js >', () => {
 
       expect(res.body.relatedLinks).to.have.length(ONE);
       expect(res.body.relatedLinks).to.have.deep.property('[0].name', 'rlink1');
-      redisOps.getHashPromise(objectType.aspect, n.name)
+      redisOps.getHash(objectType.aspect, n.name)
       .then((aspect) => {
         const rlinks = JSON.parse(aspect.relatedLinks);
         expect(rlinks).to.have.length(ONE);

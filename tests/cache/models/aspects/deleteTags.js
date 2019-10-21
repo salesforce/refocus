@@ -73,7 +73,7 @@ describe('tests/cache/models/aspects/deleteTags.js, ' +
         return done(err);
       }
 
-      redisOps.getHashPromise(objectType.aspect, n.name)
+      redisOps.getHash(objectType.aspect, n.name)
       .then((aspect) => {
         expect(aspect.createdAt)
           .to.equal(new Date(aspect.createdAt).toISOString());
@@ -94,7 +94,7 @@ describe('tests/cache/models/aspects/deleteTags.js, ' +
       }
 
       expect(res.body.tags).to.have.length(0);
-      redisOps.getHashPromise(objectType.aspect, n.name)
+      redisOps.getHash(objectType.aspect, n.name)
       .then((aspect) => {
         expect(JSON.parse(aspect.tags)).to.have.length(0);
         done();
@@ -113,7 +113,7 @@ describe('tests/cache/models/aspects/deleteTags.js, ' +
 
       expect(res.body.tags).to.have.length(1);
       expect(res.body.tags).to.have.members(['tag1']);
-      redisOps.getHashPromise(objectType.aspect, n.name)
+      redisOps.getHash(objectType.aspect, n.name)
       .then((aspect) => {
         const tags = JSON.parse(aspect.tags);
         expect(tags).to.have.length(1);
@@ -134,7 +134,7 @@ describe('tests/cache/models/aspects/deleteTags.js, ' +
 
       expect(res.body.tags).to.have.length(1);
       expect(res.body.tags).to.have.members(['tag1']);
-      redisOps.getHashPromise(objectType.aspect, n.name)
+      redisOps.getHash(objectType.aspect, n.name)
       .then((aspect) => {
         const tags = JSON.parse(aspect.tags);
         expect(tags).to.have.length(1);
@@ -155,7 +155,7 @@ describe('tests/cache/models/aspects/deleteTags.js, ' +
 
       expect(res.body.tags).to.have.length(2);
       expect(res.body.tags).to.have.members(['tag1', 'tag0']);
-      redisOps.getHashPromise(objectType.aspect, n.name)
+      redisOps.getHash(objectType.aspect, n.name)
       .then((aspect) => {
         const tags = JSON.parse(aspect.tags);
         expect(tags).to.have.length(2);

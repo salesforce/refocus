@@ -19,6 +19,7 @@ const pubPerspectives = client.pubPerspectives;
 const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const pubSubStats = require('./pubSubStats');
+const redisOps = require('../cache/redisOps');
 const ONE = 1;
 const tracker = require('./kafkaTracking');
 
@@ -170,44 +171,48 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
  * a absolutePath field added to it before the sample is published to the redis
  * channel.
  *
- * @param  {Object} sampleInst - The sample instance to be published
+ * @param  {Object} sample - The sample instance to be published
  * @param  {Model} subjectModel - The subject model to get the related
  *  subject instance
  * @param  {String} event  - Type of the event that is being published
- * @param  {Model} aspectModel  - The aspect model to get the related
- *  aspect instance
  * @returns {Promise} - which resolves to a sample object
  */
-function publishSample(sampleInst, subjectModel, event, aspectModel) {
-  if (sampleInst.hasOwnProperty('noChange') && sampleInst.noChange === true) {
-    return publishSampleNoChange(sampleInst).then(() => {
-      tracker.trackSamplePublish(sampleInst.name,
-        sampleInst.updatedAt);
-    });
+function publishSample(sample, event) {
+  const arr = (sample.name || '').split('|');
+  if (arr.length !== 2) {
+    logger.error('publishSample error',
+      `Invalid sample name "${sample.name}"`);
+    return Promise.resolve();
   }
 
-  const eventType = event || getSampleEventType(sampleInst);
-  let prom;
+  const subjAbsolutePath = arr[0];
+  sample.subject = { absolutePath: subjAbsolutePath };
+  sample.aspect = { name: arr[1] }; // for socket.io perspective filtering
+  sample.absolutePath = subjAbsolutePath; // used for perspective filtering
 
-  // No need to attachAspectSubject if subject and aspect are already attached
-  if (sampleInst.hasOwnProperty('subject') &&
-    sampleInst.hasOwnProperty('aspect')) {
-    prom = Promise.resolve(sampleInst);
-  } else {
-    prom = rtUtils.attachAspectSubject(sampleInst, subjectModel, aspectModel);
-  }
-
-  return prom
-    .then((sample) => {
-      if (sample) {
-        sample.absolutePath = sample.subject.absolutePath; // reqd for filtering
-        return publishObject(sample, eventType)
-          .then(() => {
-            tracker.trackSamplePublish(sample.name,
-              sample.updatedAt);
-            return sample;
-          });
+  return redisOps.batchCmds()
+    .return('subTags', (batch) =>
+      batch.getSubjectTags(sample.subject)
+    )
+    .return('aspTags', (batch) =>
+      batch.getAspectTags(sample.aspect)
+    )
+    .exec()
+    .then(({ subTags, aspTags }) => {
+      sample.subject.tags = subTags; // for socket.io perspective filtering
+      sample.aspect.tags = aspTags; // for socket.io perspective filtering
+    })
+    .then(() => {
+      if (sample.hasOwnProperty('noChange') && sample.noChange === true) {
+        return publishSampleNoChange(sample);
       }
+
+      const eventType = event || getSampleEventType(sample);
+      return publishObject(sample, eventType);
+    })
+    .then(() => {
+      tracker.trackSamplePublish(sample.name, sample.updatedAt);
+      return sample;
     })
     .catch((err) => {
       // Any failure on publish sample must not stop the next promise.
@@ -230,18 +235,14 @@ function publishSampleNoChange(sample) {
     updatedAt: sample.updatedAt,
     subject: {
       absolutePath: sample.absolutePath,
-      tags: sample.subjectTags, // for socket.io perspective filtering
+      tags: sample.subject.tags, // for socket.io perspective filtering
     },
     aspect: {
-      name: sample.aspectName, // for socket.io perspective filtering
-      tags: sample.aspectTags, // for socket.io perspective filtering
-      /*
-       * aspect.timeout is needed by perspective to track whether page is still
-       * getting real-time events
-       */
-      timeout: sample.aspectTimeout,
+      name: sample.aspect.name, // for socket.io perspective filtering
+      tags: sample.aspect.tags, // for socket.io perspective filtering
     },
   };
+
   return publishObject(s, sampleEvent.nc)
     .then(() => sample);
 } // publishSampleNoChange

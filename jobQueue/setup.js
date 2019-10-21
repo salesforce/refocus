@@ -49,11 +49,16 @@ function createBullJobQueue(name, redisUrl, jobQueueList) {
 }
 
 const jobQueue = kue.createQueue(redisOptions);
+
 const bulkDelSubQueue = createBullJobQueue(conf.jobType.bulkDeleteSubjects,
   redisUrlForBull, jobQueues);
 const executeClockJobQueue = createBullJobQueue(conf.executeClockJob,
   redisUrlForBull, jobQueues);
 const bulkUpsertSamplesQueue = createBullJobQueue(conf.jobType.bulkUpsertSamples,
+  redisUrlForBull, jobQueues);
+const bulkPostEventsQueue = createBullJobQueue(conf.jobType.bulkPostEvents,
+  redisUrlForBull, jobQueues);
+const createAuditEventsQueue = createBullJobQueue(conf.jobType.createAuditEvents,
   redisUrlForBull, jobQueues);
 
 function resetJobQueue() {
@@ -82,25 +87,25 @@ function gracefulShutdown() {
   }
 
   Promise.map(jobQueues, (queue) => queue.close())
-  .then(() => {
-    if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
-      const status = '"Bull Job queue shutdown: OK"';
-      printLog(status);
-    }
-
-    return jobQueue.shutdown(conf.kueShutdownTimeout, (err) => {
+    .then(() => {
       if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
-        const status = '"Kue Job queue shutdown: ' + (err || 'OK') + '"';
+        const status = '"Bull Job queue shutdown: OK"';
+        printLog(status);
+      }
+
+      return jobQueue.shutdown(conf.kueShutdownTimeout, (err) => {
+        if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
+          const status = '"Kue Job queue shutdown: ' + (err || 'OK') + '"';
+          printLog(status);
+        }
+      });
+    })
+    .catch((err) => {
+      if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
+        const status = '"Kue Job queue shutdown: ' + err + '"';
         printLog(status);
       }
     });
-  })
-  .catch((err) => {
-    if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
-      const status = '"Kue Job queue shutdown: ' + err + '"';
-      printLog(status);
-    }
-  });
 }
 
 jobQueue.on('error', (err) => {
@@ -126,4 +131,7 @@ module.exports = {
   bulkDelSubQueue,
   executeClockJobQueue,
   bulkUpsertSamplesQueue,
+  bulkPostEventsQueue,
+  createAuditEventsQueue,
+
 }; // exports

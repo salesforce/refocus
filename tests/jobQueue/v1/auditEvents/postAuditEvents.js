@@ -21,7 +21,9 @@ const u = require('./utils');
 const path = '/v1/auditEvents';
 const createAuditEventsJob =
   require('../../../../worker/jobs/createAuditEvents');
-const logger = require('../../../../utils/activityLog').logger;
+const featureToggles = require('feature-toggles');
+const queueTestUtils = require('../../../jobQueue/v1/utils');
+const createAuditEventsQueue = jobSetup.createAuditEventsQueue;
 
 describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
   before(() => jobSetup.resetJobQueue());
@@ -30,6 +32,7 @@ describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
   let token;
   before((done) => {
     tu.toggleOverride('enableWorkerProcess', true);
+    tu.toggleOverride('enableWorkerActivityLogs', true);
     tu.createToken()
     .then((returnedToken) => {
       token = returnedToken;
@@ -63,8 +66,16 @@ describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.createAuditEvents,
-        createAuditEventsJob);
+      if (featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents') &&
+        featureToggles.isFeatureEnabled('anyBullEnabled')) {
+        createAuditEventsQueue.process((job, done) => {
+          createAuditEventsJob(job, done);
+        });
+      } else {
+        jobQueue.process(jobSetup.jobType.createAuditEvents, (job, done) => {
+          createAuditEventsJob(job, done);
+        });
+      }
 
       setTimeout(() => {
         tu.db.AuditEvent.findAll()
@@ -72,22 +83,14 @@ describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
           expect(o.length).to.be.at.least(3);
           done();
         }).catch(done);
-      }, 200);
+      }, 800);
     });
   });
 
   describe('with logging turned On', () => {
-    before((done) => {
-      tu.toggleOverride('enableWorkerActivityLogs', true);
-      done();
-    });
-    after((done) => {
-      tu.toggleOverride('enableWorkerActivityLogs', false);
-      done();
-    });
-
     it('worker activity logs should be logged correctly', (done) => {
-
+      tu.toggleOverride('enableApiActivityLogs', true);
+      tu.toggleOverride('enableWorkerActivityLogs', true);
       /**
        * An callback passed to the logging event to set the worker activity
        * logging
@@ -96,30 +99,6 @@ describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
        * @param  {String} level - Logging level
        * @param  {String} msg - The actual log message
        */
-      function testLogMessage(msg) {
-        const logObj = {};
-        msg.split(' ').forEach((entry) => {
-          logObj[entry.split('=')[0]] = entry.split('=')[1];
-        });
-
-        if (logObj.activity === 'worker') {
-          try {
-            expect(logObj.totalTime).to.match(/\d+ms/);
-            expect(logObj.queueTime).to.match(/\d+ms/);
-            expect(logObj.queueResponseTime).to.match(/\d+ms/);
-            expect(logObj.workTime).to.match(/\d+ms/);
-            expect(logObj.dbTime).to.match(/\d+ms/);
-            expect(logObj.jobType).to.equal('createAuditEvents');
-            expect(logObj.recordCount).to.equal('3');
-            logger.removeListener('logging', testLogMessage);
-            done();
-          } catch (err) {
-            done(err);
-          }
-        }
-      }
-
-      logger.on('logging', testLogMessage);
       api.post(path)
       .set('Authorization', token)
       .send([
@@ -128,17 +107,12 @@ describe('tests/jobQueue/v1/auditEvents/post.js >', () => {
         ae3,
       ])
       .expect(constants.httpStatus.OK)
-      .expect((res) => {
-        expect(res.body.status).to.contain('OK');
-        expect(res.body.jobId).to.be.at.least(1);
-      })
-      .then(() => {
-        // call the worker
-        jobQueue.process(jobSetup.jobType.createAuditEvents,
-          createAuditEventsJob);
-
-        // done is called in the call back passed to the "logging" event
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
       });
+      queueTestUtils.testWorkerAPiActivityLogs(done);
     });
   });
 });

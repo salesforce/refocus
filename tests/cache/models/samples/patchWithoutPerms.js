@@ -26,10 +26,12 @@ describe('tests/cache/models/samples/patchWithoutPerms.js, ' +
   let sampleName;
   let aspect;
   let otherValidToken;
+  let usrToken;
   before((done) => {
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
-    .then(() => {
+    .then((token) => {
+      usrToken = token;
       done();
     })
     .catch(done);
@@ -61,6 +63,25 @@ describe('tests/cache/models/samples/patchWithoutPerms.js, ' +
   after(tu.forceDeleteUser);
   after(() => tu.toggleOverride('enableRedisSampleStore', false));
 
+  it('patching with permission should return ok', (done) => {
+    api.patch(`${path}/${sampleName}`)
+      .set('Authorization', usrToken)
+      .send({
+        value: '2',
+        relatedLinks: [
+          { name: 'link', url: 'https://samples.com' },
+        ],
+      })
+      .expect(constants.httpStatus.OK)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        return done();
+      });
+  });
+
   it('patching without permission should return 403 status', (done) => {
     api.patch(`${path}/${sampleName}`)
     .set('Authorization', otherValidToken)
@@ -71,6 +92,12 @@ describe('tests/cache/models/samples/patchWithoutPerms.js, ' +
       ],
     })
     .expect(constants.httpStatus.FORBIDDEN)
-    .end(done);
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        return done();
+      });
   });
 });

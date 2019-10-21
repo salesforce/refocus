@@ -22,12 +22,12 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
   before(rtu.flushRedis);
 
   function setupRanges(ranges) {
-    return redisOps.setRanges({ name: 'asp1', ...ranges });
+    return redisOps.setAspectRanges({ name: 'asp1', ...ranges });
   } // setupRanges
 
   function calculateAndExpect(value, expectedStatus) {
     return redisOps.calculateSampleStatus('sub1.sub2|asp1', value)
-           .should.eventually.equal(expectedStatus);
+      .should.eventually.equal(expectedStatus);
   }
 
   describe('numeric >', () => {
@@ -780,8 +780,8 @@ describe('tests/cache/models/samples/statusCalculation.js, ' +
         infoRange: [50, 75],
         okRange: [75, 100],
       })
-      .then(() => calculateAndExpect('25', constants.statuses.Critical))
-      .then(() => calculateAndExpect('99', constants.statuses.OK))
+        .then(() => calculateAndExpect('25', constants.statuses.Critical))
+        .then(() => calculateAndExpect('99', constants.statuses.OK))
     );
   }); // percent
 });

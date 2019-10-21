@@ -18,6 +18,9 @@ const jobSetup = require('./setup');
 const jobQueue = jobSetup.jobQueue;
 const bulkDelSubQueue = jobSetup.bulkDelSubQueue;
 const bulkUpsertSamplesQueue = jobSetup.bulkUpsertSamplesQueue;
+const bulkPostEventsQueue = jobSetup.bulkPostEventsQueue;
+const createAuditEventsQueue = jobSetup.createAuditEventsQueue;
+const jwtUtil = require('../utils/jwtUtil');
 const featureToggles = require('feature-toggles');
 const activityLogUtil = require('../utils/activityLog');
 const conf = require('../config');
@@ -67,7 +70,13 @@ function mapJobResultsToLogObject(jobResultObj, logObject) {
   }
 }
 
-bulkDelSubQueue.on('completed', (job, jobResultObj) => {
+/**
+ * If activity logs are enabled, update logObject and print log
+ *
+ * @param {Object} job - Job object to be cleaned up from the queue
+ * @param {Object} jobResultObj - Object holding Result of job
+ */
+function logCompletedJob(job, jobResultObj) {
   const logObject = {
     jobType: job.type,
     jobId: job.id,
@@ -93,7 +102,16 @@ bulkDelSubQueue.on('completed', (job, jobResultObj) => {
     */
     activityLogUtil.printActivityLogString(logObject, 'worker');
   }
-});
+}
+
+bulkDelSubQueue.on('completed', (job, jobResultObj) =>
+  logCompletedJob(job, jobResultObj));
+
+bulkPostEventsQueue.on('completed', (job, jobResultObj) =>
+  logCompletedJob(job, jobResultObj));
+
+createAuditEventsQueue.on('completed', (job, jobResultObj) =>
+  logCompletedJob(job, jobResultObj));
 
 bulkUpsertSamplesQueue.on('completed', (job, jobResultObj) => {
   const logObject = {
@@ -243,8 +261,7 @@ function calculateJobPriority(prioritize, deprioritize, req) {
     low: 'low',
   };
 
-  if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') ||
-    featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+  if (featureToggles.isFeatureEnabled('anyBullEnabled')) {
     // ranges from 1 (highest priority) to MAX_INT  (lowest priority)
     jobPriority.high = 1;
     jobPriority.normal = 50;
@@ -266,6 +283,32 @@ function calculateJobPriority(prioritize, deprioritize, req) {
 } // calculateJobPriority
 
 /**
+ * Function to Create a Bull job
+ *
+ *  listening for this jobName to process the jobs.
+ * @param {Object} data - Data for the job to work with.
+ * @param {Object} req - Request object.
+ * @param {Object} queueType - Queue object.
+ * @param {String} jobName - The job name. A worker process will be
+ * @returns {Promise} - resolves to job object. The job object will be null
+ *  when the jobQueue is created in test mode.
+ */
+function createBullJob(data, req, queueType, jobName) {
+  const startTime = Date.now();
+  data.requestInfo = getRequestInfo(req);
+
+  const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
+    conf.deprioritizeJobsFrom, req);
+
+  return queueType.add(data, { priority: jobPriority })
+      .then((job) => {
+        job.type = jobName;
+        logJobCreate(startTime, job);
+        return job;
+      });
+}
+
+/**
  * This is a promisified version of the createJob function which resolves to
  * the job created and saved by the Kue api.
  *
@@ -282,26 +325,22 @@ function createPromisifiedJob(jobName, data, req) {
     conf.deprioritizeJobsFrom, req);
   if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
     jobName === jobType.bulkDeleteSubjects) {
-    data.requestInfo = getRequestInfo(req);
-
-    return bulkDelSubQueue.add(data, { priority: jobPriority })
-      .then((job) => {
-        job.type = jobType.bulkDeleteSubjects;
-        logJobCreate(startTime, job);
-        return job;
-      });
+    return createBullJob(data, req, bulkDelSubQueue, jobName);
   }
-
+  
   if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples') &&
     jobName === jobType.bulkUpsertSamples) {
-    data.requestInfo = getRequestInfo(req);
-    return bulkUpsertSamplesQueue.add(data, { priority: jobPriority })
-    .then((job) => {
-      job.type = jobType.bulkUpsertSamples;
-      logJobCreate(startTime, job);
-
-      return job;
-    });
+    return createBullJob(data, req, bulkUpsertSamplesQueue, jobName);
+  }
+  
+  if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
+    jobName === jobType.bulkPostEvents) {
+    return createBullJob(data, req, bulkPostEventsQueue, jobName);
+  }
+  
+  if (featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents') &&
+    jobName === jobType.createAuditEvents) {
+    return createBullJob(data, req, createAuditEventsQueue, jobName);
   }
 
   return new Promise((resolve, reject) => {
@@ -363,4 +402,6 @@ module.exports = {
   mapJobResultsToLogObject,
   bulkDelSubQueue,
   bulkUpsertSamplesQueue,
+  bulkPostEventsQueue,
+  createAuditEventsQueue,
 }; // exports

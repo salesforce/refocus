@@ -222,14 +222,24 @@ const shortTermToggles = {
   optimizeSampleFilteredGets: environmentVariableTrue(pe,
     'OPTIMIZE_SAMPLE_FILTERED_GETS'),
 
-  enableBullForBulkDelSubj: environmentVariableTrue(
-    pe, 'ENABLE_BULL_FOR_BULK_DEL_SUBJ'),
+  // Bull toggles
+  enableBullForBulkDelSubj: envVarIncludes(pe, 'ENABLE_BULL', 'delSubj'),
 
-  enableBullForExecuteClockJob: environmentVariableTrue(
-    pe, 'ENABLE_BULL_FOR_EXEC_CLOCK_JOB'),
+  enableBullForBulkPostEvents: envVarIncludes(pe, 'ENABLE_BULL',
+    'postEvents'),
 
-  enableBullForBulkUpsertSamples: environmentVariableTrue(
-    pe, 'ENABLE_BULL_FOR_BULK_SAMPLE_UPSERT'),
+  enableBullForCreateAuditEvents: envVarIncludes(pe, 'ENABLE_BULL',
+    'auditEvents'),
+  
+  enableBullForBulkUpsertSamples: envVarIncludes(pe, 'ENABLE_BULL',
+    'bulkUpsertSamples'),
+  
+  enableBullForExecuteClockJob: envVarIncludes(pe, 'ENABLE_BULL',
+    'clockJobs'),
+
+  anyBullEnabled: pe.hasOwnProperty('ENABLE_BULL') &&
+   pe.ENABLE_BULL !== 'false',
+
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));
