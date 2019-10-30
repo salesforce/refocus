@@ -1085,26 +1085,26 @@ window.onload = () => {
 
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
-    const response = Array.isArray(res.body) ? res.body[0] : res.body;
+    const roomFromDB = Array.isArray(res.body) ? res.body[0] : res.body;
 
-    if (response === undefined) {
+    if (roomFromDB === undefined) {
       const urlParameters = window.location.href.includes('?') ?
         window.location.href.split('?')[ONE] : '';
       const redirectUrl = constructNewRoomRedirectUrl(urlParameters);
       window.location.replace(redirectUrl);
     }
 
-    if (response.id && parseInt(ROOM_ID, 10) !== response.id) {
-      const redirectUrl = getRedirectUrl(window.location.href, response.id);
+    if (roomFromDB.id && parseInt(ROOM_ID, 10) !== roomFromDB.id) {
+      const redirectUrl = getRedirectUrl(window.location.href, roomFromDB.id);
       window.location.replace(redirectUrl);
     }
 
     uPage.setTitle(`Room # ${ROOM_ID}`);
-    _roomName = response.name;
-    _isActive = response.active;
+    _roomName = roomFromDB.name;
+    _isActive = roomFromDB.active;
     activeToggle.checked = _isActive;
     room = res.body;
-    return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + response.type);
+    return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + roomFromDB.type);
   }).catch((err) => {
     err.status == 404 && displayNotFoundModal(document);
     debugMessage(`Error ${err}`);
