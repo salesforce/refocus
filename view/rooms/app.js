@@ -1010,6 +1010,27 @@ function setupColumns() {
 }
 
 /**
+ * Builds a url to create a new IMC room from a /rooms?{params} call
+ * @param {string} urlParameters - parameters specified at the end of url
+ * @returns {string} - redirect url
+ */
+function constructNewRoomRedirectUrl(urlParameters) {
+  let redirectUrl = `/rooms/new/${ROOM_ID}?${urlParameters}`;
+  const parameterArray = urlParameters.split('&');
+  const paramObj = {};
+  parameterArray.forEach((param) => {
+    const key = param.split('=')[ZERO];
+    const value = param.split('=')[ONE];
+    paramObj[key] = value;
+  });
+  if (!paramObj.roomType && paramObj.RecordTypeId) {
+    redirectUrl += '&roomType=SRCoreIncident';
+  }
+
+  return redirectUrl;
+}
+
+/**
  * Retrieve the url which should be redirected to, based on parameters.
  *
  * @param {String} url - The url of the window.
@@ -1069,7 +1090,8 @@ window.onload = () => {
     if (response === undefined) {
       const urlParameters = window.location.href.includes('?') ?
         window.location.href.split('?')[ONE] : '';
-      window.location.replace(`/rooms/new/${ROOM_ID}?${urlParameters}`);
+      const redirectUrl = constructNewRoomRedirectUrl(urlParameters);
+      window.location.replace(redirectUrl);
     }
 
     if (response.id && parseInt(ROOM_ID, 10) !== response.id) {
@@ -1129,6 +1151,7 @@ module.exports = () => {
     iframeBot,
     decideBotPosition,
     getRedirectUrl,
+    constructNewRoomRedirectUrl,
     displayNotFoundModal
   };
 };

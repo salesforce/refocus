@@ -117,6 +117,19 @@ describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
     expect(redirectUrl).to.equal(`/rooms/${roomId}${paramString}`);
   });
 
+  it('ok, roomType defaulting to DEFAULT if RecordTypeId is specified in url params', () => {
+    const paramString = 'externalId=12345&RecordTypeId=TEST';
+    const paramStringWithRoomType = paramString + '&roomType=SRCoreIncident';
+    const redirectUrl = app.constructNewRoomRedirectUrl(paramString);
+    expect(redirectUrl.split('?')[1]).to.equal(`${paramStringWithRoomType}`);
+  });
+
+  it('ok, roomType not set when no RecordTypeId is specified in url params', () => {
+    const paramString = 'externalId=12345';
+    const redirectUrl = app.constructNewRoomRedirectUrl(paramString);
+    expect(redirectUrl.split('?')[1]).to.equal(`${paramString}`);
+  });
+
   it('ok, "not found modal" element is in html of room from pug file', () => {
     const ui = pug.renderFile(index);
     document.body.innerHTML = ui;
