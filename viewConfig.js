@@ -34,6 +34,14 @@ const realtimeEventThrottleMilliseconds =
 const realtimeApplication = pe.REALTIME_APPLICATION || '/';
 const realtimeApplicationImc = pe.REALTIME_APPLICATION_IMC || '/';
 
+/**
+ * By supplying a mapping from a specific url parameter to different roomTypes
+ * we can select the correct roomType for a specific user or use case.
+ */
+const roomTypeMapping = pe.ROOMTYPE_MAPPING || {};
+
+const defaultRoomType = pe.DEFAULT_ROOMTYPE || '';
+
 module.exports = {
   // Password stored in the db for SSO users (never used for authentication).
   dummySsoPassword: pe.DUMMY_SSO_PASSWORD || 'ssopassword',
@@ -49,4 +57,9 @@ module.exports = {
 
   // Make the throttle time available in /view.
   realtimeEventThrottleMilliseconds,
+
+  // Make the roomType mapping available in /view for IMC rooms
+  roomTypeMapping,
+  defaultRoomType
+
 };

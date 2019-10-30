@@ -196,6 +196,7 @@ function loadView(app, passport) {
           realtimeApplication: viewConfig.realtimeApplication,
           realtimeApplicationImc: viewConfig.realtimeApplicationImc,
           refocusRoomsFeedback,
+          roomTypeMapping: viewConfig.roomTypeMapping,
           eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
           useNewNamespaceFormat: ft.isFeatureEnabled('useNewNamespaceFormat'),
           useNewNamespaceFormatImc: ft.isFeatureEnabled('useNewNamespaceFormatImc'),
