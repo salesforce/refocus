@@ -74,6 +74,7 @@ let _botsLayout;
 let _userSession;
 let firstLoad = true;
 let banner = null;
+let _roomTypeMapping;
 
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
@@ -1014,7 +1015,7 @@ function setupColumns() {
  * @param {string} urlParameters - parameters specified at the end of url
  * @returns {string} - redirect url
  */
-function constructNewRoomRedirectUrl(urlParameters) {
+function buildNewRoomRedirectUrl(urlParameters) {
   let redirectUrl = `/rooms/new/${ROOM_ID}?${urlParameters}`;
   const parameterArray = urlParameters.split('&');
   const paramObj = {};
@@ -1038,7 +1039,7 @@ function constructNewRoomRedirectUrl(urlParameters) {
  *
  * @returns {String} - Where the window should be redirected to.
  */
-function getRedirectUrl(url, roomId) {
+function buildRedirectUrl(url, roomId) {
   const urlParameters = url.includes('?') ?
     url.split('?')[ONE] : '';
   const redirectUrl = url.includes('keepParams=true') ?
@@ -1073,6 +1074,7 @@ window.onload = () => {
   }
 
   // Note: this is declared in index.pug:
+  _roomTypeMapping = roomTypeMapping;
   _realtimeApplication = realtimeApplication;
   _io = io;
   /* looks for apos; instead of &apos; due to whole
@@ -1090,12 +1092,12 @@ window.onload = () => {
     if (roomFromDB === undefined) {
       const urlParameters = window.location.href.includes('?') ?
         window.location.href.split('?')[ONE] : '';
-      const redirectUrl = constructNewRoomRedirectUrl(urlParameters);
+      const redirectUrl = buildNewRoomRedirectUrl(urlParameters);
       window.location.replace(redirectUrl);
     }
 
     if (roomFromDB.id && parseInt(ROOM_ID, 10) !== roomFromDB.id) {
-      const redirectUrl = getRedirectUrl(window.location.href, roomFromDB.id);
+      const redirectUrl = buildRedirectUrl(window.location.href, roomFromDB.id);
       window.location.replace(redirectUrl);
     }
 
@@ -1150,8 +1152,8 @@ module.exports = () => {
     parseBot,
     iframeBot,
     decideBotPosition,
-    getRedirectUrl,
-    constructNewRoomRedirectUrl,
+    buildRedirectUrl,
+    buildNewRoomRedirectUrl,
     displayNotFoundModal
   };
 };
