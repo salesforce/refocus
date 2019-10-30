@@ -62,7 +62,7 @@ module.exports = function event(seq, dataTypes) {
         const changedKeys = Object.keys(instance._changed);
         if (instance.botId) {
           return realTime.publishObject(instance.toJSON(),
-          botEventNames.add, changedKeys, [], pubOpts);
+          botEventNames.upd, changedKeys, [], pubOpts);
         }
         instance.attachBotsAndPublish(botEventNames.upd, changedKeys);
         return seq.Promise.resolve();
