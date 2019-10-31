@@ -55,7 +55,7 @@ module.exports = function event(seq, dataTypes) {
           botEventNames.add, changedKeys, [], pubOpts);
         }
 
-        instance.attachBotsAndPublish(botEventNames.add, changedKeys);
+        instance.attachBotsAndPublish(botEventNames.add);
         return seq.Promise.resolve();
       },
 
@@ -66,7 +66,7 @@ module.exports = function event(seq, dataTypes) {
           botEventNames.upd, changedKeys, [], pubOpts);
         }
 
-        instance.attachBotsAndPublish(botEventNames.upd, changedKeys);
+        instance.attachBotsAndPublish(botEventNames.upd);
         return seq.Promise.resolve();
       }, // hooks.afterUpdate
 
@@ -169,7 +169,7 @@ module.exports = function event(seq, dataTypes) {
     });
   };
 
-  Event.prototype.attachBotsAndPublish = function (eventType, changedKeys) {
+  Event.prototype.attachBotsAndPublish = function (eventType) {
     return this.reload({
       attributes: ['id', 'roomId'],
       include: [

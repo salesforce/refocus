@@ -44,29 +44,36 @@ describe('tests/publish/events.js >', () => {
   after(tu.forceDeleteToken);
 
   it('POST, subscriber gets events', (done) => {
-    api.post(path)
-      .set('Authorization', token)
-      .send(u.getStandard())
-      .expect(constants.httpStatus.CREATED)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
+    u.doSetup()
+      .then((createdIds) => new Promise(
+        (resolve) => setTimeout(() => resolve(createdIds), 1000)))
+      .then((createdIds) => {
+        subscribeTracker = [];
+        const { botId, roomId } = createdIds;
+        api.post(path)
+        .set('Authorization', token)
+        .send(u.getBasic({ botId, roomId }))
+        .expect(constants.httpStatus.CREATED)
+        .end((err, res) => {
+          if (err) {
+            return done(err);
+          }
 
-        expect(subscribeTracker).to.have.length(1);
-        const evt = JSON.parse(subscribeTracker[0]);
-        expect(evt).to.have.property(botEventEvents.add);
-        const evtBody = evt[botEventEvents.add];
-        expect(evtBody).to.include.keys('new', 'old');
-        expect(evtBody.old).to.include.keys('id', 'log', 'actionType',
-          'context', 'ownerId', 'updatedAt', 'createdAt', 'roomId', 'botId',
-          'botDataId', 'botActionId', 'userId', 'pubOpts');
-        expect(evtBody.old).to.include.keys('id', 'log', 'actionType',
-          'context', 'ownerId', 'updatedAt', 'createdAt', 'roomId', 'botId',
-          'botDataId', 'botActionId', 'userId', 'pubOpts');
-        expect(evtBody.new).to.have.property('log', 'Sample Event');
-        expect(evtBody.new).to.have.property('actionType', 'EventType');
-        done();
+          expect(subscribeTracker).to.have.length(1);
+          const evt = JSON.parse(subscribeTracker[0]);
+          expect(evt).to.have.property(botEventEvents.add);
+          const evtBody = evt[botEventEvents.add];
+          expect(evtBody).to.include.keys('new', 'old');
+          expect(evtBody.old).to.include.keys('id', 'log', 'actionType',
+            'context', 'ownerId', 'updatedAt', 'createdAt', 'roomId', 'botId',
+            'botDataId', 'botActionId', 'userId', 'pubOpts');
+          expect(evtBody.old).to.include.keys('id', 'log', 'actionType',
+            'context', 'ownerId', 'updatedAt', 'createdAt', 'roomId', 'botId',
+            'botDataId', 'botActionId', 'userId', 'pubOpts');
+          expect(evtBody.new).to.have.property('log', 'Sample Event');
+          expect(evtBody.new).to.have.property('actionType', 'EventType');
+          done();
+        });
       });
-  });
+  }).timeout(4000);
 });
