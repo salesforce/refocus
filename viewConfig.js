@@ -38,9 +38,9 @@ const realtimeApplicationImc = pe.REALTIME_APPLICATION_IMC || '/';
  * By supplying a mapping from a specific url parameter to different roomTypes
  * we can select the correct roomType for a specific user or use case.
  */
-const roomTypeMapping = pe.ROOMTYPE_MAPPING || {};
+const roomTypeMapping = pe.ROOMTYPE_MAPPING || '{}';
 
-const defaultRoomType = pe.DEFAULT_ROOMTYPE || '';
+const defaultRoomType = pe.DEFAULT_ROOMTYPE || null;
 
 module.exports = {
   // Password stored in the db for SSO users (never used for authentication).

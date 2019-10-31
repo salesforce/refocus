@@ -75,6 +75,7 @@ let _userSession;
 let firstLoad = true;
 let banner = null;
 let _roomTypeMapping;
+let _defaultRoomType;
 
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
@@ -1011,6 +1012,26 @@ function setupColumns() {
 }
 
 /**
+ * Infers roomType from url parameters other than roomType
+ * (used when it is not specified)
+ * @param {object} urlParams - JSON object of url params
+ * @returns {string} the first roomType name matching one of the url params
+ */
+function getRoomTypeFromMapping(urlParams) {
+  const urlParamNames = Object.keys(urlParams);
+  for (let i = 0; i < urlParamNames.length; i++){
+    const paramName = urlParamNames[i];
+    const urlParamValue = urlParams[paramName];
+    const newRoomType = urlParamValue && _roomTypeMapping[paramName] &&
+      _roomTypeMapping[paramName][urlParamValue];
+    if (newRoomType) {
+      return newRoomType;
+    }
+  }
+  return _defaultRoomType;
+}
+
+/**
  * Builds a url to create a new IMC room from a /rooms?{params} call
  * @param {string} urlParameters - parameters specified at the end of url
  * @returns {string} - redirect url
@@ -1024,10 +1045,10 @@ function buildNewRoomRedirectUrl(urlParameters) {
     const value = param.split('=')[ONE];
     paramObj[key] = value;
   });
-  if (!paramObj.roomType && paramObj.RecordTypeId) {
-    redirectUrl += '&roomType=SRCoreIncident';
-  }
 
+  if (!paramObj.roomType && paramObj.externalId) {
+    redirectUrl += '&roomType=' + getRoomTypeFromMapping(paramObj);
+  }
   return redirectUrl;
 }
 
@@ -1075,6 +1096,7 @@ window.onload = () => {
 
   // Note: this is declared in index.pug:
   _roomTypeMapping = roomTypeMapping;
+  _defaultRoomType = defaultRoomType
   _realtimeApplication = realtimeApplication;
   _io = io;
   /* looks for apos; instead of &apos; due to whole
