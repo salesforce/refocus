@@ -54,6 +54,7 @@ module.exports = function event(seq, dataTypes) {
           return realTime.publishObject(instance.toJSON(),
           botEventNames.add, changedKeys, [], pubOpts);
         }
+
         instance.attachBotsAndPublish(botEventNames.add, changedKeys);
         return seq.Promise.resolve();
       },
@@ -64,6 +65,7 @@ module.exports = function event(seq, dataTypes) {
           return realTime.publishObject(instance.toJSON(),
           botEventNames.upd, changedKeys, [], pubOpts);
         }
+
         instance.attachBotsAndPublish(botEventNames.upd, changedKeys);
         return seq.Promise.resolve();
       }, // hooks.afterUpdate
@@ -185,8 +187,8 @@ module.exports = function event(seq, dataTypes) {
                   through: { attributes: [] },
                 },
               ],
-            }
-          ]
+            },
+          ],
         },
       ],
     })
