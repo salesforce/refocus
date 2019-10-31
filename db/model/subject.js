@@ -10,6 +10,7 @@
  * db/model/subject.js
  */
 'use strict'; // eslint-disable-line strict
+const Promise = require('bluebird');
 const common = require('../helpers/common');
 const subjectUtils = require('../helpers/subjectUtils');
 const throwNotMatchError = subjectUtils.throwNotMatchError;
@@ -147,36 +148,23 @@ module.exports = function subject(seq, dataTypes) {
        *  record
        */
       afterCreate(inst /* , opts */) {
-        const promiseArr = [];
-        const cmds = [];
-        if (inst.getDataValue('isPublished') === true) {
-          promiseArr.push(publishObject(inst, eventName.add));
-          const subjTagsKey = redisOps.getSubjectTagsKey(
-            inst.getDataValue('absolutePath'));
-          cmds.push(['sadd', subjTagsKey, inst.getDataValue('tags')]);
-        }
-
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
+        return Promise.join(
+          redisOps.batchCmds()
+            .if(inst.isPublished, (batch) =>
+              batch.setSubjectTags(inst)
+            )
+            .addKey(subjectType, inst.getDataValue('absolutePath'))
+            .setHash(subjectType, inst.getDataValue('absolutePath'), instDataObj)
+            .exec(),
 
-        cmds.push(redisOps.addKey(subjectType,
-          inst.getDataValue('absolutePath'), true));
-
-        cmds.push(redisOps.hmSet(subjectType, inst.getDataValue('absolutePath'),
-          instDataObj, true));
-
-        return new seq.Promise((resolve, reject) =>
           inst.getParent()
-            .then((par) => {
-              if (par) {
-                par.increment('childCount');
-              }
+            .then((par) =>
+              par && par.increment('childCount')
+            ),
 
-              return Promise.all(promiseArr)
-                .then(redisOps.executeBatchCmds(cmds));
-            })
-            .then(() => resolve(inst))
-            .catch((err) => reject(err))
+          inst.isPublished && publishObject(inst, eventName.add),
         );
       }, // hooks.afterCreate
 
@@ -195,14 +183,8 @@ module.exports = function subject(seq, dataTypes) {
        * @returns {Promise}
        */
       afterUpdate(inst /* , opts */) {
-        const cmds = [];
-
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-
-        const promiseArr = [];
-        const subjTagsKey = redisOps.getSubjectTagsKey(
-          inst.getDataValue('absolutePath'));
 
         // change from published to unpublished
         const isSubjectUnpublished = inst.changed('isPublished') &&
@@ -212,133 +194,129 @@ module.exports = function subject(seq, dataTypes) {
         const isSubjectPublished = inst.changed('isPublished') &&
           !inst._previousDataValues.isPublished && inst.isPublished;
 
-        let tagsSetCreated = false;
-        if (isSubjectUnpublished) {
-          promiseArr.push(
-            subjectUtils.removeRelatedSamples(inst.dataValues, seq));
-          cmds.push(['del', subjTagsKey]);
-        } else if (isSubjectPublished) {
-          tagsSetCreated = true;
-          cmds.push(['sadd', subjTagsKey, inst.getDataValue('tags')]);
-        }
+        return Promise.resolve()
 
-        if (inst.changed('absolutePath')) {
-          const newAbsPath = inst.absolutePath;
-          const oldAbsPath = inst._previousDataValues.absolutePath;
+        // update subject keys in sample store
+        .then(() => {
+          const batch = redisOps.batchCmds();
 
-          // rename entry in subject store
-          promiseArr.push(redisOps.renameKey(subjectType, oldAbsPath,
-            newAbsPath));
-
-          if (inst.isPublished) {
-            // duplicate subject-to-aspect resource map with new absolute path
-            promiseArr.push(redisOps.executeCommand(redisOps.duplicateSet(
-              redisOps.subAspMapType, newAbsPath, oldAbsPath)));
-
-            /* add new subject absolute path entries to aspect-to-subject
-              resource maps */
-            promiseArr.push(
-              redisOps.executeCommand(redisOps.getSubjAspMapMembers(oldAbsPath))
-                .map((aspectName) => cmds.push(
-                  redisOps.addSubjectAbsPathInAspectSet(aspectName, newAbsPath)))
-            );
-
-            const oldSubjTagsKey = redisOps.getSubjectTagsKey(oldAbsPath);
-            cmds.push(['del', oldSubjTagsKey]);
-            if (!tagsSetCreated) {
-              cmds.push(['sadd', subjTagsKey, inst.getDataValue('tags')]);
-            }
+          let tagsSetCreated = false;
+          if (isSubjectUnpublished) {
+            batch.removeSubjectTags(inst);
+          } else if (isSubjectPublished) {
+            tagsSetCreated = true;
+            batch.setSubjectTags(inst);
           }
 
-          // remove all the related samples
-          promiseArr.push(
-            subjectUtils.removeRelatedSamples(inst._previousDataValues, seq));
-        } else if (common.tagsChanged(inst) && inst.isPublished &&
-          !tagsSetCreated) {
-          cmds.push(['del', subjTagsKey]);
-          cmds.push(['sadd', subjTagsKey, inst.getDataValue('tags')]);
-        }
+          if (inst.changed('absolutePath')) {
+            const newAbsPath = inst.absolutePath;
+            const oldAbsPath = inst._previousDataValues.absolutePath;
 
-        if (inst.changed('parentAbsolutePath') ||
-          inst.changed('absolutePath')) {
-          inst.getChildren()
-            .then((children) => {
-              if (children) {
-                for (let i = 0, len = children.length; i < len; ++i) {
-                  children[i].setDataValue('absolutePath',
-                    inst.absolutePath + '.' + children[i].name);
-                  children[i].setDataValue('parentAbsolutePath',
-                    inst.absolutePath);
-                  children[i].save();
-                }
+            // rename entry in subject store
+            batch.renameKey(subjectType, oldAbsPath, newAbsPath);
+
+            if (inst.isPublished) {
+              // duplicate subject-to-aspect resource map with new absolute path
+              batch.duplicateSet(redisOps.subAspMapType, newAbsPath, oldAbsPath);
+
+              /* add new subject absolute path entries to aspect-to-subject
+                resource maps */
+              batch.return('aspectsToUpdateMappings', (batch) =>
+                batch.getSubjAspMapMembers(oldAbsPath)
+              );
+
+              batch.removeSubjectTags(inst._previousDataValues);
+              if (!tagsSetCreated) {
+                batch.setSubjectTags(inst);
               }
-
-              return;
-            })
-            .catch((err) => {
-              throw err;
-            });
-        }
-
-        const changedKeys = Object.keys(inst._changed);
-        const ignoreAttributes = [
-          'childcount',
-          'parentAbsolutePath',
-          'updatedAt',
-        ];
-
-        // finally update the subject hash in redis too
-        promiseArr.push(redisOps.hmSet(subjectType, inst.absolutePath,
-          instDataObj));
-
-        /*
-         * Once all the data-related changes are done and the sample realtime
-         * events have been sent, send the corresponding subject realtime event.
-         */
-        return Promise.all(promiseArr)
-          .then(() => redisOps.executeBatchCmds(cmds))
-          .then(() => {
-            const pubPromises = [];
-            if (isSubjectUnpublished) {
-              // Treat unpublishing a subject as a "delete" event.
-              pubPromises.push(publishObject(inst, eventName.del));
-            } else if (isSubjectPublished) {
-              // Treat publishing a subject as an "add" event.
-              pubPromises.push(publishObject(inst, eventName.add));
-            } else if (inst.isPublished && inst.changed('absolutePath')) {
-              /*
-               * When an absolutePath is changed, send a subject delete event with
-               * the old subject instance, followed by a subject add event with
-               * the new subject instance
-               */
-              pubPromises.push((publishObject(inst._previousDataValues,
-                eventName.del, changedKeys, ignoreAttributes)));
-              pubPromises.push(publishObject(inst, eventName.add, changedKeys,
-                ignoreAttributes));
-            } else if (inst.isPublished && (common.tagsChanged(inst) ||
-              inst.changed('parentId'))) {
-              /*
-               * If tags OR parent were updated, send a "delete" event followed
-               * by an "add" event so that perspectives get notified and lenses
-               * can re-render correctly. Tag changes have to be handled this
-               * way for filtering.
-               * If subject tags or parent were not updated, just send the usual
-               * "update" event.
-               */
-
-              pubPromises.push(subjectUtils.removeRelatedSamples(
-                  inst._previousDataValues, seq, true));
-              pubPromises.push(publishObject(inst._previousDataValues,
-                eventName.del, changedKeys, ignoreAttributes));
-              pubPromises.push(publishObject(inst, eventName.add, changedKeys,
-                ignoreAttributes));
-            } else if (inst.getDataValue('isPublished')) {
-              pubPromises.push(publishObject(inst, eventName.upd, changedKeys,
-                ignoreAttributes));
             }
 
-            return Promise.all(pubPromises);
+          } else if (common.tagsChanged(inst) && inst.isPublished &&
+            !tagsSetCreated) {
+            batch.resetSubjectTags(inst);
+          }
+
+          // finally update the subject hash in redis too
+          batch.setHash(subjectType, inst.absolutePath, instDataObj);
+
+          return batch.exec()
+          .then((results) => {
+            if (results.aspectsToUpdateMappings) {
+              return redisOps.batchCmds()
+              .map(results.aspectsToUpdateMappings, (batch, aspectName) =>
+                batch.addSubjectAbsPathInAspectSet(aspectName, inst.absolutePath)
+              )
+              .exec();
+            }
           });
+        })
+
+        // delete samples
+        .then(() => Promise.join(
+          isSubjectUnpublished
+            && subjectUtils.removeRelatedSamples(inst.dataValues, seq),
+          inst.changed('absolutePath')
+            && subjectUtils.removeRelatedSamples(inst._previousDataValues, seq),
+        ))
+
+        // publish subject events
+        .then(() => {
+          const changedKeys = Object.keys(inst._changed);
+          const ignoreAttributes = [
+            'childcount',
+            'parentAbsolutePath',
+            'updatedAt',
+          ];
+
+          if (isSubjectUnpublished) {
+            // Treat unpublishing a subject as a "delete" event.
+            return publishObject(inst, eventName.del);
+          } else if (isSubjectPublished) {
+            // Treat publishing a subject as an "add" event.
+            return publishObject(inst, eventName.add);
+          } else if (inst.isPublished && inst.changed('absolutePath')) {
+            /*
+             * When an absolutePath is changed, send a subject delete event with
+             * the old subject instance, followed by a subject add event with
+             * the new subject instance
+             */
+            return Promise.join(
+              publishObject(inst._previousDataValues, eventName.del, changedKeys, ignoreAttributes),
+              publishObject(inst, eventName.add, changedKeys, ignoreAttributes),
+            );
+          } else if (inst.isPublished && (common.tagsChanged(inst) ||
+            inst.changed('parentId'))) {
+            /*
+             * If tags OR parent were updated, send a "delete" event followed
+             * by an "add" event so that perspectives get notified and lenses
+             * can re-render correctly. Tag changes have to be handled this
+             * way for filtering.
+             * If subject tags or parent were not updated, just send the usual
+             * "update" event.
+             */
+            return Promise.join(
+              subjectUtils.removeRelatedSamples(inst._previousDataValues, seq, true),
+              publishObject(inst._previousDataValues, eventName.del, changedKeys, ignoreAttributes),
+              publishObject(inst, eventName.add, changedKeys, ignoreAttributes),
+            );
+          } else if (inst.getDataValue('isPublished')) {
+            return publishObject(inst, eventName.upd, changedKeys, ignoreAttributes);
+          }
+        })
+
+        // update children
+        .then(() => {
+          if (inst.changed('parentAbsolutePath') || inst.changed('absolutePath')) {
+            return inst.getChildren()
+            .then((children) =>
+              children && children.forEach((child) => {
+                child.setDataValue('absolutePath', `${inst.absolutePath}.${child.name}`);
+                child.setDataValue('parentAbsolutePath', inst.absolutePath);
+                child.save();
+              })
+            );
+          }
+        });
       }, // hooks.afterUpdate
 
       /**

@@ -202,7 +202,9 @@ describe('tests/cache/sampleStore.js >', () => {
     it('eradicate and populate', (done) => {
       samstoinit.eradicate()
       .then(() => rcli.keysAsync(sampleStore.constants.prefix + '*'))
-      .then((res) => expect(res.length).to.eql(0))
+      .then((res) => {
+        expect(res.length).to.eql(0);
+      })
       .then(() => samstoinit.populate())
       .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.aspect))
       .then((res) => {

@@ -29,6 +29,8 @@ const doPut = require('../helpers/verbs/doPut');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
 const redisOps = require('../../../cache/redisOps');
+const redisStore = require('../../../cache/sampleStore');
+const fieldsToStringify = redisStore.constants.fieldsToStringify.aspect;
 
 /**
  * Validates the given fields from request body or url.
@@ -165,25 +167,26 @@ module.exports = {
     userProps.model.findAll(options)
     .then((usrs) => {
       users = usrs;
-      return u.findByKey(helper, params)
-      .then((o) => u.isWritable(req, o))
-        .then((o) => redisOps.getValue('aspect', o.name))
-        .then((cachedAspect) => {
-          if (cachedAspect) {
-            const userSet = new Set();
-            usrs.forEach((user) => {
-              userSet.add(user.dataValues.name);
-            });
-            cachedAspect.writers = cachedAspect.writers || [];
-            Array.from(userSet).forEach((user) => {
-              cachedAspect.writers.push(user);
-            });
-            return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
-          }
-
-          // reject the promise if the aspect is not found in the cache
-          return Promise.reject(new apiErrors.ResourceNotFoundError());
+      return u.findByKey(helper, params);
+    })
+    .then((o) => u.isWritable(req, o))
+    .then((o) => redisOps.getHash('aspect', o.name))
+    .then((aspectHash) => redisStore.arrayObjsStringsToJson(aspectHash, fieldsToStringify))
+    .then((cachedAspect) => {
+      if (cachedAspect) {
+        const userSet = new Set();
+        users.forEach((user) => {
+          userSet.add(user.dataValues.name);
         });
+        cachedAspect.writers = cachedAspect.writers || [];
+        Array.from(userSet).forEach((user) => {
+          cachedAspect.writers.push(user);
+        });
+        return redisOps.setHash('aspect', cachedAspect.name, cachedAspect);
+      }
+
+      // reject the promise if the aspect is not found in the cache
+      return Promise.reject(new apiErrors.ResourceNotFoundError());
     })
     .then(() => {
       doPostAssoc(req, res, next, helper,
@@ -267,11 +270,12 @@ module.exports = {
     const params = req.swagger.params;
     u.findByKey(helper, params)
     .then((o) => u.isWritable(req, o))
-    .then((o) => redisOps.getValue('aspect', o.name))
+    .then((o) => redisOps.getHash('aspect', o.name))
+    .then((aspectHash) => redisStore.arrayObjsStringsToJson(aspectHash, fieldsToStringify))
     .then((cachedAspect) => {
       if (cachedAspect) {
         cachedAspect.writers = [];
-        return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
+        return redisOps.setHash('aspect', cachedAspect.name, cachedAspect);
       }
 
       // reject the promise if the aspect is not found in the cache
@@ -312,13 +316,14 @@ module.exports = {
 
       // the object "o" here is always an array of length 1
       userName = o[0].dataValues.name;
-      return redisOps.getValue('aspect', aspectName);
+      return redisOps.getHash('aspect', aspectName);
     })
+    .then((aspectHash) => redisStore.arrayObjsStringsToJson(aspectHash, fieldsToStringify))
     .then((cachedAspect) => {
       if (cachedAspect) {
         cachedAspect.writers = cachedAspect.writers
             .filter((writer) => writer !== userName);
-        return redisOps.hmSet('aspect', cachedAspect.name, cachedAspect);
+        return redisOps.setHash('aspect', cachedAspect.name, cachedAspect);
       }
 
       // reject the promise if the aspect is not found in the cache

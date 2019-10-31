@@ -116,7 +116,7 @@ describe('tests/realtime/pubsub.js >', () => {
 
       Sample.findAll()
         .then((samples) => Promise.all(samples.map((samp) =>
-            redisPublisher.publishSample(samp, Subject, event.upd, Aspect)
+            redisPublisher.publishSample(samp, event.upd)
         )))
         .then(() => {
           // Check every 50ms until we get all the messages

@@ -15,8 +15,8 @@
 
 const _ = require('lodash');
 const serialize = require('serialize-javascript');
-const logger = require('@salesforce/refocus-logging-client');
 const Op = require('sequelize').Op;
+const logger = require('@salesforce/refocus-logging-client');
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -113,6 +113,9 @@ function replaceValue(startingString, replaceString, instance) {
   if (replaceField.length > TWO) {
     try {
       replacementVal = JSON.parse(instance.value)[replaceField[TWO]];
+      if (typeof replacementVal === 'object') {
+        replacementVal = JSON.stringify(replacementVal);
+      }
     } catch (e) {
       return false;
     }
@@ -138,8 +141,7 @@ function replaceValue(startingString, replaceString, instance) {
       outputValue = outputValue.replace(replaceString, replacementVal);
     }
   } else {
-    outputValue = outputValue
-      .replace(replaceString, instance.value);
+    outputValue = outputValue.replace(replaceString, instance.value);
   }
 
   return outputValue;
@@ -190,98 +192,97 @@ function updateValues(seq, instance) {
   const botsIds = {};
   let room = null;
   return Room.findOne({ where: { id: instance.roomId } })
-  .then((currentRoom) => {
-    if (currentRoom && currentRoom.bots) {
-      room = currentRoom;
-      return Bot.findAll({
-        attributes: ['name', 'id'],
-        where: {
-          name: {
-            [Op.in]: room.bots,
+    .then((currentRoom) => {
+      if (currentRoom && currentRoom.bots) {
+        room = currentRoom;
+        return Bot.findAll({
+          attributes: ['name', 'id'],
+          where: {
+            name: {
+              [Op.in]: room.bots,
+            },
           },
-        },
-      });
-    }
-
-    return [];
-  })
-  .then((botJSON) => {
-    // Create lookups for bots by name or id
-    botJSON.forEach((bot) => {
-      botsIds[bot.dataValues.id] = bot.dataValues.name;
-      botNames[bot.dataValues.name] = bot.dataValues.id;
-    });
-  })
-  .then(() => {
-    // Determine if a sync needs to be performed
-    if (room && ('settings' in room) && ('sharedContext' in room.settings)) {
-      const settings = room.settings.sharedContext;
-      const context = settings[botsIds[instance.botId]];
-      const promises = [];
-      if (context) {
-        // Create a different sync for each bot listed
-        Object.keys(context).forEach((syncBot) => {
-          let whereConst = {};
-          let syncValue = '';
-          Object.keys(context[syncBot]).forEach((botValueName) => {
-            syncValue = isJson(context[syncBot][botValueName]) ?
-              serialize(context[syncBot][botValueName]) :
-              context[syncBot][botValueName];
-            const replaceBlocks = syncValue.match(/\${(.*?)}/g);
-
-            // Replace logic blocks wtih vlaues
-            replaceBlocks.forEach((replaceBlock) => {
-              const replaceField = replaceBlock.replace('${', '')
-                .replace('}', '').split('.');
-              if (instance.dataValues.name === replaceField[ONE]) {
-                syncValue = replaceValue(
-                  syncValue,
-                  replaceBlock,
-                  instance.dataValues
-                );
-                whereConst = {
-                  where:
-                  {
-                    name: botValueName,
-                    botId: botNames[syncBot],
-                    roomId: instance.roomId,
-                  },
-                };
-              }
-            });
-          });
-
-          // Find bot data to update
-          promises.push(BotData.findOne(whereConst).catch((err) =>
-            logger.error('Shared Context error ', err)));
-          promises.push(syncValue);
         });
       }
 
-      return Promise.all(promises);
-    }
+      return [];
+    })
+    .then((botJSON) => {
+      // Create lookups for bots by name or id
+      botJSON.forEach((bot) => {
+        botsIds[bot.dataValues.id] = bot.dataValues.name;
+        botNames[bot.dataValues.name] = bot.dataValues.id;
+      });
+    })
+    .then(() => {
+      // Determine if a sync needs to be performed
+      if (room && ('settings' in room) && ('sharedContext' in room.settings)) {
+        const settings = room.settings.sharedContext;
+        const context = settings[botsIds[instance.botId]];
+        const promises = [];
+        if (context) {
+          // Create a different sync for each bot listed
+          Object.keys(context).forEach((syncBot) => {
+            let whereConst = {};
+            let syncValue = '';
+            Object.keys(context[syncBot]).forEach((botValueName) => {
+              syncValue = isJson(context[syncBot][botValueName]) ?
+                serialize(context[syncBot][botValueName]) :
+                context[syncBot][botValueName];
+              const replaceBlocks = syncValue.match(/\${(.*?)}/g);
 
-    return false;
-  })
-  .then((data) => {
-    if (data) {
-      const updates = [];
-      let newValue;
+              // Replace logic blocks wtih vlaues
+              replaceBlocks.forEach((replaceBlock) => {
+                const replaceField = replaceBlock.replace('${', '')
+                  .replace('}', '').split('.');
+                if (instance.dataValues.name === replaceField[ONE]) {
+                  syncValue = replaceValue(
+                    syncValue,
+                    replaceBlock,
+                    instance.dataValues
+                  );
+                  whereConst = {
+                    where: {
+                      name: botValueName,
+                      botId: botNames[syncBot],
+                      roomId: instance.roomId,
+                    },
+                  };
+                }
+              });
+            });
 
-      // Update bot data
-      for (let i = ZERO; i < data.length; i += TWO) {
-        if (data[i] && data[i].value) {
-          newValue = combineValue(data[i].value, data[i + ONE]);
-          updates.push(data[i].update({ value: newValue }).catch((err) =>
-            logger.error('Shared Context error ', err)));
+            // Find bot data to update
+            promises.push(BotData.findOne(whereConst).catch((err) =>
+              logger.error('Shared Context error ', err)));
+            promises.push(syncValue);
+          });
         }
+
+        return Promise.all(promises);
       }
 
-      return Promise.all(updates);
-    }
+      return false;
+    })
+    .then((data) => {
+      if (data) {
+        const updates = [];
+        let newValue;
 
-    return false;
-  });
+        // Update bot data
+        for (let i = ZERO; i < data.length; i += TWO) {
+          if (data[i] && data[i].value) {
+            newValue = combineValue(data[i].value, data[i + ONE]);
+            updates.push(data[i].update({ value: newValue })
+              .catch((err) => logger.error('Shared Context error ', err)));
+          }
+        }
+
+        return Promise.all(updates);
+      }
+
+      return false;
+    });
 } // updateValues
 
 module.exports = {

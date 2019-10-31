@@ -124,7 +124,7 @@ describe('tests/api/v1/samples/upsertBulkCaseSensitive.js, ' +
             }
 
             expect(res.body).to.have.length(1);
-            expect(res.body[0].name).to.equal(sampleName);
+            expect(res.body[0].name).to.equal(sampleName.toLowerCase());
             done();
           });
         }, 100);

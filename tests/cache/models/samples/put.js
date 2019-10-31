@@ -49,7 +49,7 @@ describe(`tests/cache/models/samples/put.js, api: cache: PUT ${path}`, () => {
       return samstoinit.eradicate();
     })
     .then(() => samstoinit.init())
-    .then(() => redisOps.getHashPromise(objectType.sample, sampleName))
+    .then(() => redisOps.getHash(objectType.sample, sampleName))
     .then((sampleObj) => {
       aspectId = sampleObj.aspectId;
       subjectId = sampleObj.subjectId;
@@ -66,7 +66,7 @@ describe(`tests/cache/models/samples/put.js, api: cache: PUT ${path}`, () => {
     it('on unpublish subject, sample is removed from cache', (done) => {
       tu.db.Subject.findByPk(subjectId).then((subject) =>
         subject.update({ isPublished: false }))
-      .then(() => redisOps.getHashPromise(redisOps.sampleType, sampleName))
+      .then(() => redisOps.getHash(redisOps.sampleType, sampleName))
       .then((sample) => {
         expect(sample).to.be.null;
         done();

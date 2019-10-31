@@ -213,12 +213,10 @@ describe('tests/cache/models/samples/post.js >', () => {
           return done(err);
         }
 
-        const cmds = [];
         const subjAspArr = sampleName.toLowerCase().split('|');
-        cmds.push(redisOps.aspExistsInSubjSetCmd(subjAspArr[0], subjAspArr[1]));
-        redisOps.executeBatchCmds(cmds)
+        redisOps.aspExistsInSubjSet(subjAspArr[0], subjAspArr[1])
         .then((response) => {
-          expect(response[0]).to.be.equal(1);
+          expect(response).to.be.equal(1);
         });
 
         done();

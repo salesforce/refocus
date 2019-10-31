@@ -11,7 +11,6 @@
  */
 'use strict'; // eslint-disable-line strict
 const redisStore = require('./sampleStore');
-const redisClient = require('./redisCache').client.sampleStore;
 const Status = require('../db/constants').statuses;
 const keyType = redisStore.constants.objectType;
 const statusPrecedence = {
@@ -54,20 +53,21 @@ function getAspectRanges(aspect) {
 /**
  * Send redis commands to set keys for the given ranges
  *
+ * @param  {Object} redisOps - batched or unbatched redisOps object
  * @param  {Array<Object>} ranges - sorted, non-overlapping list of aspect ranges
  * @param  {String} aspName - aspect name
  * @returns {Promise}
  */
-function setRanges(ranges, aspName) {
+function setRanges(redisOps, ranges, aspName) {
   const setKey = redisStore.toKey(keyType.aspRanges, aspName);
-  return ranges.reduce(
-    (batch, range) =>
-      batch
-      .zadd(setKey, range.min, getRangeKey('min', range.status, range.min))
-      .zadd(setKey, range.max, getRangeKey('max', range.status, range.max)),
-    redisClient.batch()
+
+  return redisOps.batchCmds()
+  .map(ranges, (batch, range) =>
+    batch
+    .zadd(setKey, range.min, getRangeKey('min', range.status, range.min))
+    .zadd(setKey, range.max, getRangeKey('max', range.status, range.max))
   )
-  .execAsync();
+  .exec();
 }
 
 /**
@@ -122,13 +122,14 @@ function prepareValue(value) {
 /**
  * Calculate the sample status based on this value and the existing ranges sorted set.
  *
+ * @param  {Object} redisOps - batched or unbatched redisOps object
  * @param  {String} aspName - aspect name
  * @param  {Number} value - sample value
  * @returns {String} - resulting status
  */
-function calculateStatus(aspName, value) {
+function calculateStatus(redisOps, aspName, value) {
   const key = redisStore.toKey(keyType.aspRanges, aspName);
-  return redisClient.zrangebyscoreAsync(key, value, '+inf', 'WITHSCORES', 'LIMIT', 0, 1)
+  return redisOps.zrangebyscore(key, value, '+inf', 'WITHSCORES', 'LIMIT', 0, 1)
   .then(([member, score]) => {
     if (member) {
       score = Number(score);
