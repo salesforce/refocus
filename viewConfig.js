@@ -60,6 +60,8 @@ module.exports = {
 
   // Make the roomType mapping available in /view for IMC rooms
   roomTypeMapping,
-  defaultRoomType
+
+  // Make the default roomType available in /view for IMC rooms
+  defaultRoomType,
 
 };
