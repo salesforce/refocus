@@ -1018,6 +1018,9 @@ function setupColumns() {
  * @returns {string} the first roomType name matching one of the url params
  */
 function getRoomTypeFromMapping(urlParams) {
+  if (!_defaultRoomType) {
+    return '';
+  }
   const urlParamNames = Object.keys(urlParams);
   for (let i = 0; i < urlParamNames.length; i++){
     const paramName = urlParamNames[i];

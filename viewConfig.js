@@ -40,7 +40,7 @@ const realtimeApplicationImc = pe.REALTIME_APPLICATION_IMC || '/';
  */
 const roomTypeMapping = pe.ROOMTYPE_MAPPING || '{}';
 
-const defaultRoomType = pe.DEFAULT_ROOMTYPE || null;
+const defaultRoomType = pe.DEFAULT_ROOMTYPE || '';
 
 module.exports = {
   // Password stored in the db for SSO users (never used for authentication).
