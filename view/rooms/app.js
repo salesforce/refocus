@@ -1046,7 +1046,7 @@ function buildNewRoomRedirectUrl(urlParameters) {
     paramObj[key] = value;
   });
 
-  if (!paramObj.roomType && paramObj.externalId) {
+  if (paramObj && !paramObj.roomType && paramObj.externalId) {
     redirectUrl += '&roomType=' + getRoomTypeFromMapping(paramObj);
   }
   return redirectUrl;
