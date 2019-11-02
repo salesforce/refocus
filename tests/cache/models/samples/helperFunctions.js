@@ -98,10 +98,8 @@ describe('tests/cache/models/samples/helperFunctions.js >', () => {
           expect(res).to.equal(true);
           return checkWritePerm(aspName, otherUser.name, true);
         })
-        .catch((obj) => {
-          const err = obj.explanation;
+        .catch((err) => {
           expect(err.name).to.equal('UpdateDeleteForbidden');
-          expect(obj.isFailed).to.equal(true);
           expect(err.explanation).to.equal('User "___myUniqueUser" does ' +
             'not have write permission for aspect "___TEST_ASPECT"');
           done();
