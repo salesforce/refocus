@@ -542,21 +542,17 @@ function upsertOneParsedSample(sampleQueryBodyObj, parsedSample, isBulk, user) {
   .then((response) => {
     sample = response;
 
-    if (!sample) { // new sample. check subject/asp is published from db
-      const subjWhereObj = {
-        where: { absolutePath: { [Op.iLike]: absolutePath } },
-      };
-      const aspWhereObj = { where: { name: { [Op.iLike]: aspectName } } };
+    if (!sample) { // new sample. check subject/asp is published
       return Promise.join(
-        db.Subject.findOne(subjWhereObj),
-        db.Aspect.findOne(aspWhereObj)
+        redisOps.subjectExists({ absolutePath: absolutePath }),
+        redisOps.aspectExists({ name: aspectName }),
       )
-      .spread((dbSubj, dbAsp) => {
-        if (!dbSubj || dbSubj.isPublished === false) {
+      .spread((subjectExists, aspectExists) => {
+        if (!subjectExists) {
           handleUpsertError(constants.objectType.subject, isBulk, sampleName);
         }
 
-        if (!dbAsp || dbAsp.isPublished === false) {
+        if (!aspectExists) {
           handleUpsertError(constants.objectType.aspect, isBulk, sampleName);
         }
 
