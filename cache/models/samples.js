@@ -111,28 +111,36 @@ function parseName(name) {
  * @param  {Boolean} isBulk   - Flag to indicate if the action is a bulk
  *  operation or not
  * @returns {Promise} - which resolves to true if the user has write permission
+ * @throws {Error} - if user does not have writer permission
  */
 function checkWritePermission(aspectName, userName, isBulk) {
   return redisOps.getAspectWriters({ name: aspectName })
-    .then((res) => {
-      // empty writers arr would mean everyone has permission
-      if (res.length && !res.includes(userName)) {
-        const err = new redisErrors.UpdateDeleteForbidden({
-          explanation: `User "${userName}" does not have write permission ` +
-            `for aspect "${aspectName}"`,
-        });
-
-        if (isBulk) {
-          return Promise.reject({ isFailed: true, explanation: err });
-        }
-
-        return Promise.reject(err);
-      }
-
-      // If we got this far, the user has write permission on this aspect.
-      return Promise.resolve(true);
-    });
+  .then((res) =>
+    hasWritePermission(res, aspectName, userName, isBulk)
+  );
 } // checkWritePermission
+
+/**
+ * Checks if the user has the permission to perform the write operation on the
+ * sample or not.
+
+ * @param  {Array<String>}  writers - Array of user names
+ * @param  {String}  aspectName - Aspect name
+ * @param  {String}  userName -  User performing the operation
+ * @returns {Boolean} - true if the user has write permission
+ * @throws {Error} - if user does not have writer permission
+ */
+function hasWritePermission(writers, aspectName, userName) {
+  // empty writers arr would mean everyone has permission
+  if (writers.length && !writers.includes(userName)) {
+    throw new redisErrors.UpdateDeleteForbidden({
+      explanation: `User "${userName}" does not have write permission ` +
+        `for aspect "${aspectName}"`,
+    });
+  }
+
+  return true;
+} // hasWritePermission
 
 /**
  * Convert array strings to Json for sample and aspect, then attach aspect to
@@ -203,11 +211,11 @@ function cleanAddSubjectToSample(sampleObj, subjectObj) {
  * Update the sample from the request body. Updates in place. Compares to the
  * previous state of the same sample, recalcuates status as needed.
  *
- * @param  {Object} qbObj - current sample (from request body)
+ * @param  {Object} curr - current sample (from request body)
  * @param  {Object} prev - previous sample
- * @returns {Promise} - Empty Promise which updates sample attributes
+ * @param  {Object} status - result of status calculation
  */
-function updateSampleAttributes(curr, prev) {
+function updateSampleAttributes(curr, prev, status) {
   modelUtils.removeExtraAttributes(curr, sampleFieldsArr);
   const now = new Date().toISOString();
 
@@ -228,100 +236,81 @@ function updateSampleAttributes(curr, prev) {
   /* Just in case curr.value was undefined... */
   if (curr[sampFields.VALUE] === undefined) curr[sampFields.VALUE] = '';
 
-  return Promise.resolve()
-    .then(() => {
-      if (!prev) {
-        /*
-         * This is a brand new sample so calculate current status based on value,
-         * set previous status to invalid, and set status changed at to now.
-         */
-        return redisOps.calculateSampleStatus(
-          curr[sampFields.NAME], curr[sampFields.VALUE])
-          .then((status) => {
-            curr[sampFields.STATUS] = status;
-            curr[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
-            curr[sampFields.STS_CHANGED_AT] = now;
-          });
-      } else if (curr[sampFields.VALUE] === prev[sampFields.VALUE]) {
-        /*
-         * Value is same so no need to recalculate status. Just carry over the
-         * status, previous status, and status changed at from the old sample.
-         */
-        curr[sampFields.STATUS] = prev[sampFields.STATUS];
-        curr[sampFields.PRVS_STATUS] = prev[sampFields.PRVS_STATUS];
-        curr[sampFields.STS_CHANGED_AT] = prev[sampFields.STS_CHANGED_AT];
-        return Promise.resolve();
-      }
-
+  if (!prev) {
+    /*
+     * This is a brand new sample so calculate current status based on value,
+     * set previous status to invalid, and set status changed at to now.
+     */
+    curr[sampFields.STATUS] = status;
+    curr[sampFields.PRVS_STATUS] = dbConstants.statuses.Invalid;
+    curr[sampFields.STS_CHANGED_AT] = now;
+  } else if (curr[sampFields.VALUE] === prev[sampFields.VALUE]) {
+    /*
+     * Value is same so no need to recalculate status. Just carry over the
+     * status, previous status, and status changed at from the old sample.
+     */
+    curr[sampFields.STATUS] = prev[sampFields.STATUS];
+    curr[sampFields.PRVS_STATUS] = prev[sampFields.PRVS_STATUS];
+    curr[sampFields.STS_CHANGED_AT] = prev[sampFields.STS_CHANGED_AT];
+  } else {
+    /*
+     * The value is different so we need to calculate the status.
+     */
+    curr[sampFields.STATUS] = status;
+    if (curr[sampFields.STATUS] === prev[sampFields.STATUS]) {
       /*
-       * The value is different so we need to calculate the status.
+       * The status is the same so carry over the previous status and status
+       * changed at from the old sample.
        */
-      return redisOps.calculateSampleStatus(
-        curr[sampFields.NAME], curr[sampFields.VALUE])
-        .then((status) => {
-          curr[sampFields.STATUS] = status;
-          if (curr[sampFields.STATUS] === prev[sampFields.STATUS]) {
-            /*
-             * The status is the same so carry over the previous status and status
-             * changed at from the old sample.
-             */
-            curr[sampFields.PRVS_STATUS] = prev[sampFields.PRVS_STATUS];
-            curr[sampFields.STS_CHANGED_AT] = prev[sampFields.STS_CHANGED_AT];
-          } else {
-            /*
-             * The status is different so assign previous status based on the old
-             * sample's status, and set status changd at to now.
-             */
-            curr[sampFields.PRVS_STATUS] = prev[sampFields.STATUS];
-            curr[sampFields.STS_CHANGED_AT] = now;
-          }
-        });
-    })
-    .then(() => {
-      let rlinks;
+      curr[sampFields.PRVS_STATUS] = prev[sampFields.PRVS_STATUS];
+      curr[sampFields.STS_CHANGED_AT] = prev[sampFields.STS_CHANGED_AT];
+    } else {
+      /*
+       * The status is different so assign previous status based on the old
+       * sample's status, and set status changd at to now.
+       */
+      curr[sampFields.PRVS_STATUS] = prev[sampFields.STATUS];
+      curr[sampFields.STS_CHANGED_AT] = now;
+    }
+  }
 
-      // if related link is passed in query object
-      if (curr[sampFields.RLINKS]) {
-        rlinks = curr[sampFields.RLINKS];
-      } else if (!prev) { // if we are creating new sample
-        rlinks = []; // default value
-      } else if (prev[sampFields.RLINKS] && prev[sampFields.RLINKS] !== '[]') {
-        /* retain previous related links if query body does not have attribute */
-        rlinks = JSON.parse(prev[sampFields.RLINKS]);
-      }
+  let rlinks;
 
-      if (rlinks) {
-        curr[sampFields.RLINKS] = JSON.stringify(rlinks);
-      } else {
-        /* safeguard against sending null argument to hmset command */
-        delete curr[sampFields.RLINKS];
-      }
+  // if related link is passed in query object
+  if (curr[sampFields.RLINKS]) {
+    rlinks = curr[sampFields.RLINKS];
+  } else if (!prev) { // if we are creating new sample
+    rlinks = []; // default value
+  } else if (prev[sampFields.RLINKS] && prev[sampFields.RLINKS] !== '[]') {
+    /* retain previous related links if query body does not have attribute */
+    rlinks = JSON.parse(prev[sampFields.RLINKS]);
+  }
 
-      if (!prev) curr[sampFields.CREATED_AT] = now;
-      curr[sampFields.UPD_AT] = now;
-    });
+  if (rlinks) {
+    curr[sampFields.RLINKS] = JSON.stringify(rlinks);
+  } else {
+    /* safeguard against sending null argument to hmset command */
+    delete curr[sampFields.RLINKS];
+  }
+
+  if (!prev) curr[sampFields.CREATED_AT] = now;
+  curr[sampFields.UPD_AT] = now;
 } // updateSampleAttributes
 
 /**
  * Throws custom error object based on object type for sample upsert.
  *
  * @param  {String}  objectType - Object type - subject or aspect
- * @param  {Boolean} isBulk - If the caller method is bulk upsert
  * @param  {String} sampleName - The sample name
  * @throws {Object} Error object
  */
-function handleUpsertError(objectType, isBulk, sampleName) {
+function handleUpsertError(objectType, sampleName) {
   const err = new redisErrors.ResourceNotFoundError({
     explanation: `${objectType} for this sample was not found or has ` +
       'isPublished=false',
   });
 
   if (sampleName) err.sample = sampleName;
-
-  if (isBulk) {
-    const errObj = { isFailed: true, explanation: err };
-    throw errObj;
-  }
 
   throw err;
 } // handleUpsertError
@@ -350,238 +339,123 @@ function getOneSample(sampleName) {
 } // getOneSample
 
 /**
- * Upsert a sample. If subject exists, get aspect and sample. If aspect exists,
- * create fields array with values need to be set for sample in redis. Add
- * aspect name to subject set, add aspect key to sample set and update/create
- * sample hash. We use hset which updates a sample if exists, else creates a
- * new one.
+ * Prepare sample for upsert
  *
- * @param  {Object} sampleQueryBodyObj - Query Body Object for a sample
- * @param  {Boolean} isBulk - If the caller method is bulk upsert
+ * @param  {Object}  newSample - The sample to be upserted
+ * @param  {Object} sampleAttributes - Associated values required for upsert and publish
  * @param {Object} user - The user performing the write operation
- * @returns {Object} - Updated sample
+ * @throws {Object} Error object
  */
-function upsertOneSample(sampleQueryBodyObj, isBulk, user) {
-  const userName = user ? user.name : false;
-  const sampleName = sampleQueryBodyObj.name;
-  let parsedSampleName = {};
-  try {
-    parsedSampleName = parseName(sampleName.toLowerCase());
-  } catch (err) {
-    if (isBulk) {
-      throw err;
-    }
+function prepareSampleForUpsert(newSample, sampleAttributes, user) {
+  const { subjectExists, aspectExists, aspectWriters, existingSample, sampleStatus } = sampleAttributes;
 
-    return Promise.reject(err);
+  const userName = user ? user.name : false;
+  const sampleName = newSample.name;
+
+  const parsedName = parseName(sampleName);
+  const aspectName = parsedName.aspect.name;
+
+  newSample.status = sampleStatus;
+
+  // check write permission
+  hasWritePermission(aspectWriters, aspectName, userName);
+
+  // check that subject is published
+  if (!subjectExists) {
+    handleUpsertError(constants.objectType.subject, sampleName);
   }
 
-  const sampleKey = sampleStore.toKey(constants.objectType.sample, sampleName);
-  const absolutePath = parsedSampleName.subject.absolutePath;
-  const aspectName = parsedSampleName.aspect.name;
-  const subjKey = sampleStore.toKey(constants.objectType.subject, absolutePath);
-  let aspectObj = {};
-  let subject;
-  let aspect;
-  let sample;
-  let noChange = false;
+  // check that aspect is published
+  if (!aspectExists) {
+    handleUpsertError(constants.objectType.aspect, sampleName);
+  }
 
-  /*
-   * If any of these promises throws an error, we drop through to the catch
-   * block and return an error. Otherwise, we return the sample.
-   */
-  return checkWritePermission(aspectName, userName, isBulk)
-    .then(() => Promise.all([
-      redisClient.hgetallAsync(subjKey),
-      redisClient.hgetallAsync(
-        sampleStore.toKey(constants.objectType.aspect, aspectName)),
-      redisClient.hgetallAsync(sampleKey),
-    ])
-      .then((responses) => {
-        [subject, aspect, sample] = responses;
-        if (!subject || subject.isPublished === 'false') {
-          handleUpsertError(constants.objectType.subject, isBulk, sampleName);
-        }
+  // check whether the sample has been changed
+  if (existingSample && !isSampleChanged(newSample, existingSample)) {
+    /* Sample is not new AND nothing has changed */
+    sampleAttributes.noChange = true;
+  }
 
-        if (!aspect || aspect.isPublished === 'false') {
-          handleUpsertError(constants.objectType.aspect, isBulk, sampleName);
-        }
-
-        sampleQueryBodyObj.subjectId = subject.id;
-        sampleQueryBodyObj.aspectId = aspect.id;
-        aspectObj = sampleStore.arrayObjsStringsToJson(aspect,
-          constants.fieldsToStringify.aspect);
-        return checkWritePermission(aspectObj.name, userName, isBulk);
-      })
-      .then(() => {
-        if (sample && !isSampleChanged(sampleQueryBodyObj, sample)) {
-          /* Sample is not new AND nothing has changed */
-          noChange = true;
-        }
-
-        // sampleQueryBodyObj updated with fields
-        return updateSampleAttributes(sampleQueryBodyObj, sample);
-      }))
-    .then(() => {
-      if (sample) { // if sample exists, just update sample
-        delete sampleQueryBodyObj.name; // to avoid updating sample name
-        logInvalidHmsetValues(sampleKey, sampleQueryBodyObj);
-        return redisClient.hmsetAsync(sampleKey, sampleQueryBodyObj);
-      }
-
-      /*
-       * Otherwise the sample is new. Set the name to be the combination of
-       * subject absolutePath and aspect name.
-       */
-      sampleQueryBodyObj.name = subject.absolutePath + '|' + aspectObj.name;
-
-      // Add the provider and user fields.
-      if (user) {
-        sampleQueryBodyObj.provider = user.id;
-        sampleQueryBodyObj.user = JSON.stringify({
-          name: user.name,
-          email: user.email,
-          profile: {
-            name: user.profile.name,
-          },
-        });
-      }
-
-      return redisOps.batchCmds()
-
-        // add the aspect name to the subject-to-aspect resource mapping
-        .addAspectInSubjSet(absolutePath, aspectName)
-
-        // add sample to the master list of sample index
-        .addKeyToIndex(sampleType, sampleName)
-
-        // create/update hash of sample. Check and log invalid Hmset values
-        .setHashMulti(sampleType, sampleName, sampleQueryBodyObj)
-
-        // add subject absolute path to aspect-to-subject resource mapping
-        .addSubjectAbsPathInAspectSet(aspectObj.name, subject.absolutePath)
-
-        .exec();
-    })
-    .then(() => redisClient.hgetallAsync(sampleKey))
-    .then((updatedSamp) => {
-      if (!updatedSamp.name) {
-        updatedSamp.name = subject.absolutePath + '|' + aspectObj.name;
-      }
-
-      // Publish the sample.nochange event
-      if (noChange) {
-        updatedSamp.noChange = true;
-        updatedSamp.absolutePath = subject.absolutePath;
-        updatedSamp.aspectName = aspectObj.name;
-        updatedSamp.aspectTags = aspectObj.tags || [];
-        updatedSamp.aspectTimeout = aspectObj.timeout;
-
-        if (Array.isArray(subject.tags)) {
-          updatedSamp.subjectTags = subject.tags;
-        } else {
-          try {
-            updatedSamp.subjectTags = JSON.parse(subject.tags);
-          } catch (err) {
-            updatedSamp.subjectTags = [];
-          }
-        }
-
-        return updatedSamp; // skip cleanAdd...
-      }
-
-      return cleanAddAspectToSample(updatedSamp, aspectObj);
-    })
-    .then((updatedSamp) => {
-      if (updatedSamp.hasOwnProperty(noChange) && updatedSamp.noChange === true) {
-        return updatedSamp;
-      }
-
-      return cleanAddSubjectToSample(updatedSamp, subject);
-    })
-    .catch((err) => {
-      debugUpsertErrors('refocus:sample:upsert:errors|upsertOneSample|%s|%o|%o',
-        user ? user.name : '',
-        sampleQueryBodyObj,
-        err.explanation.explanation || err.message);
-      if (isBulk) return err;
-      throw err;
-    });
-} // upsertOneSample
+  // sampleQueryBodyObj updated with fields
+  updateSampleAttributes(newSample, existingSample, newSample.status);
+}
 
 /**
- * Upsert a sample. If subject exists, get aspect and sample. If aspect exists,
- * create fields array with values need to be set for sample in redis. Add
- * aspect name to subject set, add aspect key to sample set and update/create
- * sample hash. We use hset which updates a sample if exists, else creates a
- * new one.
+ * Prepare sample for publish
  *
- * @param  {Object} sampleQueryBodyObj - Query Body Object for a sample
- * @param  {Object} parsedSample - parsedSample has subject name, aspect name
- * and aspect object
- * @param  {Boolean} isBulk - If the caller method is bulk upsert
+ * @param  {Object}  sample - The sample to be published
+ * @param  {Object} sampleAttributes - Associated values required for upsert and publish
+ * @throws {Object} Error object
+ */
+function prepareSampleForPublish(sample, sampleAttributes) {
+  const parsedName = parseName(sample.name);
+
+  // attach props for perspective filtering
+  sample.absolutePath = parsedName.subject.absolutePath;
+  sample.subject = {
+    absolutePath: parsedName.subject.absolutePath,
+    tags: sampleAttributes.subjectTags,
+  };
+  sample.aspect = {
+    name: parsedName.aspect.name,
+    tags: sampleAttributes.aspectTags,
+  };
+
+  return sample;
+}
+
+/**
+ * Upsert multiple samples.
+ *
+ * @param  {Array} samplesAndAttributes - Array of objects with props
+ *   "newSample" and "sampleAttributes"
  * @param {Object} user - The user performing the write operation
  * @returns {Object} - Updated sample
  */
-function upsertOneParsedSample(sampleQueryBodyObj, parsedSample, isBulk, user) {
-  const userName = user ? user.name : false;
-  const sampleName = sampleQueryBodyObj.name;
+function upsertSamples(samplesAndAttributes, user) {
+  const allSamples = (
+    samplesAndAttributes
+    .map(({ newSample }) => newSample)
+  );
 
-  const sampleKey = sampleStore.toKey(constants.objectType.sample, sampleName);
-  const absolutePath = parsedSample.subject.absolutePath;
-  const aspectName = parsedSample.aspect.name;
+  const allSampleNames = allSamples.map(s => s.name);
 
-  let sample;
-  let noChange = false;
+  const existingSamples = (
+    samplesAndAttributes
+    .filter(({ newSample, sampleAttributes }) =>
+      sampleAttributes.existingSample
+    )
+    .map(({ newSample }) => newSample)
+  );
 
-  /*
-   * If any of these promises throws an error, we drop through to the catch
-   * block and return an error. Otherwise, we return the sample.
-   */
-  return checkWritePermission(aspectName, userName, isBulk)
-  .then(() => redisClient.hgetallAsync(sampleKey))
-  .then((response) => {
-    sample = response;
+  const newSamples = (
+    samplesAndAttributes
+    .filter(({ newSample, sampleAttributes }) =>
+      !sampleAttributes.existingSample
+    )
+    .map(({ newSample }) => newSample)
+  );
 
-    if (!sample) { // new sample. check subject/asp is published
-      return Promise.join(
-        redisOps.subjectExists({ absolutePath: absolutePath }),
-        redisOps.aspectExists({ name: aspectName }),
-      )
-      .spread((subjectExists, aspectExists) => {
-        if (!subjectExists) {
-          handleUpsertError(constants.objectType.subject, isBulk, sampleName);
-        }
+  const batch = redisOps.batchCmds();
 
-        if (!aspectExists) {
-          handleUpsertError(constants.objectType.aspect, isBulk, sampleName);
-        }
+  // existing samples: just update sample
+  batch.map(existingSamples, (batch, newSample) => {
+    const sampleName = newSample.name;
+    delete newSample.name; // to avoid updating sample name
 
-        return Promise.resolve(); // aspect and subject is published
-      });
-    }
+    return batch.setHashMulti(constants.objectType.sample, sampleName, newSample);
+  });
 
-    return Promise.resolve();
-  })
-  .then(() => {
-    if (sample && !isSampleChanged(sampleQueryBodyObj, sample)) {
-      /* Sample is not new AND nothing has changed */
-      noChange = true;
-    }
+  // new samples: setup necessary fields and create sample
+  batch.map(newSamples, (batch, newSample) => {
+    const parsedName = parseName(newSample.name);
+    const absolutePath = parsedName.subject.absolutePath;
+    const aspectName = parsedName.aspect.name;
 
-    // sampleQueryBodyObj updated with fields
-    return updateSampleAttributes(sampleQueryBodyObj, sample);
-  })
-  .then(() => {
-    if (sample) { // if sample exists, just update sample
-      delete sampleQueryBodyObj.name; // to avoid updating sample name
-      logInvalidHmsetValues(sampleKey, sampleQueryBodyObj);
-      return redisClient.hmsetAsync(sampleKey, sampleQueryBodyObj);
-    }
-
-    // Add the provider and user fields.
     if (user) {
-      sampleQueryBodyObj.provider = user.id;
-      sampleQueryBodyObj.user = JSON.stringify({
+      // Add the provider and user fields.
+      newSample.provider = user.id;
+      newSample.user = JSON.stringify({
         name: user.name,
         email: user.email,
         profile: {
@@ -590,54 +464,136 @@ function upsertOneParsedSample(sampleQueryBodyObj, parsedSample, isBulk, user) {
       });
     }
 
-    return redisOps.batchCmds()
+    return batch
 
-      // add the aspect name to the subject-to-aspect resource mapping
-      .addAspectInSubjSet(absolutePath, aspectName)
+    // add the aspect name to the subject-to-aspect resource mapping
+    .addAspectInSubjSet(absolutePath, aspectName)
 
-      // add sample to the master list of sample index
-      .addKeyToIndex(sampleType, sampleName)
+    // add sample to the master list of sample index
+    .addKeyToIndex(sampleType, newSample.name)
 
-      // create/update hash of sample. Check and log invalid Hmset values
-      .setHashMulti(sampleType, sampleName, sampleQueryBodyObj)
+    // create/update hash of sample. Check and log invalid Hmset values
+    .setHashMulti(sampleType, newSample.name, newSample)
 
-      // add subject absolute path to aspect-to-subject resource mapping
-      .addSubjectAbsPathInAspectSet(aspectName, absolutePath)
-
-      .exec();
-  })
-  .then(() => redisClient.hgetallAsync(sampleKey))
-  .then((updatedSamp) => {
-    if (!updatedSamp.name) { // sample should have name
-      handleUpsertError(constants.objectType.sample, isBulk, sampleName);
-    }
-
-    // Publish the sample.nochange event
-    if (noChange) {
-      updatedSamp.noChange = true;
-      return updatedSamp; // skip cleanAdd...
-    }
-
-    return sampleStore.arrayObjsStringsToJson(updatedSamp,
-      constants.fieldsToStringify.sample);
-  })
-  .then((updatedSamp) => {
-    if (updatedSamp.hasOwnProperty(noChange) && updatedSamp.noChange === true) {
-      return updatedSamp;
-    }
-
-    return sampleStore.arrayObjsStringsToJson(updatedSamp,
-      constants.fieldsToStringify.sample);
-  })
-  .catch((err) => {
-    debugUpsertErrors('refocus:sample:upsert:errors|upsertOneSample|%s|%o|%o',
-      user ? user.name : '',
-      sampleQueryBodyObj,
-      err.explanation.explanation || err.message);
-    if (isBulk) return err;
-    throw err;
+    // add subject absolute path to aspect-to-subject resource mapping
+    .addSubjectAbsPathInAspectSet(aspectName, absolutePath);
   });
-} // upsertOneParsedSample
+
+  // all samples: get updated hash
+  batch.returnAll(allSampleNames, 'updatedSamples', (batch, sampleName) => {
+    return batch.getHash(constants.objectType.sample, sampleName)
+  });
+
+  return batch.exec()
+  .then(({ updatedSamples }) => {
+    return updatedSamples.map((updatedSample, i) => {
+      const { sampleAttributes } = samplesAndAttributes[i];
+
+      sampleStore.arrayObjsStringsToJson(updatedSample, constants.fieldsToStringify.sample);
+
+      if (sampleAttributes.noChange) {
+        updatedSample.noChange = true;
+      }
+
+      return updatedSample;
+    });
+  });
+}
+
+function upsertOneSample(sample, sampleAttributes, user) {
+  return upsertSamples([{ newSample: sample, sampleAttributes }], user)
+  .then(([upsertedSample]) => {
+    if (upsertedSample instanceof Error) {
+      throw upsertedSample;
+    } else {
+      return upsertedSample
+    }
+  });
+}
+
+/**
+ * Get all values from redis that are required to upsert and publish the samples.
+ *
+ * @param  {Array} samplesReq - Array of samples.
+ * @returns {Array} - Array of Objects containing attributes:
+ *   aspectWriters, aspectTags, aspectExists, subjectTags, subjectExists,
+ *   existingSample, sampleStatus
+ */
+function getValuesForSamples(samplesReq) {
+  const parsedNames = samplesReq.map((squery) =>
+    parseName(squery.name.toLowerCase())
+  );
+
+  let aspNames = parsedNames.map(({ aspect }) => aspect.name );
+  aspNames = Array.from(new Set(aspNames));
+
+  let absPaths = parsedNames.map(({ subject }) => subject.absolutePath );
+  absPaths = Array.from(new Set(absPaths));
+
+  return redisOps.batchCmds()
+
+  // aspect values
+  .returnAll(aspNames, 'aspectsWriters', (batch, aspName) =>
+    batch.getAspectWriters({ name: aspName })
+  )
+  .returnAll(aspNames, 'aspectsTags', (batch, aspName) =>
+    batch.getAspectTags({ name: aspName })
+  )
+  .returnAll(aspNames, 'aspectsExist', (batch, aspName) =>
+    batch.aspectExists({ name: aspName })
+  )
+
+  // subject values
+  .returnAll(absPaths, 'subjectsTags', (batch, absPath) =>
+    batch.getSubjectTags({ absolutePath: absPath })
+  )
+  .returnAll(absPaths, 'subjectsExist', (batch, absPath) =>
+    batch.subjectExists({ absolutePath: absPath })
+  )
+
+  // sample values
+  .returnAll(samplesReq, 'existingSamples', (batch, sample) =>
+    batch.getHash(constants.objectType.sample, sample.name)
+  )
+  .returnAll(samplesReq, 'samplesStatus', (batch, sample) =>
+    batch.calculateSampleStatus(sample.name, sample.value)
+  )
+
+  .exec()
+
+  .then((sampleAttributes) => {
+    const aspMap = aspNames.reduce((aspMap, aspName, i) => ({
+      [aspName]: {
+        aspectWriters: sampleAttributes.aspectsWriters[i],
+        aspectTags: sampleAttributes.aspectsTags[i],
+        aspectExists: sampleAttributes.aspectsExist[i],
+      },
+      ...aspMap,
+    }), {});
+
+    const subMap = absPaths.reduce((subMap, absPath, i) => ({
+      [absPath]: {
+        subjectTags: sampleAttributes.subjectsTags[i],
+        subjectExists: sampleAttributes.subjectsExist[i],
+      },
+      ...subMap,
+    }), {});
+
+    return samplesReq.map((sample, i) => {
+      const aspName = parsedNames[i].aspect.name;
+      const absPath = parsedNames[i].subject.absolutePath;
+      return {
+        subjectTags: subMap[absPath].subjectTags,
+        subjectExists: subMap[absPath].subjectExists,
+        aspectWriters: aspMap[aspName].aspectWriters,
+        aspectTags: aspMap[aspName].aspectTags,
+        aspectExists: aspMap[aspName].aspectExists,
+        existingSample: sampleAttributes.existingSamples[i],
+        sampleStatus: sampleAttributes.samplesStatus[i],
+      };
+    });
+  });
+}
 
 /**
  * Check if sample name is valid. Apply attributes filter to samples.
@@ -1459,19 +1415,25 @@ module.exports = {
 
   /**
    * Upsert sample in Redis.
-   * @param  {Object} qbObj - Query body object
+   * @param  {Object} newSample - sample to upsert
    * @param {Object} user - The user performing the write operation
    * @returns {Promise} - Resolves to upserted sample
    */
-  upsertSample(qbObj, user) {
-    let parsedSample = {};
+  upsertSample(newSample, user) {
     try {
-      parsedSample = parseName(qbObj.name.toLowerCase());
+      parseName(newSample.name.toLowerCase());
     } catch (err) {
       return Promise.reject(err);
     }
 
-    return upsertOneParsedSample(qbObj, parsedSample, false, user);
+    return getValuesForSamples([newSample])
+    .then(([sampleAttributes]) => {
+      prepareSampleForUpsert(newSample, sampleAttributes, user);
+      return upsertOneSample(newSample, sampleAttributes, user)
+      .then((result) =>
+        prepareSampleForPublish(result, sampleAttributes)
+      );
+    })
   },
 
   /**
@@ -1482,41 +1444,62 @@ module.exports = {
    * @returns {Array} - Resolves to an array of resolved promises
    */
   bulkUpsertByName(sampleQueryBody, user, readOnlyFields) {
+    // validate request body
     if (!sampleQueryBody || !Array.isArray(sampleQueryBody)) {
       return Promise.resolve([]);
     }
 
-    const parsedSampleNames = {}; // sample name <-> subject and aspect name
-
-    // parse sample names
-    sampleQueryBody.forEach((squery) => {
-      const sampleName = squery.name.toLowerCase();
+    // validate each sample, saving errors to be included inline in the response array
+    const validSamples = [];
+    const errors = [];
+    let samplesAndAttributes;
+    sampleQueryBody.forEach((sample, i) => {
       try {
-        const parsedSampleName = parseName(sampleName);
-        parsedSampleNames[sampleName] = parsedSampleName;
-      } catch (err) { // invalid sample name
-        parsedSampleNames[sampleName] = err;
-      }
-    });
-
-    const promises = sampleQueryBody.map((sampleReq) => {
-      // Throw error if sample is upserted with read-only field.
-      try {
-        commonUtils.noReadOnlyFieldsInReq(sampleReq, readOnlyFields);
-        const sampleName = sampleReq.name.toLowerCase();
-        const parsed = parsedSampleNames[sampleName];
-        if (parsed instanceof Error) { // invalid sample name
-          throw parsed;
-        }
-
-        // parsed object has subject name, aspect name
-        return upsertOneParsedSample(sampleReq, parsed, true, user);
+        parseName(sample.name);
+        commonUtils.noReadOnlyFieldsInReq(sample, readOnlyFields);
+        validSamples[i] = sample;
       } catch (err) {
-        return Promise.resolve({ isFailed: true, explanation: err });
+        errors[i] = { isFailed: true, explanation: err };
       }
     });
 
-    return Promise.all(promises);
+    const validSamplesOnly = validSamples.filter(Boolean);
+
+    // get the relevant sample values from redis for all valid samples
+    return getValuesForSamples(validSamplesOnly)
+    .then((sampleAttributesArray) => {
+      samplesAndAttributes = validSamples.map((newSample) => ({
+        newSample,
+        sampleAttributes: sampleAttributesArray.shift(),
+      }));
+
+      // prepare each sample, saving errors to be included inline in the response array
+      validSamples.forEach((sample, i) => {
+        const { newSample, sampleAttributes } = samplesAndAttributes[i];
+        try {
+          prepareSampleForUpsert(newSample, sampleAttributes, user)
+        } catch (err) {
+          delete samplesAndAttributes[i];
+          errors[i] = { isFailed: true, explanation: err };
+        }
+      });
+
+      const samplesAndAttributesOnly = samplesAndAttributes.filter(Boolean);
+      return upsertSamples(samplesAndAttributesOnly, user);
+    })
+
+    // merge upsert results and errors into response array
+    .then((results) => {
+      const mergedResults = [];
+      samplesAndAttributes.forEach(({ newSample, sampleAttributes }, i) => {
+        const upsertedSample = results.shift();
+        mergedResults[i] = prepareSampleForPublish(upsertedSample, sampleAttributes);
+      });
+      errors.forEach((err, i) => {
+        mergedResults[i] = err;
+      });
+      return mergedResults;
+    });
   }, // bulkUpsertByName
 
   cleanAddSubjectToSample, // export for testing only

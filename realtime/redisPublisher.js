@@ -185,40 +185,57 @@ function publishSample(sample, event) {
     return Promise.resolve();
   }
 
-  const subjAbsolutePath = arr[0];
-  sample.subject = { absolutePath: subjAbsolutePath };
-  sample.aspect = { name: arr[1] }; // for socket.io perspective filtering
-  sample.absolutePath = subjAbsolutePath; // used for perspective filtering
+  // Attach fields for filtering. Will already be attached for upserts.
+  const [absPath, aspName] = arr;
+  if (!sample.absolutePath) {
+    sample.absolutePath = absPath;
+  }
+  if ( !(sample.subject && sample.aspect) ) {
+    sample.subject = { absolutePath: absPath };
+    sample.aspect = { name: aspName };
+  }
 
-  return redisOps.batchCmds()
-    .return('subTags', (batch) =>
-      batch.getSubjectTags(sample.subject)
-    )
-    .return('aspTags', (batch) =>
-      batch.getAspectTags(sample.aspect)
-    )
-    .exec()
-    .then(({ subTags, aspTags }) => {
-      sample.subject.tags = subTags; // for socket.io perspective filtering
-      sample.aspect.tags = aspTags; // for socket.io perspective filtering
-    })
-    .then(() => {
-      if (sample.hasOwnProperty('noChange') && sample.noChange === true) {
-        return publishSampleNoChange(sample);
-      }
+  return Promise.resolve()
 
-      const eventType = event || getSampleEventType(sample);
-      return publishObject(sample, eventType);
-    })
-    .then(() => {
-      tracker.trackSamplePublish(sample.name, sample.updatedAt);
-      return sample;
-    })
-    .catch((err) => {
-      // Any failure on publish sample must not stop the next promise.
-      logger.error('publishSample error', err);
-      return Promise.resolve();
-    });
+  .then(() => {
+    // Attach tags for filtering. Will already be attached for upserts.
+    if (!sample.subject.tags || !sample.aspect.tags) {
+      return redisOps.batchCmds()
+      .return('subTags', (batch) =>
+        batch.getSubjectTags({ absolutePath: absPath })
+      )
+      .return('aspTags', (batch) =>
+        batch.getAspectTags({ name: aspName })
+      )
+      .exec()
+      .then(({ subTags, aspTags }) => {
+        sample.subject.tags = subTags;
+        sample.aspect.tags = aspTags;
+      })
+    }
+  })
+
+  // publish
+  .then(() => {
+    if (sample.hasOwnProperty('noChange') && sample.noChange === true) {
+      return publishSampleNoChange(sample);
+    }
+
+    const eventType = event || getSampleEventType(sample);
+    return publishObject(sample, eventType);
+  })
+
+  // track
+  .then(() => {
+    tracker.trackSamplePublish(sample.name, sample.updatedAt);
+    return sample;
+  })
+
+  .catch((err) => {
+    // Any failure on publish sample must not stop the next promise.
+    logger.error('publishSample error', err);
+    return Promise.resolve();
+  });
 } // publishSample
 
 /**
