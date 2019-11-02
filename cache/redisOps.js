@@ -242,7 +242,6 @@ class RedisOps {
     }
   }
 
-
   /**
    * Execute the queued batch commands if this is the top-level RedisOps object,
    * or continue the batch chain if it's nested.

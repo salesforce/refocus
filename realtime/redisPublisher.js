@@ -190,7 +190,8 @@ function publishSample(sample, event) {
   if (!sample.absolutePath) {
     sample.absolutePath = absPath;
   }
-  if ( !(sample.subject && sample.aspect) ) {
+
+  if (!(sample.subject && sample.aspect)) {
     sample.subject = { absolutePath: absPath };
     sample.aspect = { name: aspName };
   }
@@ -211,7 +212,7 @@ function publishSample(sample, event) {
       .then(({ subTags, aspTags }) => {
         sample.subject.tags = subTags;
         sample.aspect.tags = aspTags;
-      })
+      });
     }
   })
 

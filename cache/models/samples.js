@@ -347,7 +347,8 @@ function getOneSample(sampleName) {
  * @throws {Object} Error object
  */
 function prepareSampleForUpsert(newSample, sampleAttributes, user) {
-  const { subjectExists, aspectExists, aspectWriters, existingSample, sampleStatus } = sampleAttributes;
+  const { subjectExists, aspectExists, aspectWriters, existingSample, sampleStatus }
+    = sampleAttributes;
 
   const userName = user ? user.name : false;
   const sampleName = newSample.name;
@@ -480,13 +481,13 @@ function upsertSamples(samplesAndAttributes, user) {
   });
 
   // all samples: get updated hash
-  batch.returnAll(allSampleNames, 'updatedSamples', (batch, sampleName) => {
-    return batch.getHash(constants.objectType.sample, sampleName)
-  });
+  batch.returnAll(allSampleNames, 'updatedSamples', (batch, sampleName) =>
+    batch.getHash(constants.objectType.sample, sampleName)
+  );
 
   return batch.exec()
-  .then(({ updatedSamples }) => {
-    return updatedSamples.map((updatedSample, i) => {
+  .then(({ updatedSamples }) =>
+    updatedSamples.map((updatedSample, i) => {
       const { sampleAttributes } = samplesAndAttributes[i];
 
       sampleStore.arrayObjsStringsToJson(updatedSample, constants.fieldsToStringify.sample);
@@ -496,8 +497,8 @@ function upsertSamples(samplesAndAttributes, user) {
       }
 
       return updatedSample;
-    });
-  });
+    })
+  );
 }
 
 function upsertOneSample(sample, sampleAttributes, user) {
@@ -506,7 +507,7 @@ function upsertOneSample(sample, sampleAttributes, user) {
     if (upsertedSample instanceof Error) {
       throw upsertedSample;
     } else {
-      return upsertedSample
+      return upsertedSample;
     }
   });
 }
@@ -524,10 +525,10 @@ function getValuesForSamples(samplesReq) {
     parseName(squery.name.toLowerCase())
   );
 
-  let aspNames = parsedNames.map(({ aspect }) => aspect.name );
+  let aspNames = parsedNames.map(({ aspect }) => aspect.name);
   aspNames = Array.from(new Set(aspNames));
 
-  let absPaths = parsedNames.map(({ subject }) => subject.absolutePath );
+  let absPaths = parsedNames.map(({ subject }) => subject.absolutePath);
   absPaths = Array.from(new Set(absPaths));
 
   return redisOps.batchCmds()
@@ -1433,7 +1434,7 @@ module.exports = {
       .then((result) =>
         prepareSampleForPublish(result, sampleAttributes)
       );
-    })
+    });
   },
 
   /**
@@ -1477,7 +1478,7 @@ module.exports = {
       validSamples.forEach((sample, i) => {
         const { newSample, sampleAttributes } = samplesAndAttributes[i];
         try {
-          prepareSampleForUpsert(newSample, sampleAttributes, user)
+          prepareSampleForUpsert(newSample, sampleAttributes, user);
         } catch (err) {
           delete samplesAndAttributes[i];
           errors[i] = { isFailed: true, explanation: err };
