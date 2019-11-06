@@ -144,7 +144,9 @@ module.exports = function room(seq, dataTypes) {
         }
 
         if (instance.changed('active')) {
-          instance.attachBotsAndPublish();
+          if (instance.active) {
+            instance.attachBotsAndPublish();
+          }
         }
 
         return seq.Promise.resolve();
