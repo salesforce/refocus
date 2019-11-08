@@ -123,26 +123,35 @@ function prepareValue(value) {
  * Calculate the sample status based on this value and the existing ranges sorted set.
  *
  * @param  {Object} redisOps - batched or unbatched redisOps object
- * @param  {String} aspName - aspect name
+ * @param  {String} sampleName - sample name
  * @param  {Number} value - sample value
  * @returns {String} - resulting status
  */
-function calculateStatus(redisOps, aspName, value) {
+function calculateStatus(redisOps, sampleName, value) {
+  const aspName = sampleName.split('|')[1];
   const key = redisStore.toKey(keyType.aspRanges, aspName);
-  return redisOps.zrangebyscore(key, value, '+inf', 'WITHSCORES', 'LIMIT', 0, 1)
-  .then(([member, score]) => {
-    if (member) {
-      score = Number(score);
-      const [precedence, rangeType, status] = member.split(':'); // jscs:ignore
-      if (rangeType === 'max') {
-        return status;
-      } else if (rangeType === 'min' && value === score) {
-        return status;
-      }
-    }
 
-    return Status.Invalid;
-  });
+  try {
+    value = prepareValue(value);
+  } catch (err) {
+    return redisOps.returnValue(err.message);
+  }
+
+  return redisOps.transform((batch) => (
+      batch.zrangebyscore(key, value, '+inf', 'WITHSCORES', 'LIMIT', 0, 1)
+    ), ([member, score]) => {
+      if (member) {
+        score = Number(score);
+        const [precedence, rangeType, status] = member.split(':'); // jscs:ignore
+        if (rangeType === 'max') {
+          return status;
+        } else if (rangeType === 'min' && value === score) {
+          return status;
+        }
+      }
+
+      return Status.Invalid;
+    });
 }
 
 /**

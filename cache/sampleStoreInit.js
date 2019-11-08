@@ -111,6 +111,7 @@ function eradicate() {
               keys.push(samsto.toKey(constants.objectType.aspTags, aspName));
               keys.push(samsto.toKey(constants.objectType.aspWriters, aspName));
               keys.push(samsto.toKey(constants.objectType.aspRanges, aspName));
+              keys.push(samsto.toKey(constants.objectType.aspExists, aspName));
             });
           }
 
@@ -121,6 +122,7 @@ function eradicate() {
             keys.forEach((key) => {
               const subName = key.split(constants.separator)[2];
               keys.push(samsto.toKey(constants.objectType.subTags, subName));
+              keys.push(samsto.toKey(constants.objectType.subExists, subName));
             });
           }
 
@@ -195,7 +197,7 @@ function populateSubjects() {
       return redisOps.batchCmds()
       .map(subjects, (batch, sub) =>
         batch
-        .setSubjectTags(sub)
+        .setupKeysForSubject(sub)
         .addKeyToIndex(constants.objectType.subject, sub.absolutePath)
         .setHash(constants.objectType.subject, sub.absolutePath, sub)
       )
