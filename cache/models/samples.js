@@ -493,7 +493,7 @@ function upsertSamples(samplesAndAttributes, user) {
   .then(({ updatedSamples }) =>
     updatedSamples.map((updatedSample, i) => {
       if (!updatedSample.name) {
-        console.log('|||| hgetall', updatedSample)
+        console.log('|||| hgetall', JSON.stringify(updatedSample))
       }
 
       const { sampleAttributes } = samplesAndAttributes[i];
