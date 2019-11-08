@@ -60,7 +60,7 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
       .then((asp) => {
         aspObj = asp;
         qb.aspectId = asp.id;
-        return updateSampleAttributes(qb, samp);
+        return updateSampleAttributes(qb, samp, 'Invalid');
       })
       .then(() => {
         expect(qb).to.deep.equal({
@@ -122,7 +122,7 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
       .then((asp) => {
         aspObj = asp;
         qb.aspectId = asp.id;
-        return updateSampleAttributes(qb, samp);
+        return updateSampleAttributes(qb, samp, 'Invalid');
       })
       .then(() => {
         expect(qb).to.deep.equal({
@@ -180,7 +180,7 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
       .then((asp) => {
         aspObj = asp;
         qb.aspectId = asp.id;
-        return updateSampleAttributes(qb, samp);
+        return updateSampleAttributes(qb, samp, 'Critical');
       })
       .then(() => {
         expect(qb).to.deep.equal({
@@ -238,7 +238,7 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
     }).then((asp) => {
       aspObj = asp;
       qb.aspectId = asp.id;
-      return updateSampleAttributes(qb, samp);
+      return updateSampleAttributes(qb, samp, 'Invalid');
     })
       .then(() => {
         expect(qb).to.deep.equal({
@@ -297,7 +297,7 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
       .then((asp) => {
         aspObj = asp;
         qb.aspectId = asp.id;
-        return updateSampleAttributes(qb, samp);
+        return updateSampleAttributes(qb, samp, 'Critical');
       })
       .then(() => {
         expect(qb).to.deep.equal({
@@ -357,7 +357,7 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
       .then((asp) => {
         aspObj = asp;
         qb.aspectId = asp.id;
-        return updateSampleAttributes(qb, samp);
+        return updateSampleAttributes(qb, samp, 'Critical');
       })
       .then(() => {
         expect(qb).to.deep.equal({
@@ -418,7 +418,7 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
       .then((asp) => {
         aspObj = asp;
         qb.aspectId = asp.id;
-        return updateSampleAttributes(qb, samp);
+        return updateSampleAttributes(qb, samp, 'Critical');
       })
       .then(() => {
         expect(qb).to.deep.equal({
@@ -478,7 +478,7 @@ describe('tests/cache/models/samples/updateSampleAttributes.js >', () => {
       .then((asp) => {
         aspObj = asp;
         qb.aspectId = asp.id;
-        return updateSampleAttributes(qb, samp);
+        return updateSampleAttributes(qb, samp, 'Critical');
       })
       .then(() => {
         expect(qb).to.deep.equal({
