@@ -389,7 +389,10 @@ function prepareSampleForUpsert(newSample, sampleAttributes, user) {
  * @throws {Object} Error object
  */
 function prepareSampleForPublish(sample, sampleAttributes) {
-  console.log('|||| prepareSampleForPublish > parseName', sample.name)
+  if (!sample.name) {
+    console.log('|||| prepareSampleForPublish', JSON.stringify(sample))
+  }
+
   const parsedName = parseName(sample.name);
 
   // attach props for perspective filtering
@@ -415,7 +418,6 @@ function prepareSampleForPublish(sample, sampleAttributes) {
  * @returns {Object} - Updated sample
  */
 function upsertSamples(samplesAndAttributes, user) {
-  console.log('|||| upsertSamples', JSON.stringify(samplesAndAttributes))
   const allSamples = (
     samplesAndAttributes
     .map(({ newSample }) => newSample)
@@ -451,7 +453,6 @@ function upsertSamples(samplesAndAttributes, user) {
 
   // new samples: setup necessary fields and create sample
   batch.map(newSamples, (batch, newSample) => {
-    console.log('|||| upsertSamples > parseName', newSample.name)
     const parsedName = parseName(newSample.name);
     const absolutePath = parsedName.subject.absolutePath;
     const aspectName = parsedName.aspect.name;
@@ -491,6 +492,10 @@ function upsertSamples(samplesAndAttributes, user) {
   return batch.exec()
   .then(({ updatedSamples }) =>
     updatedSamples.map((updatedSample, i) => {
+      if (!updatedSample.name) {
+        console.log('|||| hgetall', updatedSample)
+      }
+
       const { sampleAttributes } = samplesAndAttributes[i];
 
       sampleStore.arrayObjsStringsToJson(updatedSample, constants.fieldsToStringify.sample);
@@ -1494,7 +1499,6 @@ module.exports = {
 
     // merge upsert results and errors into response array
     .then((results) => {
-      console.log('|||| upsert results', JSON.stringify(results))
       const mergedResults = [];
       samplesAndAttributes.forEach(({ newSample, sampleAttributes }, i) => {
         const upsertedSample = results.shift();
