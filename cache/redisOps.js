@@ -25,7 +25,7 @@ const sampleType = keyType.sample;
 const Status = require('../db/constants').statuses;
 
 const batchableCmds = [
-  'set', 'del', 'rename',
+  'set', 'del', 'rename', 'exists',
   'sadd', 'srem', 'sismember', 'smembers', 'sunionstore',
   'hmset', 'hgetall', 'hdel',
   'zadd', 'zrange', 'zrangebyscore',
@@ -557,6 +557,32 @@ class RedisOps {
   }
 
   /**
+   * Setup existence and tags for this subject.
+   *
+   * @param  {Object} subject
+   * @returns {Promise}
+   */
+  setupKeysForSubject(subject) {
+    return this.batchCmds()
+    .setSubjectTags(subject)
+    .setSubjectExists(subject)
+    .exec();
+  }
+
+  /**
+   * Remove existence and tags for this subject.
+   *
+   * @param  {Object} subject
+   * @returns {Promise}
+   */
+  removeKeysForSubject(subject) {
+    return this.batchCmds()
+    .removeSubjectTags(subject)
+    .removeSubjectExists(subject)
+    .exec();
+  }
+
+  /**
    * Setup writers, tags, and ranges for this aspect.
    *
    * @param  {Object} aspect
@@ -567,6 +593,7 @@ class RedisOps {
       .setAspectTags(aspect)
       .setAspectWriters(aspect)
       .setAspectRanges(aspect)
+      .setAspectExists(aspect)
       .exec();
   }
 
@@ -581,6 +608,7 @@ class RedisOps {
       .removeAspectTags(aspect)
       .removeAspectWriters(aspect)
       .removeAspectRanges(aspect)
+      .removeAspectExists(aspect)
       .exec();
   }
 
@@ -648,6 +676,17 @@ class RedisOps {
   } // removeSubjectTags
 
   /**
+   * Remove existence keys for this subject.
+   *
+   * @param  {Object} subject
+   * @returns {Promise}
+   */
+  removeSubjectExists(subject) {
+    const key = redisStore.toKey(keyType.subExists, subject.absolutePath);
+    return this.del(key);
+  } // removeSubjectExists
+
+  /**
    * Remove tags keys for this aspect.
    *
    * @param  {Object} aspect
@@ -681,6 +720,17 @@ class RedisOps {
   } // removeAspectRanges
 
   /**
+   * Remove existence keys for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  removeAspectExists(aspect) {
+    const key = redisStore.toKey(keyType.aspExists, aspect.name);
+    return this.del(key);
+  } // removeAspectExists
+
+  /**
    * Get tags keys for this subject.
    *
    * @param  {Object} subject
@@ -690,6 +740,17 @@ class RedisOps {
     const key = redisStore.toKey(keyType.subTags, subject.absolutePath);
     return this.smembers(key);
   } // getSubjectTags
+
+  /**
+   * Check if subject exists
+   *
+   * @param  {Object} subject
+   * @returns {Promise<Boolean>}
+   */
+  subjectExists(subject) {
+    const key = redisStore.toKey(keyType.subExists, subject.absolutePath);
+    return this.exists(key);
+  }
 
   /**
    * Get tags keys for this aspect
@@ -722,6 +783,17 @@ class RedisOps {
   getAspectRanges(aspect) {
     const key = redisStore.toKey(keyType.aspRanges, aspect.name);
     return this.zrange(key, 0, -1, 'WITHSCORES');
+  }
+
+  /**
+   * Check if aspect exists
+   *
+   * @param  {Object} aspect
+   * @returns {Promise<Boolean>}
+   */
+  aspectExists(aspect) {
+    const key = redisStore.toKey(keyType.aspExists, aspect.name);
+    return this.exists(key);
   }
 
   /**
@@ -758,6 +830,17 @@ class RedisOps {
     )
     .exec();
   } // setSubjectTags
+
+  /**
+   * Set exists keys for this subject.
+   *
+   * @param  {Object} subject
+   * @returns {Promise}
+   */
+  setSubjectExists(subject) {
+    const key = redisStore.toKey(keyType.subExists, subject.absolutePath);
+    return this.set(key, 'true');
+  } // setSubjectExists
 
   /**
    * Set tags keys for this aspect.
@@ -802,6 +885,17 @@ class RedisOps {
     ranges = statusCalculation.preprocessOverlaps(ranges);
     return statusCalculation.setRanges(this, ranges, aspect.name);
   } // setAspectRanges
+
+  /**
+   * Set exists key for this aspect.
+   *
+   * @param  {Object} aspect
+   * @returns {Promise}
+   */
+  setAspectExists(aspect) {
+    const key = redisStore.toKey(keyType.aspExists, aspect.name);
+    return this.set(key, 'true');
+  } // setAspectExists
 
   /**
    * Calculate the sample status based on the ranges set for this sample's aspect.
