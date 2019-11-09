@@ -219,6 +219,11 @@ function updateSampleAttributes(curr, prev, status) {
   modelUtils.removeExtraAttributes(curr, sampleFieldsArr);
   const now = new Date().toISOString();
 
+  // avoid updating sample name (case sensitivity)
+  if (prev && prev.name) {
+    curr.name = prev.name;
+  }
+
   if (!curr.hasOwnProperty(sampFields.VALUE)) {
     /*
      * If no value is provided and this is a new sample, set value to empty
@@ -440,12 +445,9 @@ function upsertSamples(samplesAndAttributes, user) {
   const batch = redisOps.batchCmds();
 
   // existing samples: just update sample
-  batch.map(existingSamples, (batch, newSample) => {
-    const sampleName = newSample.name;
-    delete newSample.name; // to avoid updating sample name
-
-    return batch.setHashMulti(constants.objectType.sample, sampleName, newSample);
-  });
+  batch.map(existingSamples, (batch, newSample) =>
+    batch.setHashMulti(constants.objectType.sample, newSample.name, newSample)
+  );
 
   // new samples: setup necessary fields and create sample
   batch.map(newSamples, (batch, newSample) => {
