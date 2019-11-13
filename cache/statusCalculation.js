@@ -46,7 +46,7 @@ function getAspectRanges(aspect) {
   .filter(([status, range]) => range)
   .map(([status, range]) => Range(status, range))
   .sort((r1, r2) =>
-    r1.min === r2.min ? r1.max > r2.max : r1.min > r2.min
+    r1.min === r2.min ? r1.max - r2.max : r1.min - r2.min
   );
 }
 
