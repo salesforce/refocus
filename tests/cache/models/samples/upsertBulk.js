@@ -249,7 +249,7 @@ describe('tests/cache/models/samples/upsertBulk.js, ' +
       expect(response[2].explanation).to.have.property('name',
         'ResourceNotFoundError');
       expect(response[2].explanation).to.have.property('explanation',
-        'Invalid sample name "___invalid_name"');
+        'Invalid sample name "___Invalid_Name"');
       done();
     })
       .catch(done);
