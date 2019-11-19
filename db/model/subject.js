@@ -153,7 +153,7 @@ module.exports = function subject(seq, dataTypes) {
         return Promise.join(
           redisOps.batchCmds()
             .if(inst.isPublished, (batch) =>
-              batch.setSubjectTags(inst)
+              batch.setupKeysForSubject(inst)
             )
             .addKey(subjectType, inst.getDataValue('absolutePath'))
             .setHash(subjectType, inst.getDataValue('absolutePath'), instDataObj)
@@ -202,10 +202,10 @@ module.exports = function subject(seq, dataTypes) {
 
           let tagsSetCreated = false;
           if (isSubjectUnpublished) {
-            batch.removeSubjectTags(inst);
+            batch.removeKeysForSubject(inst);
           } else if (isSubjectPublished) {
             tagsSetCreated = true;
-            batch.setSubjectTags(inst);
+            batch.setupKeysForSubject(inst);
           }
 
           if (inst.changed('absolutePath')) {
@@ -225,9 +225,9 @@ module.exports = function subject(seq, dataTypes) {
                 batch.getSubjAspMapMembers(oldAbsPath)
               );
 
-              batch.removeSubjectTags(inst._previousDataValues);
+              batch.removeKeysForSubject(inst._previousDataValues);
               if (!tagsSetCreated) {
-                batch.setSubjectTags(inst);
+                batch.setupKeysForSubject(inst);
               }
             }
 

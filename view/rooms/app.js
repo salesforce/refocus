@@ -74,6 +74,8 @@ let _botsLayout;
 let _userSession;
 let firstLoad = true;
 let banner = null;
+let _roomTypeMapping;
+let _defaultRoomType;
 
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
@@ -1010,6 +1012,50 @@ function setupColumns() {
 }
 
 /**
+ * Infers roomType from url parameters other than roomType
+ * (used when it is not specified)
+ * @param {object} urlParams - JSON object of url params
+ * @returns {string} the first roomType name matching one of the url params
+ */
+function getRoomTypeFromMapping(urlParams) {
+  if (!_defaultRoomType) {
+    return '';
+  }
+  const urlParamNames = Object.keys(urlParams);
+  for (let i = 0; i < urlParamNames.length; i++){
+    const paramName = urlParamNames[i];
+    const urlParamValue = urlParams[paramName];
+    const newRoomType = urlParamValue && _roomTypeMapping[paramName] &&
+      _roomTypeMapping[paramName][urlParamValue];
+    if (newRoomType) {
+      return newRoomType;
+    }
+  }
+  return _defaultRoomType;
+}
+
+/**
+ * Builds a url to create a new IMC room from a /rooms?{params} call
+ * @param {string} urlParameters - parameters specified at the end of url
+ * @returns {string} - redirect url
+ */
+function buildNewRoomRedirectUrl(urlParameters) {
+  let redirectUrl = `/rooms/new/${ROOM_ID}?${urlParameters}`;
+  const parameterArray = urlParameters.split('&');
+  const paramObj = {};
+  parameterArray.forEach((param) => {
+    const key = param.split('=')[ZERO];
+    const value = param.split('=')[ONE];
+    paramObj[key] = value;
+  });
+
+  if (paramObj && !paramObj.roomType && paramObj.externalId) {
+    redirectUrl += '&roomType=' + getRoomTypeFromMapping(paramObj);
+  }
+  return redirectUrl;
+}
+
+/**
  * Retrieve the url which should be redirected to, based on parameters.
  *
  * @param {String} url - The url of the window.
@@ -1017,7 +1063,7 @@ function setupColumns() {
  *
  * @returns {String} - Where the window should be redirected to.
  */
-function getRedirectUrl(url, roomId) {
+function buildRedirectUrl(url, roomId) {
   const urlParameters = url.includes('?') ?
     url.split('?')[ONE] : '';
   const redirectUrl = url.includes('keepParams=true') ?
@@ -1052,6 +1098,8 @@ window.onload = () => {
   }
 
   // Note: this is declared in index.pug:
+  _roomTypeMapping = roomTypeMapping;
+  _defaultRoomType = defaultRoomType
   _realtimeApplication = realtimeApplication;
   _io = io;
   /* looks for apos; instead of &apos; due to whole
@@ -1064,25 +1112,26 @@ window.onload = () => {
 
   u.getPromiseWithUrl(GET_ROOM)
   .then((res) => {
-    const response = Array.isArray(res.body) ? res.body[0] : res.body;
+    const roomFromDB = Array.isArray(res.body) ? res.body[0] : res.body;
 
-    if (response === undefined) {
+    if (roomFromDB === undefined) {
       const urlParameters = window.location.href.includes('?') ?
         window.location.href.split('?')[ONE] : '';
-      window.location.replace(`/rooms/new/${ROOM_ID}?${urlParameters}`);
+      const redirectUrl = buildNewRoomRedirectUrl(urlParameters);
+      window.location.replace(redirectUrl);
     }
 
-    if (response.id && parseInt(ROOM_ID, 10) !== response.id) {
-      const redirectUrl = getRedirectUrl(window.location.href, response.id);
+    if (roomFromDB.id && parseInt(ROOM_ID, 10) !== roomFromDB.id) {
+      const redirectUrl = buildRedirectUrl(window.location.href, roomFromDB.id);
       window.location.replace(redirectUrl);
     }
 
     uPage.setTitle(`Room # ${ROOM_ID}`);
-    _roomName = response.name;
-    _isActive = response.active;
+    _roomName = roomFromDB.name;
+    _isActive = roomFromDB.active;
     activeToggle.checked = _isActive;
     room = res.body;
-    return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + response.type);
+    return u.getPromiseWithUrl(GET_ROOMTYPES + '/' + roomFromDB.type);
   }).catch((err) => {
     err.status == 404 && displayNotFoundModal(document);
     debugMessage(`Error ${err}`);
@@ -1128,7 +1177,8 @@ module.exports = () => {
     parseBot,
     iframeBot,
     decideBotPosition,
-    getRedirectUrl,
+    buildRedirectUrl,
+    buildNewRoomRedirectUrl,
     displayNotFoundModal
   };
 };
