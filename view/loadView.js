@@ -190,15 +190,17 @@ function loadView(app, passport) {
         const copyOfUser = JSON.parse(JSON.stringify(req.user));
         delete copyOfUser.password;
         const trackObj = {
-          userSession: req.session.token,
-          trackingId: viewConfig.trackingId,
-          user: JSON.stringify(copyOfUser).replace(/'/g,"apos;"),
+          defaultRoomType: viewConfig.defaultRoomType,
+          eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
           realtimeApplication: viewConfig.realtimeApplication,
           realtimeApplicationImc: viewConfig.realtimeApplicationImc,
           refocusRoomsFeedback,
-          eventThrottle: viewConfig.realtimeEventThrottleMilliseconds,
+          roomTypeMapping: viewConfig.roomTypeMapping,
+          trackingId: viewConfig.trackingId,
           useNewNamespaceFormat: ft.isFeatureEnabled('useNewNamespaceFormat'),
           useNewNamespaceFormatImc: ft.isFeatureEnabled('useNewNamespaceFormatImc'),
+          user: JSON.stringify(copyOfUser).replace(/'/g,"apos;"),
+          userSession: req.session.token,
         };
 
         // This is temporary - remove when separate deployment has settled

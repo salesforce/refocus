@@ -106,15 +106,22 @@ describe('tests/view/rooms/room/app.js, /rooms/{key} =>', () => {
   it('ok, getting redirect Url without keepParams', () => {
     const paramString = '?important=false';
     const href = `${baseUrl}/${roomId}${paramString}`;
-    const redirectUrl = app.getRedirectUrl(href, roomId);
-    expect(redirectUrl).to.equal(`/rooms/${roomId}`)
+    const redirectUrl = app.buildRedirectUrl(href, roomId);
+    expect(redirectUrl).to.equal(`/rooms/${roomId}`);
   });
 
   it('ok, getting redirect Url using keepParams', () => {
     const paramString = '?keepParams=true&important=true';
     const href = `${baseUrl}/${roomId}${paramString}`;
-    const redirectUrl = app.getRedirectUrl(href, roomId);
+    const redirectUrl = app.buildRedirectUrl(href, roomId);
     expect(redirectUrl).to.equal(`/rooms/${roomId}${paramString}`);
+  });
+
+  it('ok, roomType defaulting to DEFAULT if RecordTypeId is specified in url params', () => {
+    const paramString = 'externalId=12345&RecordTypeId=TEST';
+    const paramStringWithRoomType = paramString + '&roomType=';
+    const redirectUrl = app.buildNewRoomRedirectUrl(paramString);
+    expect(redirectUrl.split('?')[1]).to.equal(`${paramStringWithRoomType}`);
   });
 
   it('ok, "not found modal" element is in html of room from pug file', () => {
