@@ -11,7 +11,6 @@
  */
 'use strict';
 const logger = require('@salesforce/refocus-logging-client');
-const featureToggles = require('feature-toggles');
 const apiLogUtils = require('../../../utils/apiLog');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
@@ -116,7 +115,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchBot(req, res, next) {
-    doPatch(req, res, next, helper);
+    doPatch(req, res, next, helper)
+    .then(() => {
+      apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+      res.status(httpStatus.OK).json(res.locals.retVal);
+    });
   },
 
   /**
@@ -216,11 +219,16 @@ module.exports = {
   heartbeat(req, res, next) {
     const timestamp = req.body.currentTimestamp;
 
+    const resultObj = { reqStartTime: req.timestamp };
+
     u.findByKey(helper, req.swagger.params)
     .then((o) => {
       o.set('lastHeartbeat', timestamp);
-      res.status(httpStatus.OK).json();
       return o.save();
+    }).then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      u.logAPI(req, resultObj, o.dataValues);
+      res.status(httpStatus.OK).json();
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   }, // heartbeat
@@ -270,7 +278,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postBotWriters(req, res, next) {
-    doPostWriters(req, res, next, helper);
+    doPostWriters(req, res, next, helper)
+    .then(() => {
+      apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+      res.status(httpStatus.OK).json(res.locals.retVal);
+    });
   }, // postBotWriters
 
   /**
