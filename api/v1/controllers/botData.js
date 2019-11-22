@@ -58,7 +58,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchBotData(req, res, next) {
-    doPatch(req, res, next, helper);
+    doPatch(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -100,7 +104,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postBotData(req, res, next) {
-    doPost(req, res, next, helper);
+    doPost(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -134,9 +142,19 @@ module.exports = {
             req.swagger.params.key = { value: bd.id };
             req.swagger.params.queryBody.value.value =
               bdUtils.combineValue(bd.value, queryBody.value);
-            doPatch(req, res, next, helper);
+            doPatch(req, res, next, helper)
+              .then(() => {
+                apiLogUtils.logAPI(req, res.locals.resultObj,
+                 res.locals.retVal);
+                res.status(httpStatus.OK).json(res.locals.retVal);
+              });
           } else {
-            doPost(req, res, next, helper);
+            doPost(req, res, next, helper)
+              .then(() => {
+                apiLogUtils.logAPI(req, res.locals.resultObj,
+                 res.locals.retVal);
+                res.status(httpStatus.OK).json(res.locals.retVal);
+              });
           }
         })
         .catch((err) => v.handleError(next, err, helper.modelName));
@@ -148,9 +166,17 @@ module.exports = {
           req.swagger.params.key = { value: bd.id };
           req.swagger.params.queryBody.value.value =
             bdUtils.combineValue(bd.value, queryBody.value);
-          doPatch(req, res, next, helper);
+          doPatch(req, res, next, helper)
+            .then(() => {
+              apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+              res.status(httpStatus.OK).json(res.locals.retVal);
+            });
         } else {
-          doPost(req, res, next, helper);
+          doPost(req, res, next, helper)
+            .then(() => {
+              apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+              res.status(httpStatus.OK).json(res.locals.retVal);
+            });
         }
       })
       .catch((err) => v.handleError(next, err, helper.modelName));

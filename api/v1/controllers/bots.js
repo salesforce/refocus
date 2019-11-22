@@ -54,7 +54,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findBots(req, res, next) {
-    doFind(req, res, next, helper);
+    doFind(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -295,7 +299,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteBotWriters(req, res, next) {
-    doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
+    doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // deleteBotWriters
 
   /**
@@ -310,7 +318,11 @@ module.exports = {
   deleteBotWriter(req, res, next) {
     const userNameOrId = req.swagger.params.userNameOrId.value;
     doDeleteOneAssoc(req, res, next, helper,
-        helper.belongsToManyAssoc.users, userNameOrId);
+        helper.belongsToManyAssoc.users, userNameOrId)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // deleteBotWriter
 
 }; // exports
