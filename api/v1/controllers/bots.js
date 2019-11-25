@@ -40,7 +40,7 @@ module.exports = {
     doDelete(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   },
 
@@ -57,7 +57,7 @@ module.exports = {
     doFind(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   },
 
@@ -119,11 +119,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchBot(req, res, next) {
-    doPatch(req, res, next, helper)
-    .then(() => {
-      apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-      res.status(httpStatus.OK).json(res.locals.retVal);
-    });
+    doPatch(req, res, next, helper);
   },
 
   /**
@@ -215,7 +211,8 @@ module.exports = {
         req.headers.UserName, { IsBot: true });
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, o.dataValues);
-      res.status(httpStatus.OK).json(u.responsify(o, helper, req.method));
+      return res.status(httpStatus.OK).json(
+        u.responsify(o, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
@@ -232,7 +229,7 @@ module.exports = {
     }).then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, o.dataValues);
-      res.status(httpStatus.OK).json();
+      return res.status(httpStatus.OK).json();
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   }, // heartbeat
@@ -250,7 +247,7 @@ module.exports = {
     doGetWriters.getWriters(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   }, // getBotWriters
 
@@ -268,7 +265,7 @@ module.exports = {
     doGetWriters.getWriter(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   }, // getBotWriter
 
@@ -285,7 +282,7 @@ module.exports = {
     doPostWriters(req, res, next, helper)
     .then(() => {
       apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-      res.status(httpStatus.OK).json(res.locals.retVal);
+      return res.status(httpStatus.OK).json(res.locals.retVal);
     });
   }, // postBotWriters
 
@@ -302,7 +299,7 @@ module.exports = {
     doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   }, // deleteBotWriters
 
@@ -321,7 +318,7 @@ module.exports = {
         helper.belongsToManyAssoc.users, userNameOrId)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   }, // deleteBotWriter
 

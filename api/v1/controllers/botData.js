@@ -44,7 +44,7 @@ module.exports = {
     doDelete(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   },
 
@@ -58,11 +58,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchBotData(req, res, next) {
-    doPatch(req, res, next, helper)
-      .then(() => {
-        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
-      });
+    doPatch(req, res, next, helper);
   },
 
   /**
@@ -104,11 +100,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postBotData(req, res, next) {
-    doPost(req, res, next, helper)
-      .then(() => {
-        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
-      });
+    doPost(req, res, next, helper);
   },
 
   /**
@@ -142,19 +134,9 @@ module.exports = {
             req.swagger.params.key = { value: bd.id };
             req.swagger.params.queryBody.value.value =
               bdUtils.combineValue(bd.value, queryBody.value);
-            doPatch(req, res, next, helper)
-              .then(() => {
-                apiLogUtils.logAPI(req, res.locals.resultObj,
-                 res.locals.retVal);
-                res.status(httpStatus.OK).json(res.locals.retVal);
-              });
+            doPatch(req, res, next, helper);
           } else {
-            doPost(req, res, next, helper)
-              .then(() => {
-                apiLogUtils.logAPI(req, res.locals.resultObj,
-                 res.locals.retVal);
-                res.status(httpStatus.OK).json(res.locals.retVal);
-              });
+            doPost(req, res, next, helper);
           }
         })
         .catch((err) => v.handleError(next, err, helper.modelName));
@@ -166,17 +148,9 @@ module.exports = {
           req.swagger.params.key = { value: bd.id };
           req.swagger.params.queryBody.value.value =
             bdUtils.combineValue(bd.value, queryBody.value);
-          doPatch(req, res, next, helper)
-            .then(() => {
-              apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-              res.status(httpStatus.OK).json(res.locals.retVal);
-            });
+          doPatch(req, res, next, helper);
         } else {
-          doPost(req, res, next, helper)
-            .then(() => {
-              apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-              res.status(httpStatus.OK).json(res.locals.retVal);
-            });
+          doPost(req, res, next, helper);
         }
       })
       .catch((err) => v.handleError(next, err, helper.modelName));
@@ -196,7 +170,7 @@ module.exports = {
     doGet(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   },
   /**
@@ -212,7 +186,7 @@ module.exports = {
     doGetWriters.getWriters(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   }, // getBotDataWriters
 
@@ -230,7 +204,7 @@ module.exports = {
     doGetWriters.getWriter(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   }, // getBotDataWriter
 
