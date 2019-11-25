@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const jobSetup = require('../../../jobQueue/setup');
-const jobQueue = jobSetup.jobQueue;
+const jobQueueKue = jobSetup.jobQueue;
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../express').app);
@@ -25,6 +25,7 @@ const path = '/v1/samples/upsert/bulk';
 const getStatusPath = '/v1/samples/upsert/bulk/{jobId}/status';
 const bulkUpsertSamplesJob =
   require('../../../worker/jobs/bulkUpsertSamples');
+const featureToggles = require('feature-toggles');
 
 describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
 `api: GET ${getStatusPath} >`, () => {
@@ -99,9 +100,10 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
+      if (!featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+        jobQueueKue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
-
+      }
       /*
        * the bulk api is asynchronous. The delay is used to give sometime for
        * the upsert operation to complete
@@ -154,8 +156,10 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
+      if (!featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+        jobQueueKue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
+      }
 
       /*
        * the bulk api is asynchronous. The delay is used to give sometime for
@@ -226,8 +230,10 @@ describe('tests/cache/jobQueue/getBulkUpsertStatus.js, ' +
     })
     .then(() => {
       // call the worker
-      jobQueue.process(jobSetup.jobType.bulkUpsertSamples,
+      if (!featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+        jobQueueKue.process(jobSetup.jobType.bulkUpsertSamples,
         bulkUpsertSamplesJob);
+      }
 
       /*
        * the bulk api is asynchronous. The delay is used to give sometime for

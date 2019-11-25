@@ -231,8 +231,15 @@ const shortTermToggles = {
   enableBullForCreateAuditEvents: envVarIncludes(pe, 'ENABLE_BULL',
     'auditEvents'),
 
+  enableBullForBulkUpsertSamples: envVarIncludes(pe, 'ENABLE_BULL',
+    'bulkUpsertSamples'),
+
+  enableBullForExecuteClockJob: envVarIncludes(pe, 'ENABLE_BULL',
+    'clockJobs'),
+
   anyBullEnabled: pe.hasOwnProperty('ENABLE_BULL') &&
    pe.ENABLE_BULL !== 'false',
+
 }; // shortTermToggles
 
 featureToggles.load(Object.assign({}, longTermToggles, shortTermToggles));

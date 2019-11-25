@@ -22,7 +22,7 @@ const kue = require('kue');
 const BullQueue = require('bull');
 const Promise = require('bluebird');
 const activityLogUtil = require('../utils/activityLog');
-
+const jobQueues = [];
 const redisOptions = {
   redis: conf.redis.instanceUrl.queue,
 };
@@ -35,22 +35,42 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
   redisUrlForBull = 'redis:' + redisUrlForBull;
 }
 
+/**
+ * Creates a job queue and adds it to the list of queues
+ * @param {string} name  - Name of the new queue
+ * @param {string} redisUrl  - Url of redis instance
+ * @param {Array} jobQueueList  - the list of current job queues
+ * @returns {BullQueue} the newly created job queue
+ */
+function createBullJobQueue(name, redisUrl, jobQueueList) {
+  const newJobQueue = new BullQueue(name, redisUrl);
+  jobQueueList.push(newJobQueue);
+  return newJobQueue;
+}
+
 const jobQueue = kue.createQueue(redisOptions);
-const bulkDelSubQueue = new BullQueue(
-  conf.jobType.bulkDeleteSubjects, redisUrlForBull);
-const bulkPostEventsQueue = new BullQueue(
-  conf.jobType.bulkPostEvents, redisUrlForBull);
-const createAuditEventsQueue = new BullQueue(
-  conf.jobType.createAuditEvents, redisUrlForBull);
+
+const bulkDelSubQueue = createBullJobQueue(conf.jobType.bulkDeleteSubjects,
+  redisUrlForBull, jobQueues);
+const executeClockJobQueue = createBullJobQueue(conf.executeClockJob,
+  redisUrlForBull, jobQueues);
+const bulkUpsertSamplesQueue = createBullJobQueue(conf.jobType.bulkUpsertSamples,
+  redisUrlForBull, jobQueues);
+const bulkPostEventsQueue = createBullJobQueue(conf.jobType.bulkPostEvents,
+  redisUrlForBull, jobQueues);
+const createAuditEventsQueue = createBullJobQueue(conf.jobType.createAuditEvents,
+  redisUrlForBull, jobQueues);
 
 function resetJobQueue() {
   return Promise.map(jobQueue.workers, (w) =>
     new Promise((resolve) => w.shutdown(resolve))
   )
-  .then(() => jobQueue.workers = [])
-    .then(() => bulkDelSubQueue.empty())
-    .then(() => createAuditEventsQueue.empty())
-    .then(() => bulkPostEventsQueue.empty());
+  .then(() => {
+    jobQueue.workers = [];
+    jobQueues.forEach((queue) => {
+      queue.empty();
+    });
+  });
 }
 
 /**
@@ -66,9 +86,7 @@ function gracefulShutdown() {
     activityLogUtil.printActivityLogString(logWrapper, 'sigterm');
   }
 
-  bulkDelSubQueue.close()
-    .then(() => bulkPostEventsQueue.close())
-    .then(() => createAuditEventsQueue.close())
+  Promise.map(jobQueues, (queue) => queue.close())
     .then(() => {
       if (featureToggles.isFeatureEnabled('enableSigtermActivityLog')) {
         const status = '"Bull Job queue shutdown: OK"';
@@ -111,6 +129,9 @@ module.exports = {
   delayToRemoveJobs: conf.JOB_REMOVAL_DELAY_SECONDS,
   kue,
   bulkDelSubQueue,
+  executeClockJobQueue,
+  bulkUpsertSamplesQueue,
   bulkPostEventsQueue,
   createAuditEventsQueue,
+
 }; // exports
