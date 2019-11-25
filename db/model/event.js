@@ -50,14 +50,24 @@ module.exports = function event(seq, dataTypes) {
 
       afterCreate: (instance) => {
         const changedKeys = Object.keys(instance._changed);
-        return realTime.publishObject(instance.toJSON(),
+        if (instance.botId) {
+          return realTime.publishObject(instance.toJSON(),
           botEventNames.add, changedKeys, [], pubOpts);
+        }
+
+        instance.attachBotsAndPublish(botEventNames.add);
+        return seq.Promise.resolve();
       },
 
       afterUpdate(instance /* , opts */) {
         const changedKeys = Object.keys(instance._changed);
-        return realTime.publishObject(instance.toJSON(),
+        if (instance.botId) {
+          return realTime.publishObject(instance.toJSON(),
           botEventNames.upd, changedKeys, [], pubOpts);
+        }
+
+        instance.attachBotsAndPublish(botEventNames.upd);
+        return seq.Promise.resolve();
       }, // hooks.afterUpdate
 
       afterDestroy(instance /* , opts */) {
@@ -157,7 +167,36 @@ module.exports = function event(seq, dataTypes) {
     }, {
       override: true,
     });
+  };
 
+  Event.prototype.attachBotsAndPublish = function (eventType) {
+    return this.reload({
+      attributes: ['id', 'roomId'],
+      include: [
+        {
+          model: seq.models.Room,
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: seq.models.RoomType,
+              attributes: ['id', 'name'],
+              include: [
+                {
+                  model: seq.models.Bot,
+                  attributes: ['id', 'name'],
+                  through: { attributes: [] },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+    .then((inst) =>
+      realTime.publishObject(
+        inst.toJSON(), eventType, null, null, pubOpts
+      )
+    );
   };
 
   return Event;

@@ -11,7 +11,8 @@
  */
 'use strict'; // eslint-disable-line strict
 const { jobQueue, bulkDelSubQueue, bulkPostEventsQueue,
- createAuditEventsQueue, } = require('../jobQueue/jobWrapper');
+ createAuditEventsQueue, executeClockJobQueue,
+ bulkUpsertSamplesQueue, } = require('../jobQueue/jobWrapper');
 const executeClockJob = require('./jobs/executeClockJob');
 const featureToggles = require('feature-toggles');
 
@@ -22,26 +23,29 @@ module.exports = {
       if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
         jobName === bulkDelSubQueue.name) {
         bulkDelSubQueue.process(Number(concurrency), job);
-      }
-
-      if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
+      } else if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples') &&
+        jobName === bulkUpsertSamplesQueue.name) {
+        bulkUpsertSamplesQueue.process(Number(concurrency), job);
+      } else if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
         jobName === bulkPostEventsQueue.name) {
         bulkPostEventsQueue.process(Number(concurrency), job);
-      }
-
-      if (featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents') &&
+      } else if (featureToggles.isFeatureEnabled('enableBullForCreateAuditEvents') &&
         jobName === createAuditEventsQueue.name) {
         createAuditEventsQueue.process(Number(concurrency), job);
+      } else {
+        jobQueue.process(jobName, concurrency, job);
       }
-
-      jobQueue.process(jobName, concurrency, job);
     });
   },
 
   processClockJobs(clockJobs, clockJobConfig) {
     Object.keys(clockJobs).forEach((jobName) => {
       if (clockJobConfig.useWorker[jobName]) {
-        jobQueue.process(jobName, 1, executeClockJob);
+        if (featureToggles.isFeatureEnabled('enableBullForExecuteClockJobs')) {
+          executeClockJobQueue.process(1, executeClockJob);
+        } else {
+          jobQueue.process(jobName, 1, executeClockJob);
+        }
       }
     });
   },
