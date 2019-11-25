@@ -17,6 +17,7 @@
 const jobSetup = require('./setup');
 const jobQueue = jobSetup.jobQueue;
 const bulkDelSubQueue = jobSetup.bulkDelSubQueue;
+const bulkUpsertSamplesQueue = jobSetup.bulkUpsertSamplesQueue;
 const bulkPostEventsQueue = jobSetup.bulkPostEventsQueue;
 const createAuditEventsQueue = jobSetup.createAuditEventsQueue;
 const jwtUtil = require('../utils/jwtUtil');
@@ -111,6 +112,34 @@ bulkPostEventsQueue.on('completed', (job, jobResultObj) =>
 
 createAuditEventsQueue.on('completed', (job, jobResultObj) =>
   logCompletedJob(job, jobResultObj));
+
+bulkUpsertSamplesQueue.on('completed', (job, jobResultObj) => {
+  const logObject = {
+    jobType: job.type,
+    jobId: job.id,
+  };
+
+  Object.assign(logObject, jobResultObj.requestInfo);
+
+  // when enableWorkerActivityLogs are enabled, update the logObject
+  if (featureToggles.isFeatureEnabled('enableWorkerActivityLogs') &&
+    jobResultObj && logObject) {
+    mapJobResultsToLogObject(jobResultObj, logObject);
+
+    // Update queueStatsActivityLogs
+    if (featureToggles
+      .isFeatureEnabled('enableQueueStatsActivityLogs')) {
+      queueTimeActivityLogs
+        .update(jobResultObj.recordCount, jobResultObj.queueTime);
+    }
+
+    /*
+    * The second argument should match the activity logging type in
+    * /config/activityLog.js
+    */
+    activityLogUtil.printActivityLogString(logObject, 'worker');
+  }
+});
 
 /**
  * Listen for a job completion event. If activity logs are enabled,
@@ -292,10 +321,16 @@ function createBullJob(data, req, queueType, jobName) {
  */
 function createPromisifiedJob(jobName, data, req) {
   const startTime = Date.now();
-
+  const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
+    conf.deprioritizeJobsFrom, req);
   if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
     jobName === jobType.bulkDeleteSubjects) {
     return createBullJob(data, req, bulkDelSubQueue, jobName);
+  }
+
+  if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples') &&
+    jobName === jobType.bulkUpsertSamples) {
+    return createBullJob(data, req, bulkUpsertSamplesQueue, jobName);
   }
 
   if (featureToggles.isFeatureEnabled('enableBullForBulkPostEvents') &&
@@ -307,9 +342,6 @@ function createPromisifiedJob(jobName, data, req) {
     jobName === jobType.createAuditEvents) {
     return createBullJob(data, req, createAuditEventsQueue, jobName);
   }
-
-  const jobPriority = calculateJobPriority(conf.prioritizeJobsFrom,
-    conf.deprioritizeJobsFrom, req);
 
   return new Promise((resolve, reject) => {
     const job = jobQueue.create(jobName, data);
@@ -369,6 +401,7 @@ module.exports = {
   logJobOnComplete,
   mapJobResultsToLogObject,
   bulkDelSubQueue,
+  bulkUpsertSamplesQueue,
   bulkPostEventsQueue,
   createAuditEventsQueue,
 }; // exports

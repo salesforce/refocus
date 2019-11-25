@@ -11,7 +11,7 @@
  */
 'use strict';
 const jobSetup = require('../../../jobQueue/setup');
-const jobQueue = jobSetup.jobQueue;
+const jobQueueKue = jobSetup.jobQueue;
 const jobType = jobSetup.jobType;
 const bulkUpsertSamplesJob = require('../../../worker/jobs/bulkUpsertSamples');
 const getHierarchyJob = require('../../../worker/jobs/getHierarchy');
@@ -19,6 +19,7 @@ const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../express').app);
 const tu = require('../../testUtils');
+const jobQueueTu = require('../../jobQueue/v1/utils');
 const rtu = require('../models/redisTestUtil');
 const samstoinit = require('../../../cache/sampleStoreInit');
 const constants = require('../../../api/v1/constants');
@@ -26,6 +27,8 @@ const Aspect = tu.db.Aspect;
 const Subject = tu.db.Subject;
 const path = '/v1/samples/upsert/bulk';
 const logger = require('../../../utils/activityLog').logger;
+const featureToggles = require('feature-toggles');
+const bulkUpsertSamplesQueue = jobSetup.bulkUpsertSamplesQueue;
 const RADIX = 10;
 
 describe('tests/cache/jobQueue/bulkUpsert.js, ' +
@@ -38,7 +41,6 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
     tu.toggleOverride('enableWorkerProcess', true);
     tu.toggleOverride('enableApiActivityLogs', false);
     tu.toggleOverride('enableWorkerActivityLogs', false);
-    jobQueue.process(jobType.bulkUpsertSamples, bulkUpsertSamplesJob);
     tu.toggleOverride('enableRedisSampleStore', true);
     tu.createToken()
     .then((returnedToken) => {
@@ -46,6 +48,27 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
       done();
     })
     .catch(done);
+  });
+
+  before(() => {
+    const simulateFailure = false;
+    if (featureToggles.isFeatureEnabled('enableBullForBulkUpsertSamples')) {
+      bulkUpsertSamplesQueue.process((job, done) => {
+        if (simulateFailure) {
+          done(new Error('Job Failed'));
+        } else {
+          bulkUpsertSamplesJob(job, done);
+        }
+      });
+    } else {
+      jobQueueKue.process(jobType.bulkUpsertSamples, (job, done) => {
+        if (simulateFailure) {
+          done('Job Failed');
+        } else {
+          bulkUpsertSamplesJob(job, done);
+        }
+      });
+    }
   });
 
   before((done) => {
@@ -113,9 +136,6 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
   it('logging', (done) => {
     tu.toggleOverride('enableApiActivityLogs', true);
     tu.toggleOverride('enableWorkerActivityLogs', true);
-    logger.on('logging', testLogMessage);
-    let workerLogged = false;
-    let apiLogged = false;
 
     api.post(path)
     .set('Authorization', token)
@@ -137,69 +157,9 @@ describe('tests/cache/jobQueue/bulkUpsert.js, ' +
         return done(err);
       }
 
-      //don't call done() yet, need to wait for data to be logged
+      // don't call done() yet, need to wait for data to be logged
     });
 
-    function testLogMessage(msg) {
-      const logObj = {};
-      msg.split(' ').forEach((entry) => {
-        logObj[entry.split('=')[0]] = entry.split('=')[1];
-      });
-
-      if (logObj.activity === 'worker') {
-        try {
-          expect(logObj.totalTime).to.match(/\d+ms/);
-          expect(logObj.queueTime).to.match(/\d+ms/);
-          expect(logObj.queueResponseTime).to.match(/\d+ms/);
-          expect(logObj.workTime).to.match(/\d+ms/);
-          expect(logObj.dbTime).to.match(/\d+ms/);
-          expect(logObj.recordCount).to.equal('2');
-          expect(logObj.errorCount).to.equal('1');
-
-          const totalTime = parseInt(logObj.totalTime, RADIX);
-          const queueTime = parseInt(logObj.queueTime, RADIX);
-          const queueResponseTime = parseInt(logObj.queueResponseTime, RADIX);
-          const workTime = parseInt(logObj.workTime, RADIX);
-          const dbTime = parseInt(logObj.dbTime, RADIX);
-
-          expect(workTime).to.be.at.least(dbTime);
-          expect(totalTime).to.be.at.least(workTime);
-          expect(totalTime).to.be.at.least(queueTime);
-          expect(totalTime).to.be.at.least(queueResponseTime);
-          expect(queueTime + workTime + queueResponseTime).to.equal(totalTime);
-
-          workerLogged = true;
-          if (workerLogged && apiLogged) {
-            logger.removeListener('logging', testLogMessage);
-            tu.toggleOverride('enableApiActivityLogs', false);
-            tu.toggleOverride('enableWorkerActivityLogs', false);
-            done();
-          }
-        } catch (err) {
-          done(err);
-        }
-      }
-
-      if (logObj.activity === 'api') {
-        try {
-          expect(logObj.totalTime).to.match(/\d+ms/);
-          expect(logObj.dbTime).to.match(/\d+ms/);
-          expect(logObj.recordCount).to.equal('3');
-          expect(logObj.responseBytes).to.match(/\d+/);
-          const totalTime = parseInt(logObj.totalTime, RADIX);
-          const dbTime = parseInt(logObj.dbTime, RADIX);
-          expect(totalTime).to.be.above(dbTime);
-          apiLogged = true;
-          if (workerLogged && apiLogged) {
-            logger.removeListener('logging', testLogMessage);
-            tu.toggleOverride('enableApiActivityLogs', false);
-            tu.toggleOverride('enableWorkerActivityLogs', false);
-            done();
-          }
-        } catch (err) {
-          done(err);
-        }
-      }
-    };
+    jobQueueTu.testWorkerAPiActivityLogs(done);
   });
 });
