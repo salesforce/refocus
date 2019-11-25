@@ -44,7 +44,7 @@ module.exports = {
     doDelete(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   },
 
@@ -170,7 +170,7 @@ module.exports = {
     doGet(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   },
   /**
@@ -186,7 +186,7 @@ module.exports = {
     doGetWriters.getWriters(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   }, // getBotDataWriters
 
@@ -204,7 +204,7 @@ module.exports = {
     doGetWriters.getWriter(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   }, // getBotDataWriter
 

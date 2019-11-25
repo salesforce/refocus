@@ -11,7 +11,6 @@
  */
 'use strict';
 const logger = require('@salesforce/refocus-logging-client');
-const featureToggles = require('feature-toggles');
 const apiLogUtils = require('../../../utils/apiLog');
 const u = require('../helpers/verbs/utils');
 const httpStatus = require('../constants').httpStatus;
@@ -41,7 +40,7 @@ module.exports = {
     doDelete(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   },
 
@@ -55,7 +54,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   findBots(req, res, next) {
-    doFind(req, res, next, helper);
+    doFind(req, res, next, helper)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   },
 
   /**
@@ -208,7 +211,8 @@ module.exports = {
         req.headers.UserName, { IsBot: true });
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, o.dataValues);
-      res.status(httpStatus.OK).json(u.responsify(o, helper, req.method));
+      return res.status(httpStatus.OK).json(
+        u.responsify(o, helper, req.method));
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   },
@@ -216,11 +220,16 @@ module.exports = {
   heartbeat(req, res, next) {
     const timestamp = req.body.currentTimestamp;
 
+    const resultObj = { reqStartTime: req.timestamp };
+
     u.findByKey(helper, req.swagger.params)
     .then((o) => {
       o.set('lastHeartbeat', timestamp);
-      res.status(httpStatus.OK).json();
       return o.save();
+    }).then((o) => {
+      resultObj.dbTime = new Date() - resultObj.reqStartTime;
+      u.logAPI(req, resultObj, o.dataValues);
+      return res.status(httpStatus.OK).json();
     })
     .catch((err) => u.handleError(next, err, helper.modelName));
   }, // heartbeat
@@ -238,7 +247,7 @@ module.exports = {
     doGetWriters.getWriters(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   }, // getBotWriters
 
@@ -256,7 +265,7 @@ module.exports = {
     doGetWriters.getWriter(req, res, next, helper)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
-        res.status(httpStatus.OK).json(res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
       });
   }, // getBotWriter
 
@@ -270,7 +279,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postBotWriters(req, res, next) {
-    doPostWriters(req, res, next, helper);
+    doPostWriters(req, res, next, helper)
+    .then(() => {
+      apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+      return res.status(httpStatus.OK).json(res.locals.retVal);
+    });
   }, // postBotWriters
 
   /**
@@ -283,7 +296,11 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteBotWriters(req, res, next) {
-    doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
+    doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // deleteBotWriters
 
   /**
@@ -298,7 +315,11 @@ module.exports = {
   deleteBotWriter(req, res, next) {
     const userNameOrId = req.swagger.params.userNameOrId.value;
     doDeleteOneAssoc(req, res, next, helper,
-        helper.belongsToManyAssoc.users, userNameOrId);
+        helper.belongsToManyAssoc.users, userNameOrId)
+      .then(() => {
+        apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
+        return res.status(httpStatus.OK).json(res.locals.retVal);
+      });
   }, // deleteBotWriter
 
 }; // exports
