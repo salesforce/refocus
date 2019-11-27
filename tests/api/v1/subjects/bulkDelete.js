@@ -13,7 +13,9 @@
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../express').app);
+const sinon = require('sinon');
 const testUtils = require('../../../testUtils');
+const subjectController = require('../../../../api/v1/controllers/subjects');
 const Subject = testUtils.db.Subject;
 const utils = require('./utils');
 const constants = require('../../../../api/v1/constants');
@@ -141,6 +143,18 @@ function testBulkDeleteSubjects(jobStatus) {
     afterEach(utils.forceDelete);
     after(testUtils.forceDeleteUser);
     after(() => testUtils.toggleOverride('enableWorkerProcess', false));
+
+    function doBulkDeleteOnly(subKeys) {
+      return api.post(DELETE_PATH)
+        .set(AUTHORIZATION, token)
+        .send(subKeys)
+        .then((res) => {
+          return res;
+        })
+        .catch((err) => {
+          return err;
+        });
+    }
 
     function doBulkDelete(subKeys) {
       return api.post(DELETE_PATH)
@@ -378,6 +392,64 @@ function testBulkDeleteSubjects(jobStatus) {
           [blah.id]: true,
           [foo.id]: true,
         }));
+    });
+    describe('test max subjects per bulk delete >', () => {
+      describe('Max subjects per delete set >', () => {
+        const maxSubjects = 2;
+        beforeEach(() => {
+          sinon.stub(subjectController.helper, 'validateBulkDeleteSubjectSize')
+            .callsFake((subList) => {
+              return subList.swagger.params.queryBody.value.length <= maxSubjects;
+            });
+          subjectController.helper.maxSubjectsPerBulkDelete = maxSubjects;
+        });
+
+        afterEach(() => {
+          subjectController.helper.maxSubjectsPerBulkDelete = null;
+          subjectController.helper.validateBulkDeleteSubjectSize.restore();
+        });
+
+        it('Fail, trying to delete too many subjects', (done) => {
+          const expectedResponseMessage =
+            subjectController.tooManySubjectsErrorMessage + maxSubjects;
+          doBulkDeleteOnly(['sub1', 'sub2', 'sub3']).then((res) => {
+            expect(res.status).to.equal(status.BAD_REQUEST);
+            expect(res.body).to.not.equal(undefined);
+            expect(res.body.errors).to.not.equal(undefined);
+            expect(res.body.errors[0]).to.not.equal(undefined);
+            expect(res.body.errors[0].message).to.equal(expectedResponseMessage);
+            done();
+          })
+          .catch((err) => {
+            done(err);
+          });
+        });
+
+        it('Ok, delete less than max subjects', (done) => {
+          doBulkDeleteOnly(['sub1', 'sub2']).then((res) => {
+            expect(res.status).to.equal(status.OK);
+            expect(res.body).to.not.equal(undefined);
+            expect(res.body.errors).to.equal(undefined);
+            done();
+          })
+          .catch((err) => {
+            done(err);
+          });
+        });
+      });
+
+      describe('Max subjects per bulk delete not set >', () => {
+        it(('Upload as many samples as you want :) >'), (done) => {
+          doBulkDeleteOnly(['sub1', 'sub2', 'sub3', 'sub4', 'sub5'])
+            .then((res) => {
+              expect(res.status).to.equal(status.OK);
+              done();
+            })
+            .catch((err) => {
+              done(err);
+            });
+        });
+      });
     });
   });
 }
