@@ -12,6 +12,7 @@
 'use strict'; // eslint-disable-line strict
 
 const Subject = require('../../../../db/index').Subject;
+const { maxSubjectsPerBulkDelete } = require('../../../../config');
 const m = 'subject';
 const fieldsWithJsonArrayType = ['relatedLinks'];
 const fieldsWithArrayType = ['tags'];
@@ -40,6 +41,21 @@ function deleteChildren(parent, depth) {
   return parent;
 } // deleteChildren
 
+/**
+ * Checks if a maximum samples per request is set, if it does
+ * then checks if the current request exceeds it.
+ *  @param {object} request - bulk delete request object
+ *  @returns {boolean} whether number of subjets is valid or invalid
+ */
+function validateBulkDeleteSubjectSize(request) {
+  if (maxSubjectsPerBulkDelete &&
+    request.swagger.params.queryBody.value.length > maxSubjectsPerBulkDelete) {
+    return false;
+  }
+  return true;
+}
+
+
 module.exports = {
   apiLinks: {
     DELETE: `Delete this ${m}`,
@@ -56,6 +72,7 @@ module.exports = {
     owner: 'owner',
   },
   fieldsToExclude: ['createdBy', 'ownerId'],
+  maxSubjectsPerBulkDelete,
   model: Subject,
   modelName: 'Subject',
   nameFinder: 'absolutePath',
@@ -70,4 +87,5 @@ module.exports = {
   readOnlyFields: ['hierarchyLevel', 'absolutePath', 'childCount', 'id'],
   requireAtLeastOneFields: ['helpEmail', 'helpUrl'],
   timePeriodFilters: ['createdAt', 'updatedAt'],
+  validateBulkDeleteSubjectSize,
 }; // exports

@@ -12,7 +12,6 @@
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
 const apiLogUtils = require('../../../utils/apiLog');
-const { maxSubjectsPerBulkDelete } = require('../../../config');
 const utils = require('./utils');
 const helper = require('../helpers/nouns/subjects');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
@@ -38,6 +37,8 @@ const WORKER_TTL = 1000 * jobSetup.ttlForJobsSync;
 const ZERO = 0;
 const Op = require('sequelize').Op;
 const queueSetup = require('../../../jobQueue/setup');
+const tooManySubjectsErrorMessage = 'Too many subjects. ' +
+  'The maximum subjects for a bulk delete is ';
 const kue = queueSetup.kue;
 const bulkDelSubQueue = queueSetup.bulkDelSubQueue;
 
@@ -87,19 +88,6 @@ function validateParentFields(req, res, next, callback) {
   } else {
     callback();
   }
-}
-
-/**
- *  @param {object} request - bulk delete request object
- *  @returns {boolean} whether number of subjets is valid or invalid
- */
-function validateBulkDeleteSubjectSize(request) {
-  if (maxSubjectsPerBulkDelete &&
-    request.swagger.params.queryBody.value.length > maxSubjectsPerBulkDelete) {
-    return false;
-  }
-
-  return true;
 }
 
 /**
@@ -614,7 +602,7 @@ module.exports = {
    *  indicating that the bulk subject delete request has been received.
    */
   deleteSubjects(req, res, next) {
-    if (validateBulkDeleteSubjectSize(req)) {
+    if (helper.validateBulkDeleteSubjectSize(req)) {
       const subjectDataWrapper = {};
       subjectDataWrapper.subjects = req.swagger.params.queryBody.value;
       subjectDataWrapper.user = req.user;
@@ -641,8 +629,8 @@ module.exports = {
         });
     }
 
-    const err = new Error('Too many subjects. The maximum subjects for a ' +
-      `bulk delete is ${maxSubjectsPerBulkDelete}`);
+    const err = new Error(
+      `${tooManySubjectsErrorMessage}${helper.maxSubjectsPerBulkDelete}`);
     u.handleError(next, err, helper.modelName);
   },
 
@@ -716,4 +704,6 @@ module.exports = {
       });
     }
   },
+  helper,
+  tooManySubjectsErrorMessage,
 }; // exports
