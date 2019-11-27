@@ -148,12 +148,7 @@ function testBulkDeleteSubjects(jobStatus) {
       return api.post(DELETE_PATH)
         .set(AUTHORIZATION, token)
         .send(subKeys)
-        .then((res) => {
-          return res;
-        })
-        .catch((err) => {
-          return err;
-        });
+        .catch((err) => err);
     }
 
     function doBulkDelete(subKeys) {
@@ -397,10 +392,10 @@ function testBulkDeleteSubjects(jobStatus) {
       describe('Max subjects per delete set >', () => {
         const maxSubjects = 2;
         beforeEach(() => {
-          sinon.stub(subjectController.helper, 'validateBulkDeleteSubjectSize')
-            .callsFake((subList) => {
-              return subList.swagger.params.queryBody.value.length <= maxSubjects;
-            });
+          sinon
+          .stub(subjectController.helper, 'validateBulkDeleteSubjectSize')
+          .callsFake((subList) =>
+            subList.swagger.params.queryBody.value.length <= maxSubjects);
           subjectController.helper.maxSubjectsPerBulkDelete = maxSubjects;
         });
 

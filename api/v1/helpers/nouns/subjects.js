@@ -52,9 +52,9 @@ function validateBulkDeleteSubjectSize(request) {
     request.swagger.params.queryBody.value.length > maxSubjectsPerBulkDelete) {
     return false;
   }
+
   return true;
 }
-
 
 module.exports = {
   apiLinks: {
