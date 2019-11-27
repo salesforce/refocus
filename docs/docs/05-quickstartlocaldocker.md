@@ -9,4 +9,5 @@ title: Quick Start with Local Docker
 # Start refocus with dependencies
 1. Clone this git repository.
 2. Run `cd refocus`.
-3. Run `docker-compose up`
+3. Run `docker-compose build`
+4. Run `docker-compose up`
