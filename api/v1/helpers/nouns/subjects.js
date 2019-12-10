@@ -52,6 +52,7 @@ function validateBulkDeleteSize(numberOfSubjects) {
     numberOfSubjects > maxSubjectsPerBulkDelete) {
     return false;
   }
+
   return true;
 }
 

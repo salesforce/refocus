@@ -609,6 +609,7 @@ module.exports = {
         `${tooManySubjectsErrorMessage}${subject.maxSubjectsPerBulkDelete}`);
       u.handleError(next, err, subject.modelName);
     }
+
     const subjectDataWrapper = {};
     subjectDataWrapper.subjects = req.swagger.params.queryBody.value;
     subjectDataWrapper.user = req.user;
