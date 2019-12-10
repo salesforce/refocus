@@ -393,15 +393,15 @@ function testBulkDeleteSubjects(jobStatus) {
         const maxSubjects = 2;
         beforeEach(() => {
           sinon
-          .stub(subjectController.helper, 'validateBulkDeleteSubjectSize')
+          .stub(subjectController.subject, 'validateBulkDeleteSize')
           .callsFake((subList) =>
-            subList.swagger.params.queryBody.value.length <= maxSubjects);
-          subjectController.helper.maxSubjectsPerBulkDelete = maxSubjects;
+          subList <= maxSubjects);
+          subjectController.subject.maxSubjectsPerBulkDelete = maxSubjects;
         });
 
         afterEach(() => {
-          subjectController.helper.maxSubjectsPerBulkDelete = null;
-          subjectController.helper.validateBulkDeleteSubjectSize.restore();
+          subjectController.subject.maxSubjectsPerBulkDelete = null;
+          subjectController.subject.validateBulkDeleteSize.restore();
         });
 
         it('Fail, trying to delete too many subjects', (done) => {

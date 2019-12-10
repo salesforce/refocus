@@ -13,7 +13,7 @@
 const featureToggles = require('feature-toggles');
 const apiLogUtils = require('../../../utils/apiLog');
 const utils = require('./utils');
-const helper = require('../helpers/nouns/subjects');
+const subject = require('../helpers/nouns/subjects');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
 const doPostWriters = require('../helpers/verbs/doPostWriters');
@@ -63,7 +63,7 @@ function validateParentFields(req, res, next, callback) {
    * to the same subject.
    */
   if (parentId && parentAbsolutePath) {
-    helper.model.findOne(
+    subject.model.findOne(
       { where: { absolutePath: { [Op.iLike]: parentAbsolutePath } } }
     )
     .then((parent) => {
@@ -83,7 +83,7 @@ function validateParentFields(req, res, next, callback) {
       callback();
     })
     .catch((err) => {
-      u.handleError(next, err, helper.modelName);
+      u.handleError(next, err, subject.modelName);
     });
   } else {
     callback();
@@ -133,7 +133,7 @@ function validateTags(requestBody, params) {
  * @param  {Object} req - The request object
  */
 function validateRequest(req) {
-  utils.noReadOnlyFieldsInReq(req, helper.readOnlyFields);
+  utils.noReadOnlyFieldsInReq(req, subject.readOnlyFields);
   validateTags(req.body);
 } // validateRequest
 
@@ -149,7 +149,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSubject(req, res, next) {
-    doDelete(req, res, next, helper)
+    doDelete(req, res, next, subject)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
         res.status(httpStatus.OK).json(res.locals.retVal);
@@ -168,14 +168,14 @@ module.exports = {
   deleteSubjectHierarchy(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
-    u.findByKey(helper, params, ['hierarchy'])
+    u.findByKey(subject, params, ['hierarchy'])
     .then((o) => o.deleteHierarchy())
     .then(() => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       u.logAPI(req, resultObj, {});
       return res.status(httpStatus.OK).json({});
     })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => u.handleError(next, err, subject.modelName));
   },
 
   /**
@@ -188,7 +188,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   deleteSubjectWriters(req, res, next) {
-    doDeleteAllAssoc(req, res, next, helper, helper.belongsToManyAssoc.users);
+    doDeleteAllAssoc(req, res, next, subject, subject.belongsToManyAssoc.users);
   },
 
   /**
@@ -202,8 +202,8 @@ module.exports = {
    */
   deleteSubjectWriter(req, res, next) {
     const userNameOrId = req.swagger.params.userNameOrId.value;
-    doDeleteOneAssoc(req, res, next, helper,
-        helper.belongsToManyAssoc.users, userNameOrId);
+    doDeleteOneAssoc(req, res, next, subject,
+        subject.belongsToManyAssoc.users, userNameOrId);
   },
 
   /**
@@ -224,9 +224,9 @@ module.exports = {
         u.logAPI(req, resultObj, response);
         res.status(httpStatus.OK).json(response);
       })
-      .catch((err) => u.handleError(next, err, helper.modelName));
+      .catch((err) => u.handleError(next, err, subject.modelName));
     } else {
-      return doFind(req, res, next, helper);
+      return doFind(req, res, next, subject);
     }
   },
 
@@ -253,9 +253,9 @@ module.exports = {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
         res.status(httpStatus.OK).json(res.locals.retVal);
       })
-      .catch((err) => u.handleError(next, err, helper.modelName));
+      .catch((err) => u.handleError(next, err, subject.modelName));
     } else {
-      doGet(req, res, next, helper)
+      doGet(req, res, next, subject)
         .then(() => {
           apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
           res.status(httpStatus.OK).json(res.locals.retVal);
@@ -334,7 +334,7 @@ module.exports = {
           }
         }
 
-        u.handleError(next, newErr, helper.modelName);
+        u.handleError(next, newErr, subject.modelName);
       });
     } else {
       doGetHierarchy(resultObj)
@@ -343,7 +343,7 @@ module.exports = {
         res.status(httpStatus.OK).json(resultObj.retval);
       })
       .catch((err) => {
-        u.handleError(next, err, helper.modelName);
+        u.handleError(next, err, subject.modelName);
       });
     }
   }, // getSubjectHierarchy
@@ -358,7 +358,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectWriters(req, res, next) {
-    doGetWriters.getWriters(req, res, next, helper)
+    doGetWriters.getWriters(req, res, next, subject)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
         res.status(httpStatus.OK).json(res.locals.retVal);
@@ -376,7 +376,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectWriter(req, res, next) {
-    doGetWriters.getWriter(req, res, next, helper)
+    doGetWriters.getWriter(req, res, next, subject)
       .then(() => {
         apiLogUtils.logAPI(req, res.locals.resultObj, res.locals.retVal);
         res.status(httpStatus.OK).json(res.locals.retVal);
@@ -393,7 +393,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   postSubjectWriters(req, res, next) {
-    doPostWriters(req, res, next, helper);
+    doPostWriters(req, res, next, subject);
   }, // postSubjectWriters
 
   /**
@@ -409,7 +409,7 @@ module.exports = {
    */
   patchSubject(req, res, next) {
     validateRequest(req);
-    validateParentFields(req, res, next, () => doPatch(req, res, next, helper));
+    validateParentFields(req, res, next, () => doPatch(req, res, next, subject));
   },
 
   /**
@@ -427,7 +427,7 @@ module.exports = {
     // check that at least one of the given fields is present in request
     if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
       utils.validateAtLeastOneFieldPresent(
-        req.body, helper.requireAtLeastOneFields
+        req.body, subject.requireAtLeastOneFields
       );
     }
 
@@ -451,13 +451,13 @@ module.exports = {
             'The subject lower case absolutePath must be unique');
         }
 
-        doPost(req, res, next, helper);
+        doPost(req, res, next, subject);
       })
       .catch((err) => {
-        u.handleError(next, err, helper.modelName);
+        u.handleError(next, err, subject.modelName);
       });
     } else {
-      doPost(req, res, next, helper);
+      doPost(req, res, next, subject);
     }
   },
 
@@ -477,21 +477,21 @@ module.exports = {
     // check that at least one of the given fields is present in request
     if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
       utils.validateAtLeastOneFieldPresent(
-        req.body, helper.requireAtLeastOneFields
+        req.body, subject.requireAtLeastOneFields
       );
     }
 
     const key = req.swagger.params.key.value;
     if (u.looksLikeId(key)) {
       req.swagger.params.queryBody.value.parentId = key;
-      doPost(req, res, next, helper);
+      doPost(req, res, next, subject);
     } else {
-      u.findByKey(helper, req.swagger.params)
+      u.findByKey(subject, req.swagger.params)
       .then((o) => {
         req.swagger.params.queryBody.value.parentId = o.id;
-        doPost(req, res, next, helper);
+        doPost(req, res, next, subject);
       })
-      .catch((err) => u.handleError(next, err, helper.modelName));
+      .catch((err) => u.handleError(next, err, subject.modelName));
     }
   },
 
@@ -513,11 +513,11 @@ module.exports = {
     // check that at least one of the given fields is present in request
     if (featureToggles.isFeatureEnabled('requireHelpEmailOrHelpUrl')) {
       utils.validateAtLeastOneFieldPresent(
-        req.body, helper.requireAtLeastOneFields
+        req.body, subject.requireAtLeastOneFields
       );
     }
 
-    validateParentFields(req, res, next, () => doPut(req, res, next, helper));
+    validateParentFields(req, res, next, () => doPut(req, res, next, subject));
   },
 
   /**
@@ -534,7 +534,7 @@ module.exports = {
   deleteSubjectTags(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
-    u.findByKey(helper, params)
+    u.findByKey(subject, params)
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       let updatedTagArray = [];
@@ -547,11 +547,11 @@ module.exports = {
     })
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      const retval = u.responsify(o, helper, req.method);
+      const retval = u.responsify(o, subject, req.method);
       u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => u.handleError(next, err, subject.modelName));
   },
 
   /**
@@ -568,7 +568,7 @@ module.exports = {
   deleteSubjectRelatedLinks(req, res, next) {
     const resultObj = { reqStartTime: req.timestamp };
     const params = req.swagger.params;
-    u.findByKey(helper, params)
+    u.findByKey(subject, params)
     .then((o) => u.isWritable(req, o))
     .then((o) => {
       let jsonData = [];
@@ -581,11 +581,11 @@ module.exports = {
     })
     .then((o) => {
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
-      const retval = u.responsify(o, helper, req.method);
+      const retval = u.responsify(o, subject, req.method);
       u.logAPI(req, resultObj, retval);
       res.status(httpStatus.OK).json(retval);
     })
-    .catch((err) => u.handleError(next, err, helper.modelName));
+    .catch((err) => u.handleError(next, err, subject.modelName));
   },
 
   /**
@@ -602,36 +602,37 @@ module.exports = {
    *  indicating that the bulk subject delete request has been received.
    */
   deleteSubjects(req, res, next) {
-    if (helper.validateBulkDeleteSubjectSize(req)) {
-      const subjectDataWrapper = {};
-      subjectDataWrapper.subjects = req.swagger.params.queryBody.value;
-      subjectDataWrapper.user = req.user;
-      subjectDataWrapper.reqStartTime = Date.now();
-      subjectDataWrapper.readOnlyFields = helper.readOnlyFields
-        .filter((field) => field !== 'name');
-      const jobPromise = jobWrapper.createPromisifiedJob(
-        jobType.bulkDeleteSubjects,
-        subjectDataWrapper,
-        req);
-      return jobPromise
-        .then((job) => {
-          const body = { status: 'OK' };
-          const resultObj = { reqStartTime: req.timestamp };
-
-          // gives the jobId back to the client
-          body.jobId = parseInt(job.id, 10);
-          u.logAPI(req, resultObj, body,
-            req.swagger.params.queryBody.value.length);
-          return res.status(httpStatus.OK).json(body);
-        })
-        .catch((err) => {
-          u.handleError(next, err, helper.modelName);
-        });
+    const subjects = req.swagger.params.queryBody.value.length;
+    const isValidSize = subject.validateBulkDeleteSize(subjects);
+    if (!isValidSize) {
+      const err = new Error(
+        `${tooManySubjectsErrorMessage}${subject.maxSubjectsPerBulkDelete}`);
+      u.handleError(next, err, subject.modelName);
     }
+    const subjectDataWrapper = {};
+    subjectDataWrapper.subjects = req.swagger.params.queryBody.value;
+    subjectDataWrapper.user = req.user;
+    subjectDataWrapper.reqStartTime = Date.now();
+    subjectDataWrapper.readOnlyFields = subject.readOnlyFields
+      .filter((field) => field !== 'name');
+    const jobPromise = jobWrapper.createPromisifiedJob(
+      jobType.bulkDeleteSubjects,
+      subjectDataWrapper,
+      req);
+    return jobPromise
+      .then((job) => {
+        const body = { status: 'OK' };
+        const resultObj = { reqStartTime: req.timestamp };
 
-    const err = new Error(
-      `${tooManySubjectsErrorMessage}${helper.maxSubjectsPerBulkDelete}`);
-    u.handleError(next, err, helper.modelName);
+        // gives the jobId back to the client
+        body.jobId = parseInt(job.id, 10);
+        u.logAPI(req, resultObj, body,
+          req.swagger.params.queryBody.value.length);
+        return res.status(httpStatus.OK).json(body);
+      })
+      .catch((err) => {
+        u.handleError(next, err, subject.modelName);
+      });
   },
 
   /**
@@ -679,7 +680,7 @@ module.exports = {
         })
         .catch(() => {
           const err = new apiErrors.ResourceNotFoundError();
-          return u.handleError(next, err, helper.modelName);
+          return u.handleError(next, err, subject.modelName);
         });
     } else {
       kue.Job.get(jobId, (_err, job) => {
@@ -687,7 +688,7 @@ module.exports = {
 
         if (_err || !job || job.type !== queueSetup.jobType.bulkDeleteSubjects) {
           const err = new apiErrors.ResourceNotFoundError();
-          return u.handleError(next, err, helper.modelName);
+          return u.handleError(next, err, subject.modelName);
         }
 
         const ret = {};
@@ -705,6 +706,6 @@ module.exports = {
     }
   },
 
-  helper,
+  subject,
   tooManySubjectsErrorMessage,
 }; // exports

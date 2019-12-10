@@ -47,12 +47,11 @@ function deleteChildren(parent, depth) {
  *  @param {object} request - bulk delete request object
  *  @returns {boolean} whether number of subjets is valid or invalid
  */
-function validateBulkDeleteSubjectSize(request) {
+function validateBulkDeleteSize(numberOfSubjects) {
   if (maxSubjectsPerBulkDelete &&
-    request.swagger.params.queryBody.value.length > maxSubjectsPerBulkDelete) {
+    numberOfSubjects > maxSubjectsPerBulkDelete) {
     return false;
   }
-
   return true;
 }
 
@@ -87,5 +86,5 @@ module.exports = {
   readOnlyFields: ['hierarchyLevel', 'absolutePath', 'childCount', 'id'],
   requireAtLeastOneFields: ['helpEmail', 'helpUrl'],
   timePeriodFilters: ['createdAt', 'updatedAt'],
-  validateBulkDeleteSubjectSize,
+  validateBulkDeleteSize,
 }; // exports
