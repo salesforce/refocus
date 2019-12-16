@@ -90,15 +90,16 @@ describe('test max subjects per bulk delete >', () => {
   });
 
   describe('Max subjects per bulk delete not set >', () => {
-    it('Upload as many samples as you want :) >', (done) => {
-      doBulkDelete(api, token, ['sub1', 'sub2', 'sub3', 'sub4', 'sub5'])
-        .then((res) => {
-          expect(res.status).to.equal(status.OK);
-          done();
-        })
-        .catch((err) => {
-          done(err);
+    it('Request containing more samples than previous limit returns OK >',
+        (done) => {
+          doBulkDelete(api, token, ['sub1', 'sub2', 'sub3', 'sub4', 'sub5'])
+            .then((res) => {
+              expect(res.status).to.equal(status.OK);
+              done();
+            })
+            .catch((err) => {
+              done(err);
+            });
         });
-    });
   });
 });
