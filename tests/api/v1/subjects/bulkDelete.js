@@ -13,9 +13,7 @@
 const expect = require('chai').expect;
 const supertest = require('supertest');
 const api = supertest(require('../../../../express').app);
-const sinon = require('sinon');
 const testUtils = require('../../../testUtils');
-const subjectController = require('../../../../api/v1/controllers/subjects');
 const Subject = testUtils.db.Subject;
 const utils = require('./utils');
 const constants = require('../../../../api/v1/constants');
@@ -24,17 +22,28 @@ const jobQueueKue = jobSetup.jobQueue;
 const bulkDelSubQueue = jobSetup.bulkDelSubQueue;
 const jobType = jobSetup.jobType;
 const status = constants.httpStatus;
-const bulkDeleteSubjectsJob = require(
-  '../../../../worker/jobs/bulkDeleteSubjects');
+const bulkDeleteSubjectsJob = require('../../../../worker/jobs/bulkDeleteSubjects');
 const Promise = require('bluebird');
 const featureToggles = require('feature-toggles');
 const queueTestUtils = require('../../../jobQueue/v1/utils');
 supertest.Test.prototype.end = Promise.promisify(supertest.Test.prototype.end);
 supertest.Test.prototype.then = function (resolve, reject) {
-  return this.end().then(resolve).catch(reject);
+  return this.end()
+    .then(resolve)
+    .catch(reject);
 };
 
-function testBulkDeleteSubjects(jobStatus) {
+const bullJobStatus = {
+  complete: 'completed',
+  failed: 'failed',
+};
+
+const kueJobStatus = {
+  complete: 'complete',
+  failed: 'failed',
+};
+
+function testBulkDeleteSubjects(jobStatus = kueJobStatus) {
   let token;
   let user2;
   let token2;
@@ -43,15 +52,18 @@ function testBulkDeleteSubjects(jobStatus) {
   const TIMEOUT = 100;
 
   before((done) => {
-    testUtils.createToken()
+    testUtils
+      .createToken()
       .then((returnedToken) => {
         token = returnedToken;
         done();
-      }).catch(done);
+      })
+      .catch(done);
   });
 
   before(() =>
-    testUtils.createSecondUser()
+    testUtils
+      .createSecondUser()
       .then((createdUser) => {
         user2 = createdUser;
         return testUtils.createTokenFromUserName(user2.name);
@@ -76,8 +88,10 @@ function testBulkDeleteSubjects(jobStatus) {
     // Start JobQueue, with the option to simulate a failed job
     let simulateFailure = false;
     before(() => {
-      if (featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
-        featureToggles.isFeatureEnabled('anyBullEnabled')) {
+      if (
+        featureToggles.isFeatureEnabled('enableBullForBulkDelSubj') &&
+        featureToggles.isFeatureEnabled('anyBullEnabled')
+      ) {
         bulkDelSubQueue.process((job, done) => {
           if (simulateFailure) {
             done(new Error('Job Failed'));
@@ -96,13 +110,22 @@ function testBulkDeleteSubjects(jobStatus) {
       }
     });
 
-    const blah = { name: `${testUtils.namePrefix}Blah`, isPublished: true, };
-    const foo = { name: `${testUtils.namePrefix}Foo`, isPublished: true, };
-    const parent = { name: `${testUtils.namePrefix}ParentName`,
-      isPublished: true, childCount: 1, };
-    const child = { name: `${testUtils.namePrefix}ChildName`,
-      isPublished: true, childCount: 0, };
-    const restricted = { name: `${testUtils.namePrefix}Restricted`, isPublished: true, };
+    const blah = { name: `${testUtils.namePrefix}Blah`, isPublished: true };
+    const foo = { name: `${testUtils.namePrefix}Foo`, isPublished: true };
+    const parent = {
+      name: `${testUtils.namePrefix}ParentName`,
+      isPublished: true,
+      childCount: 1,
+    };
+    const child = {
+      name: `${testUtils.namePrefix}ChildName`,
+      isPublished: true,
+      childCount: 0,
+    };
+    const restricted = {
+      name: `${testUtils.namePrefix}Restricted`,
+      isPublished: true,
+    };
 
     // Create parent and child subject (not able to delete)
     beforeEach((done) => {
@@ -115,7 +138,8 @@ function testBulkDeleteSubjects(jobStatus) {
         .then((createdSubjectChild) => {
           child.id = createdSubjectChild.id;
           done();
-        }).catch(done);
+        })
+        .catch(done);
     });
 
     // Create not related subjects (able to delete)
@@ -128,15 +152,15 @@ function testBulkDeleteSubjects(jobStatus) {
         .then((createdFoo) => {
           foo.id = createdFoo.id;
           done();
-        }).catch(done);
+        })
+        .catch(done);
     });
 
     beforeEach(() =>
-      Subject.create(restricted)
-        .then((created) => {
-          restricted.id = created.id;
-          return created.addWriter(user2);
-        })
+      Subject.create(restricted).then((created) => {
+        restricted.id = created.id;
+        return created.addWriter(user2);
+      })
     );
 
     beforeEach(utils.populateRedis);
@@ -144,15 +168,9 @@ function testBulkDeleteSubjects(jobStatus) {
     after(testUtils.forceDeleteUser);
     after(() => testUtils.toggleOverride('enableWorkerProcess', false));
 
-    function doBulkDeleteOnly(subKeys) {
-      return api.post(DELETE_PATH)
-        .set(AUTHORIZATION, token)
-        .send(subKeys)
-        .catch((err) => err);
-    }
-
     function doBulkDelete(subKeys) {
-      return api.post(DELETE_PATH)
+      return api
+        .post(DELETE_PATH)
         .set(AUTHORIZATION, token)
         .send(subKeys)
         .expect(constants.httpStatus.OK)
@@ -170,7 +188,8 @@ function testBulkDeleteSubjects(jobStatus) {
     function getStatus(jobId) {
       return wait(TIMEOUT)
         .then(() =>
-          api.get(`/v1/subjects/delete/bulk/${jobId}/status`)
+          api
+            .get(`/v1/subjects/delete/bulk/${jobId}/status`)
             .set('Authorization', token)
             .expect(constants.httpStatus.OK)
             .end()
@@ -184,28 +203,32 @@ function testBulkDeleteSubjects(jobStatus) {
         });
     }
 
-    function checkJobStatus({ jobId, expectedStatus, expectedErrors, expectedError }) {
-      return getStatus(jobId)
-        .then((res) => {
-          expect(res.body.status).to.equal(expectedStatus);
+    function checkJobStatus({
+      jobId,
+      expectedStatus,
+      expectedErrors,
+      expectedError,
+    }) {
+      return getStatus(jobId).then((res) => {
+        expect(res.body.status).to.equal(expectedStatus);
 
-          if (expectedErrors) {
-            expect(res.body.errors).to.exist;
-            expect(res.body.errors).to.be.an('array');
-            res.body.errors.forEach(e => expect(e).to.be.an('object'));
-            const errNames = res.body.errors.map((e) => e.name);
-            expect(errNames).to.deep.equal(expectedErrors);
-          } else {
-            expect(res.body.errors).to.not.exist;
-          }
+        if (expectedErrors) {
+          expect(res.body.errors).to.exist;
+          expect(res.body.errors).to.be.an('array');
+          res.body.errors.forEach((e) => expect(e).to.be.an('object'));
+          const errNames = res.body.errors.map((e) => e.name);
+          expect(errNames).to.deep.equal(expectedErrors);
+        } else {
+          expect(res.body.errors).to.not.exist;
+        }
 
-          if (expectedError) {
-            expect(res.body.error).to.exist;
-            expect(res.body.error).to.equal(expectedError);
-          } else {
-            expect(res.body.error).to.not.exist;
-          }
-        });
+        if (expectedError) {
+          expect(res.body.error).to.exist;
+          expect(res.body.error).to.equal(expectedError);
+        } else {
+          expect(res.body.error).to.not.exist;
+        }
+      });
     }
 
     function checkSubjectsExist(expectMap) {
@@ -213,14 +236,17 @@ function testBulkDeleteSubjects(jobStatus) {
         Object.keys(expectMap).map((key) => {
           const expectExists = expectMap[key];
           const expectedStatus = expectExists ? status.OK : status.NOT_FOUND;
-          return api.get(`/v1/subjects/${key}`)
+          return api
+            .get(`/v1/subjects/${key}`)
             .set('Authorization', token)
             .expect(expectedStatus)
             .expect((res) => {
               if (expectExists) {
                 expect(res.body.id).to.equal(key);
               } else {
-                expect(res.body.errors[0].type).to.equal('ResourceNotFoundError');
+                expect(res.body.errors[0].type).to.equal(
+                  'ResourceNotFoundError'
+                );
               }
             })
             .end();
@@ -231,132 +257,154 @@ function testBulkDeleteSubjects(jobStatus) {
     it('delete by id', () =>
       doBulkDelete([blah.id, foo.id])
 
-      // { status: 'complete' }
-        .then((res) => checkJobStatus({
-          jobId: res.body.jobId,
-          expectedStatus: jobStatus.complete,
-        }))
+        // { status: 'complete' }
+        .then((res) =>
+          checkJobStatus({
+            jobId: res.body.jobId,
+            expectedStatus: jobStatus.complete,
+          })
+        )
 
         // "Blah" and "Foo" were deleted
-        .then(() => checkSubjectsExist({
-          [blah.id]: false,
-          [foo.id]: false,
-        }))
-    );
+        .then(() =>
+          checkSubjectsExist({
+            [blah.id]: false,
+            [foo.id]: false,
+          })
+        ));
 
     it('delete by name', () =>
       doBulkDelete([blah.name, foo.name])
 
-      // { status: 'complete' }
-        .then((res) => checkJobStatus({
-          jobId: res.body.jobId,
-          expectedStatus: jobStatus.complete,
-        }))
+        // { status: 'complete' }
+        .then((res) =>
+          checkJobStatus({
+            jobId: res.body.jobId,
+            expectedStatus: jobStatus.complete,
+          })
+        )
 
         // "Blah" and "Foo" were deleted
-        .then(() => checkSubjectsExist({
-          [blah.id]: false,
-          [foo.id]: false,
-        }))
-    );
+        .then(() =>
+          checkSubjectsExist({
+            [blah.id]: false,
+            [foo.id]: false,
+          })
+        ));
 
     it('delete by id and name', () =>
       doBulkDelete([blah.id, foo.name])
 
-      // { status: 'complete' }
-        .then((res) => checkJobStatus({
-          jobId: res.body.jobId,
-          expectedStatus: jobStatus.complete,
-        }))
+        // { status: 'complete' }
+        .then((res) =>
+          checkJobStatus({
+            jobId: res.body.jobId,
+            expectedStatus: jobStatus.complete,
+          })
+        )
 
         // "Blah" and "Foo" were deleted
-        .then(() => checkSubjectsExist({
-          [blah.id]: false,
-          [foo.id]: false,
-        }))
-    );
+        .then(() =>
+          checkSubjectsExist({
+            [blah.id]: false,
+            [foo.id]: false,
+          })
+        ));
 
     it('delete nonexistent subject', () =>
       doBulkDelete(['aaa'])
 
-      // { status: 'complete', errors: [ ... ] }
-        .then((res) => checkJobStatus({
-          jobId: res.body.jobId,
-          expectedStatus: jobStatus.complete,
-          expectedErrors: ['ResourceNotFoundError'],
-        }))
+        // { status: 'complete', errors: [ ... ] }
+        .then((res) =>
+          checkJobStatus({
+            jobId: res.body.jobId,
+            expectedStatus: jobStatus.complete,
+            expectedErrors: ['ResourceNotFoundError'],
+          })
+        )
 
         // subject does not exist
-        .then(() => checkSubjectsExist({
-          aaa: false,
-        }))
-    );
+        .then(() =>
+          checkSubjectsExist({
+            aaa: false,
+          })
+        ));
 
     it('no write permission', () =>
       doBulkDelete([blah.id, restricted.id])
 
-      // { status: 'complete', errors: [ ... ] }
-        .then((res) => checkJobStatus({
-          jobId: res.body.jobId,
-          expectedStatus: jobStatus.complete,
-          expectedErrors: ['ForbiddenError'],
-        }))
+        // { status: 'complete', errors: [ ... ] }
+        .then((res) =>
+          checkJobStatus({
+            jobId: res.body.jobId,
+            expectedStatus: jobStatus.complete,
+            expectedErrors: ['ForbiddenError'],
+          })
+        )
 
         // blah deleted, restricted still exists
-        .then(() => checkSubjectsExist({
-          [blah.id]: false,
-          [restricted.id]: true,
-        }))
-    );
+        .then(() =>
+          checkSubjectsExist({
+            [blah.id]: false,
+            [restricted.id]: true,
+          })
+        ));
 
     it('delete parent with child', () =>
       doBulkDelete([parent.id, child.id])
 
-      // { status: 'complete', errors: [ ... ] }
-        .then((res) => checkJobStatus({
-          jobId: res.body.jobId,
-          expectedStatus: jobStatus.complete,
-          expectedErrors: ['SubjectDeleteConstraintError'],
-        }))
+        // { status: 'complete', errors: [ ... ] }
+        .then((res) =>
+          checkJobStatus({
+            jobId: res.body.jobId,
+            expectedStatus: jobStatus.complete,
+            expectedErrors: ['SubjectDeleteConstraintError'],
+          })
+        )
 
         // child deleted, parent still exists
-        .then(() => checkSubjectsExist({
-          [parent.id]: true,
-          [child.id]: false,
-        }))
-    );
+        .then(() =>
+          checkSubjectsExist({
+            [parent.id]: true,
+            [child.id]: false,
+          })
+        ));
 
     it('multiple errors', () =>
       doBulkDelete([blah.id, foo.id, 'aaa', parent.id, child.id, restricted.id])
 
-      // { status: 'complete', errors: [ ... ] }
-        .then((res) => checkJobStatus({
-          jobId: res.body.jobId,
-          expectedStatus: jobStatus.complete,
-          expectedErrors: [
-            'ResourceNotFoundError',
-            'SubjectDeleteConstraintError',
-            'ForbiddenError',
-          ],
-        }))
+        // { status: 'complete', errors: [ ... ] }
+        .then((res) =>
+          checkJobStatus({
+            jobId: res.body.jobId,
+            expectedStatus: jobStatus.complete,
+            expectedErrors: [
+              'ResourceNotFoundError',
+              'SubjectDeleteConstraintError',
+              'ForbiddenError',
+            ],
+          })
+        )
 
         // blah, foo, and child deleted. restricted and parent still exist
-        .then(() => checkSubjectsExist({
-          [blah.id]: false,
-          [foo.id]: false,
-          aaa: false,
-          [parent.id]: true,
-          [child.id]: false,
-          [restricted.id]: true,
-        }))
-    );
+        .then(() =>
+          checkSubjectsExist({
+            [blah.id]: false,
+            [foo.id]: false,
+            aaa: false,
+            [parent.id]: true,
+            [child.id]: false,
+            [restricted.id]: true,
+          })
+        ));
 
     it('test logging', (done) => {
       testUtils.toggleOverride('enableApiActivityLogs', true);
       testUtils.toggleOverride('enableWorkerActivityLogs', true);
       const RADIX = 10;
 
-      api.post(DELETE_PATH)
+      api
+        .post(DELETE_PATH)
         .set('Authorization', token)
         .send([blah.id, foo.id, 'aaa'])
         .expect(constants.httpStatus.OK)
@@ -373,78 +421,26 @@ function testBulkDeleteSubjects(jobStatus) {
 
     it('failed job', () => {
       simulateFailure = true;
-      return doBulkDelete([blah.id, foo.id])
+      return (
+        doBulkDelete([blah.id, foo.id])
 
-      // { status: failed, error: 'Shutdown' }
-        .then((res) => checkJobStatus({
-          jobId: res.body.jobId,
-          expectedStatus: jobStatus.failed,
-          expectedError: 'Job Failed',
-        }))
-
-        // not deleted
-        .then(() => checkSubjectsExist({
-          [blah.id]: true,
-          [foo.id]: true,
-        }));
-    });
-    describe('test max subjects per bulk delete >', () => {
-      describe('Max subjects per delete set >', () => {
-        const maxSubjects = 2;
-        beforeEach(() => {
-          sinon
-          .stub(subjectController.subject, 'validateBulkDeleteSize')
-          .callsFake((subList) =>
-          subList <= maxSubjects);
-          subjectController.subject.maxSubjectsPerBulkDelete = maxSubjects;
-        });
-
-        afterEach(() => {
-          subjectController.subject.maxSubjectsPerBulkDelete = null;
-          subjectController.subject.validateBulkDeleteSize.restore();
-        });
-
-        it('Fail, trying to delete too many subjects', (done) => {
-          const expectedResponseMessage =
-            subjectController.tooManySubjectsErrorMessage + maxSubjects;
-          doBulkDeleteOnly(['sub1', 'sub2', 'sub3']).then((res) => {
-            expect(res.status).to.equal(status.BAD_REQUEST);
-            expect(res.body).to.not.equal(undefined);
-            expect(res.body.errors).to.not.equal(undefined);
-            expect(res.body.errors[0]).to.not.equal(undefined);
-            expect(res.body.errors[0].message).to.equal(expectedResponseMessage);
-            done();
-          })
-          .catch((err) => {
-            done(err);
-          });
-        });
-
-        it('Ok, delete less than max subjects', (done) => {
-          doBulkDeleteOnly(['sub1', 'sub2']).then((res) => {
-            expect(res.status).to.equal(status.OK);
-            expect(res.body).to.not.equal(undefined);
-            expect(res.body.errors).to.equal(undefined);
-            done();
-          })
-          .catch((err) => {
-            done(err);
-          });
-        });
-      });
-
-      describe('Max subjects per bulk delete not set >', () => {
-        it(('Upload as many samples as you want :) >'), (done) => {
-          doBulkDeleteOnly(['sub1', 'sub2', 'sub3', 'sub4', 'sub5'])
-            .then((res) => {
-              expect(res.status).to.equal(status.OK);
-              done();
+          // { status: failed, error: 'Shutdown' }
+          .then((res) =>
+            checkJobStatus({
+              jobId: res.body.jobId,
+              expectedStatus: jobStatus.failed,
+              expectedError: 'Job Failed',
             })
-            .catch((err) => {
-              done(err);
-            });
-        });
-      });
+          )
+
+          // not deleted
+          .then(() =>
+            checkSubjectsExist({
+              [blah.id]: true,
+              [foo.id]: true,
+            })
+          )
+      );
     });
   });
 }
@@ -453,46 +449,30 @@ describe('tests/api/v1/subjects/bulkDelete.js  >', () => {
   const toggleName = 'enableBullForBulkDelSubj';
   const toggle2Name = 'anyBullEnabled';
   describe('enableBullForBulkDelSubj toggle OFF >', () => {
-    const jobStatus = {
-      complete: 'complete',
-      failed: 'failed',
-    };
-    const initialFeatureState = featureToggles
-      .isFeatureEnabled(toggleName);
-    const initialFeature2State = featureToggles
-      .isFeatureEnabled(toggle2Name);
+    const initialFeatureState = featureToggles.isFeatureEnabled(toggleName);
+    const initialFeature2State = featureToggles.isFeatureEnabled(toggle2Name);
     before(() => {
       testUtils.toggleOverride(toggleName, false);
       testUtils.toggleOverride(toggle2Name, false);
     });
     after(() => {
-      testUtils.toggleOverride(toggleName,
-      initialFeatureState);
-      testUtils.toggleOverride(toggle2Name,
-      initialFeature2State);
+      testUtils.toggleOverride(toggleName, initialFeatureState);
+      testUtils.toggleOverride(toggle2Name, initialFeature2State);
     });
-    testBulkDeleteSubjects(jobStatus);
+    testBulkDeleteSubjects(kueJobStatus);
   });
 
   describe('enableBullForBulkDelSubj toggle ON >', () => {
-    const jobStatus = {
-      complete: 'completed',
-      failed: 'failed',
-    };
-    const initialFeatureState = featureToggles
-      .isFeatureEnabled(toggleName);
-    const initialFeature2State = featureToggles
-      .isFeatureEnabled(toggle2Name);
+    const initialFeatureState = featureToggles.isFeatureEnabled(toggleName);
+    const initialFeature2State = featureToggles.isFeatureEnabled(toggle2Name);
     before(() => {
       testUtils.toggleOverride(toggleName, true);
       testUtils.toggleOverride(toggle2Name, true);
     });
     after(() => {
-      testUtils.toggleOverride(toggleName,
-      initialFeatureState);
-      testUtils.toggleOverride(toggle2Name,
-      initialFeature2State);
+      testUtils.toggleOverride(toggleName, initialFeatureState);
+      testUtils.toggleOverride(toggle2Name, initialFeature2State);
     });
-    testBulkDeleteSubjects(jobStatus);
+    testBulkDeleteSubjects(bullJobStatus);
   });
 });
