@@ -104,6 +104,7 @@ if (conf.ipWhitelistService) {
 } else {
   app.use(ipfilter(env.ipWhitelist, { mode: 'allow', log: false }));
 }
+
 let serverApp;
 if (isDevelopment) {
   const webpack = require('webpack');
