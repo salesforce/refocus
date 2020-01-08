@@ -1,4 +1,3 @@
-const sinon = require('sinon');
 const supertest = require('supertest');
 const subjectController = require('../../../../api/v1/controllers/subjects');
 const testUtils = require('../../../testUtils');
@@ -16,9 +15,22 @@ const DELETE_PATH = '/v1/subjects/delete/bulk';
 function clearRequireCache() {
   delete require.cache[require.resolve('../../../../config.js')];
   delete require.cache[require.resolve('../../../../express')];
-  delete require.cache[require.resolve('../../../../api/v1/controllers/subjects')];
-  delete require.cache[require.resolve('../../../../api/v1/helpers/nouns/subjects')];
+  delete require.cache[require
+    .resolve('../../../../api/v1/controllers/subjects')];
+  delete require.cache[require
+    .resolve('../../../../api/v1/helpers/nouns/subjects')];
   delete require.cache[require.resolve('supertest')];
+}
+
+/**
+ * If an instance of refocus has been started and not torn down in a previous
+ * test file this function will tear it down and remove the reference to it.
+ */
+function tearDownExistingRefocusInstance() {
+  const express = require('../../../../express');
+  const serverApp = express.serverApp;
+  serverApp.close();
+  clearRequireCache();
 }
 
 /**
@@ -46,7 +58,7 @@ describe('Max subjects per delete set >', () => {
   const maxSubjects = '2';
   before((done) => {
     process.env.MAX_SUBJECTS_PER_BULK_DELETE = maxSubjects;
-    clearRequireCache();
+    tearDownExistingRefocusInstance();
     const express = require('../../../../express');
     app = express.app;
     serverApp = express.serverApp;
