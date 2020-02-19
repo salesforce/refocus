@@ -286,7 +286,7 @@ function verifyUserToken(payload, req, cb) {
  * @param  {Function} cb - callback function
  */
 function verifyToken(req, cb) {
-  const token = req.session.token || req.headers.authorization;
+  const token = (req.session && req.session.token) || req.headers.authorization;
   if (token) {
     return jwtVerifyAsync(token, secret, {})
     .then((payload) => {

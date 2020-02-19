@@ -68,6 +68,9 @@ const expressLimiterExpire = pe.EXPRESS_LIMITER_EXPIRE;
 const expressLimiterTotal2 = pe.EXPRESS_LIMITER_TOTAL_2;
 const expressLimiterExpire2 = pe.EXPRESS_LIMITER_EXPIRE_2;
 
+const maxSubjectsPerBulkDelete =
+  parseInt(pe.MAX_SUBJECTS_PER_BULK_DELETE, 10) || null;
+
 const botEventLimit = pe.BOT_EVENT_LIMIT || 100;
 
 const minRoomDeactivationAge = +pe.MIN_ROOM_DEACTIVATION_AGE || 120; // 2 hours
@@ -315,6 +318,7 @@ module.exports = {
   expressLimiterExpire,
   expressLimiterTotal2,
   expressLimiterExpire2,
+  maxSubjectsPerBulkDelete,
   botEventLimit,
   hiddenRoutes,
   ipWhitelistService,

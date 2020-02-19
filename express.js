@@ -105,6 +105,7 @@ if (conf.ipWhitelistService) {
   app.use(ipfilter(env.ipWhitelist, { mode: 'allow', log: false }));
 }
 
+let serverApp;
 if (isDevelopment) {
   const webpack = require('webpack');
   const webpackConfig = require('./webpack.config');
@@ -117,11 +118,11 @@ if (isDevelopment) {
 
   app.use(require('webpack-hot-middleware')(compiler));
 
-  app.listen(PORT, () => {
+  serverApp = app.listen(PORT, () => {
     logger.info(listening, PORT);
   });
 } else {
-  httpServer.listen(PORT, () => {
+  serverApp = httpServer.listen(PORT, () => {
     logger.info(listening, PORT);
   });
 }
@@ -311,4 +312,4 @@ if (featureToggles.isFeatureEnabled('enableSigtermEvent')) {
   });
 }
 
-module.exports = { app, passportModule };
+module.exports = { app, serverApp, passportModule };
