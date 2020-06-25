@@ -110,4 +110,3 @@ Guidelines on contributing to Refocus are available [here](https://salesforce.gi
 - [refocus-ruby](https://github.com/heroku/refocus-ruby) - A ruby library (API wrapper) & CLI project.
 - [refocus-sgt-trust1](https://github.com/salesforce/refocus-sgt-trust1) - A Sample Generator Template for Refocus that pulls data from Salesforce's Trust Status API.
 - [refocus-utilities](https://github.com/salesforce/refocus-utilities) - Some utilities to help keep your Refocus instance running in good health.
-
