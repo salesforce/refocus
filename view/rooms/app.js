@@ -652,7 +652,7 @@ function userEnterRoom() {
  *
  * @returns {Promise} For use in chaining.
  */
-function confirmUserExit() {
+function generateUserExitEvent() {
   const currentUser = {
     name: _user.name,
     id: _user.id,
@@ -676,7 +676,6 @@ function confirmUserExit() {
     roomId: parseInt(ROOM_ID, 10),
   };
   u.postPromiseWithUrl(GET_EVENTS, events);
-  return undefined;
 }
 
 /**
@@ -842,7 +841,7 @@ function setupSocketIOClient(realtimeApp, bots, roomId) {
         }
       }
       document.body.appendChild(elem);
-      confirmUserExit();
+      generateUserExitEvent();
     }
   });
 } // setupSocketIOClient
@@ -1071,7 +1070,7 @@ function buildRedirectUrl(url, roomId) {
   return redirectUrl;
 }
 
-window.addEventListener('beforeunload', confirmUserExit);
+window.addEventListener('beforeunload', generateUserExitEvent);
 
 window.onload = () => {
   // Back button from index.pug
