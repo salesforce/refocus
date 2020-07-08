@@ -171,7 +171,7 @@
     "sequelize": "5.8.*",
     "sequelize-cli": "^4.0.0",
     "sequelize-hierarchy": "^2.0.4",
-    "serialize-javascript": "^1.6.1",
+    "serialize-javascript": "^2.1.1",
     "serve-favicon": "^2.5.0",
     "shelljs": "^0.7.5",
     "socket.io": "^2.2.0",
