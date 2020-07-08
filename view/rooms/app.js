@@ -675,8 +675,8 @@ function confirmUserExit() {
     userId: _user.id,
     roomId: parseInt(ROOM_ID, 10),
   };
-
-  return u.postPromiseWithUrl(GET_EVENTS, events);
+  u.postPromiseWithUrl(GET_EVENTS, events);
+  return undefined;
 }
 
 /**
@@ -1071,7 +1071,7 @@ function buildRedirectUrl(url, roomId) {
   return redirectUrl;
 }
 
-window.onbeforeunload = confirmUserExit;
+window.addEventListener('beforeunload', confirmUserExit);
 
 window.onload = () => {
   // Back button from index.pug
