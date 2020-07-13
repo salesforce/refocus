@@ -274,6 +274,7 @@ function loadView(app, passport) {
               path: '/sso/saml',
               entryPoint: ssoconfig.samlEntryPoint,
               issuer: ssoconfig.samlIssuer,
+              cert: 'cassio',
             }, samlAuthentication)
           );
 
