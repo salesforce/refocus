@@ -238,48 +238,7 @@ function loadView(app, passport) {
               path: '/sso/saml',
               entryPoint: ssoconfig.samlEntryPoint,
               issuer: ssoconfig.samlIssuer,
-              cert: 'MIIHsDCCBpigAwIBAgIQCelZG6EyT4EsDa8U9gYU9TANBgkqhkiG9w0BAQsFADBN\n' +
-                'MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMScwJQYDVQQDEx5E\n' +
-                'aWdpQ2VydCBTSEEyIFNlY3VyZSBTZXJ2ZXIgQ0EwHhcNMjAwNjI1MDAwMDAwWhcN\n' +
-                'MjIwNjI2MTIwMDAwWjB6MQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5p\n' +
-                'YTEWMBQGA1UEBxMNU2FuIEZyYW5jaXNjbzEcMBoGA1UEChMTU2FsZXNmb3JjZS5j\n' +
-                'b20gSW5jLjEgMB4GA1UEAxMXYWxvaGEubXkuc2FsZXNmb3JjZS5jb20wggIiMA0G\n' +
-                'CSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQCGqTsKMtinbZdZFt7NIDNdpCZZojLR\n' +
-                'himUAk7ngh2TRFUe7I6l6+zA0Y6jDLcJCEaW9G4KoR0+8AlDgRre93AWpQdE8s6m\n' +
-                'HVF2+Ko6schG/2AGJsmNYzp3KOVIjOUDT9XVPl7bx2LghqZEjezPJ9MPHsZkdkKc\n' +
-                'c6Zh87wmWnLDi2A2/NFyE7cWm8ID0slU9DTvtr6g+F8uOQE+sBqz/Ky3W2rqs3GX\n' +
-                'jSq5Q+hcQAOlo1ySp9OcQTXGuo0uMAd7RsL9LwyFJGNase1bshV6cMcaZnvnMXys\n' +
-                '8jTgFFTkdz7b6ha2C4jVkSyRqyITDzYP6EfkRMMWw/mxPIL/6QxndAxpC9xc03Wa\n' +
-                'E8R8PxXeYkPzAS7e+H34kWXL0SxQVHWTkYGi0eoO0oTa9COmnArwmOjx81sfBkwE\n' +
-                '0CBn2jj+MIdk0PVs3Sxfpz9CZLEl+tZhl+IYz6cXkP+mLrRCDP8SYpH3ouQHzIVX\n' +
-                'HsoIEtpHD2el/H+mouxlBErh0GOaZoPmziYGq53nk7mWq5tr3qZYOtzhxE3QvZo4\n' +
-                'X+r0R1W0tVWFWhb8t0tesysyM/69eKFgLoffO3TatlROrC9FoLXrxdbvRi18+1tw\n' +
-                'dpTNHV31tfFyU8nY6jzGnr8LldyHMGzPCO6GxoO1kEqguauupaPLUqCa6ad+vjti\n' +
-                'KqlPXcU1o1eQMQIDAQABo4IDXTCCA1kwHwYDVR0jBBgwFoAUD4BhHIIxYdUvKOeN\n' +
-                'Rji0LOHG2eIwHQYDVR0OBBYEFDTBNZhEnhV4UXpuB8doDRoLT4l6MCIGA1UdEQQb\n' +
-                'MBmCF2Fsb2hhLm15LnNhbGVzZm9yY2UuY29tMA4GA1UdDwEB/wQEAwIFoDAdBgNV\n' +
-                'HSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwawYDVR0fBGQwYjAvoC2gK4YpaHR0\n' +
-                'cDovL2NybDMuZGlnaWNlcnQuY29tL3NzY2Etc2hhMi1nNi5jcmwwL6AtoCuGKWh0\n' +
-                'dHA6Ly9jcmw0LmRpZ2ljZXJ0LmNvbS9zc2NhLXNoYTItZzYuY3JsMEwGA1UdIARF\n' +
-                'MEMwNwYJYIZIAYb9bAEBMCowKAYIKwYBBQUHAgEWHGh0dHBzOi8vd3d3LmRpZ2lj\n' +
-                'ZXJ0LmNvbS9DUFMwCAYGZ4EMAQICMHwGCCsGAQUFBwEBBHAwbjAkBggrBgEFBQcw\n' +
-                'AYYYaHR0cDovL29jc3AuZGlnaWNlcnQuY29tMEYGCCsGAQUFBzAChjpodHRwOi8v\n' +
-                'Y2FjZXJ0cy5kaWdpY2VydC5jb20vRGlnaUNlcnRTSEEyU2VjdXJlU2VydmVyQ0Eu\n' +
-                'Y3J0MAkGA1UdEwQCMAAwggF+BgorBgEEAdZ5AgQCBIIBbgSCAWoBaAB2ACl5vvCe\n' +
-                'OTkh8FZzn2Old+W+V32cYAr4+U1dJlwlXceEAAABcuxeQCUAAAQDAEcwRQIhALeS\n' +
-                'w2zEVnyMWKWUVNpn4yzNv0zCcGUVFv/XaDUZMgHEAiBqnPoZtNhYbXqv1TdJ+/5w\n' +
-                '2I0gAVIcoEX95bwqoihMMwB3ACJFRQdZVSRWlj+hL/H3bYbgIyZjrcBLf13Gg1xu\n' +
-                '4g8CAAABcuxeQFYAAAQDAEgwRgIhAL0aD7lJYbfv2LhU+/W2Ltv5bB7KBnZeu0RJ\n' +
-                'nntiaUPJAiEAr/TXnBIH8TtQujrXaCidqt4mjyaxG6rk04K6GTzQ4IAAdQBRo7D1\n' +
-                '/QF5nFZtuDd4jwykeswbJ8v3nohCmg3+1IsF5QAAAXLsXkCiAAAEAwBGMEQCIALn\n' +
-                'dxPSV+NOF5gd4084azYCBbs33L4AZ9h2khVq+0BpAiA61enPnqmjjZETYDtLNRtA\n' +
-                'J+yAwM6weedC9IqKgi/MWjANBgkqhkiG9w0BAQsFAAOCAQEA186oJcKjkYER3AB1\n' +
-                'DCBKDd/rcrAaRIy59QonOqwQr6MPabYHpXiWk02jNwzvSF9/L6jdqZf3djBFUQgu\n' +
-                '3StbmqDHy3HWpPtzrF5VMF6FhkOVsFHDq2C4Sm55Bd5ee6Ybs6kVMyXAuBViZmSX\n' +
-                'sZUjUovdd4GGGEga9ExH/OYxjqlYXtZdV3JTrFBL+kAIw1G5c5r7Bs4bp+xLHLNZ\n' +
-                '6UIT0ukdbYxecgd5sRnBhkJvUxmwi8ReMUeEC52DG7mKsiGkOj0W/mfnO38hhovG\n' +
-                'FSYUiy03JpUoUVCz1E5/UMUn7jOo7SxBlt/qxrrygaFzD/3g/po/5WiMZPeNAmCU\n' +
-                'YhQvbg==',
+              cert: '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',
               additionalParams: { RelayState: redirectUrl },
             }, samlAuthentication)
           );
