@@ -23,8 +23,7 @@ const jwtUtil = require('../utils/jwtUtil');
 const httpStatus = require('./constants').httpStatus;
 const url = require('url');
 const ft = require('feature-toggles');
-const fs = require('fs');
-const { refocusRoomsFeedback } = require('../config');
+const { refocusRoomsFeedback, ssoCert } = require('../config');
 
 const redirectFeature = ft.isFeatureEnabled('enableRedirectDifferentInstance');
 
@@ -231,18 +230,18 @@ function loadView(app, passport) {
         if (ssoconfig) {
           const redirectUrl = getRedirectUrlSSO(req);
 
-          // add relay state to remember redirect url when a response is
-          // returned from SAML IdP in post /sso/saml route
-          passport.use(new SamlStrategy(
-            {
-              path: '/sso/saml',
-              entryPoint: ssoconfig.samlEntryPoint,
-              issuer: ssoconfig.samlIssuer,
-              cert: 'cassio',
-              additionalParams: { RelayState: redirectUrl },
-            }, samlAuthentication)
-          );
+          /* add relay state to remember redirect url when a response is
+             returned from SAML IdP in post /sso/saml route */
+          const sso = {
+            path: '/sso/saml',
+            entryPoint: ssoconfig.samlEntryPoint,
+            issuer: ssoconfig.samlIssuer,
+            additionalParams: { RelayState: redirectUrl },
+          };
 
+          // https://github.com/bergie/passport-saml#security-and-signatures
+          if (ssoCert) sso.cert = ssoCert;
+          passport.use(new SamlStrategy(sso, samlAuthentication));
           return next();
         }
 
@@ -269,15 +268,15 @@ function loadView(app, passport) {
       SSOConfig.findOne()
       .then((ssoconfig) => {
         if (ssoconfig) {
-          passport.use(new SamlStrategy(
-            {
-              path: '/sso/saml',
-              entryPoint: ssoconfig.samlEntryPoint,
-              issuer: ssoconfig.samlIssuer,
-              cert: 'cassio',
-            }, samlAuthentication)
-          );
+          const sso = {
+            path: '/sso/saml',
+            entryPoint: ssoconfig.samlEntryPoint,
+            issuer: ssoconfig.samlIssuer,
+          };
 
+          // https://github.com/bergie/passport-saml#security-and-signatures
+          if (ssoCert) sso.cert = ssoCert;
+          passport.use(new SamlStrategy(sso, samlAuthentication));
           return next();
         }
 

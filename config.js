@@ -345,6 +345,7 @@ module.exports = {
     chatter: pe.REFOCUS_ROOMS_CHATTER_URL || null,
     email: pe.REFOCUS_ROOMS_CONTACT_EMAIL || null,
   },
+  ssoCert: pe.SSO_CERT || null,
   waitingSigKillTimeout,
   findSamplesSscanCount: pe.FIND_SAMPLES_SSCAN_COUNT_STR ||
     DEFAULT_FIND_SAMPLES_SSCAN_COUNT_STR,
