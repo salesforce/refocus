@@ -25,6 +25,8 @@ html
                       span.slds-checkbox_faux
                       span.slds-checkbox_on.slds-text-align--center Active
                       span.slds-checkbox_off.slds-text-align--center Inactive
+                div.slds-form-element(style='float: right')
+                    button#pagingButton.slds-button_neutral.slds-button.slds-text-align--center Call IMC team
                 div.slds-grid.slds-grid_vertical-align-center
                   div(style='vertical-align: middle')#backButton
                     span.slds-icon_container.slds-icon-utility-change_owner.slds-chat-icon
@@ -70,6 +72,18 @@ html
             footer.slds-modal__footer.slds-theme_default
               button#create_room_button.slds-button.slds-button_brand Create Room
               button#room_list_button.slds-button.slds-button_neutral Go To Rooms List
+        div.slds-backdrop.slds-backdrop_open
+    block PageIMCConfirmation
+      div#pageIMC_confirmation_modal(style='display: none')
+        section.slds-modal.slds-fade-in-open.slds-modal_prompt
+          div.slds-modal__container
+            header.slds-modal__header.slds-theme_info.slds-theme_alert-texture
+              h2.slds-text-heading_medium Confirmation Required
+            div.slds-modal__content.slds-p-around_medium
+              p#paging_confirmation_text
+            footer.slds-modal__footer.slds-theme_default
+              button#paging_confirm_button.slds-button.slds-button_neutral Yes
+              button#paging_decline_button.slds-button.slds-button_neutral No
         div.slds-backdrop.slds-backdrop_open
   script(src='/static/scripts/socket.io.js')
   script(src='/static/scripts/jquery-1.11.1.min.js')

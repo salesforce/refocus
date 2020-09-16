@@ -32,6 +32,15 @@ const confirmationModal =
   document.getElementById('active_confirmation_modal');
 const confirmationText =
   document.getElementById('active_confirmation_text');
+
+// Paging IMC Paging Button
+const pagingButton = document.getElementById('pagingButton');
+const pagingIMCConfirmationModal =
+  document.getElementById('pageIMC_confirmation_modal');
+const pagingIMCConfirmationText =
+  document.getElementById('paging_confirmation_text');
+const pagingConfirmButton = document.getElementById('paging_confirm_button');
+const pagingDeclineButton = document.getElementById('paging_decline_button');
 const roomNotFoundModal =
   document.getElementById('room_not_found_modal');
 const notFoundText =
@@ -874,6 +883,56 @@ function closeConfirmationModal() {
 }
 
 /**
+ *  Pages IMC Team
+ */
+
+/**
+ * PagingButton was clicked so need to show modal.
+ *
+ * @param  {Object} event - Clicked on toggle event.
+ */
+function pagingConfirmationModal(event) {
+  event.preventDefault();
+  pagingIMCConfirmationModal.setAttribute(
+    'style',
+    'display:block;'
+  );
+  pagingIMCConfirmationText.innerText =
+    'Would you like to Page IMC team for this room Incident?';
+}
+
+function closePagingModal() {
+  pagingIMCConfirmationModal.setAttribute(
+    'style',
+    'display:none;'
+  );
+}
+
+function pageImcTeam() {
+  closePagingModal();
+  const message = `Paging IMC Team, help needed in Room: ${window.location.href}`;
+  const serviceReq = {
+    name: 'pagerServices',
+    botId: 'Oncall-Bot',
+    roomId: parseInt(ROOM_ID, 10),
+    isPending: true,
+    parameters: [
+      {
+        name: 'services',
+        value: [
+          'PTOGLFT',
+        ],
+      },
+      {
+        name: 'message',
+        value: message,
+      },
+    ],
+  };
+  u.postPromiseWithUrl(GET_ACTIONS, serviceReq);
+}
+
+/**
  * Room not found so we display error message
  * @param {DOM} document - document to display not found modal on
  */
@@ -1085,6 +1144,13 @@ window.onload = () => {
   activeToggle.addEventListener('refocus.events', handleEvents, false);
   confirmButton.onclick = roomStateChanged;
   declineButton.onclick = closeConfirmationModal;
+
+  // Page IMC Team;
+  pagingButton.addEventListener('click', pagingConfirmationModal);
+  pagingButton.addEventListener('refocus.events', handleEvents, false);
+  pagingConfirmButton.onclick = pageImcTeam;
+  pagingDeclineButton.onclick = closePagingModal;
+
   setupColumns();
 
   // Get Url from index.pug
