@@ -898,7 +898,7 @@ function pagingConfirmationModal(event) {
     'display:block;'
   );
   pagingIMCConfirmationText.innerText =
-    'Would you like to Page IMC team for this room Incident?';
+    'Would you like to Page IMC team?';
 }
 
 function closePagingModal() {
