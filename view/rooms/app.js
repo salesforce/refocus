@@ -85,6 +85,7 @@ let firstLoad = true;
 let banner = null;
 let _roomTypeMapping;
 let _defaultRoomType;
+let _PDServiceId;
 
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
@@ -920,7 +921,7 @@ function pageImcTeam() {
       {
         name: 'services',
         value: [
-          'PTOGLFT',
+          _PDServiceId,
         ],
       },
       {
@@ -1146,6 +1147,14 @@ window.onload = () => {
   declineButton.onclick = closeConfirmationModal;
 
   // Page IMC Team;
+  _PDServiceId = pagerDuty;
+  if (!_PDServiceId) {
+    pagingButton.setAttribute(
+      'style',
+      'display:none;'
+    );
+  }
+
   pagingButton.addEventListener('click', pagingConfirmationModal);
   pagingButton.addEventListener('refocus.events', handleEvents, false);
   pagingConfirmButton.onclick = pageImcTeam;

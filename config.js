@@ -345,6 +345,9 @@ module.exports = {
     chatter: pe.REFOCUS_ROOMS_CHATTER_URL || null,
     email: pe.REFOCUS_ROOMS_CONTACT_EMAIL || null,
   },
+  pagerDuty: {
+    serviceId: pe.SERVICE_ID || null,
+  },
   ssoCert: pe.SSO_CERT || null,
   waitingSigKillTimeout,
   findSamplesSscanCount: pe.FIND_SAMPLES_SSCAN_COUNT_STR ||

@@ -23,7 +23,7 @@ const jwtUtil = require('../utils/jwtUtil');
 const httpStatus = require('./constants').httpStatus;
 const url = require('url');
 const ft = require('feature-toggles');
-const { refocusRoomsFeedback, ssoCert } = require('../config');
+const { refocusRoomsFeedback, ssoCert, pagerDuty } = require('../config');
 
 const redirectFeature = ft.isFeatureEnabled('enableRedirectDifferentInstance');
 
@@ -195,6 +195,7 @@ function loadView(app, passport) {
           realtimeApplication: viewConfig.realtimeApplication,
           realtimeApplicationImc: viewConfig.realtimeApplicationImc,
           refocusRoomsFeedback,
+          pagerDuty,
           roomTypeMapping: viewConfig.roomTypeMapping,
           trackingId: viewConfig.trackingId,
           useNewNamespaceFormat: ft.isFeatureEnabled('useNewNamespaceFormat'),
