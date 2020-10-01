@@ -347,6 +347,7 @@ module.exports = {
   },
   pagerDuty: {
     serviceId: pe.SERVICE_ID || null,
+    modalMessage: pe.MODAL_MESSAGE || 'Would you like to Page IMC team?',
   },
   ssoCert: pe.SSO_CERT || null,
   waitingSigKillTimeout,

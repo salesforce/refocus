@@ -98,6 +98,7 @@ html
     var useNewNamespaceFormat = #{useNewNamespaceFormatImc};
     var roomTypeMapping = #{roomTypeMapping};
     var defaultRoomType = '#{defaultRoomType}';
-    var pagerDuty = '#{pagerDuty ? pagerDuty.serviceId : null}';
+    var pdServiceId = '#{pagerDuty ? pagerDuty.serviceId : null}';
+    var pdModalMessage = '#{pagerDuty ? pagerDuty.modalMessage : null}';
   script(src='/static/analytics/app.js')
   script(src='/static/rooms/app.js')

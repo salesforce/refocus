@@ -898,8 +898,7 @@ function pagingConfirmationModal(event) {
     'style',
     'display:block;'
   );
-  pagingIMCConfirmationText.innerText =
-    'Would you like to Page IMC team?';
+  pagingIMCConfirmationText.innerText = pdModalMessage;
 }
 
 function closePagingModal() {
@@ -907,6 +906,7 @@ function closePagingModal() {
     'style',
     'display:none;'
   );
+  alert('Thanks, IMC team was paged and it’s working hard to fix the issue');
 }
 
 function pageImcTeam() {
@@ -1147,7 +1147,7 @@ window.onload = () => {
   declineButton.onclick = closeConfirmationModal;
 
   // Page IMC Team;
-  _PDServiceId = pagerDuty;
+  _PDServiceId = pdServiceId;
   if (!_PDServiceId) {
     pagingButton.setAttribute(
       'style',
