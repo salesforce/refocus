@@ -25,8 +25,6 @@ html
                       span.slds-checkbox_faux
                       span.slds-checkbox_on.slds-text-align--center Active
                       span.slds-checkbox_off.slds-text-align--center Inactive
-                div.slds-form-element(style='float: right')
-                    button#pagingButton.slds-button_neutral(style='margin-right: 1rem').slds-button.slds-text-align--center Page IMC team
                 div.slds-grid.slds-grid_vertical-align-center
                   div(style='vertical-align: middle')#backButton
                     span.slds-icon_container.slds-icon-utility-change_owner.slds-chat-icon
@@ -36,6 +34,8 @@ html
                     h1#title.slds-page-header__title.slds-m-right--small.slds-align-middle(style='width: max-content;')
                     p#subTitle.slds-text-body_small.slds-line-height_reset
                   div(style='width: -webkit-fill-available; text-align: center;')
+                    div(style='width: -webkit-fill-available; text-align:left')
+                      button#pagingButton.slds-button--destructive(style=' float:left').slds-button.slds-text-align--center Page IMC team
                     span#banner.slds-text-body_medium
     block container
       div#botsContainer.slds-grid.slds-grid_align-space.slds-wrap
@@ -82,7 +82,7 @@ html
             div.slds-modal__content.slds-p-around_medium
               p#paging_confirmation_text
             footer.slds-modal__footer.slds-theme_default
-              button#paging_confirm_button.slds-button.slds-button_neutral Yes
+              button#paging_confirm_button.slds-button.slds-button--destructive Yes
               button#paging_decline_button.slds-button.slds-button_neutral No
         div.slds-backdrop.slds-backdrop_open
   script(src='/static/scripts/socket.io.js')
