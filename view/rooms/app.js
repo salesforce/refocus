@@ -906,11 +906,11 @@ function closePagingModal() {
     'style',
     'display:none;'
   );
-  alert('Thanks, IMC team was paged and it’s working hard to fix the issue');
 }
 
 function pageImcTeam() {
   closePagingModal();
+  alert('Thanks, IMC team was paged and it’s working hard to fix the issue');
   const message = `Paging IMC Team, help needed in Room: ${window.location.href}`;
   const serviceReq = {
     name: 'pagerServices',
