@@ -909,7 +909,6 @@ function closePagingModal() {
 }
 
 function pageImcTeam() {
-
   const message = `Paging IMC Team, help needed in Room: ${window.location.href}`;
   const serviceReq = {
     name: 'pagerServices',
@@ -931,7 +930,7 @@ function pageImcTeam() {
   };
   u.postPromiseWithUrl(GET_ACTIONS, serviceReq);
   closePagingModal();
-  alert('Thanks, IMC team was paged and it’s working hard to fix the issue');
+  alert('Thanks, IMC team was paged. We will look into it as soon as possible.');
 }
 
 /**
