@@ -473,9 +473,13 @@ function aspectNamesInHierarchy(hierarchy) {
 
   function traverse(sub) {
     if (sub.samples) {
-      sub.samples.map((samp) => {
-        const aspName = samp.name.split('|')[1].toLowerCase();
-        allAspects.add(aspName);
+      sub.samples.map((sample) => {
+        if (sample && sample.name) {
+          const aspect = sample.name.split('|')[1];
+          if (aspect) {
+            allAspects.add(aspect.toLowerCase());
+          }
+        }
       });
     }
 
