@@ -32,6 +32,15 @@ const confirmationModal =
   document.getElementById('active_confirmation_modal');
 const confirmationText =
   document.getElementById('active_confirmation_text');
+
+// Paging IMC Paging Button
+const pagingButton = document.getElementById('pagingButton');
+const pagingIMCConfirmationModal =
+  document.getElementById('pageIMC_confirmation_modal');
+const pagingIMCConfirmationText =
+  document.getElementById('paging_confirmation_text');
+const pagingConfirmButton = document.getElementById('paging_confirm_button');
+const pagingDeclineButton = document.getElementById('paging_decline_button');
 const roomNotFoundModal =
   document.getElementById('room_not_found_modal');
 const notFoundText =
@@ -76,6 +85,7 @@ let firstLoad = true;
 let banner = null;
 let _roomTypeMapping;
 let _defaultRoomType;
+let _PDServiceId;
 
 // Used when holding a bot over a place it can be dropped
 const placeholderBot = document.createElement('div');
@@ -874,6 +884,56 @@ function closeConfirmationModal() {
 }
 
 /**
+ *  Pages IMC Team
+ */
+
+/**
+ * PagingButton was clicked so need to show modal.
+ *
+ * @param  {Object} event - Clicked on toggle event.
+ */
+function pagingConfirmationModal(event) {
+  event.preventDefault();
+  pagingIMCConfirmationModal.setAttribute(
+    'style',
+    'display:block;'
+  );
+  pagingIMCConfirmationText.innerText = pdModalMessage;
+}
+
+function closePagingModal() {
+  pagingIMCConfirmationModal.setAttribute(
+    'style',
+    'display:none;'
+  );
+}
+
+function pageImcTeam() {
+  const message = `Paging IMC Team, help needed in Room: ${window.location.href}`;
+  const serviceReq = {
+    name: 'pagerServices',
+    botId: 'Oncall-Bot',
+    roomId: parseInt(ROOM_ID, 10),
+    isPending: true,
+    parameters: [
+      {
+        name: 'services',
+        value: [
+          _PDServiceId,
+        ],
+      },
+      {
+        name: 'message',
+        value: message,
+      },
+    ],
+  };
+  u.postPromiseWithUrl(GET_ACTIONS, serviceReq);
+  closePagingModal();
+  alert('Thanks, IMC team was paged. We will look into it as soon as possible.');
+}
+
+/**
  * Room not found so we display error message
  * @param {DOM} document - document to display not found modal on
  */
@@ -1085,6 +1145,21 @@ window.onload = () => {
   activeToggle.addEventListener('refocus.events', handleEvents, false);
   confirmButton.onclick = roomStateChanged;
   declineButton.onclick = closeConfirmationModal;
+
+  // Page IMC Team;
+  _PDServiceId = pdServiceId;
+  if (!_PDServiceId) {
+    pagingButton.setAttribute(
+      'style',
+      'display:none;'
+    );
+  }
+
+  pagingButton.addEventListener('click', pagingConfirmationModal);
+  pagingButton.addEventListener('refocus.events', handleEvents, false);
+  pagingConfirmButton.onclick = pageImcTeam;
+  pagingDeclineButton.onclick = closePagingModal;
+
   setupColumns();
 
   // Get Url from index.pug
