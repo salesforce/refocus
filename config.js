@@ -241,9 +241,8 @@ const environment = {
   },
   test: {
     dbLogging: false, // console.log | false | ...
-    dbUrl: defaultDbUrl,
+    dbUrl: pe.DATABASE_URL,
     defaultNodePort: defaultPort,
-    host: '127.0.0.1',
     ipWhitelist: iplist,
     dialect: 'postgres',
     protocol: 'postgres',

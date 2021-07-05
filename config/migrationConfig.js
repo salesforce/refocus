@@ -27,4 +27,8 @@ module.exports = {
     url: conf.environment.build.dbUrl,
     dialect: conf.environment.build.dialect,
   },
+  test: {
+    url: conf.environment.test.dbUrl,
+    dialect: conf.environment.test.dialect
+  }
 };
