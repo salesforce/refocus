@@ -17,5 +17,12 @@
       "generator": "secret"
     }
   },
-  "stack": "heroku-20"
+  "stack": "heroku-20",
+  "environments": {
+    "test": {
+      "addons":[
+        "heroku-redis:in-dyno"
+      ]
+    }
+  }
 }
