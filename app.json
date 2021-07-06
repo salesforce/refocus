@@ -27,7 +27,7 @@
       "addons":[
         "heroku-redis:in-dyno",
         "heroku-postgresql:in-dyno"
-      ],
+      ]
       
     }
   }
