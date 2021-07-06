@@ -20,23 +20,15 @@
   "stack": "heroku-20",
   "environments": {
     "test": {
+      "scripts": {
+        "test-setup": "npm run checkdb",
+        "test": "npm run test"
+      },
       "addons":[
         "heroku-redis:in-dyno",
         "heroku-postgresql:in-dyno"
-      ]
-    },
-    "env": {
-      "PGSSLMODE": {
-        "value": "disable"
-      },
-      "SECRET_TOKEN": {
-        "description": "A secret key for creating jwt token used for authentication.",
-        "generator": "secret"
-      },
-      "SESSION_SECRET": {
-        "description": "A secret key for signing the session ID cookie.",
-        "generator": "secret"
-      }
+      ],
+      
     }
   }
 }
