@@ -240,12 +240,15 @@ const environment = {
     defaultAdminPassword: defaultDevPassword,
   },
   test: {
-    dbLogging: false, // console.log | false | ...
+    dbLogging: console.log, // console.log | false | ...
     dbUrl: defaultDbUrl,
     defaultNodePort: defaultPort,
     host: '127.0.0.1',
     ipWhitelist: iplist.push('::ffff:127.0.0.1'),
     dialect: 'postgres',
+    dialectOptions: {
+      ssl: true,
+    },
     tokenSecret: 'CHANGE_ME',
     defaultAdminPassword: defaultDevPassword,
   }
