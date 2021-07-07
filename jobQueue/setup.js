@@ -34,6 +34,7 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
   redisOptions.redis = 'redis:' + redisOptions.redis;
   redisUrlForBull = 'redis:' + redisUrlForBull;
 }
+console.log(`Node Env is ${conf.nodeEnv}`);
 console.log(`RedisUrlForBull = ${redisUrlForBull}`);
 
 /**
