@@ -242,13 +242,13 @@ const environment = {
   },
   test: {
     dbLogging: console.log, // console.log | false | ...
-    dbUrl: `${pe.DATABASE_URL}?ssl=true`,
+    dbUrl: pe.DATABASE_URL,
     defaultNodePort: defaultPort,
     host: '127.0.0.1',
     ipWhitelist: iplist.push('::ffff:127.0.0.1'),
     dialect: 'postgres',
     dialectOptions: {
-      ssl: true,
+      ssl: 'prefer',
       native: true
     },
     tokenSecret: 'CHANGE_ME',
