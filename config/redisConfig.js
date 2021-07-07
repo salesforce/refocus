@@ -15,10 +15,13 @@
 'use strict'; // eslint-disable-line strict
 const pe = process.env; // eslint-disable-line no-process-env
 const DEFAULT_LOCAL_REDIS_URL = '//127.0.0.1:6379';
-const PRIMARY_REDIS = (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL);
+let PRIMARY_REDIS = (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL);
 const perspectiveChannelName = 'focus';
 const botChannelName = 'imc';
 
+if (PRIMARY_REDIS.slice(-1) === '/') {
+  PRIMARY_REDIS = PRIMARY_REDIS.slice(0, -1);
+}
 let pubsubPerspectives = [PRIMARY_REDIS];
 if (pe.REDIS_PUBSUB_PERSPECTIVES) {
   const arr = pe.REDIS_PUBSUB_PERSPECTIVES.split(',')
@@ -34,6 +37,7 @@ module.exports = {
   perspectiveChannelName,
   botChannelName,
   instanceUrl: {
+
     /*
      * Cache perspectives, lenses, etc.
      */
@@ -98,6 +102,7 @@ module.exports = {
       pe[pe.REDIS_SESSION] : PRIMARY_REDIS,
   },
   retryStrategy: {
+
     /* Number of times to attempt to reconnect. Default 100. */
     attempt: +pe.REDIS_RETRY_ATTEMPT || 100,
 
