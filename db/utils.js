@@ -145,6 +145,7 @@ if (conf.readReplicas) {
 } else if (conf.nodeEnv === 'test') {
   opts.dialect = env.dialect;
   opts.dialectOptions = env.dialectOptions;
+  seq = new Sequelize(primaryDb.name, null, null, opts);
 } else {
   seq = new Sequelize(env.dbUrl, opts);
 }
