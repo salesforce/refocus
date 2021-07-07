@@ -34,6 +34,7 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
   redisOptions.redis = 'redis:' + redisOptions.redis;
   redisUrlForBull = 'redis:' + redisUrlForBull;
 }
+console.log(`RedisUrlForBull = ${redisUrlForBull}`);
 
 /**
  * Creates a job queue and adds it to the list of queues
