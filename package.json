@@ -63,7 +63,7 @@
     "test-travis": "npm run test && npm run coveralls",
     "test-routes-enabled": "HIDE_ROUTES=true HIDDEN_ROUTES=aspects mocha -R dot --recursive tests/routeFlag/flagEnabled",
     "test-routes-disabled": "HIDE_ROUTES=false HIDDEN_ROUTES=aspects mocha -R dot --recursive tests/routeFlag/flagDisabled",
-    "test-view": "NODE_ENV=build npm run test-with-coverage -- --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view",
+    "test-view": "NODE_ENV=test npm run test-with-coverage -- --recursive --compilers js:babel-core/register --require ./tests/view/setup.js tests/view",
     "test-with-coverage": "istanbul cover ./node_modules/mocha/bin/_mocha --report none --print none --include-pid -- -R dot",
     "test-xfwd": "REJECT_MULTIPLE_X_FORWARDED_FOR=true npm run test-with-coverage -- --recursive tests/xfwd",
     "test-graceful-shutdown": "npm run test-with-coverage -- --recursive tests/kue/setup.js tests/signal",
