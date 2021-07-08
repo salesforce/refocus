@@ -202,7 +202,8 @@ module.exports = {
         email: `${defaultUserName}third@refocus.com`,
         password: 'user123password',
       })
-    );
+    )
+    .catch((err) => console.log('Create second user failed', err.name));
   },
 
   // create another user
@@ -217,7 +218,8 @@ module.exports = {
         email: `${defaultUserName}second@refocus.com`,
         password: 'user123password',
       })
-    );
+    )
+    .catch((err) => console.log('Create second user failed', err.name));
   },
 
   // create a token with the given userName
@@ -242,7 +244,8 @@ module.exports = {
       user.profile = profile.dataValues;
       const token = jwtUtil.createToken(userName, userName);
       return { user, token };
-    });
+    })
+    .catch((err) => console.log('Create user and token failed', err.name));
   },
 
   // create user object from a given user name
@@ -254,7 +257,8 @@ module.exports = {
       email: usrName + '@' + usrName + '.com',
       password: usrName,
     }, db.User.options.defaultScope))
-    .then((user) => user.reload());
+    .then((user) => user.reload())
+    .catch((err) => console.log('Create user failed', err.name));
   },
 
   // create user and corresponding token to be used in api tests.
@@ -269,7 +273,7 @@ module.exports = {
       }); })
     .then(() => jwtUtil.createToken(userName, userName))
     .catch((err) => {
-      console.log('Create token failure:', err);
+      console.log('Create token failure:', err.name);
       return 'asdc';
     });
   }, // createToken

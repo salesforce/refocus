@@ -769,7 +769,7 @@ describe('tests/publish/subjects.js >', () => {
         .end((err, res) => {
           if (err) {
             console.log(res);
-            return done(`Blah - ${JSON.stringify(res)}`);
+            return done(err);
           }
 
           expect(subscribeTracker).to.have.length(0);
@@ -780,11 +780,11 @@ describe('tests/publish/subjects.js >', () => {
             .expect(constants.httpStatus.OK)
             .end((_err, _res) => {
               if (_err) {
-                return done(`Blah blah ${err}`);
+                return done(err);
               }
 
               expect(subscribeTracker).to.have.length(0);
-              done();
+              return done();
             });
         });
     });
