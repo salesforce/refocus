@@ -34,11 +34,11 @@
         },
         "SECRET_TOKEN": {
           "description": "A secret key for creating jwt token used for authentication.",
-          "generator": "secret"
+          "value": "CHANGE_ME"
         },
         "SESSION_SECRET": {
           "description": "A secret key for signing the session ID cookie.",
-          "generator": "secret"
+          "value": "CHANGE_ME"
         }
       }
     }
