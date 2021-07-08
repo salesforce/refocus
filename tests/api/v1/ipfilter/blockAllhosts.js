@@ -10,7 +10,7 @@
  * tests/api/v1/ipfilter/blockAllhosts.js
  */
 'use strict';
-process.env.NODE_ENV = 'testBlockAllhosts';
+
 const supertest = require('supertest');
 const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');
