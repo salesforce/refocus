@@ -43,14 +43,12 @@ const Sample = {
     const commands = [];
     return redisClient.sortAsync(sampleStore.constants.indexKey.sample, 'alpha')
     .then((sampleKeys) => {
-
       sampleKeys.forEach((key) => {
         commands.push(['hgetall', key]);
       });
 
       return redisClient.batch(commands).execAsync();
     }).catch((err) => err);
-
   }, // findAll
 
   // Returns a sample object given its name
@@ -262,13 +260,18 @@ module.exports = {
   // create user and corresponding token to be used in api tests.
   createToken(userName=defaultUserName) {
     return db.Profile.create({ name: `${pfx}${userName}testProfile` })
-    .then((createdProfile) => db.User.create({
-      profileId: createdProfile.id,
-      name: userName,
-      email: `${userName}@refocus.com`,
-      password: 'user123password',
-    }))
-    .then(() => jwtUtil.createToken(userName, userName));
+    .then((createdProfile) => {
+      return db.User.create({
+        profileId: createdProfile.id,
+        name: userName,
+        email: `${userName}@refocus.com`,
+        password: 'user123password',
+      }); })
+    .then(() => jwtUtil.createToken(userName, userName))
+    .catch((err) => {
+      console.log('Create token failure:', err);
+      return 'asdc';
+    });
   }, // createToken
 
   createGeneratorToken(tokenName) {

@@ -18,7 +18,7 @@ describe('tests/jobQueue/index.js >', () => {
   afterEach(() => subprocess.kill());
 
   it('default config', () =>
-    runWorker()
+    runWorker({ NODE_ENV: 'test' })
     .then((workerCount) => {
       if (toggles.isFeatureEnabled('anyBullEnabled')) {
         expect(workerCount).to.deep.equal({
