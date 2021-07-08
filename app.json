@@ -40,7 +40,7 @@
           "description": "A secret key for signing the session ID cookie.",
           "generator": "secret"
         }
-      },
+      }
     }
   }
 }
