@@ -30,15 +30,7 @@
       ],
       "env": {
         "PGSSLMODE": {
-          "value": "require"
-        },
-        "SECRET_TOKEN": {
-          "description": "A secret key for creating jwt token used for authentication.",
-          "value": "CHANGE_ME"
-        },
-        "SESSION_SECRET": {
-          "description": "A secret key for signing the session ID cookie.",
-          "value": "CHANGE_ME"
+          "value": "prefer"
         }
       }
     }
