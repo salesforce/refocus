@@ -222,7 +222,8 @@ function initializeAdminUserAndProfile() {
 
     return seq.models.User.create(adminUser);
   })
-  .then(() => 'Initialize Admin User and Profile... OK');
+  .then(() => 'Initialize Admin User and Profile... OK')
+  .catch((err) => `Caught the error ${JSON.stringify(err)}`);
 } // initializeAdminUserAndProfile
 
 /**
