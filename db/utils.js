@@ -147,6 +147,7 @@ if (conf.readReplicas) {
   opts.dialectOptions = env.dialectOptions;
   seq = new Sequelize(primaryDb.name, null, null, opts);
 } else {
+  console.log(`Instantiate sequelize with env.dbUrl: ${env.dbUrl}. conf.nodeEnv = ${conf.nodeEnv}`);
   seq = new Sequelize(env.dbUrl, opts);
 }
 
