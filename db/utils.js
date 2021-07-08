@@ -141,10 +141,12 @@ const opts = {
 if (conf.readReplicas) {
   opts.dialect = env.dialect;
   opts.replication = getDBReplicationObject(primaryDb);
+  console.log(`conf.readReplicas Instantiate sequelize with primaryDb.name: ${primaryDb.name}. conf.nodeEnv = ${conf.nodeEnv}. opts: ${JSON.stringify(opts)}`);
   seq = new Sequelize(primaryDb.name, null, null, opts);
 } else if (conf.nodeEnv === 'test') {
   opts.dialect = env.dialect;
   opts.dialectOptions = env.dialectOptions;
+  console.log(`Instantiate sequelize with primaryDb.name: ${primaryDb.name}. conf.nodeEnv = ${conf.nodeEnv}. opts: ${JSON.stringify(opts)}`);
   seq = new Sequelize(primaryDb.name, null, null, opts);
 } else {
   console.log(`Instantiate sequelize with env.dbUrl: ${env.dbUrl}. conf.nodeEnv = ${conf.nodeEnv}`);
