@@ -251,7 +251,7 @@ describe('tests/limiter/limiter.js >', () => {
       .then((res) => {
         expect(res.status).to.equal(constants.httpStatus.CREATED);
         expect(res.header['x-ratelimit-limit']).to.equal('3');
-        expect(res.header['x-ratelimit-remaining']).to.equal('1'); //TODO: should be failing
+        expect(res.header['x-ratelimit-remaining']).to.equal('1'); // TODO: should be failing
       })
       .then(() => makeRequest('/v1/aspects', 'post', token2))
       .then((res) => {
@@ -328,7 +328,7 @@ describe('tests/limiter/limiter.js >', () => {
 
     function testLogMessage(msg) {
       const logObj = {};
-      logObj.activity = msg.split(' ')[0].split('=')[1]; //gets activity param from log
+      logObj.activity = msg.split(' ')[0].split('=')[1]; // gets activity param from log
       try {
         expect(logObj.activity).to.equal('limiter');
         doneCopy();
@@ -382,6 +382,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_LOOKUP: 'headers.UserName',
         EXPRESS_LIMITER_TOTAL: '4',
         EXPRESS_LIMITER_EXPIRE: '3000',
+        NODE_ENV: 'test',
       };
       doFork('envToConf', env)
       .then((conf) => {
@@ -402,6 +403,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_LOOKUP: 'headers.UserName,headers.ip',
         EXPRESS_LIMITER_TOTAL: '4',
         EXPRESS_LIMITER_EXPIRE: '3000',
+        NODE_ENV: 'test',
       };
       doFork('envToConf', env)
       .then((conf) => {
@@ -424,6 +426,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_LOOKUP: '',
         EXPRESS_LIMITER_TOTAL: '',
         EXPRESS_LIMITER_EXPIRE: '',
+        NODE_ENV: 'test',
       };
       doFork('envToConf', env)
       .then((conf) => {
@@ -580,6 +583,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_LOOKUP: 'headers.UserName',
         EXPRESS_LIMITER_TOTAL: '4',
         EXPRESS_LIMITER_EXPIRE: '3000',
+        NODE_ENV: 'test',
       };
       doFork('basicRequests', env)
       .then(() => doSend('/v1/aspects', 'post')).then(expectLimited)
@@ -596,6 +600,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_METHOD: 'post',
         EXPRESS_LIMITER_TOTAL: '4',
         EXPRESS_LIMITER_EXPIRE: '3000',
+        NODE_ENV: 'test',
       };
       doFork('basicRequests', env)
       .then(() => doSend('/v1/aspects', 'post')).then(expectLimited)
@@ -612,6 +617,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_METHOD: 'get,post',
         EXPRESS_LIMITER_TOTAL: '4',
         EXPRESS_LIMITER_EXPIRE: '3000',
+        NODE_ENV: 'test',
       };
       doFork('basicRequests', env)
       .then(() => doSend('/v1/aspects', 'post')).then(expectLimited)
@@ -627,6 +633,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_METHOD: 'all',
         EXPRESS_LIMITER_TOTAL: '4',
         EXPRESS_LIMITER_EXPIRE: '3000',
+        NODE_ENV: 'test',
       };
       doFork('basicRequests', env)
       .then(() => doSend('/v1/aspects', 'post')).then(expectLimited)
@@ -643,6 +650,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_METHOD: 'all',
         EXPRESS_LIMITER_TOTAL: '4',
         EXPRESS_LIMITER_EXPIRE: '3000',
+        NODE_ENV: 'test',
       };
       doFork('basicRequests', env)
       .then(() => doSend('/v1/aspects', 'get')).then(expectNotLimited)
@@ -658,6 +666,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_METHOD: 'all',
         EXPRESS_LIMITER_TOTAL: '4',
         EXPRESS_LIMITER_EXPIRE: '3000',
+        NODE_ENV: 'test',
       };
       doFork('basicRequests', env)
       .then(() => doSend('/v1/aspects', 'get')).then(expectLimited)
@@ -673,6 +682,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_METHOD: 'POST',
         EXPRESS_LIMITER_TOTAL: '4',
         EXPRESS_LIMITER_EXPIRE: '3000',
+        NODE_ENV: 'test',
       };
       doFork('basicRequests', env)
       .then(() => doSend('/v1/aspects', 'post'))
@@ -687,6 +697,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_LOOKUP: 'headers.UserName',
         EXPRESS_LIMITER_TOTAL: '4',
         EXPRESS_LIMITER_EXPIRE: '3000',
+        NODE_ENV: 'test',
       };
       doFork('basicRequests', env)
       .then(() => doSend('/v1/aspects', 'post'))
@@ -701,6 +712,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_LOOKUP: 'headers.UserName',
         EXPRESS_LIMITER_TOTAL: '4',
         EXPRESS_LIMITER_EXPIRE: '3000',
+        NODE_ENV: 'test',
       };
       doFork('basicRequests', env)
       .then(() => doSend('/v1/aspects', 'post'))
@@ -715,6 +727,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_METHOD: 'POST',
         EXPRESS_LIMITER_TOTAL: '4',
         EXPRESS_LIMITER_EXPIRE: '3000',
+        NODE_ENV: 'test',
       };
       doFork('basicRequests', env)
       .then(() => doSend('/v1/aspects', 'post'))
@@ -729,6 +742,7 @@ describe('tests/limiter/limiter.js >', () => {
         EXPRESS_LIMITER_METHOD: 'aaa',
         EXPRESS_LIMITER_TOTAL: '4',
         EXPRESS_LIMITER_EXPIRE: '3000',
+        NODE_ENV: 'test',
       };
       doFork('basicRequests', env)
       .then(() => doSend('/v1/aspects', 'post'))
