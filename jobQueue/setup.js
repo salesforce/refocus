@@ -36,6 +36,7 @@ if (redisInfo.protocol !== PROTOCOL_PREFIX) {
 }
 console.log(`Node Env is ${conf.nodeEnv}`);
 console.log(`RedisUrlForBull = ${redisUrlForBull}`);
+console.log(`Process.env.REDIS_URL is ${process.env.REDIS_URL}`);
 
 /**
  * Creates a job queue and adds it to the list of queues
