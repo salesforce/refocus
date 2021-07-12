@@ -4,19 +4,6 @@
   "repository": "https://github.com/salesforce/refocus",
   "keywords": ["node", "refocus", "salesforce"],
   "addons": ["heroku-postgresql:hobby-dev", "heroku-redis:hobby-dev"],
-  "env": {
-    "PGSSLMODE": {
-      "value": "require"
-    },
-    "SECRET_TOKEN": {
-      "description": "A secret key for creating jwt token used for authentication.",
-      "generator": "secret"
-    },
-    "SESSION_SECRET": {
-      "description": "A secret key for signing the session ID cookie.",
-      "generator": "secret"
-    }
-  },
   "stack": "heroku-20",
   "environments": {
     "test": {
@@ -31,6 +18,36 @@
       "env": {
         "PGSSLMODE": {
           "value": "prefer"
+        }
+      }
+    },
+    "production": {
+      "env": {
+        "PGSSLMODE": {
+          "value": "require"
+        },
+        "SECRET_TOKEN": {
+          "description": "A secret key for creating jwt token used for authentication.",
+          "generator": "secret"
+        },
+        "SESSION_SECRET": {
+          "description": "A secret key for signing the session ID cookie.",
+          "generator": "secret"
+        }
+      }
+    },
+    "sandbox": {
+      "env": {
+        "PGSSLMODE": {
+          "value": "require"
+        },
+        "SECRET_TOKEN": {
+          "description": "A secret key for creating jwt token used for authentication.",
+          "generator": "secret"
+        },
+        "SESSION_SECRET": {
+          "description": "A secret key for signing the session ID cookie.",
+          "generator": "secret"
         }
       }
     }
