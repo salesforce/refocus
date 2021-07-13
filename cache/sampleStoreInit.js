@@ -25,7 +25,6 @@ const infoLoggingEnabled =
   featureToggles.isFeatureEnabled('enableSampleStoreInfoLogging');
 const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
 const redisOps = require('./redisOps');
-const Promise = require('bluebird');
 const ONE = 1;
 const ZERO = 0;
 
