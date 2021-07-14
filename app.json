@@ -17,7 +17,7 @@
       ],
       "env": {
         "PGSSLMODE": {
-          "value": "require"
+          "value": "prefer"
         },
         "SECRET_TOKEN": {
           "description": "A secret key for creating jwt token used for authentication.",
