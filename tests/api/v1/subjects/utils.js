@@ -37,11 +37,11 @@ module.exports = {
   },
 
   forceDelete(done, startTime=testStartTime) {
-    Promise.all(
+    Promise.all([
       samstoinit.eradicate(),
       tu.forceDelete(tu.db.Aspect, startTime)
       .then(() => tu.forceDelete(tu.db.Subject, startTime))
-    )
+    ])
     .then(() => done())
     .catch(done);
   },

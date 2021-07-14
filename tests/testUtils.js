@@ -273,8 +273,7 @@ module.exports = {
       }); })
     .then(() => jwtUtil.createToken(userName, userName))
     .catch((err) => {
-      console.log('Create token failure:', err.name);
-      return 'asdc';
+      return err;
     });
   }, // createToken
 
