@@ -271,10 +271,7 @@ module.exports = {
         email: `${userName}@refocus.com`,
         password: 'user123password',
       }); })
-    .then(() => jwtUtil.createToken(userName, userName))
-    .catch((err) => {
-      return err;
-    });
+    .then(() => jwtUtil.createToken(userName, userName));
   }, // createToken
 
   createGeneratorToken(tokenName) {
