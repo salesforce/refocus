@@ -11,6 +11,7 @@
  */
 'use strict';
 const tu = require('../../../testUtils');
+const Promise = require('bluebird');
 const testStartTime = new Date();
 const samstoinit = require('../../../../cache/sampleStoreInit');
 const rcli = require('../../../../cache/redisCache').client.sampleStore;
