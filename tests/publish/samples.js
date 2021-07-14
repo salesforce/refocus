@@ -100,7 +100,7 @@ describe('tests/publish/samples.js >', () => {
 
   before((done) => {
     before(() => tu.toggleOverride('enableRedisSampleStore', true));
-    subscriber = redis.createClient(DEFAULT_LOCAL_REDIS_URL);
+    subscriber = redis.createClient(rconf.instanceUrl.queue);
     subscriber.subscribe(rconf.perspectiveChannelName);
     subscriber.on('message', (channel, msg) => subscribeTracker.push(msg));
 
@@ -482,7 +482,7 @@ describe('tests/publish/samples.js >', () => {
     it('sample.add event', (done) => {
       api.post('/v1/samples', token)
         .set('Authorization', token)
-        .send({ subjectId: subj.id, aspectId: asp.id})
+        .send({ subjectId: subj.id, aspectId: asp.id })
         .end((err, res) => {
           if (err) {
             return done(err);
@@ -490,14 +490,14 @@ describe('tests/publish/samples.js >', () => {
 
           awaitSubscribeMessages()
           .then((messages) => {
-          expect(messages).to.have.length(1);
-          const s0 = JSON.parse(messages[0]);
-          expect(s0).to.have.property(sampleEvents.add);
-          const s0Body = s0[sampleEvents.add];
-          expect(s0Body).to.have.all.keys(...sampleAttributes,
+            expect(messages).to.have.length(1);
+            const s0 = JSON.parse(messages[0]);
+            expect(s0).to.have.property(sampleEvents.add);
+            const s0Body = s0[sampleEvents.add];
+            expect(s0Body).to.have.all.keys(...sampleAttributes,
             'aspectId', 'subjectId');
-          expect(s0Body.aspect).to.have.all.keys('name', 'tags');
-          expect(s0Body.subject).to.have.all.keys('absolutePath', 'tags');
+            expect(s0Body.aspect).to.have.all.keys('name', 'tags');
+            expect(s0Body.subject).to.have.all.keys('absolutePath', 'tags');
             done();
           })
           .catch(done);
@@ -590,7 +590,6 @@ describe('tests/publish/samples.js >', () => {
       .then(() => resetSubscribeTracking()));
 
     it('got sample.update event', (done) => {
-
       doTimeout(mockUpdatedAt)
         .then((timeoutResponse) => {
           awaitSubscribeMessages()

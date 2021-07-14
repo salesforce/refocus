@@ -16,7 +16,10 @@ const u = require('./utils');
 
 u.doImport();
 u.seq.sync(false);
-u.initializeAdminUserAndProfile();
+u.initializeAdminUserAndProfile()
+  .catch((err) => {
+    console.log('Failed to initialize database User', err);
+  });
 const db = u.seq.models;
 db.sequelize = u.seq;
 db.Sequelize = u.Sequelize;

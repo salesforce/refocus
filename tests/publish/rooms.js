@@ -31,7 +31,7 @@ describe('tests/publish/rooms.js >', () => {
   let testRoomType;
 
   before((done) => {
-    subscriber = redis.createClient(DEFAULT_LOCAL_REDIS_URL);
+    subscriber = redis.createClient(rconf.instanceUrl.queue);
     subscriber.subscribe(rconf.botChannelName);
     subscriber.on('message', (channel, msg) => subscribeTracker.push(msg));
 
@@ -152,7 +152,6 @@ describe('tests/publish/rooms.js >', () => {
     // TODO ask IMC if we should be emitting events for changes to settings/name for an inactive room
     it('modify name of inactive room, get settingsChanged event?');
     it('modify settings of inactive room, get settingsChanged event?');
-
   });
 
   describe('DELETE >', () => {

@@ -86,7 +86,7 @@ function doCommand({ command, name, url, token, refocusProxy, dataSourceProxy })
 function doFork(args) {
   const opts = {
     silent: true,
-    env: {},
+    env: { NODE_ENV: 'test' },
     // env: { DEBUG: 'refocus-collector:*' },
   };
   const forkPath = require.resolve('./runCollector');
@@ -203,7 +203,6 @@ function tick(ms) {
       );
     })
   );
-
 }
 
 function tickSync(clock, ms) {

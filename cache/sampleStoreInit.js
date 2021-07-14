@@ -94,6 +94,7 @@ function eradicate() {
       redisClient.smembersAsync(constants.indexKey[s])
         .then((keys) => {
           if (constants.indexKey[s] === constants.indexKey.sample) {
+
             /**
              * this is done to delete keys prefixed with "samsto:subaspmap:" and
              * "samsto:aspsubmap:"
@@ -103,6 +104,7 @@ function eradicate() {
           }
 
           if (constants.indexKey[s] === constants.indexKey.aspect) {
+
             /**
              * delete aspect tags/writers/ranges keys
              */
@@ -116,6 +118,7 @@ function eradicate() {
           }
 
           if (constants.indexKey[s] === constants.indexKey.subject) {
+
             /**
              * delete subject tags/writers/ranges keys
              */
@@ -360,7 +363,6 @@ function storeSampleToCacheOrDb() {
        * needs to be taken based on the current status
       */
       if (previousStatus !== currentStatus) {
-
         /*
          * call "popluate" when "enableRedisSampleStore" flag has been changed
          * from false to true. Call "eradicate" and "storeSampleToDb" when

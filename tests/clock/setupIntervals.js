@@ -136,7 +136,7 @@ describe('tests/clock/setupIntervals.js >', () => {
     });
 
     before(() => jobProcessor.processClockJobs(jobs, config));
-    beforeEach(() => env = { ENABLE_WORKER_PROCESS: true });
+    beforeEach(() => env = { ENABLE_WORKER_PROCESS: true, NODE_ENV: 'test' });
     afterEach((() => workerSpy1.resetHistory()));
     afterEach((() => workerSpy2.resetHistory()));
 
@@ -210,7 +210,6 @@ describe('tests/clock/setupIntervals.js >', () => {
         u.expectCalled('job2', false);
       });
     });
-
   });
 
   describe('toggles >', () => {
@@ -226,7 +225,7 @@ describe('tests/clock/setupIntervals.js >', () => {
       toggles: {},
     };
 
-    const env = {};
+    const env = { NODE_ENV: 'test' };
 
     it('no toggles', () => {
       config.toggles.job1 = undefined;

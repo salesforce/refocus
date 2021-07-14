@@ -142,6 +142,10 @@ if (conf.readReplicas) {
   opts.dialect = env.dialect;
   opts.replication = getDBReplicationObject(primaryDb);
   seq = new Sequelize(primaryDb.name, null, null, opts);
+} else if (conf.nodeEnv === 'test') {
+  opts.dialect = env.dialect;
+  opts.dialectOptions = env.dialectOptions;
+  seq = new Sequelize(env.dbUrl, opts);
 } else {
   seq = new Sequelize(env.dbUrl, opts);
 }
@@ -339,7 +343,7 @@ function reset() {
 
 // Polyfill Array "includes" -- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
 if (!Array.prototype.includes) {
-  Array.prototype.includes = function (searchElement /*, fromIndex*/) {
+  Array.prototype.includes = function (searchElement /* , fromIndex*/) {
     'use strict';
     if (this == null) {
       throw new TypeError('Array.prototype.includes called on null or undefined');
@@ -357,7 +361,7 @@ if (!Array.prototype.includes) {
       k = n;
     } else {
       k = len + n;
-      if (k < 0) {k = 0;}
+      if (k < 0) { k = 0; }
     }
 
     var currentElement;
@@ -389,7 +393,7 @@ function combineScopes(scopes, model) {
   const scopedModel = model.scope(scopes);
   const combinedScope = scopedModel._scope;
   return combinedScope;
-} //combineScopes
+} // combineScopes
 
 module.exports = {
   clog,

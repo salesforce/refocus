@@ -240,6 +240,19 @@ const environment = {
     tokenSecret: 'CHANGE_ME',
     defaultAdminPassword: defaultDevPassword,
   },
+  test: {
+    dbLogging: console.log, // console.log | false | ...
+    dbUrl: pe.DATABASE_URL,
+    defaultNodePort: defaultPort,
+    ipWhitelist: iplist.push('::ffff:127.0.0.1'),
+    dialect: 'postgres',
+    dialectOptions: {
+      ssl: true,
+      native: true
+    },
+    tokenSecret: 'CHANGE_ME',
+    defaultAdminPassword: defaultDevPassword,
+  }
 };
 
 const db = {

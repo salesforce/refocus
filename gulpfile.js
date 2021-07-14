@@ -82,7 +82,7 @@ function browserifyTask() {
    * @param {Array} pathToApp Array of Path to source app files.
    * @return {Object} bundle Bundled dependencies.
    */
-  function rebundle(pathToApp) {
+  function rebundle(pathToApp, resolve) {
     var tasks = pathToApp.map((entry) => {
       const outputPath = entry.split('/').splice(2).join('/');
       const props = {
@@ -90,6 +90,7 @@ function browserifyTask() {
         debug: true,
         transform: [babelify],
       };
+      console.log('Building', outputPath);
 
       return browserify(props).transform('uglifyify').bundle()
         .pipe(source(outputPath))
@@ -101,11 +102,11 @@ function browserifyTask() {
         });
     });
 
-    return es.merge.apply(null, tasks);
+    return es.merge.apply(null, tasks).once('end', () => resolve());
   }
 
   const appFiles = getAppFiles(conf.view.dir);
-  return rebundle(appFiles);
+  return new Promise((resolve) => rebundle(appFiles, resolve));
 }
 
 /*
@@ -115,17 +116,17 @@ function browserifyTask() {
 gulp.task('browserifyViews', browserifyTask);
 
 /*
- * Runs the default tasks.
- */
-gulp.task('default', conf.tasks.default);
-
-/*
  * Copies css files over to public.
  */
 gulp.task('movecss', () =>
   gulp.src(conf.view.dir + conf.view.cssFiles)
     .pipe(gulp.dest(conf.view.dest))
 );
+
+/*
+ * Runs the default tasks.
+ */
+gulp.task('default', gulp.parallel(conf.tasks.default));
 
 /*
  * Copy git pre-commit script to git hooks.

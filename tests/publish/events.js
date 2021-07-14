@@ -28,7 +28,7 @@ describe('tests/publish/events.js >', () => {
   let subscribeTracker = [];
 
   before((done) => {
-    subscriber = redis.createClient(DEFAULT_LOCAL_REDIS_URL);
+    subscriber = redis.createClient(rconf.instanceUrl.queue);
     subscriber.subscribe(rconf.botChannelName);
     subscriber.on('message', (channel, msg) => subscribeTracker.push(msg));
 

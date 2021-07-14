@@ -57,6 +57,7 @@ function assignKeyValue(object, key, value) {
  * @param  {Object} payload - decoded data from token
  */
 function assignHeaderValues(req, payload) {
+
   /*
    * username and tokenname should always be there if createToken function is
    * used for creating token
@@ -288,6 +289,7 @@ function verifyUserToken(payload, req, cb) {
 function verifyToken(req, cb) {
   const token = (req.session && req.session.token) || req.headers.authorization;
   if (token) {
+    console.log('verifyToken:', token);
     return jwtVerifyAsync(token, secret, {})
     .then((payload) => {
       let extraVerification;

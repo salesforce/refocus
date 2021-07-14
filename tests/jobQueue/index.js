@@ -18,7 +18,7 @@ describe('tests/jobQueue/index.js >', () => {
   afterEach(() => subprocess.kill());
 
   it('default config', () =>
-    runWorker()
+    runWorker({ NODE_ENV: 'test' })
     .then((workerCount) => {
       if (toggles.isFeatureEnabled('anyBullEnabled')) {
         expect(workerCount).to.deep.equal({
@@ -50,6 +50,7 @@ describe('tests/jobQueue/index.js >', () => {
       WORKER_JOB_CONCURRENCY_bulkUpsertSamples: 2,
       WORKER_JOB_CONCURRENCY_getHierarchy: 3,
       WORKER_JOB_CONCURRENCY_bulkDeleteSubjects: 4,
+      NODE_ENV: 'test'
     };
 
     return runWorker(env)
@@ -73,6 +74,7 @@ describe('tests/jobQueue/index.js >', () => {
       WORKER_JOB_CONCURRENCY_checkMissedCollectorHeartbeat: 1,
       WORKER_JOB_CONCURRENCY_jobCleanup: 2,
       WORKER_JOB_CONCURRENCY_sampleTimeout: 4,
+      NODE_ENV: 'test',
     };
 
     return runWorker(env)

@@ -29,7 +29,7 @@ describe('tests/publish/aspects.js >', () => {
   let subscribeTracker = [];
 
   before((done) => {
-    subscriber = redis.createClient(DEFAULT_LOCAL_REDIS_URL);
+    subscriber = redis.createClient(rconf.instanceUrl.queue);
     subscriber.subscribe(rconf.perspectiveChannelName);
     subscriber.on('message', (channel, msg) => subscribeTracker.push(msg));
 
@@ -424,7 +424,7 @@ describe('tests/publish/aspects.js >', () => {
 
           api.put(`${path}/${name}`)
             .set('Authorization', token)
-            .send({ name: name, timeout: '1m', isPublished: true })
+            .send({ name, timeout: '1m', isPublished: true })
             .expect(constants.httpStatus.OK)
             .end((_err, _res) => {
               if (_err) {
@@ -572,7 +572,7 @@ describe('tests/publish/aspects.js >', () => {
 
           api.put(`${path}/${name}`)
             .set('Authorization', token)
-            .send({ name: name, isPublished: true, description })
+            .send({ name, isPublished: true, description })
             .expect(constants.httpStatus.OK)
             .end((_err, _res) => {
               if (_err) {
