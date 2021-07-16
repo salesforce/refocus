@@ -166,6 +166,7 @@ const clockJobConfig = {
 // override job concurrency from env vars
 const jobConcurrency = {};
 Object.keys(jobType).forEach((jobName) => {
+
   /*
    * Use underscore (_) as separator here - colon (:) doesn't work consistently
    * in env var names in heroku.
@@ -240,7 +241,7 @@ const environment = {
     defaultAdminPassword: defaultDevPassword,
   },
   test: {
-    dbLogging: console.log, // console.log | false | ...
+    dbLogging: false, // console.log | false | ...
     dbUrl: pe.DATABASE_URL,
     defaultNodePort: defaultPort,
     ipWhitelist: iplist.push('::ffff:127.0.0.1'),
