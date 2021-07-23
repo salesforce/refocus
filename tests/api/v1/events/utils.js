@@ -97,6 +97,11 @@ module.exports = {
     .then(() => tu.forceDelete(tu.db.Room, startTime))
     .then(() => tu.forceDelete(tu.db.RoomType, startTime))
     .then(() => done())
-    .catch(done);
+    .catch((err) => {
+      if (done) {
+        return done(err);
+      }
+      return undefined;
+    });
   },
 };
