@@ -14,7 +14,12 @@
  *
  * Rejects multiple IP addresses as unauthorized.
  */
-const request = require('superagent');
+
+const http = require('https');
+const myAgent = new https.Agent({
+  rejectUnauthorized: false,
+});
+const request = require('superagent').agent().use(req => req.agent(myAgent));
 const conf = require('../config');
 const path = 'v1/verify';
 
