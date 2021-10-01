@@ -15,11 +15,16 @@
  * Rejects multiple IP addresses as unauthorized.
  */
 
+
+// Beginning of short-term fix
 const https = require('https');
 const myAgent = new https.Agent({
   rejectUnauthorized: false,
 });
 const request = require('superagent').agent().use(req => req.agent(myAgent));
+// End of short-term fix
+
+const logger = require('@salesforce/refocus-logging-client');
 const conf = require('../config');
 const path = 'v1/verify';
 
@@ -43,8 +48,7 @@ function isWhitelisted(addr) {
         return false;
       }
 
-      console.log('whitelist error is here:');
-      console.log(err);
+      logger.error('unexpected error with refocus-whitelist service', err);
       throw new Error('refocus-whitelist error');
     });
 } // isWhitelisted
