@@ -15,7 +15,7 @@
  * Rejects multiple IP addresses as unauthorized.
  */
 
-const http = require('https');
+const https = require('https');
 const myAgent = new https.Agent({
   rejectUnauthorized: false,
 });
