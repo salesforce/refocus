@@ -16,6 +16,7 @@
  */
 const request = require('superagent');
 const conf = require('../config');
+const logger = require('@salesforce/refocus-logging-client');
 const path = 'v1/verify';
 
 const unauthorizedErr = new Error('Access denied');
@@ -38,6 +39,7 @@ function isWhitelisted(addr) {
         return false;
       }
 
+      logger.error('unexpected error with refocus-whitelist service', err);
       throw new Error('refocus-whitelist error');
     });
 } // isWhitelisted
