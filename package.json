@@ -39,7 +39,7 @@
     "rebuildSubjectHierarchy": "node db/rebuildSubjectHierarchy.js",
     "report": "istanbul report text-summary lcovonly",
     "reset-coverage": "rm -rf ./coverage",
-    "start": "node index.js",
+    "start": "node index.js --use-openssl-ca",
     "start-bot-integration-test": "npm run cleanup && npm start",
     "start-clock": "node clock/index.js",
     "start-worker": "node worker/index.js",
