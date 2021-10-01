@@ -38,6 +38,8 @@ function isWhitelisted(addr) {
         return false;
       }
 
+      console.log('whitelist error is here:');
+      console.log(err);
       throw new Error('refocus-whitelist error');
     });
 } // isWhitelisted
