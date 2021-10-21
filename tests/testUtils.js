@@ -43,14 +43,12 @@ const Sample = {
     const commands = [];
     return redisClient.sortAsync(sampleStore.constants.indexKey.sample, 'alpha')
     .then((sampleKeys) => {
-
       sampleKeys.forEach((key) => {
         commands.push(['hgetall', key]);
       });
 
       return redisClient.batch(commands).execAsync();
     }).catch((err) => err);
-
   }, // findAll
 
   // Returns a sample object given its name
@@ -204,7 +202,8 @@ module.exports = {
         email: `${defaultUserName}third@refocus.com`,
         password: 'user123password',
       })
-    );
+    )
+    .catch((err) => console.log('Create second user failed', err.name));
   },
 
   // create another user
@@ -219,7 +218,8 @@ module.exports = {
         email: `${defaultUserName}second@refocus.com`,
         password: 'user123password',
       })
-    );
+    )
+    .catch((err) => console.log('Create second user failed', err.name));
   },
 
   // create a token with the given userName
@@ -244,7 +244,8 @@ module.exports = {
       user.profile = profile.dataValues;
       const token = jwtUtil.createToken(userName, userName);
       return { user, token };
-    });
+    })
+    .catch((err) => console.log('Create user and token failed', err.name));
   },
 
   // create user object from a given user name
@@ -256,18 +257,20 @@ module.exports = {
       email: usrName + '@' + usrName + '.com',
       password: usrName,
     }, db.User.options.defaultScope))
-    .then((user) => user.reload());
+    .then((user) => user.reload())
+    .catch((err) => console.log('Create user failed', err.name));
   },
 
   // create user and corresponding token to be used in api tests.
   createToken(userName=defaultUserName) {
     return db.Profile.create({ name: `${pfx}${userName}testProfile` })
-    .then((createdProfile) => db.User.create({
-      profileId: createdProfile.id,
-      name: userName,
-      email: `${userName}@refocus.com`,
-      password: 'user123password',
-    }))
+    .then((createdProfile) => {
+      return db.User.create({
+        profileId: createdProfile.id,
+        name: userName,
+        email: `${userName}@refocus.com`,
+        password: 'user123password',
+      }); })
     .then(() => jwtUtil.createToken(userName, userName));
   }, // createToken
 

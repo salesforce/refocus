@@ -10,7 +10,6 @@
  *tests/api/v1/ipfilter/whitelistLocalhost.js
  */
 'use strict';
-process.env.NODE_ENV = 'testWhitelistLocalhost';
 const supertest = require('supertest');
 const api = supertest(require('../../../../express').app);
 const constants = require('../../../../api/v1/constants');

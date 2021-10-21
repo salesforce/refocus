@@ -37,7 +37,7 @@ describe('tests/publish/botActions.js >', () => {
   let userId;
 
   before((done) => {
-    subscriber = redis.createClient(DEFAULT_LOCAL_REDIS_URL);
+    subscriber = redis.createClient(rconf.instanceUrl.queue);
     subscriber.subscribe(rconf.botChannelName);
     subscriber.on('message', (channel, msg) => subscribeTracker.push(msg));
 
@@ -102,7 +102,7 @@ describe('tests/publish/botActions.js >', () => {
 
         api.patch(`${path}/${evtBody.new.id}`)
           .set('Authorization', token)
-          .send({ name: 'NewName'})
+          .send({ name: 'NewName' })
           .expect(constants.httpStatus.OK)
           .end((err, res) => {
             if (err) {

@@ -49,6 +49,7 @@ describe('tests/clock/clock.js >', function () {
   it('worker enabled', () => {
     const env = {
       ENABLE_WORKER_PROCESS: 'true',
+      NODE_ENV: 'test',
     };
 
     const expectedCount = {
@@ -72,6 +73,7 @@ describe('tests/clock/clock.js >', function () {
     const env = {
       ENABLE_ACTIVITY_LOGS: 'kueStats,pubsubStats,queueStats',
       ENABLE_REDIS_SAMPLE_STORE: 'true',
+      NODE_ENV: 'test'
     };
 
     const expectedCount = {
@@ -100,6 +102,7 @@ describe('tests/clock/clock.js >', function () {
       CLOCK_JOB_INTERVAL_jobCleanup: '3m', // eslint-disable-line camelcase
       CLOCK_JOB_INTERVAL_resetJobCounter: '4m', // eslint-disable-line camelcase
       CLOCK_JOB_INTERVAL_sampleTimeout: '5m', // eslint-disable-line camelcase
+      NODE_ENV: 'test',
     };
 
     const expectedCount = {

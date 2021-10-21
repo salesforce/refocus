@@ -4,18 +4,60 @@
   "repository": "https://github.com/salesforce/refocus",
   "keywords": ["node", "refocus", "salesforce"],
   "addons": ["heroku-postgresql:hobby-dev", "heroku-redis:hobby-dev"],
-  "env": {
-    "PGSSLMODE": {
-      "value": "require"
+  "stack": "heroku-20",
+  "environments": {
+    "test": {
+      "scripts": {
+        "test-setup": "npm run checkdb",
+        "test": "npm run test"
+      },
+      "addons":[
+        "heroku-redis:in-dyno",
+        "heroku-postgresql:in-dyno"
+      ],
+      "env": {
+        "PGSSLMODE": {
+          "value": "prefer"
+        },
+        "SECRET_TOKEN": {
+          "description": "A secret key for creating jwt token used for authentication.",
+          "generator": "secret"
+        },
+        "SESSION_SECRET": {
+          "description": "A secret key for signing the session ID cookie.",
+          "generator": "secret"
+        }
+      }
     },
-    "SECRET_TOKEN": {
-      "description": "A secret key for creating jwt token used for authentication.",
-      "generator": "secret"
+    "production": {
+      "env": {
+        "PGSSLMODE": {
+          "value": "require"
+        },
+        "SECRET_TOKEN": {
+          "description": "A secret key for creating jwt token used for authentication.",
+          "generator": "secret"
+        },
+        "SESSION_SECRET": {
+          "description": "A secret key for signing the session ID cookie.",
+          "generator": "secret"
+        }
+      }
     },
-    "SESSION_SECRET": {
-      "description": "A secret key for signing the session ID cookie.",
-      "generator": "secret"
+    "sandbox": {
+      "env": {
+        "PGSSLMODE": {
+          "value": "require"
+        },
+        "SECRET_TOKEN": {
+          "description": "A secret key for creating jwt token used for authentication.",
+          "generator": "secret"
+        },
+        "SESSION_SECRET": {
+          "description": "A secret key for signing the session ID cookie.",
+          "generator": "secret"
+        }
+      }
     }
-  },
-  "stack": "heroku-20"
+  }
 }

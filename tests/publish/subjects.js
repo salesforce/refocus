@@ -29,7 +29,7 @@ describe('tests/publish/subjects.js >', () => {
   let subscribeTracker = [];
 
   before((done) => {
-    subscriber = redis.createClient(DEFAULT_LOCAL_REDIS_URL);
+    subscriber = redis.createClient(rconf.instanceUrl.queue);
     subscriber.subscribe(rconf.perspectiveChannelName);
     subscriber.on('message', (channel, msg) => subscribeTracker.push(msg));
 
@@ -768,6 +768,7 @@ describe('tests/publish/subjects.js >', () => {
         .expect(constants.httpStatus.CREATED)
         .end((err, res) => {
           if (err) {
+            console.log(res);
             return done(err);
           }
 
@@ -783,7 +784,7 @@ describe('tests/publish/subjects.js >', () => {
               }
 
               expect(subscribeTracker).to.have.length(0);
-              done();
+              return done();
             });
         });
     });
