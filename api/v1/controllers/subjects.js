@@ -83,6 +83,8 @@ function validateParentFields(req, res, next, callback) {
       callback();
     })
     .catch((err) => {
+      console.log("*****************************")
+      console.log(err)
       u.handleError(next, err, subject.modelName);
     });
   } else {
@@ -451,7 +453,7 @@ module.exports = {
   patchSubject(req, res, next) {
     validateRequest(req);
     validateParentFields(req, res, next,
-        validateParentWriters(req, next,
+        () => validateParentWriters(req, next,
             () => doPatch(req, res, next, subject)));
   },
 
@@ -561,7 +563,7 @@ module.exports = {
     }
 
     validateParentFields(req, res, next,
-        validateParentWriters(req, next,
+        () => validateParentWriters(req, next,
             () => doPut(req, res, next, subject)));
   },
 
