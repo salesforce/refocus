@@ -83,8 +83,6 @@ function validateParentFields(req, res, next, callback) {
       callback();
     })
     .catch((err) => {
-      console.log("*****************************")
-      console.log(err)
       u.handleError(next, err, subject.modelName);
     });
   } else {

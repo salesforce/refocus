@@ -343,8 +343,7 @@ describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
       if (err) {
         return done(err);
       }
-      console.log("BGIGIGIGIGIGI")
-      console.log(res.body.errors)
+
       expect(res.body.errors[0].type).to.equal('ParentSubjectNotFound');
       done();
     });
