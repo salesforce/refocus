@@ -17,13 +17,13 @@ const tu = require('../../../testUtils');
 const u = require('./utils');
 const expect = require('chai').expect;
 const Subject = tu.db.Subject;
+const testUtils = require('../../../testUtils');
 const path = '/v1/subjects';
 const ZERO = 0;
-const ONE = 1;
-const TWO = 2;
 
 describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
   let token;
+  let otherValidToken;
   const n0 = { name: `${tu.namePrefix}Canada`, isPublished: true };
   const n1 = { name: `${tu.namePrefix}Ontario`, isPublished: true };
   const n2 = { name: `${tu.namePrefix}Manitoba`, isPublished: true };
@@ -41,12 +41,15 @@ describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
   let iRoot = ZERO;
 
   before((done) => {
+    testUtils.toggleOverride('validateParentWriters', true);
     tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    .then(() => tu.createUser('myUniqueUser'))
+    .then((usr) => tu.createTokenFromUserName(usr.name))
+    .then((tkn) => {
+      otherValidToken = tkn;
       done();
     })
-    .catch(done);
+        .catch(done);
   });
 
   beforeEach((done) => {
@@ -121,10 +124,10 @@ describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
 
     it('on name change, the name is changed',
       (done) => {
-      const NEW_NAME = 'newName';
+        const NEW_NAME = 'newName';
 
       // use leaf subject
-      api.put(`${path}/${i0a}`)
+        api.put(`${path}/${i0a}`)
       .set('Authorization', token)
       .send({
         name: NEW_NAME,
@@ -139,7 +142,7 @@ describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
         expect(res.body.name).to.equal(NEW_NAME);
         done();
       });
-    });
+      });
 
     it('on change parent, the parent is set by parentAbsolutePath', (done) => {
       const NEW_NAME = 'newName';
@@ -190,6 +193,27 @@ describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
         expect(res.body.absolutePath).to.equal(_root.name + '.' + NEW_NAME);
         done();
       });
+    });
+    it('reject patch for parent when not writer', (done) => {
+      const NEW_NAME = 'newName';
+
+      // use leaf subject
+      api.put(`${path}/${i0a}`)
+          .set('Authorization', otherValidToken)
+          .send({
+            name: NEW_NAME,
+            isPublished: false,
+            parentId: iRoot,
+          })
+          .expect(constants.httpStatus.BAD_REQUEST)
+          .end((err, res) => {
+            if (err) {
+              return done(err);
+            }
+
+            expect(res.body.errors[0].type).to.equal('ParentWriterRestricted');
+            done();
+          });
     });
   });
 

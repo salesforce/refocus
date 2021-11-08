@@ -189,6 +189,9 @@ const shortTermToggles = {
   getSubjectFromCache: environmentVariableTrue(pe,
     'GET_SUBJECT_FROM_CACHE'),
 
+  validateParentWriters: environmentVariableTrue(pe,
+      'VALIDATE_PARENT_WRITERS'),
+
   // Enable caching for GET /v1/perspectives/{key}?
   enableCachePerspective: environmentVariableTrue(pe,
     'ENABLE_CACHE_PERSPECTIVE'),

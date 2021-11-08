@@ -164,6 +164,18 @@ errors.create({
   'query parameter to return a list of all records with this name, e.g. ?name=',
 });
 
+errors.create({
+  scope: exports,
+  code: 11113,
+  status: 400,
+  name: 'ParentWriterRestricted',
+  parent: this.ValidationError,
+  defaultMessage: 'You do not have permission to update the parent subject specified',
+  explanation: 'When attempting to update the parent of a subject ' +
+  'with a PATCH, the user must have write permission for the parent subject ' +
+  '(if that subject has writers)',
+});
+
 // ----------------------------------------------------------------------------
 // Not Found
 // ----------------------------------------------------------------------------

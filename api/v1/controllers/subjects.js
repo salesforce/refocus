@@ -91,6 +91,40 @@ function validateParentFields(req, res, next, callback) {
 }
 
 /**
+ * If the patch request is attempting to change the subject's parent,
+ * check that the user performing the request has writer access to the
+ * parent object.
+ * @param {IncomingMessage} req - The request object
+ */
+function validateParentWriters(req) {
+  const queryBody = req.swagger.params.queryBody.value;
+  const { parentId, parentAbsolutePath } = queryBody;
+  if (!parentId && !parentAbsolutePath) {
+    return;
+  }
+  let queryObject;
+  if (parentAbsolutePath) {
+    queryObject = { where: { absolutePath:
+      { [Op.iLike]: parentAbsolutePath } } };
+  } else {
+    queryObject = { where: { id: { [Op.eq]: parentId } } };
+  }
+
+  return subject.model.findOne(queryObject)
+    .then((parentSubject) => {
+      u.isWritable(req, parentSubject)
+      .then((isWritable) => {
+        if (!isWritable) {
+          throw new apiErrors.ParentWriterRestricted({
+            message: `You do not have write permission to parent subject, 
+            ${parentSubject.absolutePath}`
+          });
+        }
+      });
+    });
+}
+
+/**
  * Validates the correct filter parameter
  * passed in query parameters
  * @param {Array} filterParams Filter Tags Array
@@ -287,7 +321,7 @@ module.exports = {
 
     const resultObj = {
       reqStartTime: Date.now(),
-      params: params,
+      params,
     };
 
     if (featureToggles.isFeatureEnabled('enableWorkerProcess')
@@ -307,9 +341,9 @@ module.exports = {
         }
 
         let newErr;
-        if (parsedErr) { //errString contains a serialized error object.
-
-          //create a new error object of the correct type
+        if (parsedErr) {
+          // errString contains a serialized error object.
+          // create a new error object of the correct type
           if (apiErrors[parsedErr.name]) {
             newErr = new apiErrors[parsedErr.name]();
           } else if (global[parsedErr.name]) {
@@ -318,15 +352,14 @@ module.exports = {
             newErr = new Error();
           }
 
-          //copy props to new error
+          // copy props to new error
           Object.keys(parsedErr).forEach((prop) => {
             if (!newErr.hasOwnProperty(prop)
             || Object.getOwnPropertyDescriptor(newErr, prop).writable) {
               newErr[prop] = parsedErr[prop];
             }
           });
-
-        } else { //errString contains an error message.
+        } else { // errString contains an error message.
           if (errString === 'TTL exceeded') {
             newErr = new apiErrors.WorkerTimeoutError();
           } else {
@@ -409,7 +442,11 @@ module.exports = {
    */
   patchSubject(req, res, next) {
     validateRequest(req);
-    validateParentFields(req, res, next, () => doPatch(req, res, next, subject));
+    if (featureToggles.isFeatureEnabled('validateParentWriters')){
+      validateParentWriters(req);
+    }
+    validateParentFields(req, res, next,
+        () => doPatch(req, res, next, subject));
   },
 
   /**
@@ -515,6 +552,9 @@ module.exports = {
       utils.validateAtLeastOneFieldPresent(
         req.body, subject.requireAtLeastOneFields
       );
+    }
+    if (featureToggles.isFeatureEnabled('validateParentWriters')){
+      validateParentWriters(req);
     }
 
     validateParentFields(req, res, next, () => doPut(req, res, next, subject));
