@@ -95,15 +95,12 @@ function validateParentFields(req, res, next, callback) {
  * check that the user performing the request has writer access to the
  * parent object.
  * @param {IncomingMessage} req - The request object
- * @param {Function} next - The next middleware function in the stack
- * @param {Function} callback - the function to call if there's no validation
- * to do, or the validation passes.
  */
-function validateParentWriters(req, next, callback) {
+function validateParentWriters(req) {
   const queryBody = req.swagger.params.queryBody.value;
   const { parentId, parentAbsolutePath } = queryBody;
   if (!parentId && !parentAbsolutePath) {
-    return callback();
+    return;
   }
   let queryObject;
   if (parentAbsolutePath) {
@@ -123,12 +120,7 @@ function validateParentWriters(req, next, callback) {
             ${parentSubject.absolutePath}`
           });
         }
-        callback();
-      }).catch((err) => {
-        u.handleError(next, err, subject.modelName);
       });
-    }).catch((err) => {
-      u.handleError(next, err, subject.modelName);
     });
 }
 
@@ -450,9 +442,11 @@ module.exports = {
    */
   patchSubject(req, res, next) {
     validateRequest(req);
+    if (featureToggles.isFeatureEnabled('validateParentWriters')){
+      validateParentWriters(req);
+    }
     validateParentFields(req, res, next,
-        () => validateParentWriters(req, next,
-            () => doPatch(req, res, next, subject)));
+        () => doPatch(req, res, next, subject));
   },
 
   /**
@@ -559,10 +553,11 @@ module.exports = {
         req.body, subject.requireAtLeastOneFields
       );
     }
+    if (featureToggles.isFeatureEnabled('validateParentWriters')){
+      validateParentWriters(req);
+    }
 
-    validateParentFields(req, res, next,
-        () => validateParentWriters(req, next,
-            () => doPut(req, res, next, subject)));
+    validateParentFields(req, res, next, () => doPut(req, res, next, subject));
   },
 
   /**

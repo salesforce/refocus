@@ -19,8 +19,6 @@ const expect = require('chai').expect;
 const Subject = tu.db.Subject;
 const path = '/v1/subjects';
 const ZERO = 0;
-const ONE = 1;
-const TWO = 2;
 
 describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
   let token;
@@ -42,11 +40,13 @@ describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
 
   before((done) => {
     tu.createToken()
-    .then((returnedToken) => {
-      token = returnedToken;
+    .then(() => tu.createUser('myUniqueUser'))
+    .then((usr) => tu.createTokenFromUserName(usr.name))
+    .then((tkn) => {
+      otherValidToken = tkn;
       done();
     })
-    .catch(done);
+        .catch(done);
   });
 
   beforeEach((done) => {
@@ -121,10 +121,10 @@ describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
 
     it('on name change, the name is changed',
       (done) => {
-      const NEW_NAME = 'newName';
+        const NEW_NAME = 'newName';
 
       // use leaf subject
-      api.put(`${path}/${i0a}`)
+        api.put(`${path}/${i0a}`)
       .set('Authorization', token)
       .send({
         name: NEW_NAME,
@@ -139,7 +139,7 @@ describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
         expect(res.body.name).to.equal(NEW_NAME);
         done();
       });
-    });
+      });
 
     it('on change parent, the parent is set by parentAbsolutePath', (done) => {
       const NEW_NAME = 'newName';
