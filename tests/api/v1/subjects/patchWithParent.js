@@ -194,8 +194,7 @@ describe(`tests/api/v1/subjects/patchWithParent.js, PATCH ${path} >`, () => {
         done();
       });
     });
-    it('on change parent, the parent is set by ' +
-        'parentId', (done) => {
+    it('reject patch for parent when not writer', (done) => {
       const NEW_NAME = 'newName';
 
       // use leaf subject
