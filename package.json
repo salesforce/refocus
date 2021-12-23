@@ -92,7 +92,7 @@
     "bluebird": "^3.5.3",
     "body-parser": "^1.18.3",
     "browserify": "^13.0.1",
-    "bull": "^3.10.0",
+    "bull": "^3.29.3",
     "camelcase": "4.1.0",
     "chai": "^3.4.1",
     "chai-as-promised": "^5.1.0",
