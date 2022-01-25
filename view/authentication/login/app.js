@@ -36,6 +36,23 @@ function getQueryParams(qs) {
 }
 
 /**
+ * Check if the input string is a valid URL of protocol http or https
+ * This should invalidate the XSS URL redirect of protocal 'javascript:'
+ * @param {String} url url string to be validated
+ * @returns {Boolean} true if the URL is valid
+ */
+function isValidURL(string) {
+  const decodedString = decodeURIComponent(string);
+  let url;
+  try {
+    url = new URL(decodedString);
+  } catch (_) {
+    return false;
+  }
+  return url.protocol === 'http:' || url.protocol === 'https:';
+}
+
+/**
  * Send request to authenticate api and get result. Redirect to index page if
  * authentication succeeded, else display error.
  * @param  {Object} jsonData json object with user credentials
@@ -55,7 +72,7 @@ function sendData(jsonData) {
       document.getElementById('errorInfo').innerHTML = errorText;
     } else {
       returnUrl = getQueryParams(window.location.search.substring(1));
-      if (returnUrl.ru) {
+      if (isValidURL(returnUrl.ru)) {
         window.location.href = returnUrl.ru;
       } else {
         window.location.href = '/';
