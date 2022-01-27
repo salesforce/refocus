@@ -23,6 +23,7 @@
    });
 
    it('should return false if the URL has javascript protocol', () => {
+     // eslint-disable-next-line no-script-url
      const str = 'javascript:alert("js ran")';
      const result = isValidURL(str);
      expect(result).to.equals(false);
