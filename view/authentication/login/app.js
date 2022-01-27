@@ -14,6 +14,7 @@
 'use strict'; // eslint-disable-line strict
 
 import request from 'superagent';
+import { isValidURL } from '../util';
 
 const input = document.loginform.elements;
 
@@ -33,23 +34,6 @@ function getQueryParams(qs) {
   }
 
   return params;
-}
-
-/**
- * Check if the input string is a valid URL of protocol http or https
- * This should invalidate the XSS URL redirect of protocal 'javascript:'
- * @param {String} url url string to be validated
- * @returns {Boolean} true if the URL is valid
- */
-function isValidURL(string) {
-  const decodedString = decodeURIComponent(string);
-  let url;
-  try {
-    url = new URL(decodedString);
-  } catch (_) {
-    return false;
-  }
-  return url.protocol === 'http:' || url.protocol === 'https:';
 }
 
 /**
