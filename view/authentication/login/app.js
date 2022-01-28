@@ -14,6 +14,7 @@
 'use strict'; // eslint-disable-line strict
 
 import request from 'superagent';
+import { isValidURL } from '../util';
 
 const input = document.loginform.elements;
 
@@ -55,7 +56,7 @@ function sendData(jsonData) {
       document.getElementById('errorInfo').innerHTML = errorText;
     } else {
       returnUrl = getQueryParams(window.location.search.substring(1));
-      if (returnUrl.ru) {
+      if (isValidURL(returnUrl.ru)) {
         window.location.href = returnUrl.ru;
       } else {
         window.location.href = '/';
