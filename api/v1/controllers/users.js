@@ -96,7 +96,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   patchUser(req, res, next) {
-    // Temporarily disable PATCH API. #W-11768134.
+    // Temporarily disable PATCH API.
     u.forbidden(next);
     /*if (req.headers.IsAdmin) {
       doPatch(req, res, next, helper);
