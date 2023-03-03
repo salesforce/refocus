@@ -184,23 +184,23 @@
     "underscore": "^1.9.1",
     "validator": "^4.0.2",
     "vinyl-source-stream": "^1.1.0",
-    "webpack": "^1.12.10",
+    "webpack": "^5.75.0",
     "webpack-hot-middleware": "^2.24.3"
   },
   "devDependencies": {
-    "coveralls": "^2.11.14",
+    "coveralls": "^3.1.1",
     "enzyme": "^2.6.0",
     "eslint": "^2.5.3",
     "eslint-plugin-react": "^4.2.3",
     "eslint_d": "^3.1.0",
     "istanbul": "^0.4.5",
-    "mocha": "^3.1.2",
+    "mocha": "^10.2.0",
     "mocha-lcov-reporter": "1.2.0",
     "redbox-react": "^1.6.0",
     "sinon": "^5.1.1",
     "supertest": "^3.4.2",
     "test-console": "^1.1.0",
     "webpack-dev-middleware": "^1.4.0",
-    "webpack-dev-server": "^1.12.1"
+    "webpack-dev-server": "^4.11.1"
   }
 }
