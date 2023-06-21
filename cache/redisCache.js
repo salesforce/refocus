@@ -54,6 +54,10 @@ const opts = {
     return Math.min(options.attempt * rconf.retryStrategy.backoffFactor,
       rconf.retryStrategy.backoffMax);
   }, // retryStrategy
+  socket: {
+    tls: true,
+    rejectUnauthorized: false,
+  }, //socket
 };
 
 if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
