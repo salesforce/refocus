@@ -58,7 +58,14 @@ const passportModule = require('passport');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
-const rstore = new RedisStore({ url: conf.redis.instanceUrl.session });
+const rstore = new RedisStore(
+  {
+    url: conf.redis.instanceUrl.session,
+    tls: {
+      rejectUnauthorized: false
+    }
+  }
+);
 socketIOSetup.init(io, rstore);
 require('./realtime/redisSubscriber')(io);
 

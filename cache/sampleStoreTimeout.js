@@ -25,7 +25,12 @@ const sampleEvent = require('../realtime/constants').events.sample;
 const helper = require('../api/v1/helpers/nouns/samples');
 const model = require('./models/samples');
 const IORedis = require('ioredis');
-const ioredisClient = new IORedis(rconf.instanceUrl.sampleStore);
+const redisConfig = {
+  tls: {
+    rejectUnauthorized: false
+  }
+};
+const ioredisClient = new IORedis(rconf.instanceUrl.sampleStore, redisConfig);
 const featureToggles = require('feature-toggles');
 const ONE = 1;
 
