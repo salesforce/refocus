@@ -122,6 +122,7 @@ if (isDevelopment) {
     logger.info(listening, PORT);
   });
 } else {
+  logger.info('express.js ');
   serverApp = httpServer.listen(PORT, () => {
     logger.info(listening, PORT);
   });

@@ -32,6 +32,10 @@ RUN npm install
 ENV PGHOST=pg
 ENV REDIS_URL=//redis:6379
 
+# ENV NODE_ENV=production
+# ENV DATABASE_URL='postgres://u2tmq67ski730n:p4ada61c3807951f532dcf37b5982b8786400140584033435e599f259a4b30e33@ec2-52-202-31-8.compute-1.amazonaws.com:5432/dabs9qm69vgc1r'
+# ENV SECRET_TOKEN='abcdefghijklmmopabcdefghijklmmop'
+
 EXPOSE 3000
 
 CMD [ "/bin/sh", "-c", "$HOME/wait-for-postgres.sh pg 'npm start'" ]

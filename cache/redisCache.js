@@ -1,3 +1,4 @@
+
 /**
  * Copyright (c) 2016, salesforce.com, inc.
  * All rights reserved.
@@ -30,6 +31,8 @@ const opts = {
   /* Redis Client Retry Strategy */
   retry_strategy: (options) => {
 
+    console.log('\n\nRetry Strategy Options: ==>>>', options);
+    console.log('\n rconf.retryStrategy', rconf.retryStrategy);
     /*
      * Stop retrying if we've exceeded the configured threshold since the last
      * successful connection. Flush all commands with a custom error message.
@@ -54,9 +57,10 @@ const opts = {
     return Math.min(options.attempt * rconf.retryStrategy.backoffFactor,
       rconf.retryStrategy.backoffMax);
   }, // retryStrategy
-  tls: {
-    rejectUnauthorized: false
-  },
+  // tls: {
+  //   // rejectUnauthorized: false
+  //   connectTimeout: 10000, // Set the connection timeout to 5 seconds (adjust as needed)
+  // },
 };
 
 if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
@@ -66,6 +70,7 @@ if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
 const subPerspectives = [];
 const pubPerspectives = [];
 rconf.instanceUrl.pubsubPerspectives.forEach((rp) => {
+  logger.info('rp', rp);
   // Only create subscribers here if we're doing real-time events from main app
   if (!featureToggles.isFeatureEnabled('enableRealtimeApplication')) {
     const s = redis.createClient(rp, opts);
@@ -83,6 +88,8 @@ if (!featureToggles.isFeatureEnabled('enableRealtimeApplicationImc')) {
   subBot.subscribe(rconf.botChannelName);
 }
 
+logger.info('rconf', rconf);
+
 const client = {
   cache: redis.createClient(rconf.instanceUrl.cache, opts),
   clock: redis.createClient(rconf.instanceUrl.clock, opts),
@@ -96,6 +103,9 @@ const client = {
   subPerspectives,
   subBot,
 };
+
+console.log('client', client);
+console.log('\n\ncache client', client.cache);
 
 /**
  * Register redis client handlers.

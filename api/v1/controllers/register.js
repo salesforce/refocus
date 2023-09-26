@@ -10,6 +10,7 @@
  * api/v1/controllers/register.js
  */
 
+const logger = require('@salesforce/refocus-logging-client');
 const configuredPassport = require('../../../express').passportModule;
 const httpStatus = require('../constants').httpStatus;
 const u = require('../helpers/verbs/utils');
@@ -30,7 +31,9 @@ module.exports = {
    *
    */
   registerUser(req, res, next) {
+    logger.info('registerUser');
     if (featureToggles.isFeatureEnabled('rejectLocalUserRegistration')) {
+      logger.info('rejectLocalUserRegistration');
       const forbidden = new apiErrors.ForbiddenError({
         explanation: 'New user registration is not permitted.',
       });
@@ -38,7 +41,9 @@ module.exports = {
     }
 
     const resultObj = { reqStartTime: req.timestamp };
+    logger.info('resultObj', resultObj);
     configuredPassport.authenticate('local-signup', (err, user) => {
+      logger.info('configuredPassport');
       resultObj.dbTime = new Date() - resultObj.reqStartTime;
       if (err) {
         return u.handleError(next, err, resourceName);

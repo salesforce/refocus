@@ -464,6 +464,7 @@ module.exports = {
    * indicating merely that the bulk upsert request has been received.
    */
   bulkUpsertSample(req, res, next) {
+    console.log('bulkUpsertSample');
     const resultObj = { reqStartTime: req.timestamp };
     const value = req.swagger.params.queryBody.value;
     const body = { status: 'OK' };
@@ -479,6 +480,7 @@ module.exports = {
      * with status and body
      */
     function bulkUpsert(user) {
+      console.log('bulkUpsert', user);
       if (featureToggles.isFeatureEnabled('enableWorkerProcess')) {
         const jobType = require('../../../jobQueue/setup').jobType;
         const jobWrapper = require('../../../jobQueue/jobWrapper');

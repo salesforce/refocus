@@ -12,12 +12,14 @@
  */
 'use strict'; // eslint-disable-line strict
 
+const logger = require('@salesforce/refocus-logging-client');
 const LocalStrategy = require('passport-local').Strategy;
 const User = require('../db/index').User.scope('withSensitiveInfo');
 const Profile = require('../db/index').Profile;
 const bcrypt = require('bcrypt-nodejs');
 
 module.exports = (passportModule) => {
+  logger.info('passportModule');
   // used to serialize the user for the session
   passportModule.serializeUser((user, done) => {
     done(null, user);
@@ -37,10 +39,12 @@ module.exports = (passportModule) => {
    * @param  {Function} done - Callback function
    */
   function signupStrategy(req, userName, userPassword, done) {
+    logger.info('signupStrategy');
     // to do: We need to create default profiles in db.
     // find user with this email
     User.findOne({ where: { name: userName } })
     .then((foundUser) => {
+      logger.info('findOne');
       // if sso user, then update password and sso boolean.
       if (foundUser) {
         if (foundUser.sso === true) {

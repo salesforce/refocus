@@ -65,6 +65,7 @@ const refocusPerspectivesViews = ['/aspects', '/aspects/:key',
  * after setting redirect url query parameter.
  */
 function ensureAuthenticated(req, res, next) {
+  console.log('ensureAuthenticated');
   if (req.isAuthenticated()) {
     return next();
   }
@@ -181,6 +182,7 @@ function getRedirectURI(viewKey, reqUrl) {
 } // This function is temporary - remove when separate deployment has settled
 
 function loadView(app, passport) {
+  console.log('loadView');
   const keys = Object.keys(viewmap);
   keys.forEach((key) =>
     app.get(
@@ -342,6 +344,7 @@ function loadView(app, passport) {
     },
 
     (req, res/* , next*/) => {
+      console.log('here login');
       res.render('authentication/login/login', {
         trackingId: viewConfig.trackingId,
       });

@@ -25,6 +25,12 @@ const sampleEvent = require('../realtime/constants').events.sample;
 const helper = require('../api/v1/helpers/nouns/samples');
 const model = require('./models/samples');
 const IORedis = require('ioredis');
+const redisConfig = {
+  // tls: {
+  //   // rejectUnauthorized: false
+  //   connectTimeout: 10000, // Set the connection timeout to 5 seconds (adjust as needed)
+  // }
+};
 const ioredisClient = new IORedis(rconf.instanceUrl.sampleStore);
 const featureToggles = require('feature-toggles');
 const ONE = 1;

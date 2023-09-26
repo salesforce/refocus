@@ -183,24 +183,33 @@ function traverseHierarchy(res) {
       traveHPromises.push(traverseHierarchy(res.children[i]));
     }
   }
-
+  console.log('\n\n traveHPromises', traveHPromises);
   return Promise.all(traveHPromises)
   .then((values) => {
     /*
      * the resolved values from each of the promises is used to check if that
      * node needs to be added to the final list of children
      */
+    console.log('\n\n values', values);
+    console.log('\n\n\n res', res.children);
     for (let i = 0; i < values.length; i++) {
       if (values[i]) {
         filteredChildrenArr.push(res.children[i]);
+        console.log('\n inside values array ==>>>>', values[i]);
+        console.log('\n filteredChildrenArr while pushing ==>>>>', filteredChildrenArr);
       }
     }
-
+    console.log('\n filteredChildrenArr after push ==>>>>', filteredChildrenArr);
     res.children = filteredChildrenArr.length ? filteredChildrenArr : undefined;
 
     return attachSamples(res);
   })
-  .then((ret) => Promise.resolve(ret || filteredChildrenArr.length));
+  .then((ret) => Promise.resolve(ret || filteredChildrenArr.length))
+  .catch((error) => {
+    // Handle errors here or propagate them up the promise chain
+    console.error('\n\n\n\n\n\n\n\n\n********Error in traverseHierarchy:', error);
+    throw error; // Propagate the error
+  });
 } // traverseHierarchy
 
 /**
@@ -236,7 +245,7 @@ function completeSubjectHierarchy(res, params) {
       logger.info('cache/model/subject.completeSubjectHierarchy:' +
         `${res.absolutePath}:${new Date() - startTime}`);
     }
-
+    console.log('\n\n inside traverseHierarchy then', res);
     return Promise.resolve(res);
   });
 } // completeSubjectHierarchy

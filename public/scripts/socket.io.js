@@ -7705,6 +7705,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	Socket.prototype.open = Socket.prototype.connect = function () {
+		console.log('socket connect');
 	  if (this.connected) return this;
 
 	  this.subEvents();
@@ -7738,6 +7739,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	Socket.prototype.emit = function (ev) {
+		console.log('socket emit');
 	  if (events.hasOwnProperty(ev)) {
 	    emit.apply(this, arguments);
 	    return this;
@@ -7791,6 +7793,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Socket.prototype.onopen = function () {
 	  debug('transport is open - connecting');
+		console.log('transport is open - connecting');
 
 	  // write connect packet if necessary
 	  if ('/' !== this.nsp) {
@@ -7811,6 +7814,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Socket.prototype.onclose = function (reason) {
 	  debug('close (%s)', reason);
+		console.log('socket close');
 	  this.connected = false;
 	  this.disconnected = true;
 	  delete this.id;
@@ -7825,6 +7829,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	Socket.prototype.onpacket = function (packet) {
+		console.log('socket onpacket');
 	  if (packet.nsp !== this.nsp) return;
 
 	  switch (packet.type) {
@@ -7866,6 +7871,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	Socket.prototype.onevent = function (packet) {
+		console.log('socket onevent');
 	  var args = packet.data || [];
 	  debug('emitting event %j', args);
 
@@ -7888,6 +7894,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	Socket.prototype.ack = function (id) {
+		console.log('socket ack');
 	  var self = this;
 	  var sent = false;
 	  return function () {
@@ -7914,6 +7921,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	Socket.prototype.onack = function (packet) {
+		console.log('socket onack');
 	  var ack = this.acks[packet.id];
 	  if ('function' === typeof ack) {
 	    debug('calling ack %s with %j', packet.id, packet.data);
@@ -7931,6 +7939,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	Socket.prototype.onconnect = function () {
+		console.log('socket onconnect');
 	  this.connected = true;
 	  this.disconnected = false;
 	  this.emit('connect');
@@ -7944,6 +7953,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	Socket.prototype.emitBuffered = function () {
+		console.log('socket emitBuffered');
 	  var i;
 	  for (i = 0; i < this.receiveBuffer.length; i++) {
 	    emit.apply(this, this.receiveBuffer[i]);
@@ -7963,6 +7973,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	Socket.prototype.ondisconnect = function () {
+		console.log('socket ondisconnect');
 	  debug('server disconnect (%s)', this.nsp);
 	  this.destroy();
 	  this.onclose('io server disconnect');
@@ -7977,6 +7988,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	Socket.prototype.destroy = function () {
+		console.log('socket destroy');
 	  if (this.subs) {
 	    // clean subscriptions to avoid reconnections
 	    for (var i = 0; i < this.subs.length; i++) {
@@ -7996,6 +8008,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	Socket.prototype.close = Socket.prototype.disconnect = function () {
+		console.log('socket disconnect close');
 	  if (this.connected) {
 	    debug('performing disconnect (%s)', this.nsp);
 	    this.packet({ type: parser.DISCONNECT });
@@ -8020,6 +8033,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	Socket.prototype.compress = function (compress) {
+		console.log('socket compress');
 	  this.flags = this.flags || {};
 	  this.flags.compress = compress;
 	  return this;

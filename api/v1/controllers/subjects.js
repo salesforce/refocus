@@ -309,6 +309,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectHierarchy(req, res, next) {
+    console.log('getSubjectHierarchy');
     const params = req.swagger.params;
     const filterParams = ['subjectTags', 'aspectTags', 'aspect', 'status'];
 
@@ -326,6 +327,7 @@ module.exports = {
 
     if (featureToggles.isFeatureEnabled('enableWorkerProcess')
     && featureToggles.isFeatureEnabled('enqueueHierarchy')) {
+      console.log('featureToggles if');
       jobWrapper.createJob(jobType.getHierarchy, resultObj, req)
       .ttl(WORKER_TTL)
       .on('complete', (resultObj) => {
@@ -370,12 +372,15 @@ module.exports = {
         u.handleError(next, newErr, subject.modelName);
       });
     } else {
+      console.log('featureToggles else');
       doGetHierarchy(resultObj)
       .then((resultObj) => {
+        console.log('doGetHierarchy', resultObj);
         u.logAPI(req, resultObj, resultObj.retval);
         res.status(httpStatus.OK).json(resultObj.retval);
       })
       .catch((err) => {
+        console.log('doGetHierarchy catch');
         u.handleError(next, err, subject.modelName);
       });
     }

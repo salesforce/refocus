@@ -52,6 +52,7 @@ function doGetHierarchy(resultObj) {
     excludedFields.forEach((f) => fields.push(f));
   }
 
+  console.log('\n\n\nbefore findByKey');
   return u.findByKey(helper, params, ['hierarchy'])
     .then((o) => {
       resultObj.dbEndTime = Date.now();
@@ -59,11 +60,15 @@ function doGetHierarchy(resultObj) {
       resultObj.recordCount = 1;
       let retval = u.responsify(o, helper, GET);
       if (depth > ZERO) {
+        console.log('here depth');
         retval = helper.deleteChildren(retval, depth);
       }
-
+      console.log('resultObj', resultObj);
+      console.log('retval', retval);
+      // return resultObj;
       return redisSubjectModel.completeSubjectHierarchy(retval, params)
       .then((_retval) => {
+        console.log('inside completeSubjectHierarchy', _retval);
         resultObj.retval = _retval;
         excludedFields.forEach((f) => delete retval[f]);
         return resultObj;
