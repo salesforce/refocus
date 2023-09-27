@@ -14,20 +14,6 @@ services:
         - 5432
     environment:
       POSTGRES_DB: "focusdb" #needed for postgres container to create db
-      POSTGRES_USER: "admin"
-      POSTGRES_PASSWORD: "devPassword"
-      # listen_addresses: "*"
-  
-  # pg-admin:
-  #   image: dpage/pgadmin4
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
-  #     PGADMIN_DEFAULT_PASSWORD: admin
-  #     PGADMIN_LISTEN_PORT: 8001
-  #   ports:
-  #     - "8001:8001"
-  #   depends_on:
-  #     - pg
 
   redis:
     image: "redis:3-alpine"
