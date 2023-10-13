@@ -56,7 +56,7 @@ const opts = {
   }, // retryStrategy
   tls: {
     rejectUnauthorized: false,
-    requestCert: true,
+    requestCert: true
   },
 };
 
