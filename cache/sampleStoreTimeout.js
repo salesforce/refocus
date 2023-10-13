@@ -27,7 +27,8 @@ const model = require('./models/samples');
 const IORedis = require('ioredis');
 const redisConfig = {
   tls: {
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
+    requestCert: true
   }
 };
 const ioredisClient = new IORedis(rconf.instanceUrl.sampleStore, redisConfig);
