@@ -63,7 +63,7 @@ const rstore = new RedisStore(
     url: conf.redis.instanceUrl.session,
     tls: {
       rejectUnauthorized: false,
-      requestCert: true,
+      requestCert: true
     }
   }
 );
