@@ -55,7 +55,8 @@ const opts = {
       rconf.retryStrategy.backoffMax);
   }, // retryStrategy
   tls: {
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
+    requestCert: true,
   },
 };
 
