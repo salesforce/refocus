@@ -24,6 +24,7 @@ import {
 class Root extends React.Component {
   render() {
     const { store, history } = this.props;
+    console.log('\n\n store history', store, history);
     return (
       <Provider store={ store } >
         <Router history={ history }>

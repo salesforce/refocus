@@ -52,7 +52,7 @@ const jobQueue = kue.createQueue(redisOptions);
 
 const bulkDelSubQueue = createBullJobQueue(conf.jobType.bulkDeleteSubjects,
   redisUrlForBull, jobQueues);
-const executeClockJobQueue = createBullJobQueue(conf.executeClockJob,
+const executeClockJobQueue = createBullJobQueue(conf.jobType.executeClockJob,
   redisUrlForBull, jobQueues);
 const bulkUpsertSamplesQueue = createBullJobQueue(conf.jobType.bulkUpsertSamples,
   redisUrlForBull, jobQueues);

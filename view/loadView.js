@@ -17,7 +17,7 @@
 const SSOConfig = require('../db/index').SSOConfig;
 const User = require('../db/index').User;
 const Profile = require('../db/index').Profile;
-const SamlStrategy = require('passport-saml').Strategy;
+const SamlStrategy = require('@node-saml/passport-saml').Strategy;
 const viewConfig = require('../viewConfig');
 const jwtUtil = require('../utils/jwtUtil');
 const httpStatus = require('./constants').httpStatus;
@@ -27,6 +27,9 @@ const { refocusRoomsFeedback, ssoCert, pagerDuty } = require('../config');
 
 const redirectFeature = ft.isFeatureEnabled('enableRedirectDifferentInstance');
 
+console.log('user', User);
+console.log('Profile', Profile);
+console.log('SSOConfig $$$$$$$$', SSOConfig);
 // protected urls
 const viewmap = {
   '/aspects': 'admin',
@@ -65,6 +68,7 @@ const refocusPerspectivesViews = ['/aspects', '/aspects/:key',
  * after setting redirect url query parameter.
  */
 function ensureAuthenticated(req, res, next) {
+  console.log('\n\n\n ensureAuthenticated $$$$$$$$$$$$$');
   if (req.isAuthenticated()) {
     return next();
   }
@@ -84,7 +88,10 @@ function ensureAuthenticated(req, res, next) {
  * @param  {Function} done - Callback function
  */
 function samlAuthentication(userProfile, done) {
+  console.log('\n\n\n samlAuthentication $$$$$');
+  debugger
   const userFullName = `${userProfile.firstname} ${userProfile.lastname}`;
+  console.log('\n\n userFullName $$$$$$$$$$$$', userFullName);
   User.findOne({ where: { email: userProfile.email } })
   .then((user) => {
     if (!user) {
@@ -181,12 +188,15 @@ function getRedirectURI(viewKey, reqUrl) {
 } // This function is temporary - remove when separate deployment has settled
 
 function loadView(app, passport) {
+  console.log('\n\n\ loadView $$$$$$$$$$$$$$$$$');
   const keys = Object.keys(viewmap);
+  console.log('\n\n keys $$$$$$$$', keys);
   keys.forEach((key) =>
     app.get(
       key,
       ensureAuthenticated,
       (req, res) => {
+        console.log(`\n\n Route accessed: ((((())(((((((())))))))))) ${req.method} ${req.originalUrl}`);
         const copyOfUser = JSON.parse(JSON.stringify(req.user));
         delete copyOfUser.password;
         const trackObj = {
@@ -224,8 +234,10 @@ function loadView(app, passport) {
    * route requests can be served by different dyno, hence we need to check db
    * every time and configure passport accordingly.
    */
+  console.log('before setting app routes here $$$$', process.env);
   app.get('/loginSAML',
     (req, res, next) => {
+      console.log('here before SSOCONFIG \n\n');
       SSOConfig.findOne()
       .then((ssoconfig) => {
         if (ssoconfig) {
@@ -325,6 +337,7 @@ function loadView(app, passport) {
   app.get(
     '/login',
     (req, res, next) => {
+      console.log('\n\n login $$$$$$$$$$$');
       res.locals.SSOExists = false;
       SSOConfig.findOne()
       .then((ssoconfig) => {
@@ -333,7 +346,6 @@ function loadView(app, passport) {
         } else {
           res.locals.SSOExists = false;
         }
-
         next();
       })
       .catch(() => {

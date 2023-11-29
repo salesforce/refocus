@@ -19,10 +19,13 @@ import configureStore from './utils/configure-store';
 import { syncHistoryWithStore } from 'react-router-redux';
 import Root from './Root';
 
+debugger
 // initialState of {}
+console.log('configureStore');
 const store = configureStore();
 const history = syncHistoryWithStore(browserHistory, store);
 
+console.log('admin app', history);
 ReactDOM.render(
   <Root store={ store } history={ history } />,
   document.getElementById('app')

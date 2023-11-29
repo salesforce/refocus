@@ -22,8 +22,29 @@ const featureToggles = require('feature-toggles');
  * client.getAsync().then(...)).
  */
 const bluebird = require('bluebird');
-bluebird.promisifyAll(redis.RedisClient.prototype);
-bluebird.promisifyAll(redis.Multi.prototype);
+bluebird.promisifyAll(redis);
+
+const createPromisifiedClient = (url, opts) => {
+  console.log('url', url);
+  console.log('opts', opts);
+  const redisClient = bluebird.promisifyAll(redis.createClient(url, opts));
+
+  redisClient.connect().catch(console.error);
+
+  // Promisify the entire prototype
+  bluebird.promisifyAll(redisClient.constructor.prototype, { multiArgs: true });
+
+  new Promise((resolve, reject) => {
+    redisClient.on('connect', () => {
+      resolve();
+    });
+
+    redisClient.on('error', (err) => {
+      reject(err);
+    });
+  });
+  return redisClient;
+};
 
 const opts = {
 
@@ -68,31 +89,32 @@ const pubPerspectives = [];
 rconf.instanceUrl.pubsubPerspectives.forEach((rp) => {
   // Only create subscribers here if we're doing real-time events from main app
   if (!featureToggles.isFeatureEnabled('enableRealtimeApplication')) {
-    const s = redis.createClient(rp, opts);
+    const s = createPromisifiedClient(rp, opts);
     s.subscribe(rconf.perspectiveChannelName);
     subPerspectives.push(s);
   }
 
-  pubPerspectives.push(redis.createClient(rp, opts));
+  const pubClient = createPromisifiedClient(rp, opts);
+  pubPerspectives.push(pubClient);
 });
 
 // Only create subscribers here if we're doing real-time events from main app
 let subBot;
 if (!featureToggles.isFeatureEnabled('enableRealtimeApplicationImc')) {
-  subBot = redis.createClient(rconf.instanceUrl.pubsubBots, opts);
+  subBot = createPromisifiedClient(rconf.instanceUrl.pubsubBots, opts);
   subBot.subscribe(rconf.botChannelName);
 }
 
-const client = {
-  cache: redis.createClient(rconf.instanceUrl.cache, opts),
-  clock: redis.createClient(rconf.instanceUrl.clock, opts),
-  heartbeat: redis.createClient(rconf.instanceUrl.heartbeat, opts),
-  limiter: redis.createClient(rconf.instanceUrl.limiter, opts),
+let client = {
+  cache: createPromisifiedClient(rconf.instanceUrl.cache, opts),
+  clock: createPromisifiedClient(rconf.instanceUrl.clock, opts),
+  heartbeat: createPromisifiedClient(rconf.instanceUrl.heartbeat, opts),
+  limiter: createPromisifiedClient(rconf.instanceUrl.limiter, opts),
   pubPerspectives,
-  pubBot: redis.createClient(rconf.instanceUrl.pubsubBots, opts),
-  realtimeLogging: redis.createClient(rconf.instanceUrl.realtimeLogging,
+  pubBot: createPromisifiedClient(rconf.instanceUrl.pubsubBots, opts),
+  realtimeLogging: createPromisifiedClient(rconf.instanceUrl.realtimeLogging,
    opts),
-  sampleStore: redis.createClient(rconf.instanceUrl.sampleStore, opts),
+  sampleStore: createPromisifiedClient(rconf.instanceUrl.sampleStore, opts),
   subPerspectives,
   subBot,
 };

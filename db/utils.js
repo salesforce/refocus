@@ -139,10 +139,14 @@ const opts = {
  * username and password encoded in the url itself.
  */
 if (conf.readReplicas) {
+  console.log('if new Sequelize readReplicas');
   opts.dialect = env.dialect;
   opts.replication = getDBReplicationObject(primaryDb);
   seq = new Sequelize(primaryDb.name, null, null, opts);
 } else {
+  opts.logging = console.log;
+  opts.dialect = 'postgres';
+  console.log('else new Sequelize', env.dbUrl, opts);
   seq = new Sequelize(env.dbUrl, opts);
 }
 
@@ -272,6 +276,7 @@ function isJavascriptFile(file) {
  * @returns {Promise} Resolves to object containing all the models.
  */
 function doImport() {
+  console.log('\n\n\n doImport @@@@');
   const dir = path.join(__dirname, conf.db.modelDirName);
   fs.readdirSync(dir) // eslint-disable-line no-sync
   .map((f) => path.join(dir, f))

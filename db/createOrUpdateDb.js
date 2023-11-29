@@ -26,52 +26,74 @@ const seq = new Sequelize(env.dbUrl, {
 });
 const pgtools = require('pgtools');
 
+console.log('\n\n in createOrUpdateDb \n\n');
 /**
  * Create the database, run resetdb to create the tables and indexes, and do
  * "pseudo-migrations" to bring the migration table up to date.
  */
-function createAndReset() {
-  u.createOrDropDb(pgtools.createdb)
-  .then((res) => {
-    u.clog('createOrUpdateDb', 'createAndReset', res);
-    return u.reset();
-  })
-  .then((res) => {
-    u.clog('createOrUpdateDb', 'createAndReset', res);
+async function createAndReset() {
+  try {
+    const createDbResult = await u.createOrDropDb(pgtools.createdb);
+    u.clog('createOrUpdateDb', 'createAndReset', createDbResult);
+    
+    const resetResult = await u.reset();
+    u.clog('createOrUpdateDb', 'createAndReset', resetResult);
+    
     process.exit(u.ExitCodes.OK); // eslint-disable-line no-process-exit
-  })
-  .catch((err) => {
+  } catch (err) {
     u.clog('createOrUpdateDb', 'createAndReset', err.message);
     process.exit(u.ExitCodes.ERROR); // eslint-disable-line no-process-exit
-  });
-} // createAndReset
+  }
+}
 
-seq.query(`select count(*) from
-  information_schema.tables where table_schema = 'public'`)
-.then((data) => {
-  if (data[0][0].count === '0') { // eslint-disable-line
-    // The database exists but the table schemas do not exist.
-    u.reset()
-    .then((res) => {
-      u.clog('createOrUpdateDb', '', res);
+async function main() {
+  try {
+
+    console.log('Before Sequelize Connection Check');
+
+    try {
+      await seq.authenticate();
+      console.log('Sequelize connection has been established successfully.');
+    } catch (error) {
+      console.error('Unable to connect to the database:', error);
+      // Handle the error appropriately, for example, by exiting the process
+      process.exit(u.ExitCodes.ERROR);
+    }
+
+    console.log('After Sequelize Connection Check');
+
+    const data = await seq.query(`
+      select count(*) from information_schema.tables
+      where table_schema = 'public'
+    `);
+
+    console.log('Inside seq.query then');
+
+    if (data[0][0].count === '0') {
+      // The database exists but the table schemas do not exist.
+      const resetResult = await u.reset();
+      u.clog('createOrUpdateDb', '', resetResult);
       process.exit(u.ExitCodes.OK); // eslint-disable-line no-process-exit
-    })
-    .catch((err) => {
-      u.clog('createOrUpdateDb', '', err.message);
-      process.exit(u.ExitCodes.ERROR); // eslint-disable-line no-process-exit
-    });
-  } else {
-    // The database AND the table schemas exist.
-    require('./migrate.js'); // eslint-disable-line global-require
+    } else {
+      // The database AND the table schemas exist.
+      require('./migrate.js'); // eslint-disable-line global-require
+    }
+  } catch (err) {
+    console.error('Inside seq.query catch:', err);
+    console.error('Error in createOrUpdateDb:', err); // Log the error details for debugging
+
+    if (err.name === 'SequelizeConnectionError' && err.message === 'database "focusdb" does not exist') {
+      // Database does not exist.
+      await createAndReset();
+    } else {
+      // Some other error.
+      u.clog('createOrUpdateDb', '', err.name + ': ' + err.message);
+    }
+  } finally {
+    console.log('Finally block executed'); // Add this line for debugging
   }
-})
-.catch((err) => {
-  if (err.name === 'SequelizeConnectionError' &&
-    err.message === 'database "focusdb" does not exist') {
-    // Database does not exist.
-    createAndReset();
-  } else {
-    // Some other error.
-    u.clog('createOrUpdateDb', '', err.name + ': ' + err.message);
-  }
-});
+
+  console.log('After seq.query');
+}
+
+main();

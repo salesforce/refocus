@@ -22,6 +22,7 @@ const DEFAULT_WEB_CONCURRENCY = 1;
 const WORKERS = process.env.WEB_CONCURRENCY || DEFAULT_WEB_CONCURRENCY;
 const conf = require('./config');
 const logEnvVars = require('./utils/logEnvVars');
+const debug = require('debug')('app:middleware');
 
 /**
  * Entry point for each clustered process.
@@ -29,7 +30,7 @@ const logEnvVars = require('./utils/logEnvVars');
  * @param {Number} clusterProcessId - process id if called from throng,
  *  otherwise 0
  */
-function start(clusterProcessId = 0) { // eslint-disable-line max-statements
+async function start(clusterProcessId = 0) { // eslint-disable-line max-statements
   logger.info(`Started node process ${clusterProcessId}`);
 
   /*
@@ -37,10 +38,15 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
    */
   const app = require('./express').app;
 
+  // console.log('\n\n\n index.js app $$$$$$$$$$$$$$$$', app);
   /*
    * Sample store
    */
-  require('./cache/sampleStoreInit').init();
+  try {
+    await require('./cache/sampleStoreInit').init();
+  } catch(err) {
+    console.log('err while loding sampleStoreInit');
+  }
 
   /*
    * Clock jobs
@@ -48,7 +54,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
    * from here.
    */
   if (!featureToggles.isFeatureEnabled('enableClockProcess')) {
-    require('./clock/index'); // eslint-disable-line global-require
+    await require('./clock/index'); // eslint-disable-line global-require
   }
 
   /*
@@ -74,6 +80,7 @@ function start(clusterProcessId = 0) { // eslint-disable-line max-statements
 
   // Custom middleware to add process info to the request (for use in logging)
   app.use((req, res, next) => {
+    debug('Entering custom middleware');
     // process id (0 for a single process, 1-n for multiple throng workers)
     req.clusterProcessId = clusterProcessId;
 
@@ -97,5 +104,6 @@ if (isProd) {
     workers: WORKERS,
   });
 } else {
+  console.log('\n\n dev start start here &&&&&&');
   start();
 }

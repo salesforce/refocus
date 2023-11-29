@@ -33,7 +33,6 @@ function getIpAddressFromRequest(req) {
   if (!req || typeof req !== 'object') {
     return undefined;
   }
-
   // From request's "x-forwarded-for" header?
   if (req.headers && req.headers[XFWD]) {
     return req.headers[XFWD];
@@ -76,6 +75,7 @@ module.exports = {
   getIpAddressFromRequest,
   getIpAddressFromSocket,
   middleware: (req, res, next) => {
+    console.log('\n\n\n\n\n\n getIpAddressFromRequest connection remoteAddress ==>>>>>>>>>>');
     if (!req.hasOwnProperty('locals')) {
       req.locals = {};
     }

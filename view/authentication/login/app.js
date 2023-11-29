@@ -24,6 +24,7 @@ const input = document.loginform.elements;
  * @returns {Object} Decode query params object
  */
 function getQueryParams(qs) {
+  console.log('\n\n getQueryParams ~~~~~~~~~~~~~~~~~~~~~~~~');
   const params = {};
   const re = /[?&]?([^=]+)=([^&]*)/g;
   const qString = qs.split('+').join(' ');
@@ -43,6 +44,7 @@ function getQueryParams(qs) {
  */
 function sendData(jsonData) {
   let returnUrl = {};
+  console.log('\n\n sendData $$$$$$$$$');
   request
   .post('/v1/authenticate')
   .send(jsonData)
@@ -75,6 +77,7 @@ document.loginform.addEventListener('submit', (evt) => {
 });
 
 const showLogin = document.getElementById('show-login');
+console.log('\n\n\n\ showLogin ++++++++');
 if (showLogin) {
   showLogin.addEventListener('click', (evt) => {
     evt.preventDefault();

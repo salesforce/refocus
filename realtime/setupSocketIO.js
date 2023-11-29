@@ -81,9 +81,13 @@ function setupNamespace(io) {
  *  testability.)
  */
 function init(io, redisStore) {
+  // console.log('io', io);
+  // console.log('redisStore', redisStore);
   io.sockets.on('connection', (socket) => {
+    console.log('\n\n on');
     // check if connection has a "cookie" for authentication
     if (socket.handshake.headers.cookie) {
+      console.log('socket init else if block socket.handshake.headers.cookie ==>>', socket.handshake.headers.cookie);
       // Pull the sesssion id off the cookie.
       const sidMatch = SID_REX.exec(socket.handshake.headers.cookie);
       if (!sidMatch || sidMatch.length < 2) {
@@ -101,6 +105,7 @@ function init(io, redisStore) {
       // logger.info('[WSDEBUG] sid', sid);
       getUserFromSession(sid, redisStore)
       .then((user) => {
+        console.log('\n\n\n\n user hurray !!!!!!!!!! \n\n\n\n\n\n', user);
 
         // OK, we've got a user from the session!
         // Get IP address and perspective name from socket handshake.
@@ -191,6 +196,7 @@ function init(io, redisStore) {
 
     // check if connection using an authorization header
     } else if (socket.handshake.headers.authorization) {
+      console.log('socket init else if block socket.handshake.headers.authorization ==>>', socket.handshake.headers.authorization);
       jwtUtils.verifySocketToken(socket.handshake.headers.authorization)
       .then((isValid) => {
         if (!isValid) {
@@ -199,6 +205,7 @@ function init(io, redisStore) {
         }
       });
     } else {
+      console.log('socket init else block');
       // Socket handshake must have "cookie" or an "auth" header with connect.sid.
       // disconnecting socket -- expecting header with cookie or auth token
       // logger.info('[WSDEBUG] disconnecting socket -- expecting header ' +

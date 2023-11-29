@@ -18,6 +18,8 @@ const DEFAULT_LOCAL_REDIS_URL = '//127.0.0.1:6379';
 const PRIMARY_REDIS = (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL);
 const perspectiveChannelName = 'focus';
 const botChannelName = 'imc';
+const DEFAULT_LOCAL_REDIS_HOST = '127.0.0.1';
+const DEFAULT_LOCAL_REDIS_PORT = '6379';
 
 let pubsubPerspectives = [PRIMARY_REDIS];
 if (pe.REDIS_PUBSUB_PERSPECTIVES) {

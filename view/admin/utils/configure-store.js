@@ -19,6 +19,7 @@ import createLogger from 'redux-logger';
 import rootReducer from '../reducers';
 
 const logger = createLogger();
+console.log("applyMiddleware");
 // wrap store store creation function
 const finalCreateStore = compose(
   // apply middleware to store

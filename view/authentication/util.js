@@ -13,6 +13,7 @@
  * @returns {Boolean} true if the URL is valid
  */
 function isValidURL(string) {
+  console.log('\n\nisValidURL ~~~~~~~~~~~~~~~~~~~~~~~~');
   const decodedString = decodeURIComponent(string);
   let url;
   try {

@@ -28,7 +28,9 @@ const IORedis = require('ioredis');
 const redisConfig = {
   tls: {
     rejectUnauthorized: false
-  }
+  },
+  keepAlive: 1000,
+  lazyConnect: true,
 };
 const ioredisClient = new IORedis(rconf.instanceUrl.sampleStore, redisConfig);
 const featureToggles = require('feature-toggles');

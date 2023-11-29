@@ -137,6 +137,7 @@ const jobType = {
   bulkPostEvents: 'bulkPostEvents',
   getHierarchy: 'getHierarchy',
   bulkDeleteSubjects: 'bulkDeleteSubjects',
+  executeClockJob: 'executeClockJob',
 };
 
 const clockJobConfig = {

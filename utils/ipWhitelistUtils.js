@@ -44,7 +44,24 @@ function isWhitelisted(addr) {
 
 module.exports = {
   isWhitelisted,
-  middleware: (req, res, next) => isWhitelisted(req.locals.ipAddress)
-    .then((allow) => (allow ? next() : next(unauthorizedErr)))
-    .catch((err) => next(err)),
+  middleware: (req, res, next) => {
+    console.log('Middleware started. IP Address:', req.locals.ipAddress);
+
+    isWhitelisted(req.locals.ipAddress)
+      .then((allow) => {
+        console.log('Whitelist check result:', allow);
+
+        if (allow) {
+          console.log('Whitelisted. Proceeding to the next middleware.');
+          next();
+        } else {
+          console.log('Not whitelisted. Sending unauthorized error.');
+          next(unauthorizedErr);
+        }
+      })
+      .catch((err) => {
+        console.error('Error during whitelist check:', err);
+        next(err);
+      });
+  },
 };

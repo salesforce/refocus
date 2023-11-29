@@ -15,16 +15,19 @@
 const LocalStrategy = require('passport-local').Strategy;
 const User = require('../db/index').User.scope('withSensitiveInfo');
 const Profile = require('../db/index').Profile;
-const bcrypt = require('bcrypt-nodejs');
+const bcrypt = require('bcrypt');
 
 module.exports = (passportModule) => {
+  console.log('passportModule strategy');
   // used to serialize the user for the session
   passportModule.serializeUser((user, done) => {
+    console.log('\n\n\n serialize userrrrrrrrrrr', user);
     done(null, user);
   });
 
   // used to deserialize the user
   passportModule.deserializeUser((user, done) => {
+    console.log('\n\n\n de serialize userrrrrrrrr', user);
     done(null, user);
   });
 
@@ -97,14 +100,18 @@ module.exports = (passportModule) => {
    * @param  {Function} done - Callback function
    */
   function loginStrategy(req, userName, userPassword, done) {
+    console.log('\n\n loginStrategy $$$');
     User.findOne({ where: { name: userName }, scope: null })
     .then((foundUser) => { // profile name is attached by default
+      console.log('\n\n\n foundUser then ==>>>>>', foundUser);
       if (foundUser && foundUser.sso) {
         throw new Error('Invalid credentials');
       }
 
+      console.log('before bcrypt');
       if (foundUser) {
         bcrypt.compare(userPassword, foundUser.password, (err, res) => {
+          console.log('in bcrypt');
           if (err) {
             return done(err, false);
           }
@@ -116,10 +123,14 @@ module.exports = (passportModule) => {
           return done(null, false);
         });
       } else {
+        console.log('in bcrypt error');
         return done(null, false);
       }
     })
-    .catch((err) => done(err));
+    .catch((err) => {
+      console.log('\n\n\n foundUser error ==>>>>>', foundUser);
+      done(err);
+    });
   }
 
   // enable passport to use local signup strategy for registering users.

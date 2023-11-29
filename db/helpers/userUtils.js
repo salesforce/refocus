@@ -13,7 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const bcrypt = require('bcrypt-nodejs');
+const bcrypt = require('bcrypt');
 const conf = require('../../config');
 
 /**

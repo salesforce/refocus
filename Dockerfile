@@ -1,4 +1,4 @@
-FROM node:8-alpine
+FROM node:21-alpine
 
 ENV HOME=/home/refocus
 RUN adduser -D -h $HOME refocus

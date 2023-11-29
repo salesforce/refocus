@@ -29,12 +29,16 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   authenticateUser(req, res, next) {
+    console.log('authenticateUser', req);
     const resultObj = { reqStartTime: req.timestamp };
     configuredPassport.authenticate('local-login', (err, user/* , info */) => {
+      console.log('\n\n\n local login', user);
+      console.log('local login error', err);
       if (err) {
         return u.handleError(next, err, resourceName);
       }
 
+      debugger
       if (!user || !user.name) {
         const loginErr = new apiErrors.LoginError({
           explanation: 'Invalid credentials',
@@ -42,15 +46,20 @@ module.exports = {
         return u.handleError(next, loginErr, resourceName);
       }
 
+      console.log('Before req logIn, req:', user);
       req.logIn(user, (_err) => {
+        console.log('\n\n\n\n req logIn inside', user);
         resultObj.dbTime = new Date() - resultObj.reqStartTime;
         if (_err) {
           return u.handleError(next, _err, resourceName);
         }
 
+        console.log('After req.logIn, req.user:', req.user);
+
         return user.setLastLogin()
           .then(() => Profile.isAdmin(user.profileId))
           .then((isAdmin) => { // update in token payload if admin
+            console.log('\n\n\n i am here in user setLastLogin &&&$$$$$$$$$');
             const payloadObj = {
               ProfileName: user.profile.name,
               IsAdmin: isAdmin,

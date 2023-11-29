@@ -42,6 +42,8 @@ class RedisOps {
    */
   constructor(enableBatch, parentBatch) {
     if (enableBatch) {
+      debugger
+      console.log('\n\n redisOps redisClient', redisClient);
       this.parentBatch = parentBatch;
       this.batch = parentBatch ? parentBatch.batch : redisClient.batch();
       this.savedResults = {};

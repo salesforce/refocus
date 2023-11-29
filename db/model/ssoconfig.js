@@ -87,5 +87,6 @@ module.exports = function user(seq, dataTypes) {
     });
   };
 
+  console.log('\n\n SSOConfig in func $$$$$$$', SSOConfig);
   return SSOConfig;
 };

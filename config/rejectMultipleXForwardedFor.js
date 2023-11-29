@@ -17,6 +17,7 @@
 const FWD = 'x-forwarded-for';
 
 module.exports = (req, res, next) => {
+  console.log('\n\n\n rejectMultipleXForwardedFor ***********');
   if (req.headers && req.headers[FWD] && req.headers[FWD].indexOf(',') !== -1) {
     const err = new Error('Access denied');
     err.name = 'Unauthorized';

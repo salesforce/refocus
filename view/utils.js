@@ -152,6 +152,7 @@ function patchPromiseWithUrl(url, data) {
  * @returns {Promise} For use in chaining.
  */
 function postPromiseWithUrl(url, data) {
+  console.log('postPromiseWithUrl');
   return new Promise((resolve, reject) => {
     request.post(url)
       .set(REQ_HEADERS)
@@ -167,6 +168,7 @@ function postPromiseWithUrl(url, data) {
   });
 } // postPromiseWithUrl
 
+debugger
 module.exports = {
   setCookie,
   getCookie,
