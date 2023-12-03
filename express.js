@@ -76,7 +76,7 @@ try {
   console.log('Redis URL:', `redis:${conf.redis.instanceUrl.session}`);
   // Create a standalone Redis client with TLS options
   const redisClient = redis.createClient({
-    url: `redis:${conf.redis.instanceUrl.session}`,
+    url: conf.redis.instanceUrl.session,
     tls: {
       rejectUnauthorized: false
     },
@@ -98,11 +98,6 @@ try {
   redisClient.on('connect', async() => {
     console.log('\n\n\n\n\\n Redis Client Connected =======>>>>>>>>>>>>>>>>>>>>>>>>>>>');
   });
-
-  if (redisClient.status !== 'ready') {
-    console.log('Error: Redis client is not connected');
-    // process.exit(1); // Exit the process or handle the error accordingly
-  }
 
   console.log('\n\n\n redisClient', redisClient.status);
   const RedisStore = require('connect-redis')(session);
@@ -200,8 +195,8 @@ try {
   const swaggerFile = fs // eslint-disable-line no-sync
   .readFileSync(conf.api.swagger.doc, ENCODING);
   const swaggerDoc = yaml.load(swaggerFile);
-  console.log('\n\n swaggerFile', swaggerFile);
-  console.log('\n\n swaggerDoc', swaggerDoc);
+  // console.log('\n\n swaggerFile', swaggerFile);
+  // console.log('\n\n swaggerDoc', swaggerDoc);
   if (featureToggles.isFeatureEnabled('hideRoutes')) {
     for (let _path in swaggerDoc.paths) {
       if (swaggerDoc.paths.hasOwnProperty(_path)) {

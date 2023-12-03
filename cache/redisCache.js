@@ -22,6 +22,7 @@ const featureToggles = require('feature-toggles');
  * client.getAsync().then(...)).
  */
 const bluebird = require('bluebird');
+const util = require('util');
 bluebird.promisifyAll(redis);
 
 const createPromisifiedClient = (url, opts) => {
@@ -34,15 +35,6 @@ const createPromisifiedClient = (url, opts) => {
   // Promisify the entire prototype
   bluebird.promisifyAll(redisClient.constructor.prototype, { multiArgs: true });
 
-  new Promise((resolve, reject) => {
-    redisClient.on('connect', () => {
-      resolve();
-    });
-
-    redisClient.on('error', (err) => {
-      reject(err);
-    });
-  });
   return redisClient;
 };
 
@@ -78,6 +70,7 @@ const opts = {
   tls: {
     rejectUnauthorized: false
   },
+  legacyMode: true,
 };
 
 if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
@@ -87,10 +80,13 @@ if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
 const subPerspectives = [];
 const pubPerspectives = [];
 rconf.instanceUrl.pubsubPerspectives.forEach((rp) => {
+  console.log('\n\n pubsubPerspectives', rp)
   // Only create subscribers here if we're doing real-time events from main app
   if (!featureToggles.isFeatureEnabled('enableRealtimeApplication')) {
     const s = createPromisifiedClient(rp, opts);
-    s.subscribe(rconf.perspectiveChannelName);
+    s.subscribe(rconf.perspectiveChannelName, (message) => {
+      console.log('perspectiveChannelName', rconf.perspectiveChannelName, message);
+    });
     subPerspectives.push(s);
   }
 
@@ -101,8 +97,11 @@ rconf.instanceUrl.pubsubPerspectives.forEach((rp) => {
 // Only create subscribers here if we're doing real-time events from main app
 let subBot;
 if (!featureToggles.isFeatureEnabled('enableRealtimeApplicationImc')) {
+  console.log('\n\n enableRealtimeApplicationImc');
   subBot = createPromisifiedClient(rconf.instanceUrl.pubsubBots, opts);
-  subBot.subscribe(rconf.botChannelName);
+  subBot.subscribe(rconf.botChannelName, (message) => {
+    console.log('botChannelName', rconf.botChannelName, message);
+  });
 }
 
 let client = {

@@ -78,9 +78,9 @@ function getResourceMapsKeys(keys) {
  * @returns {Promise} which resolves to the value of the previoiusStatusKey
  */
 async function getPreviousStatus() {
-  console.log('\n\n sample store init redisClient ==>>>>', redisClient);
-  console.log('constants.previousStatusKey', constants.previousStatusKey);
-  console.log('\n\n redisClient.getAsync(constants.previousStatusKey)', await redisClient.getAsync(constants.previousStatusKey));
+  // console.log('\n\n sample store init redisClient ==>>>>', redisClient);
+  // console.log('constants.previousStatusKey', constants.previousStatusKey);
+  // console.log('\n\n redisClient.getAsync(constants.previousStatusKey)', await redisClient.getAsync(constants.previousStatusKey));
   return await redisClient.getAsync(constants.previousStatusKey);
 } // persistInProgress
 
@@ -130,7 +130,7 @@ async function eradicate() {
         }
 
         keys.push(constants.indexKey[s]);
-        return redisClient.delAsync(keys);
+        return await redisClient.delAsync(keys);
       } catch (err) {
         // NO-OP
         logger.error(err); // eslint-disable-line

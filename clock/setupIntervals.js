@@ -69,6 +69,7 @@ function runOnceThenSetupInterval(jobName, fn, interval) {
 
 function getLastRunTimes(jobs) {
   const timeKeys = Object.keys(jobs).map(getKey);
+  console.log('\n\n\n redisClient getLastRunTimes ==>>>>>>>', redisClient);
   return redisClient.mgetAsync(timeKeys);
 }
 

@@ -26,9 +26,9 @@ const Status = require('../db/constants').statuses;
 
 const batchableCmds = [
   'set', 'del', 'rename', 'exists', 'touch',
-  'sadd', 'srem', 'sismember', 'smembers', 'sunionstore',
-  'hmset', 'hgetall', 'hdel',
-  'zadd', 'zrange', 'zrangebyscore',
+  'sAddAsync', 'sRemAsync', 'sIsMemberAsync', 'sMembersAsync', 'sUnionStoreAsync',
+  'hSetAsync', 'hGetAllAsync',
+  'zAddAsync', 'zRangeAsync', 'zRangeByScoreAsync',
 ];
 
 class RedisOps {
@@ -45,7 +45,7 @@ class RedisOps {
       debugger
       console.log('\n\n redisOps redisClient', redisClient);
       this.parentBatch = parentBatch;
-      this.batch = parentBatch ? parentBatch.batch : redisClient.batch();
+      this.batch = parentBatch ? parentBatch.batch : redisClient;
       this.savedResults = {};
       this.transforms = [];
     }
@@ -102,7 +102,12 @@ class RedisOps {
    * @returns {RedisOps|Promise}
    */
   executeBatchableCmd(cmd, ...args) {
+    console.log('executeBatchableCmd this batch', this.batch);
+    console.log('executeBatchableCmd this redisClient', redisClient);
     const client = this.batch || redisClient;
+    console.log('\n\n executeBatchableCmd client', client);
+    console.log('\n\n executeBatchableCmd client cmd', cmd);
+    console.log('\n\n\n args', ...args);
     const runCmd = client[cmd].bind(client);
     if (this.batch) {
       runCmd(...args);
@@ -251,10 +256,14 @@ class RedisOps {
    * @returns {RedisOps|Promise}
    */
   exec() {
+    console.log('\n\n\n queued up all the commands and executing');
+    debugger
     if (this.batch && !this.parentBatch) {
-      const _batch = this.batch;
+      console.log('\n\n exec this.batch', this.batch);
+      const _batch = this.batch.multi();
+      console.log('\n\n exec _batch', _batch);
       this.batch = null;
-      return _batch.execAsync()
+      return _batch.EXEC()
       .then((res) => {
         if (Object.keys(this.savedResults).length) {
           return this.savedResults;
@@ -285,7 +294,8 @@ class RedisOps {
     const cleanobj = redisStore[`clean${capitalizedObjName}`](obj);
     const nameKey = redisStore.toKey(objType, name);
     logInvalidHmsetValues(nameKey, cleanobj);
-    return this.hmset(nameKey, cleanobj);
+    console.log('\n\n\n hSetAsync setHash ==>>>>', cleanobj, nameKey);
+    return this.set(nameKey, JSON.stringify(cleanobj));
   } // setHash
 
   /**
@@ -324,7 +334,7 @@ class RedisOps {
   addKey(type, name) {
     const indexName = redisStore.constants.indexKey[type];
     const nameKey = redisStore.toKey(type, name);
-    return this.sadd(indexName, nameKey);
+    return this.sAddAsync(indexName, nameKey);
   } // addKey
 
   /**
@@ -509,7 +519,7 @@ class RedisOps {
 
     const key = redisStore.toKey(type, name);
     logInvalidHmsetValues(key, kvObj);
-    return this.hmset(key, kvObj);
+    return this.set(key, JSON.stringify(kvObj));
   }
 
   /**
@@ -971,3 +981,4 @@ class RedisOps {
 
 RedisOps.setPrototype();
 module.exports = new RedisOps();
+

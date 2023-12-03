@@ -35,9 +35,9 @@ module.exports = async (io) => {
 
     const allSubscribers = resolvedSubBot ? resolvedSubPerspectives.concat(resolvedSubBot) : resolvedSubPerspectives;
 
-    console.log('After Promise.all, allSubscribers:', allSubscribers);
+    // console.log('After Promise.all, allSubscribers:', allSubscribers);
     // const allSubscribers = await Promise.all(subscribersInfo);
-    console.log('\n\n allSubscribers ==>>>>>', allSubscribers);
+    // console.log('\n\n allSubscribers ==>>>>>', allSubscribers);
     if (!allSubscribers || !allSubscribers.length) {
       console.error('All subscribers is undefined or empty');
       return;

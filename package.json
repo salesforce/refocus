@@ -87,6 +87,7 @@
     "bcrypt-nodejs": "0.0.3",
     "bcrypt": "5.0.1",
     "bluebird": "^3.7.2",
+    "util": "^0.12.5",
     "body-parser": "^1.19.2",
     "browserify": "^13.0.1",
     "bull": "^3.10.0",
