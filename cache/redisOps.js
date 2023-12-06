@@ -190,11 +190,13 @@ class RedisOps {
    * @returns {RedisOps|Promise}
    */
   returnAll(arr, key, fn) {
+    console.log("\n\n\n\n Return all", arr, key);
     if (!this.batch) return this;
 
     const queueSizeBefore = this.batch.queue && this.batch.queue.length || 0;
     this.map(arr, fn);
     const cmdsAndIndexes = Object.entries(this.batch.queue.toArray()).slice(queueSizeBefore);
+    console.log("\n\n\n\n cmdsAndIndexes", cmdsAndIndexes);
 
     this.savedResults[key] = [];
     cmdsAndIndexes.forEach(([cmdIndex, cmd], i) => {
@@ -252,6 +254,7 @@ class RedisOps {
     if (this.batch && !this.parentBatch) {
       const _batch = this.batch;
       this.batch = null;
+      console.log("\n\n\n\n RedisOps Exec ==>>", this.savedResults);
       return _batch.execAsync()
       .then((res) => {
         if (Object.keys(this.savedResults).length) {
