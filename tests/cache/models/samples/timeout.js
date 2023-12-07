@@ -136,9 +136,9 @@ describe('tests/cache/models/samples/timeout.js, api::cache::timeout', () => {
     .then((sNames) => {
       const commands = [];
       sNames.forEach((s) => {
-        commands.push(['hgetall', s]);
+        commands.push(['hGetAll', s]);
       });
-      return rcli.batch(commands).execAsync();
+      return rcli.batch(commands).exec();
     })
     .then((samples) => {
       samples.forEach((s) => {
@@ -163,9 +163,9 @@ describe('tests/cache/models/samples/timeout.js, api::cache::timeout', () => {
     .then((sNames) => {
       const commands = [];
       sNames.forEach((s) => {
-        commands.push(['hgetall', s]);
+        commands.push(['hGetAll', s]);
       });
-      return rcli.batch(commands).execAsync();
+      return rcli.batch(commands).exec();
     })
     .then((samples) => {
       samples.forEach((s) => {
@@ -203,9 +203,9 @@ describe('tests/cache/models/samples/timeout.js, api::cache::timeout', () => {
     .then((sNames) => {
       const commands = [];
       sNames.forEach((s) => {
-        commands.push(['hgetall', s]);
+        commands.push(['hGetAll', s]);
       });
-      return rcli.batch(commands).execAsync();
+      return rcli.batch(commands).exec();
     })
     .then((samples) => {
       samples.forEach((s) => {
@@ -242,9 +242,9 @@ describe('tests/cache/models/samples/timeout.js, api::cache::timeout', () => {
     .then((sNames) => {
       const commands = [];
       sNames.forEach((s) => {
-        commands.push(['hgetall', s]);
+        commands.push(['hGetAll', s]);
       });
-      return rcli.batch(commands).execAsync();
+      return rcli.batch(commands).exec();
     })
     .then((samples) => {
       samples.forEach((s) => {

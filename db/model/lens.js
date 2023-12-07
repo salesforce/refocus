@@ -12,7 +12,7 @@
 
 const common = require('../helpers/common');
 const constants = require('../constants');
-const redisCache = require('../../cache/redisCache').client.cache;
+const redisCachePromise = require('../../cache/redisCache');
 const lensUtil = require('../../utils/lensUtil');
 const featureToggles = require('feature-toggles');
 const dbErrors = require('../dbErrors');
@@ -24,8 +24,14 @@ const assoc = {};
 function setLensObjectInCache(_inst) {
   const lensObj = lensUtil.cleanAndCreateLensJson(_inst);
   const stringifiedLens = JSON.stringify(lensObj);
-  redisCache.set(`${constants.lensesRoute}/${lensObj.id}`, stringifiedLens);
-  redisCache.set(`${constants.lensesRoute}/${lensObj.name}`, stringifiedLens);
+  redisCachePromise
+  .then(redisCache => {
+    redisCache.client.cache.set(`${constants.lensesRoute}/${lensObj.id}`, stringifiedLens);
+    redisCache.client.cache.set(`${constants.lensesRoute}/${lensObj.name}`, stringifiedLens);
+  })
+  .catch(error => {
+    console.error('Error using Redis client:', error);
+  })
 }
 
 module.exports = function lens(seq, dataTypes) {
@@ -164,8 +170,15 @@ module.exports = function lens(seq, dataTypes) {
       },
 
       afterDestroy(inst /* , opts */) {
-        redisCache.del(`${constants.lensesRoute}/${inst.id}`);
-        redisCache.del(`${constants.lensesRoute}/${inst.name}`);
+        redisCachePromise
+          .then(redisCache => {
+            console.log("lens.js afterDestroy ==>>>>", redisCache.client.cache);
+            redisCache.client.cache.del(`${constants.lensesRoute}/${inst.id}`);
+            redisCache.client.cache.del(`${constants.lensesRoute}/${inst.name}`);
+          })
+          .catch(error => {
+            console.error('Error using Redis client:', error);
+          })
       },
 
       /**
@@ -193,8 +206,15 @@ module.exports = function lens(seq, dataTypes) {
        */
       afterUpdate(inst /* , opts */) {
         // Clear the lens from the cache whether it's stored by id or by name.
-        redisCache.del(`${constants.lensesRoute}/${inst.id}`);
-        redisCache.del(`${constants.lensesRoute}/${inst.name}`);
+        redisCachePromise
+          .then(redisCache => {
+            console.log("lens.js afterDestroy ==>>>>", redisCache.client.cache);
+            redisCache.client.cache.del(`${constants.lensesRoute}/${inst.id}`);
+            redisCache.client.cache.del(`${constants.lensesRoute}/${inst.name}`);
+          })
+          .catch(error => {
+            console.error('Error using Redis client:', error);
+          })
       },
     },
     name: {

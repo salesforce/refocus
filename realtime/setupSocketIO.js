@@ -19,7 +19,7 @@ const toggle = require('feature-toggles');
 const rtUtils = require('./utils');
 const emitUtils = require('./emitUtils');
 const jwtUtils = require('../utils/jwtUtil');
-const redisClient = require('../cache/redisCache').client.realtimeLogging;
+const redisCachePromise = require('../cache/redisCache');
 const conf = require('../config');
 const ipWhitelist = conf.environment[conf.nodeEnv].ipWhitelist;
 const activityLogUtil = require('../utils/activityLog');
@@ -149,42 +149,50 @@ function init(io, redisStore) {
             toLog.perspective = socket.handshake.query.p;
           }
 
-          redisClient.set(socket.id, JSON.stringify(toLog));
+          redisCachePromise
+          .then(redisCache => {
+            console.log("redisCache.client.realtimeLogging ==>>>>", redisCache.client.realtimeLogging);
+            const redisClient = redisCache.client.realtimeLogging;
+            redisClient.set(socket.id, JSON.stringify(toLog));
 
-          socket.on('disconnect', () => {
-            // Retrieve the logging info for this socket.
-            redisClient.get(socket.id, (getErr, getResp) => {
-              if (getErr) {
-                logger.info('Error ' +
-                  `retrieving socket id ${socket.id} from redis on client ` +
-                  'disconnect:', getErr);
-              } else { // eslint-disable-line lines-around-comment
-                /*
-                 * Calculate the totalTime and write out the log line. If redis
-                 * was flushed by an admin, the response here will be empty, so
-                 * just skip the logging.
-                 */
-                const d = JSON.parse(getResp);
-                if (d && d.starttime) {
-                  d.totalTime = (Date.now() - d.starttime) + 'ms';
-                  activityLogUtil.printActivityLogString(d, 'realtime');
-                }
-
-                // Remove the redis key for this socket.
-                redisClient.del(socket.id, (delErr, delResp) => {
-                  if (delErr) {
-                    logger.info('Error ' +
-                      `deleting socket id ${socket.id} from redis on ` +
-                      'client disconnect:', delErr);
-                  } else if (delResp !== ONE) {
-                    logger.info('Expecting' +
-                      `unique socket id ${socket.id} to delete from redis on ` +
-                      `client disconnect, but ${delResp} were deleted.`);
+            socket.on('disconnect', () => {
+              // Retrieve the logging info for this socket.
+              redisClient.get(socket.id, (getErr, getResp) => {
+                if (getErr) {
+                  logger.info('Error ' +
+                    `retrieving socket id ${socket.id} from redis on client ` +
+                    'disconnect:', getErr);
+                } else { // eslint-disable-line lines-around-comment
+                  /*
+                   * Calculate the totalTime and write out the log line. If redis
+                   * was flushed by an admin, the response here will be empty, so
+                   * just skip the logging.
+                   */
+                  const d = JSON.parse(getResp);
+                  if (d && d.starttime) {
+                    d.totalTime = (Date.now() - d.starttime) + 'ms';
+                    activityLogUtil.printActivityLogString(d, 'realtime');
                   }
-                }); // redisClient.del
-              }
-            }); // redisClient.get
-          }); // on disconnect
+  
+                  // Remove the redis key for this socket.
+                  redisClient.del(socket.id, (delErr, delResp) => {
+                    if (delErr) {
+                      logger.info('Error ' +
+                        `deleting socket id ${socket.id} from redis on ` +
+                        'client disconnect:', delErr);
+                    } else if (delResp !== ONE) {
+                      logger.info('Expecting' +
+                        `unique socket id ${socket.id} to delete from redis on ` +
+                        `client disconnect, but ${delResp} were deleted.`);
+                    }
+                  }); // redisClient.del
+                }
+              }); // redisClient.get
+            }); // on disconnect
+          })
+          .catch(error => {
+            console.error('Error using Redis client:', error);
+          })
         } // if logEnabled
       })
       .catch((err) => {

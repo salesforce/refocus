@@ -19,141 +19,148 @@ const featureToggles = require('feature-toggles');
 
 /*
  * This will add "...Async" to all node_redis functions (e.g. return
- * client.getAsync().then(...)).
+ * client.get().then(...)).
  */
 const bluebird = require('bluebird');
-const util = require('util');
-bluebird.promisifyAll(redis);
+const { promisify } = require('util');
+// bluebird.promisifyAll(redis);
 
-const createPromisifiedClient = (url, opts) => {
-  console.log('url', url);
-  console.log('opts', opts);
-  const redisClient = bluebird.promisifyAll(redis.createClient(url, opts));
-
-  redisClient.connect().catch(console.error);
-
-  // Promisify the entire prototype
-  bluebird.promisifyAll(redisClient.constructor.prototype, { multiArgs: true });
-
-  return redisClient;
-};
-
-const opts = {
-
-  /* Redis Client Retry Strategy */
-  retry_strategy: (options) => {
-
-    /*
-     * Stop retrying if we've exceeded the configured threshold since the last
-     * successful connection. Flush all commands with a custom error message.
-     */
-    if (options.total_retry_time > rconf.retryStrategy.totalRetryTime) {
-      return new Error('Retry time exhausted');
+const setupRedisClients = () => {
+  try {
+    console.log('Starting Redis client setup...');
+    const createRedisClient = (url, opts) => {
+      console.log('url', url);
+      console.log('opts', opts);
+      const redisClient = redis.createClient(url, opts);
+      redisClient.on("error", (error) => console.error(`connection Error : ${error}`));
+      redisClient.connect().catch(console.error);
+  
+      // Promisify the entire prototype
+      // bluebird.promisifyAll(redisClient.constructor.prototype, { multiArgs: true });
+      return redisClient;
+    };
+  
+    const retryStrategy = (options) => {
+      if (options.total_retry_time > rconf.retryStrategy.totalRetryTime) {
+        return new Error('Retry time exhausted');
+      }
+  
+      if (options.attempt > rconf.retryStrategy.attempt) {
+        return undefined;
+      }
+  
+      return Math.min(options.attempt * rconf.retryStrategy.backoffFactor, rconf.retryStrategy.backoffMax);
+    };
+  
+    const opts = {
+      retry_strategy: retryStrategy,
+      tls: {
+        rejectUnauthorized: false
+      },
+      legacyMode: true,
+      // disableOfflineQueue: true,
+    };
+  
+    if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
+      logger.info('Redis Retry Strategy', opts);
     }
-
-    /*
-     * Stop retrying if we've already tried the maximum number of configured
-     * attempts. Flush all commands with the standard built-in error.
-     */
-    if (options.attempt > rconf.retryStrategy.attempt) {
-      return undefined;
+  
+    const subPerspectives = [];
+    const pubPerspectives = [];
+  
+    const setupPubSubClient = (url) => {
+      console.log('\n\n pubsubPerspectives', url);
+  
+      if (!featureToggles.isFeatureEnabled('enableRealtimeApplication')) {
+        const s = createRedisClient(url, opts);
+        s.subscribe(rconf.perspectiveChannelName, (message) => {
+          console.log('perspectiveChannelName', rconf.perspectiveChannelName, message);
+        });
+        subPerspectives.push(s);
+      }
+  
+      const pubClient = createRedisClient(url, opts);
+      pubPerspectives.push(pubClient);
+    };
+  
+    for (const rp of rconf.instanceUrl.pubsubPerspectives) {
+      setupPubSubClient(rp);
     }
-
-    /*
-     * Try to reconnect with a simple back-off strategy: the lower of either
-     * the configured backoffMax OR (the number of previous attempts * the
-     * the configured backoffFactor).
+  
+    // Only create subscribers here if we're doing real-time events from the main app
+    let subBot;
+    if (!featureToggles.isFeatureEnabled('enableRealtimeApplicationImc')) {
+      console.log('\n\n enableRealtimeApplicationImc');
+      subBot = createRedisClient(rconf.instanceUrl.pubsubBots, opts);
+      subBot.subscribe(rconf.botChannelName, (message) => {
+        console.log('botChannelName', rconf.botChannelName, message);
+      });
+    }
+  
+    const client = {
+      cache:  createRedisClient(rconf.instanceUrl.cache, opts),
+      clock:  createRedisClient(rconf.instanceUrl.clock, opts),
+      heartbeat:  createRedisClient(rconf.instanceUrl.heartbeat, opts),
+      limiter:  createRedisClient(rconf.instanceUrl.limiter, opts),
+      pubPerspectives,
+      pubBot:  createRedisClient(rconf.instanceUrl.pubsubBots, opts),
+      realtimeLogging: createRedisClient(rconf.instanceUrl.realtimeLogging, opts),
+      sampleStore: createRedisClient(rconf.instanceUrl.sampleStore, opts),
+      subPerspectives,
+      subBot,
+    };
+  
+    /**
+     * Register redis client handlers.
+     *
+     * @param {String} name - The name of this redis client
+     * @param {Object} cli - The redis client
      */
-    return Math.min(options.attempt * rconf.retryStrategy.backoffFactor,
-      rconf.retryStrategy.backoffMax);
-  }, // retryStrategy
-  tls: {
-    rejectUnauthorized: false
-  },
-  legacyMode: true,
+    const registerHandlers = (name, cli) => {
+      cli.on('error', (err) => {
+        logger.error(`redisClientConnection=${name} event=error`, err);
+        return new Error(err);
+      });
+  
+      if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
+        cli.on('connect', () => {
+          logger.info(`redisClientConnection=${name} event=connect`);
+        });
+  
+        cli.on('ready', () => {
+          logger.info(`redisClientConnection=${name} event=ready`);
+        });
+  
+        cli.on('reconnecting', () => {
+          logger.info(`redisClientConnection=${name} event=reconnecting`);
+        });
+      }
+    };
+  
+    for (const key of Object.keys(client)) {
+      const cli = client[key];
+      if (Array.isArray(cli)) {
+        cli.forEach((c) => registerHandlers(key, c));
+      } else if (cli) {
+        registerHandlers(key, cli);
+      }
+    }
+    console.log('Setup completed successfully');
+    return { client };
+  } catch(error) {
+    console.error('Error setting up Redis cache:', error);
+    throw error;
+  }
 };
 
-if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
-  logger.info('Redis Retry Strategy', opts);
-}
-
-const subPerspectives = [];
-const pubPerspectives = [];
-rconf.instanceUrl.pubsubPerspectives.forEach((rp) => {
-  console.log('\n\n pubsubPerspectives', rp)
-  // Only create subscribers here if we're doing real-time events from main app
-  if (!featureToggles.isFeatureEnabled('enableRealtimeApplication')) {
-    const s = createPromisifiedClient(rp, opts);
-    s.subscribe(rconf.perspectiveChannelName, (message) => {
-      console.log('perspectiveChannelName', rconf.perspectiveChannelName, message);
-    });
-    subPerspectives.push(s);
+module.exports = (() => {
+  try {
+    return setupRedisClients();
+  } catch (error) {
+    console.error('Error initializing Redis client:', error);
+    throw error;
   }
+})();
 
-  const pubClient = createPromisifiedClient(rp, opts);
-  pubPerspectives.push(pubClient);
-});
+// module.exports = setupRedisClients();
 
-// Only create subscribers here if we're doing real-time events from main app
-let subBot;
-if (!featureToggles.isFeatureEnabled('enableRealtimeApplicationImc')) {
-  console.log('\n\n enableRealtimeApplicationImc');
-  subBot = createPromisifiedClient(rconf.instanceUrl.pubsubBots, opts);
-  subBot.subscribe(rconf.botChannelName, (message) => {
-    console.log('botChannelName', rconf.botChannelName, message);
-  });
-}
-
-let client = {
-  cache: createPromisifiedClient(rconf.instanceUrl.cache, opts),
-  clock: createPromisifiedClient(rconf.instanceUrl.clock, opts),
-  heartbeat: createPromisifiedClient(rconf.instanceUrl.heartbeat, opts),
-  limiter: createPromisifiedClient(rconf.instanceUrl.limiter, opts),
-  pubPerspectives,
-  pubBot: createPromisifiedClient(rconf.instanceUrl.pubsubBots, opts),
-  realtimeLogging: createPromisifiedClient(rconf.instanceUrl.realtimeLogging,
-   opts),
-  sampleStore: createPromisifiedClient(rconf.instanceUrl.sampleStore, opts),
-  subPerspectives,
-  subBot,
-};
-
-/**
- * Register redis client handlers.
- *
- * @param {String} name - The name of this redis client
- * @param {Object} cli - The redis client
- */
-function registerHandlers(name, cli) {
-  cli.on('error', (err) => {
-    logger.error(`redisClientConnection=${name} event=error`, err);
-    return new Error(err);
-  });
-
-  if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
-    cli.on('connect', () => {
-      logger.info(`redisClientConnection=${name} event=connect`);
-    });
-
-    cli.on('ready', () => {
-      logger.info(`redisClientConnection=${name} event=ready`);
-    });
-
-    cli.on('reconnecting', () => {
-      logger.info(`redisClientConnection=${name} event=reconnecting`);
-    });
-  }
-} // registerHandlers
-
-Object.keys(client).forEach((key) => {
-  const cli = client[key];
-  if (Array.isArray(cli)) {
-    cli.forEach((c) => registerHandlers(key, c));
-  } else if (cli) {
-    registerHandlers(key, cli);
-  }
-});
-
-module.exports = {
-  client,
-};

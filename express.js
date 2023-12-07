@@ -59,7 +59,6 @@ try {
   * Call this *before* the static pages and the API routes so that both the
   * static pages *and* the API responses are compressed (gzip).
   */
-  debugger
   app.use(compress());
 
   const redis = require('redis');
@@ -82,10 +81,6 @@ try {
     },
     legacyMode: true,
   });
-
-  // Promisify Redis commands to use async/await syntax
-  const setAsync = util.promisify(redisClient.set).bind(redisClient);
-  const getAsync = util.promisify(redisClient.get).bind(redisClient);
 
   redisClient.connect().catch(console.error);
 

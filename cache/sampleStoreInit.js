@@ -16,7 +16,7 @@ const Sample = require('../db').Sample;
 const Aspect = require('../db').Aspect;
 const Subject = require('../db').Subject;
 const featureToggles = require('feature-toggles');
-const redisClient = require('./redisCache').client.sampleStore;
+const redisCachePromise = require('./redisCache');
 const samsto = require('./sampleStore');
 const logger = require('@salesforce/refocus-logging-client');
 const samstoPersist = require('./sampleStorePersist');
@@ -35,7 +35,7 @@ const ZERO = 0;
  * @returns {Promise} - which resolves to 0 when the key is deleted.
  */
 async function deletePreviousStatus() {
-  return await redisClient.delAsync(constants.previousStatusKey);
+  return await redisClient.del(constants.previousStatusKey);
 } // deletePreviousStatus
 
 /**
@@ -77,11 +77,8 @@ function getResourceMapsKeys(keys) {
  *
  * @returns {Promise} which resolves to the value of the previoiusStatusKey
  */
-async function getPreviousStatus() {
-  // console.log('\n\n sample store init redisClient ==>>>>', redisClient);
-  // console.log('constants.previousStatusKey', constants.previousStatusKey);
-  // console.log('\n\n redisClient.getAsync(constants.previousStatusKey)', await redisClient.getAsync(constants.previousStatusKey));
-  return await redisClient.getAsync(constants.previousStatusKey);
+async function getPreviousStatus(redisClient) {
+  return await redisClient.get(constants.previousStatusKey);
 } // persistInProgress
 
 /**
@@ -91,11 +88,11 @@ async function getPreviousStatus() {
  *
  * @returns {Promise} upon completion.
  */
-async function eradicate() {
+async function eradicate(redisClient) {
   const promises = Object.getOwnPropertyNames(constants.indexKey)
     .map(async (s) => {
       try {
-        const keys = await redisClient.smembersAsync(constants.indexKey[s]);
+        const keys = await redisClient.sMembers(constants.indexKey[s]);
         if (constants.indexKey[s] === constants.indexKey.sample) {
           /**
            * this is done to delete keys prefixed with "samsto:subaspmap:" and
@@ -130,7 +127,7 @@ async function eradicate() {
         }
 
         keys.push(constants.indexKey[s]);
-        return await redisClient.delAsync(keys);
+        return await redisClient.del(keys);
       } catch (err) {
         // NO-OP
         logger.error(err); // eslint-disable-line
@@ -218,7 +215,7 @@ async function populateSubjects() {
  * Creates subjectAbspath to aspectMapping and sample to sampleObject Mapping
  * @returns {Promise} which resolves to the list of redis batch responses.
  */
-async function populateSamples() {
+async function populateSamples(redisClient) {
   const samples = await Sample.findAll();
 
   if (infoLoggingEnabled) {
@@ -276,17 +273,17 @@ async function populateSamples() {
   const indexCmds = [
     ['sadd', constants.indexKey.sample, Array.from(sampleIdx)],
   ];
-  const batchPromises = [redisClient.batch(indexCmds).execAsync()];
+  const batchPromises = [redisClient.multi(indexCmds).exec()];
 
   // Batch of commands to create each individal subject set...
   const subjectCmds = Object.keys(subjectSets)
     .map((key) => ['sadd', key, subjectSets[key]]);
-  batchPromises.push(redisClient.batch(subjectCmds).execAsync());
+  batchPromises.push(redisClient.multi(subjectCmds).exec());
 
   // Batch of commands to create each individal aspect resource map...
   const aspectResouceMapCmds = Object.keys(aspectResourceMaps)
     .map((key) => ['sadd', key, aspectResourceMaps[key]]);
-  batchPromises.push(redisClient.batch(aspectResouceMapCmds).execAsync());
+  batchPromises.push(redisClient.multi(aspectResouceMapCmds).exec());
 
   // Batch of commands to create each individal sample hash...
   const sampleCmds = Object.keys(sampleHashes)
@@ -294,7 +291,7 @@ async function populateSamples() {
       logInvalidHmsetValues(key, sampleHashes[key]);
       return ['hmset', key, sampleHashes[key]];
     });
-  batchPromises.push(redisClient.batch(sampleCmds).execAsync());
+  batchPromises.push(redisClient.multi(sampleCmds).exec());
 
   // Return once all batches have completed.
   return Promise.all(batchPromises)
@@ -313,7 +310,7 @@ async function populateSamples() {
  * @returns {Promise} which resolves to the list of redis batch responses, or
  *  false if the feature is not enabled.
  */
-async function populate() {
+async function populate(redisClient) {
   if (infoLoggingEnabled) {
     const msg = 'Populating redis sample store from db started :|';
     logger.info(msg);
@@ -324,7 +321,7 @@ async function populate() {
   return Promise.all(promises)
     .then((retval) => {
       resp = retval;
-      return populateSamples();
+      return populateSamples(redisClient);
     })
     .then((sampresp) => {
       resp.push(sampresp);
@@ -342,7 +339,7 @@ async function populate() {
  * @returns {Promise} which resolves to true if the sample store already
  *  exists.
  */
-async function storeSampleToCacheOrDb() {
+async function storeSampleToCacheOrDb(redisClient) {
   const currentStatus = featureToggles.isFeatureEnabled(constants.featureName)
     || false;
   console.log('\n \n storeSampleToCacheOrDb', currentStatus);
@@ -351,7 +348,7 @@ async function storeSampleToCacheOrDb() {
 
   console.log('\n\npreviousStatus', previousStatus);
   // set the previousStatus to the currentStatus
-  await redisClient.setAsync(constants.previousStatusKey, currentStatus);
+  await redisClient.set(constants.previousStatusKey, currentStatus);
 
   /*
     * when the current status and the previous status do not match, actions
@@ -380,7 +377,7 @@ async function storeSampleToCacheOrDb() {
     }
 
     return samstoPersist.storeSampleToDb() // populate the sample table
-      .then(() => eradicate()); // eradicate the cache
+      .then(() => eradicate(redisClient)); // eradicate the cache
   }
 
   // when the current status and previous status are same, resolve to false
@@ -396,7 +393,9 @@ async function storeSampleToCacheOrDb() {
  * to a list of promises if some action was taken.
  */
 async function init() {
-  return await storeSampleToCacheOrDb()
+  const redisCache = await redisCachePromise;
+  const redisClient = redisCache.client.sampleStore;
+  return await storeSampleToCacheOrDb(redisClient)
     .then((ret) => Promise.resolve(ret))
     .catch((err) => {
       // NO-OP

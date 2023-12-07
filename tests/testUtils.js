@@ -45,10 +45,10 @@ const Sample = {
     .then((sampleKeys) => {
 
       sampleKeys.forEach((key) => {
-        commands.push(['hgetall', key]);
+        commands.push(['hGetAll', key]);
       });
 
-      return redisClient.batch(commands).execAsync();
+      return redisClient.multi(commands).exec();
     }).catch((err) => err);
 
   }, // findAll

@@ -155,14 +155,14 @@ module.exports = {
   },
 
   flushRedis(done) {
-    rcli.flushallAsync()
+    rcli.flushAll()
     .then(() => done())
     .catch(done);
   },
 
   forceDelete(done) {
     Promise.join(
-      rcli.flushallAsync(),
+      rcli.flushAll(),
       tu.forceDelete(tu.db.Sample, testStartTime)
         .then(() => tu.forceDelete(tu.db.Aspect, testStartTime))
         .then(() => tu.forceDelete(tu.db.Subject, testStartTime))

@@ -132,7 +132,7 @@ describe('tests/cache/sampleStoreFlagFlipFlop.js >', () => {
 
     after((done) => {
       u.forceDelete(done)
-      .then(() => rcli.flushallAsync())
+      .then(() => rcli.flushAll())
       .then(() => tu.toggleOverride(sampleStore.constants.featureName,
         initialFeatureState))
       .then(() => done())
@@ -144,15 +144,15 @@ describe('tests/cache/sampleStoreFlagFlipFlop.js >', () => {
       .then(() => tu.toggleOverride(sampleStore.constants.featureName, false))
       .then(() => samstoinit.init())
       .then((res) => expect(res).to.be.false)
-      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.aspect))
+      .then(() => rcli.sMembers(sampleStore.constants.indexKey.aspect))
       .then((res) => {
         expect(res).to.have.length(0);
       })
-      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
+      .then(() => rcli.sMembers(sampleStore.constants.indexKey.sample))
       .then((res) => {
         expect(res).to.have.length(0);
       })
-      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.subject))
+      .then(() => rcli.sMembers(sampleStore.constants.indexKey.subject))
       .then((res) => {
         expect(res).to.have.length(0);
         done();
@@ -166,7 +166,7 @@ describe('tests/cache/sampleStoreFlagFlipFlop.js >', () => {
       .then(() => tu.toggleOverride(sampleStore.constants.featureName, true))
       .then(() => samstoinit.init())
       .then((res) => expect(res).to.not.be.false)
-      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.aspect))
+      .then(() => rcli.sMembers(sampleStore.constants.indexKey.aspect))
       .then((res) => {
         expect(res.includes('samsto:aspect:___aspect1')).to.be.true;
         expect(res.includes('samsto:aspect:___aspect2')).to.be.true;
@@ -177,7 +177,7 @@ describe('tests/cache/sampleStoreFlagFlipFlop.js >', () => {
         // Make sure unpublished aspects are here
         expect(res.includes('samsto:aspect:___aspect4')).to.be.true;
       })
-      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
+      .then(() => rcli.sMembers(sampleStore.constants.indexKey.sample))
       .then((res) => {
         expect(res.includes('samsto:sample:___subject1.___subject2|___aspect1'))
         .to.be.true;
@@ -186,20 +186,20 @@ describe('tests/cache/sampleStoreFlagFlipFlop.js >', () => {
         expect(res.includes('samsto:sample:___subject1.___subject3|___aspect1'))
         .to.be.true;
       })
-      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.subject))
+      .then(() => rcli.sMembers(sampleStore.constants.indexKey.subject))
       .then((res) => {
         expect(res.includes('samsto:subject:___subject1.___subject2'))
         .to.be.true;
         expect(res.includes('samsto:subject:___subject1.___subject3'))
         .to.be.true;
       })
-      .then(() => rcli.hgetallAsync('samsto:subject:___subject1.___subject3'))
+      .then(() => rcli.hGetAll('samsto:subject:___subject1.___subject3'))
       .then((res) => {
         expect(res).to.not.be.null;
         subjectIdToTest = res.id;
       })
       .then(() =>
-        rcli.hgetallAsync('samsto:sample:___subject1.___subject3|___aspect1'))
+        rcli.hGetAll('samsto:sample:___subject1.___subject3|___aspect1'))
       .then((res) => {
         expect(res).to.have.property('subjectId', subjectIdToTest);
         done();
@@ -216,15 +216,15 @@ describe('tests/cache/sampleStoreFlagFlipFlop.js >', () => {
       .then(() => tu.toggleOverride(sampleStore.constants.featureName, false))
       .then(() => samstoinit.init())
       .then((res) => expect(res).to.not.be.false)
-      .then(() =>rcli.smembersAsync(sampleStore.constants.indexKey.aspect))
+      .then(() =>rcli.sMembers(sampleStore.constants.indexKey.aspect))
       .then((res) => {
         expect(res).to.have.length(0);
       })
-      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
+      .then(() => rcli.sMembers(sampleStore.constants.indexKey.sample))
       .then((res) => {
         expect(res).to.have.length(0);
       })
-      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.subject))
+      .then(() => rcli.sMembers(sampleStore.constants.indexKey.subject))
       .then((res) => {
         expect(res).to.have.length(0);
       })

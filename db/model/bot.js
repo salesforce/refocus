@@ -26,7 +26,7 @@
 
 const constants = require('../constants');
 const u = require('../helpers/botUtils');
-const redisCache = require('../../cache/redisCache').client.cache;
+const redisCachePromise = require('../../cache/redisCache');
 const assoc = {};
 
 module.exports = function bot(seq, dataTypes) {
@@ -115,8 +115,15 @@ module.exports = function bot(seq, dataTypes) {
     hooks: {
 
       afterDestroy(inst /* , opts */) {
-        redisCache.del(`${constants.botsRoute}/${inst.id}`);
-        redisCache.del(`${constants.botsRoute}/${inst.name}`);
+        redisCachePromise
+          .then(redisCache => {
+            console.log("bot.js afterDestroy ==>>>>", redisCache.client.cache);
+            redisCache.client.cache.del(`${constants.botsRoute}/${inst.id}`);
+            redisCache.client.cache.del(`${constants.botsRoute}/${inst.name}`);
+          })
+          .catch(error => {
+            console.error('Error using Redis client:', error);
+          })
       },
 
       /**
@@ -128,8 +135,15 @@ module.exports = function bot(seq, dataTypes) {
        */
       afterUpdate(inst /* , opts */) {
         // Clear the bot from the cache whether it's stored by id or by name.
-        redisCache.del(`${constants.botsRoute}/${inst.id}`);
-        redisCache.del(`${constants.botsRoute}/${inst.name}`);
+        redisCachePromise
+          .then(redisCache => {
+            console.log("bot.js afterUpdate ==>>>>", redisCache.client.cache);
+            redisCache.client.cache.del(`${constants.botsRoute}/${inst.id}`);
+            redisCache.client.cache.del(`${constants.botsRoute}/${inst.name}`);
+          })
+          .catch(error => {
+            console.error('Error using Redis client:', error);
+          })
       },
     },
   });

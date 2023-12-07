@@ -88,7 +88,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
         return done(err);
       }
 
-      redisCache.getAsync('perspective' + md5('/v1/perspectives'))
+      redisCache.get('perspective' + md5('/v1/perspectives'))
       .then((reply) => {
         const jsonReply = JSON.parse(reply);
         expect(jsonReply).to.have.length(ONE);
@@ -142,7 +142,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
         return done(err);
       }
 
-      redisCache.getAsync('perspective' + md5('/v1/perspectives?fields=rootSubject,name'))
+      redisCache.get('perspective' + md5('/v1/perspectives?fields=rootSubject,name'))
       .then((reply) => {
         const jsonReply = JSON.parse(reply);
         expect(jsonReply).to.have.length(ONE);
@@ -173,7 +173,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
           return done(err);
         }
 
-        redisCache.getAsync('perspective' + md5('/v1/perspectives'))
+        redisCache.get('perspective' + md5('/v1/perspectives'))
         .then((reply) => {
           expect(reply).to.not.exist;
           return done();
@@ -213,7 +213,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
           return done(err);
         }
 
-        redisCache.getAsync('perspective' + md5('/v1/perspectives'))
+        redisCache.get('perspective' + md5('/v1/perspectives'))
         .then((reply) => {
           expect(reply).to.not.exist;
           return done();
@@ -233,7 +233,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
         return done(err);
       }
 
-      redisCache.getAsync('perspective' + md5('/v1/perspectives'))
+      redisCache.get('perspective' + md5('/v1/perspectives'))
       .then((reply) => {
         const jsonReply = JSON.parse(reply);
         expect(jsonReply).to.have.length(ONE);
@@ -271,7 +271,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
         return done(err);
       }
 
-      redisCache.getAsync('perspective' + md5('{"order":["name"],"limit":10,"where":{}}'))
+      redisCache.get('perspective' + md5('{"order":["name"],"limit":10,"where":{}}'))
       .then((reply) => {
         expect(reply).to.not.exist;
         return done();
@@ -296,7 +296,7 @@ describe(`tests/enableCache/perspectives.js, api: GET ${path} >`, () => {
   });
 
   it('basic get by id, response present in cache', (done) => {
-    redisCache.getAsync(perspectiveId)
+    redisCache.get(perspectiveId)
     .then((reply) => {
       const jsonReply = JSON.parse(reply);
       expect(jsonReply.name).to.equal(`${tu.namePrefix}testPersp`);

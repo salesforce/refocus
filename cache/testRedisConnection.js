@@ -1,38 +1,47 @@
-const { client } = require('./redisCache');
+const redisCachePromise = require('./redisCache');
 
-async function testRedisConnection() {
+(async () => {
   try {
-    // const resolvedClient = await redisCachePromise;
-    console.log('resolvedClient.sampleStore', client.cache);
+    // Access the client object directly
+    const redisCache = redisCachePromise;
+    console.log('redisCache', redisCache.client.cache);
+    const redisClient = redisCache.client.cache;
 
     const key = 'someKey';
-    const valueToSet = 'someValue';
+    const valueToSet = 'someValue123';
 
-    // Set a value for the key 'someKey'
-    const setResult = await client.cache.set(key, valueToSet);
+    redisClient.set(key, valueToSet);
 
-    if (setResult === 'OK') {
-      console.log(`Value successfully set for key ${key}`);
-    } else {
-      console.log(`Failed to set value for key ${key}`);
-    }
+    const getValue = await redisClient.get('someKey');
 
-    // Get the value for the key 'someKey'
-    const retrievedValue = await client.cache.get(key);
+    console.log('getValue ===>>>>>>>>>>>>>>>>>', getValue);
 
-    if (retrievedValue !== undefined) {
-      console.log(`Retrieved value for key ${key}:`, retrievedValue);
-    } else {
-      console.log(`No value found for key ${key}`);
-    }
-    // You can access individual clients like client.cache, client.clock, etc.
-  } catch (error) {
-    console.error('Error testing Redis connection:', error);
-  } finally {
-    console.log('Finally block executed');
+    const multiR = redisClient.multi();
+    console.log('multiR before ==>>>>>>', multiR.command_queue);
+
+    // Add commands to the multi object
+    multiR.set('key1', 'value1');
+    multiR.get('key1');
+    multiR.set('key2', 'value2');
+    multiR.get('key2');
+
+    console.log('multiR after ==>>>>>>', multiR.command_queue);
+
+    // Execute the multi commands
+    const results = await multiR.exec((err, results) => {
+      if (err) {
+        console.error('Error executing multi commands:', err);
+        return;
+      }
+
+      // Handle the results of the multi commands      
+      // Each result corresponds to the result of a single command in the order they were added
+    });
+
+    console.log('Results:', results);
     process.exit(1);
+    // ... (other usage)
+  } catch (error) {
+    console.error('Error using Redis client:', error);
   }
-}
-
-testRedisConnection();
-console.log('After testRedisConnection');
+})();

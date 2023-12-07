@@ -90,7 +90,7 @@ describe('tests/cache/models/samples/postWithProvider.js, ' +
       expect(res.body.user.name).to.be.an('string');
       expect(res.body.user.email).to.be.an('string');
       const sampleKey = 'samsto:sample:' + res.body.name.toLowerCase();
-      return rcli.hgetallAsync(sampleKey)
+      return rcli.hGetAll(sampleKey)
       .then((sample) => {
         expect(sample.provider).to.be.an('string');
         const user = JSON.parse(sample.user);

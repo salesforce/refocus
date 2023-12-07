@@ -13,7 +13,7 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
-const redisCache = require('../../../../cache/redisCache').client.cache;
+const redisCachePromise = require('../../../../cache/redisCache');
 const cacheExpiry = require('../../../../config').CACHE_EXPIRY_IN_SECS;
 const redisModelSample = require('../../../../cache/models/samples');
 
@@ -40,7 +40,10 @@ function doGet(req, res, next, props) {
   // only cache requests with no params
   if (props.cacheEnabled && !fields) {
     const cacheKey = reqParams.key.value;
-    return redisCache.getAsync(cacheKey)
+    return redisCachePromise
+    .then(redisClient => {
+      const redisCache = redisClient.client.cache;
+      return redisCache.get(cacheKey)
       .then((reply) => {
         // get from cache
         if (reply) {
@@ -66,6 +69,10 @@ function doGet(req, res, next, props) {
           return true;
         }))
       .catch((err) => u.handleError(next, err, props.modelName));
+    })
+    .catch(error => {
+      console.error('Error using Redis client:', error);
+    });
   } else {
     let getPromise;
     if (props.modelName === 'Sample') {

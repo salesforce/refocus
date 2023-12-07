@@ -109,7 +109,7 @@ describe('tests/cache/persist.js, persist sample store back to db >', () => {
 
   after((done) => {
     u.forceDelete(done)
-    .then(() => rcli.flushallAsync())
+    .then(() => rcli.flushAll())
     .then(() => tu.toggleOverride(sampleStore.constants.featureName,
       initialFeatureState))
     .then(() => done())

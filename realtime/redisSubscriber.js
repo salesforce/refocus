@@ -13,9 +13,7 @@
 const logger = require('@salesforce/refocus-logging-client');
 const featureToggles = require('feature-toggles');
 const emitter = require('./socketIOEmitter');
-const { client } = require('../cache/redisCache');
-const subPerspectives = client.subPerspectives;
-const subBot = client.subBot;
+const redisCachePromise = require('../cache/redisCache');
 const rtUtils = require('./utils');
 const pubSubStats = require('./pubSubStats');
 const ZERO = 0;
@@ -31,6 +29,9 @@ const ONE = 1;
 module.exports = async (io) => {
   try {
     // Wait for all promises to be resolved
+    const redisCache = await redisCachePromise;
+    const subPerspectives = redisCache.client.subPerspectives;
+    const subBot = redisCache.client.subBot;
     const [resolvedSubPerspectives, resolvedSubBot] = await Promise.all([subPerspectives, subBot]);
 
     const allSubscribers = resolvedSubBot ? resolvedSubPerspectives.concat(resolvedSubBot) : resolvedSubPerspectives;

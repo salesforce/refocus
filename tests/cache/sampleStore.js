@@ -168,7 +168,7 @@ describe('tests/cache/sampleStore.js >', () => {
 
     after((done) => {
       u.forceDelete(done)
-      .then(() => rcli.flushallAsync())
+      .then(() => rcli.flushAll())
       .then(() => tu.toggleOverride(sampleStore.constants.featureName,
         initialFeatureState))
       .then(() => done())
@@ -181,14 +181,14 @@ describe('tests/cache/sampleStore.js >', () => {
       .then(() => rcli.keysAsync(sampleStore.constants.prefix + '*'))
       .then((res) => expect(res.length).to.eql(0))
       .then(() => samstoinit.populate())
-      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.subject))
+      .then(() => rcli.sMembers(sampleStore.constants.indexKey.subject))
       .then((res) => {
         expect(res.includes('samsto:subject:' + absolutePath))
         .to.be.true;
         expect(res.includes('samsto:subject:___subject1.___subject4'))
         .to.be.true;
       })
-      .then(() => rcli.hgetallAsync('samsto:subject:' + absolutePath))
+      .then(() => rcli.hGetAll('samsto:subject:' + absolutePath))
       .then((subject) => {
         // the absolutePath in the key is lowercase
         expect(subject.absolutePath.toLowerCase()).to.equal(absolutePath);
@@ -206,7 +206,7 @@ describe('tests/cache/sampleStore.js >', () => {
         expect(res.length).to.eql(0);
       })
       .then(() => samstoinit.populate())
-      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.aspect))
+      .then(() => rcli.sMembers(sampleStore.constants.indexKey.aspect))
       .then((res) => {
         expect(res.includes('samsto:aspect:___aspect1')).to.be.true;
         expect(res.includes('samsto:aspect:___aspect2')).to.be.true;
@@ -217,7 +217,7 @@ describe('tests/cache/sampleStore.js >', () => {
         // Make sure unpublished aspects are here
         expect(res.includes('samsto:aspect:___aspect4')).to.be.true;
       })
-      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
+      .then(() => rcli.sMembers(sampleStore.constants.indexKey.sample))
       .then((res) => {
         expect(res.includes('samsto:sample:___subject1.___subject2|___aspect1'))
         .to.be.true;
@@ -226,7 +226,7 @@ describe('tests/cache/sampleStore.js >', () => {
         expect(res.includes('samsto:sample:___subject1.___subject3|___aspect1'))
         .to.be.true;
       })
-      .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.subject))
+      .then(() => rcli.sMembers(sampleStore.constants.indexKey.subject))
       .then((res) => {
         expect(res.includes('samsto:subject:___subject1.___subject2'))
         .to.be.true;
@@ -240,7 +240,7 @@ describe('tests/cache/sampleStore.js >', () => {
         expect(res.includes('samsto:subaspmap:___subject1.___subject3'))
         .to.be.true;
       })
-      .then(() => rcli.smembersAsync('samsto:subaspmap:___subject1.___subject2'))
+      .then(() => rcli.sMembers('samsto:subaspmap:___subject1.___subject2'))
       .then((res) => {
         expect(res.includes('___aspect1')).to.be.true;
         expect(res.includes('___aspect2')).to.be.true;
@@ -252,12 +252,12 @@ describe('tests/cache/sampleStore.js >', () => {
         expect(res.includes('samsto:aspsubmap:___aspect2'))
         .to.be.true;
       })
-      .then(() => rcli.smembersAsync('samsto:aspsubmap:___aspect1'))
+      .then(() => rcli.sMembers('samsto:aspsubmap:___aspect1'))
       .then((res) => {
         expect(res.includes('___subject1.___subject2')).to.be.true;
         expect(res.includes('___subject1.___subject3')).to.be.true;
       })
-      .then(() => rcli.smembersAsync('samsto:aspsubmap:___aspect2'))
+      .then(() => rcli.sMembers('samsto:aspsubmap:___aspect2'))
       .then((res) => {
         expect(res.includes('___subject1.___subject2')).to.be.true;
       })
@@ -273,7 +273,7 @@ describe('tests/cache/sampleStore.js >', () => {
       .then(() => rcli.keysAsync(sampleStore.constants.prefix + '*'))
       .then((res) => expect(res.length).to.eql(0))
       .then(() => samstoinit.populate())
-      .then(() => rcli.hgetallAsync('samsto:aspect:___aspect1'))
+      .then(() => rcli.hGetAll('samsto:aspect:___aspect1'))
       .then((aspect) => {
         sampleStore.arrayObjsStringsToJson(aspect,
           sampleStore.constants.fieldsToStringify.aspect);
@@ -281,7 +281,7 @@ describe('tests/cache/sampleStore.js >', () => {
         expect(aspect.writers)
         .to.have.members([user1.name, user2.name, user3.name]);
       })
-      .then(() => rcli.hgetallAsync('samsto:aspect:___aspect2'))
+      .then(() => rcli.hGetAll('samsto:aspect:___aspect2'))
       .then((aspect) => {
         sampleStore.arrayObjsStringsToJson(aspect,
           sampleStore.constants.fieldsToStringify.aspect);

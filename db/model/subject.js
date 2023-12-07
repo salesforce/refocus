@@ -147,26 +147,28 @@ module.exports = function subject(seq, dataTypes) {
        *  error was encountered while retrieving or incrementing the parent
        *  record
        */
-      afterCreate(inst /* , opts */) {
-        // Prevent any changes to original inst dataValues object
-        const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-        return Promise.join(
-          redisOps.batchCmds()
-            .if(inst.isPublished, (batch) =>
-              batch.setupKeysForSubject(inst)
-            )
-            .addKey(subjectType, inst.getDataValue('absolutePath'))
-            .setHash(subjectType, inst.getDataValue('absolutePath'), instDataObj)
-            .exec(),
+      // afterCreate(inst /* , opts */) {
+      //   // Prevent any changes to original inst dataValues object
+      //   const instDataObj = JSON.parse(JSON.stringify(inst.get()));
+      //   debugger
+      //   return Promise.all(
+      //     redisOps
+      //       .batchCmds()
+      //       .if(inst.isPublished, (batch) =>
+      //         batch.setupKeysForSubject(inst)
+      //       )
+      //       .addKey(subjectType, inst.getDataValue('absolutePath'))
+      //       .setHash(subjectType, inst.getDataValue('absolutePath'), instDataObj)
+      //       .exec(),
 
-          inst.getParent()
-            .then((par) =>
-              par && par.increment('childCount')
-            ),
+      //     inst.getParent()
+      //       .then((par) =>
+      //         par && par.increment('childCount')
+      //       ),
 
-          inst.isPublished && publishObject(inst, eventName.add),
-        );
-      }, // hooks.afterCreate
+      //     inst.isPublished && publishObject(inst, eventName.add),
+      //   );
+      // }, // hooks.afterCreate
 
       /**
        * Do the following

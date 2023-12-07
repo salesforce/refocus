@@ -99,7 +99,7 @@ function testWorkerAPiActivityLogs(done) {
 module.exports = {
   forceDelete(done) {
     Promise.join(
-      rcli.flushallAsync(),
+      rcli.flushAll(),
       tu.forceDelete(tu.db.Aspect, testStartTime)
       .then(() => tu.forceDelete(tu.db.Subject, testStartTime))
     )

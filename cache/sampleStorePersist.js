@@ -14,7 +14,7 @@
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
 const Sample = require('../db').Sample;
-const redisClient = require('./redisCache').client.sampleStore;
+const redisCachePromise = require('./redisCache');
 const samsto = require('./sampleStore');
 const constants = samsto.constants;
 const logger = require('@salesforce/refocus-logging-client');
@@ -33,49 +33,55 @@ function storeSampleToDb() {
     logger.info('Persist to db started :|. This will start by truncating the ' +
       'sample table followed by persisting the sample to db');
   }
-
-  return Sample.destroy({ truncate: true, force: true })
-  .then(() => {
-    if (infoLoggingEnabled) {
-      logger.info('truncated the sample table :|');
-    }
-
-    return redisClient.smembersAsync(constants.indexKey.sample);
-  })
-  .then((keys) => keys.map((key) => ['hgetall', key]))
-  .then((cmds) => redisClient.batch(cmds).execAsync())
-  .then((res) => {
-    if (infoLoggingEnabled) {
-      logger.info('Preparing list of samples to persist...');
-      logger.info(`Checking ${res.length} samples...`);
-    }
-
-    const samplesToCreate = res.map((sample) => {
-      sample.relatedLinks = JSON.parse(sample.relatedLinks);
-      return sample;
-    })
-    .filter((s) => {
-      if (!s.aspectId || !s.subjectId) {
-        logger.warn('Skipping sample with missing aspectId or subjectId: ',
-          JSON.stringify(s));
-        return false;
+  return redisCachePromise
+  .then(redisCache => {
+    const redisClient = redisCache.client.sampleStore;
+    return Sample.destroy({ truncate: true, force: true })
+    .then(() => {
+      if (infoLoggingEnabled) {
+        logger.info('truncated the sample table :|');
       }
-
-      return true;
+  
+      return redisClient.sMembers(constants.indexKey.sample);
+    })
+    .then((keys) => keys.map((key) => ['hGetAll', key]))
+    .then((cmds) => redisClient.multi(cmds).exec())
+    .then((res) => {
+      if (infoLoggingEnabled) {
+        logger.info('Preparing list of samples to persist...');
+        logger.info(`Checking ${res.length} samples...`);
+      }
+  
+      const samplesToCreate = res.map((sample) => {
+        sample.relatedLinks = JSON.parse(sample.relatedLinks);
+        return sample;
+      })
+      .filter((s) => {
+        if (!s.aspectId || !s.subjectId) {
+          logger.warn('Skipping sample with missing aspectId or subjectId: ',
+            JSON.stringify(s));
+          return false;
+        }
+  
+        return true;
+      });
+      if (infoLoggingEnabled) {
+        logger.info(`Bulk creating ${samplesToCreate.length} samples...`);
+      }
+  
+      return Sample.bulkCreate(samplesToCreate);
+    })
+    .then((retval) => {
+      if (infoLoggingEnabled) {
+        logger.info('persisted redis sample store to db :D');
+      }
+  
+      return retval.length;
     });
-    if (infoLoggingEnabled) {
-      logger.info(`Bulk creating ${samplesToCreate.length} samples...`);
-    }
-
-    return Sample.bulkCreate(samplesToCreate);
   })
-  .then((retval) => {
-    if (infoLoggingEnabled) {
-      logger.info('persisted redis sample store to db :D');
-    }
-
-    return retval.length;
-  });
+  .catch(error => {
+    console.error('Error using Redis client:', error);
+  })
 } // storeSampleToDb
 
 /**

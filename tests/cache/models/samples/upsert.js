@@ -95,7 +95,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
         expect(user.profile.name).to.be.an('string');
 
         // check aspsubmap for added set
-        rcli.smembersAsync(
+        rcli.sMembers(
           'samsto:aspsubmap:' + aspect.name.toLowerCase()
         )
         .then((resCli) => {
@@ -111,7 +111,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
     // unpublish the subjects
     beforeEach((done) => {
       subject.destroy()
-      .then(() => rcli.delAsync(
+      .then(() => rcli.del(
         sampleStore.toKey(
           sampleStore.constants.objectType.subject, subject.absolutePath)
       ))
@@ -144,7 +144,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
     // unpublish the aspects
     beforeEach((done) => {
       aspect.destroy()
-      .then(() => rcli.delAsync(
+      .then(() => rcli.del(
         sampleStore.toKey(sampleStore.constants.objectType.aspect, aspect.name)
       ))
       .then(() => done())
@@ -244,7 +244,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
         `${subject.absolutePath}|${aspect.name}`
       );
       const aspectName = aspect.name;
-      rcli.batch([
+      rcli.multi([
         ['sadd', subjKey, aspectName],
         ['sadd', sampleStore.constants.indexKey.sample, sampleKey],
         ['hmset', sampleKey, {
@@ -257,7 +257,7 @@ describe('tests/cache/models/samples/upsert.js, ' +
         },
         ],
       ])
-      .execAsync()
+      .exec()
       .then(() => done())
       .catch(done);
     });

@@ -25,8 +25,8 @@ function intervalsInHour(interval) {
 describe('tests/clock/clock.js >', function () {
   this.timeout(10000);
 
-  beforeEach(() => redisClient.flushallAsync());
-  after(() => redisClient.flushallAsync());
+  beforeEach(() => redisClient.flushAll());
+  after(() => redisClient.flushAll());
   afterEach(u.stopClockProcess);
 
   it('default config', () => {

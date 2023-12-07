@@ -309,6 +309,7 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   getSubjectHierarchy(req, res, next) {
+    console.log('getSubjectHierarchy');
     const params = req.swagger.params;
     const filterParams = ['subjectTags', 'aspectTags', 'aspect', 'status'];
 

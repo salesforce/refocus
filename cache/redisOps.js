@@ -14,7 +14,7 @@
 const Promise = require('bluebird');
 const redisStore = require('./sampleStore');
 const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
-const redisClient = require('./redisCache').client.sampleStore;
+const redisCachePromise = require('./redisCache').client.sampleStore;
 const statusCalculation = require('./statusCalculation');
 const keyType = redisStore.constants.objectType;
 const subjectType = keyType.subject;
@@ -24,11 +24,13 @@ const aspectType = keyType.aspect;
 const sampleType = keyType.sample;
 const Status = require('../db/constants').statuses;
 
+console.log("\n\n\n redisClient in redisOps", redisCachePromise);
+
 const batchableCmds = [
   'set', 'del', 'rename', 'exists', 'touch',
-  'sAddAsync', 'sRemAsync', 'sIsMemberAsync', 'sMembersAsync', 'sUnionStoreAsync',
-  'hSetAsync', 'hGetAllAsync',
-  'zAddAsync', 'zRangeAsync', 'zRangeByScoreAsync',
+  'sAdd', 'sRem', 'sIsMember', 'sMembers', 'sUnionStore',
+  'hSet', 'hGetAll',
+  'zAdd', 'zRange', 'zRangeByScore',
 ];
 
 class RedisOps {
@@ -42,14 +44,26 @@ class RedisOps {
    */
   constructor(enableBatch, parentBatch) {
     if (enableBatch) {
-      debugger
-      console.log('\n\n redisOps redisClient', redisClient);
       this.parentBatch = parentBatch;
-      this.batch = parentBatch ? parentBatch.batch : redisClient;
+      this.batch = parentBatch ? parentBatch.multi() : redisCachePromise.multi();
       this.savedResults = {};
       this.transforms = [];
+      this.commands = [];
     }
   }
+
+    /**
+   * Start a batch. Any subsequent commands will be queued up and sent together
+   * on exec().
+   *
+   * @returns {RedisOps}
+   */
+    batchCmds() {
+      console.log('batchCmds');
+      const enableBatch = true;
+      const existingBatch = this.batch && this;
+      return new RedisOps(enableBatch, existingBatch);
+    }
 
   /**
    * Set prototype properties.
@@ -82,18 +96,6 @@ class RedisOps {
   }
 
   /**
-   * Start a batch. Any subsequent commands will be queued up and sent together
-   * on exec().
-   *
-   * @returns {RedisOps}
-   */
-  batchCmds() {
-    const enableBatch = true;
-    const existingBatch = this.batch && this;
-    return new RedisOps(enableBatch, existingBatch);
-  }
-
-  /**
    * Execute the given redis command, either by adding to an active batch queue
    * or by executing directly.
    *
@@ -102,19 +104,29 @@ class RedisOps {
    * @returns {RedisOps|Promise}
    */
   executeBatchableCmd(cmd, ...args) {
-    console.log('executeBatchableCmd this batch', this.batch);
-    console.log('executeBatchableCmd this redisClient', redisClient);
-    const client = this.batch || redisClient;
-    console.log('\n\n executeBatchableCmd client', client);
-    console.log('\n\n executeBatchableCmd client cmd', cmd);
-    console.log('\n\n\n args', ...args);
-    const runCmd = client[cmd].bind(client);
-    if (this.batch) {
-      runCmd(...args);
-      return this;
-    } else {
-      return Promise.promisify(runCmd)(...args);
-    }
+    console.log('\n\n\n\n redisCachePromise', redisCachePromise);
+    // return redisCachePromise
+    //   .then(redisCache => {
+        const client = this.batch || redisCachePromise;
+
+        console.log('\n\n executeBatchableCmd client cmd', cmd);
+        console.log('\n\n\n args', ...args);
+
+        const commandObject = { cmd, args };
+        this.commands.push(commandObject);
+
+        const runCmd = client[cmd].bind(client);
+
+        if (this.batch) {
+          runCmd(...args);
+          return this;
+        } else {
+          return runCmd(...args);
+        }
+      // })
+      // .catch(error => {
+      //   console.error('Error using Redis client:', error);
+      // })
   }
 
   /**
@@ -173,8 +185,8 @@ class RedisOps {
     if (!this.batch) return this;
 
     fn(this);
-    const cmdIndex = this.batch.queue.length - 1;
-    const cmd = this.batch.queue.toArray()[cmdIndex];
+    const cmdIndex = this.commands.length - 1;
+    const cmd = this.commands[cmdIndex];
     cmd.callback = ((err, res) => {
       const transform = this.transforms[cmdIndex];
       if (transform) {
@@ -198,15 +210,13 @@ class RedisOps {
    */
   returnAll(arr, key, fn) {
     if (!this.batch) return this;
-
-    const queueSizeBefore = this.batch.queue && this.batch.queue.length || 0;
+    const commandsBefore = this.commands.length || 0;
     this.map(arr, fn);
-    const cmdsAndIndexes = Object.entries(this.batch.queue.toArray()).slice(queueSizeBefore);
-
+    const cmdsAndIndexes = this.commands.slice(commandsBefore);
     this.savedResults[key] = [];
-    cmdsAndIndexes.forEach(([cmdIndex, cmd], i) => {
+    cmdsAndIndexes.forEach((cmd, i) => {
       cmd.callback = ((err, res) => {
-        const transform = this.transforms[cmdIndex];
+        const transform = this.transforms[i];
         if (transform) {
           res = transform(res);
         }
@@ -243,7 +253,7 @@ class RedisOps {
       return fn(this).then(transform);
     } else {
       fn(this);
-      const i = this.batch.queue.length - 1;
+      const i = this.commands.length - 1;
       this.transforms[i] = transform;
       return this;
     }
@@ -257,10 +267,9 @@ class RedisOps {
    */
   exec() {
     console.log('\n\n\n queued up all the commands and executing');
-    debugger
     if (this.batch && !this.parentBatch) {
       console.log('\n\n exec this.batch', this.batch);
-      const _batch = this.batch.multi();
+      const _batch = this.batch;
       console.log('\n\n exec _batch', _batch);
       this.batch = null;
       return _batch.EXEC()
@@ -276,6 +285,8 @@ class RedisOps {
         }
       });
     } else {
+      console.log('this.parentBatch', this.parentBatch);
+      console.log('this.transforms', this.transforms);
       Object.assign(this.parentBatch.transforms, this.transforms);
       return this.parentBatch;
     }
@@ -294,7 +305,7 @@ class RedisOps {
     const cleanobj = redisStore[`clean${capitalizedObjName}`](obj);
     const nameKey = redisStore.toKey(objType, name);
     logInvalidHmsetValues(nameKey, cleanobj);
-    console.log('\n\n\n hSetAsync setHash ==>>>>', cleanobj, nameKey);
+    console.log('\n\n\n hSet setHash ==>>>>', cleanobj, nameKey);
     return this.set(nameKey, JSON.stringify(cleanobj));
   } // setHash
 
@@ -319,7 +330,7 @@ class RedisOps {
    */
   getHash(type, name) {
     const nameKey = redisStore.toKey(type, name);
-    return this.hgetall(nameKey);
+    return this.hGetAll(nameKey);
   } // getHash
 
   /**
@@ -332,9 +343,10 @@ class RedisOps {
    *  command
    */
   addKey(type, name) {
+    console.log('add key');
     const indexName = redisStore.constants.indexKey[type];
     const nameKey = redisStore.toKey(type, name);
-    return this.sAddAsync(indexName, nameKey);
+    return this.sAdd(indexName, nameKey);
   } // addKey
 
   /**
@@ -570,7 +582,7 @@ class RedisOps {
   getAspSubjMapMembers(aspName) {
     aspName = aspName.toLowerCase();
     const key = redisStore.toKey(aspSubMapType, aspName);
-    return this.smembers(key);
+    return this.sMembers(key);
   }
 
   /**
@@ -581,7 +593,7 @@ class RedisOps {
   getSubjAspMapMembers(subjAbsPath) {
     subjAbsPath = subjAbsPath.toLowerCase();
     const key = redisStore.toKey(subAspMapType, subjAbsPath);
-    return this.smembers(key);
+    return this.sMembers(key);
   }
 
   /**
@@ -808,7 +820,7 @@ class RedisOps {
    */
   getSubjectTags(subject) {
     const key = redisStore.toKey(keyType.subTags, subject.absolutePath);
-    return this.smembers(key);
+    return this.sMembers(key);
   } // getSubjectTags
 
   /**
@@ -830,7 +842,7 @@ class RedisOps {
    */
   getAspectTags(aspect) {
     const key = redisStore.toKey(keyType.aspTags, aspect.name);
-    return this.smembers(key);
+    return this.sMembers(key);
   }
 
   /**
@@ -841,7 +853,7 @@ class RedisOps {
    */
   getAspectWriters(aspect) {
     const key = redisStore.toKey(keyType.aspWriters, aspect.name);
-    return this.smembers(key);
+    return this.sMembers(key);
   }
 
   /**
@@ -981,4 +993,3 @@ class RedisOps {
 
 RedisOps.setPrototype();
 module.exports = new RedisOps();
-

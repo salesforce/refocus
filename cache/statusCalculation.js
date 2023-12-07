@@ -138,7 +138,7 @@ function calculateStatus(redisOps, sampleName, value) {
   }
 
   return redisOps.transform((batch) => (
-      batch.zrangebyscore(key, value, '+inf', 'WITHSCORES', 'LIMIT', 0, 1)
+      batch.zRangeByScore(key, value, '+inf', 'WITHSCORES', 'LIMIT', 0, 1)
     ), ([member, score]) => {
       if (member) {
         score = Number(score);

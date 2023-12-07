@@ -17,7 +17,7 @@ const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const utils = require('../../api/v1/helpers/verbs/utils');
 const sampleStore = require('../sampleStore');
 const constants = sampleStore.constants;
-const redisClient = require('../redisCache').client.sampleStore;
+const redisCachePromise = require('../redisCache');
 const u = require('../../utils/filters');
 const modelUtils = require('./utils');
 const redisErrors = require('../redisErrors');
@@ -49,8 +49,15 @@ function subjectInSampleStore(absolutePath) {
   const subjectKey = sampleStore.toKey('subject', absolutePath);
 
   // get from cache
-  return redisClient.sismemberAsync(
-    sampleStore.constants.indexKey.subject, subjectKey);
+  return redisCachePromise
+    .then(redisCache => {
+      const redisClient = redisCache.client.sampleStore;
+      return redisClient.sIsMember(
+        sampleStore.constants.indexKey.subject, subjectKey);
+    })
+    .catch(error => {
+      console.error('Error using Redis client: redisCache.client.sampleStore', error);
+    })
 }
 
 /**
@@ -91,81 +98,73 @@ function filterSamples(subj) {
 function attachSamples(res) {
   res.samples = [];
   const filterOnSubject = u.applyTagFilters(res.tags, 'subjectTags', filters);
+
   if (!filterOnSubject) {
     return Promise.resolve(filterOnSubject);
   }
 
-  const subjectKey = sampleStore.toKey(constants.objectType.subAspMap,
-                              res.absolutePath);
-  return redisClient.smembersAsync(subjectKey).then((aspectNames) => {
-    const cmds = [];
-    aspectNames.forEach((aspect) => {
+  const subjectKey = sampleStore.toKey(constants.objectType.subAspMap, res.absolutePath);
 
-      /*
-       * If there is an aspect name filter, do it now instead of doing extra
-       * hgetall calls for aspects and samples we don't need!
-       */
-      let aspectPassesFilter = true; // default true if no aspect name filter
-      if (filters.aspect.includes && filters.aspect.includes.size) {
-        aspectPassesFilter = filters.aspect.includes.has(aspect.toLowerCase());
-      } else if (filters.aspect.excludes && filters.aspect.excludes.size) {
-        aspectPassesFilter = !filters.aspect.excludes.has(aspect.toLowerCase());
+  let redisClient; // Variable to hold the redisCache object
+
+  return redisCachePromise
+    .then(redisCache => {
+      redisClient = redisCache.client.sampleStore;
+      console.log('Calling sMembers for subjectKey:', subjectKey);
+      return redisClient.sMembers(subjectKey);
+    })
+    .then(aspectNames => {
+      const cmds = [];
+      console.log('aspectname ==>>>>>>>>>>.', aspectNames);
+      aspectNames.forEach(aspect => {
+        let aspectPassesFilter = true;
+
+        if (filters.aspect.includes && filters.aspect.includes.size) {
+          aspectPassesFilter = filters.aspect.includes.has(aspect.toLowerCase());
+        } else if (filters.aspect.excludes && filters.aspect.excludes.size) {
+          aspectPassesFilter = !filters.aspect.excludes.has(aspect.toLowerCase());
+        }
+
+        if (aspectPassesFilter) {
+          const sampleKey = sampleStore.toKey(constants.objectType.sample, res.absolutePath + '|' + aspect);
+          const aspectKey = sampleStore.toKey(constants.objectType.aspect, aspect);
+          cmds.push(['hGetAll', sampleKey]);
+          cmds.push(['hGetAll', aspectKey]);
+        }
+      });
+
+      return redisClient.multi(cmds).exec();
+    })
+    .then(saArray => {
+      for (let i = 0; i < saArray.length; i += 2) {
+        const sample = saArray[i];
+        const asp = saArray[i + 1];
+
+        if (sample && asp) {
+          sampleStore.arrayObjsStringsToJson(sample, constants.fieldsToStringify.sample);
+          sampleStore.arrayObjsStringsToJson(asp, constants.fieldsToStringify.aspect);
+          sampleStore.convertAspectStrings(asp);
+
+          sample.aspect = asp;
+          res.samples.push(sample);
+        }
       }
 
-      if (aspectPassesFilter) {
-        const sampleKey = sampleStore.toKey(constants.objectType.sample,
-          res.absolutePath + '|' + aspect);
-        const aspectKey = sampleStore.toKey(constants.objectType.aspect, aspect);
-        cmds.push(['hgetall', sampleKey]);
-        cmds.push(['hgetall', aspectKey]);
-      }
+      filters.aspects = {};
+      filterSamples(res);
+
+      const isFiltered = (filterOnSubject &&
+        (res.samples.length || (!filters.aspect.includes &&
+        !filters.aspectTags.includes && !filters.status.includes)));
+
+      return isFiltered;
+    })
+    .catch(error => {
+      console.error('Error in attachSamples:', error);
+      throw error; // Re-throw the error to propagate it further if needed
     });
+}
 
-    return redisClient.batch(cmds).execAsync();
-  }).then((saArray) => {
-    for (let i = 0; i < saArray.length; i += TWO) {
-      const sample = saArray[i];
-      const asp = saArray[i + ONE];
-      if (sample && asp) {
-
-        // parse the array fields to JSON before adding them to the sample list
-        sampleStore.arrayObjsStringsToJson(sample,
-          constants.fieldsToStringify.sample);
-        sampleStore.arrayObjsStringsToJson(asp,
-          constants.fieldsToStringify.aspect);
-        sampleStore.convertAspectStrings(asp);
-
-        sample.aspect = asp;
-        res.samples.push(sample);
-      }
-    }
-
-    /*
-     * We already applied aspect name filter so clear that one, but apply
-     * aspectTag and sampleStatus filters to the samples here now.
-     */
-    filters.aspects = {};
-    filterSamples(res);
-
-    /* filterOnSubject: returns true(integer > 0) only if the subjecttags are
-     *   not set or if the subjecttags are set and the subject node passes the
-     *   subjecttags filter condition
-     * res.samples.length: returns true (length > 0) only if filterOnSubject is
-     *   true and the samples have passed the aspect, aspectTags and the sample
-     *   status filter condition.
-     * filters.aspect.includes/filters.aspectTags.includes/filters.status
-     *    .includes: are each true only if they are not set. Check on this is
-     *    done so that we can return subjects without samples too.
-     */
-    const isFiltered = (filterOnSubject &&
-      (res.samples.length || (!filters.aspect.includes &&
-    !filters.aspectTags.includes && !filters.status.includes)));
-
-    return Promise.resolve(isFiltered);
-  }).catch((err) => {
-    throw err;
-  });
-} // attachSamples
 
 /**
  * This recursive function does a bottom up traversal of the hierarchy tree,
@@ -284,24 +283,32 @@ module.exports = {
   getSubject(req, res, logObject) {
     const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
     const key = sampleStore.toKey(constants.objectType.subject, opts.filter.key);
-    return redisClient.hgetallAsync(key)
-    .then((subject) => {
-      if (!subject) {
-        throw new redisErrors.ResourceNotFoundError({
-          explanation: 'Subject not found.',
-        });
-      }
-
-      sampleStore.convertSubjectStrings(subject);
-      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
-      prepareFields(subject, opts, req);
-
-      const result = sampleStore.arrayObjsStringsToJson(
-        subject, constants.fieldsToStringify.subject
-      );
-
-      return result;
-    });
+      // get from cache
+    return redisCachePromise
+    .then(redisCache => {
+      const redisClient = redisCache.client.sampleStore;
+      return redisClient.hGetAll(key)
+      .then((subject) => {
+        if (!subject) {
+          throw new redisErrors.ResourceNotFoundError({
+            explanation: 'Subject not found.',
+          });
+        }
+  
+        sampleStore.convertSubjectStrings(subject);
+        logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
+        prepareFields(subject, opts, req);
+  
+        const result = sampleStore.arrayObjsStringsToJson(
+          subject, constants.fieldsToStringify.subject
+        );
+  
+        return result;
+      });
+    })
+    .catch(error => {
+      console.error('Error using Redis client: redisCache.client.sampleStore', error);
+    })
   },
 
   /**
@@ -326,26 +333,33 @@ module.exports = {
     });
 
     // get all Subjects sorted lexicographically
-    return redisClient.sortAsync(constants.indexKey.subject, 'alpha')
-    .then((allSubjectKeys) => {
-      const commands = [];
-      const filteredSubjectKeys = modelUtils
-        .prefilterKeys(allSubjectKeys, opts, getNameFromAbsolutePath);
-      filteredSubjectKeys.forEach((subjectKey) => {
-        commands.push(['hgetall', subjectKey]);
-      });
-      return redisClient.batch(commands).execAsync();
-    })
-    .then((subjects) => {
-      logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
-      subjects.forEach(sampleStore.convertSubjectStrings);
-      const filteredSubjects = modelUtils.applyFiltersOnResourceObjs(subjects, opts);
-      filteredSubjects.forEach((subject) => {
-        prepareFields(subject, opts, req);
-        response.push(subject); // add subject to response
-      });
-
-      return response;
-    });
+    return redisCachePromise
+      .then(redisCache => {
+        const redisClient = redisCache.client.sampleStore;
+        return redisClient.sortAsync(constants.indexKey.subject, 'alpha')
+        .then((allSubjectKeys) => {
+          const commands = [];
+          const filteredSubjectKeys = modelUtils
+            .prefilterKeys(allSubjectKeys, opts, getNameFromAbsolutePath);
+          filteredSubjectKeys.forEach((subjectKey) => {
+            commands.push(['hGetAll', subjectKey]);
+          });
+          return redisClient.multi(commands).exec();
+        })
+        .then((subjects) => {
+          logObject.dbTime = new Date() - logObject.reqStartTime; // log db time
+          subjects.forEach(sampleStore.convertSubjectStrings);
+          const filteredSubjects = modelUtils.applyFiltersOnResourceObjs(subjects, opts);
+          filteredSubjects.forEach((subject) => {
+            prepareFields(subject, opts, req);
+            response.push(subject); // add subject to response
+          });
+    
+          return response;
+        });
+      })
+      .catch(error => {
+        console.error('Error using Redis client:', error);
+      })
   },
 }; // exports

@@ -108,7 +108,7 @@ describe('tests/cache/redisOps >', () => {
 
   afterEach((done) => {
     u.forceDelete(done)
-    .then(() => rcli.flushallAsync())
+    .then(() => rcli.flushAll())
     .then(() => tu.toggleOverride(sampleStore.constants.featureName,
       initialFeatureState))
     .then(() => done())
@@ -120,12 +120,12 @@ describe('tests/cache/redisOps >', () => {
       const aspSubMapAspect2Key = sampleStore.toKey(
         sampleStore.constants.objectType.aspSubMap, a2.name
       );
-      rcli.smembersAsync(aspSubMapAspect2Key)
+      rcli.sMembers(aspSubMapAspect2Key)
       .then((subjectNames) => {
         expect(subjectNames).to.deep.equal(['___subject1.___subject2']);
         return redisOps.deleteSubjectFromAspectResourceMaps([a2.name], s2.absolutePath);
       })
-      .then(() => rcli.smembersAsync(aspSubMapAspect2Key))
+      .then(() => rcli.sMembers(aspSubMapAspect2Key))
       .then((subNames) => {
         expect(subNames).to.deep.equal([]);
       })

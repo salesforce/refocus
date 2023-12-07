@@ -14,7 +14,7 @@ const u = require('./utils');
 const fu = require('./findUtils');
 const COUNT_HEADER_NAME = require('../../constants').COUNT_HEADER_NAME;
 const httpStatus = require('../../constants').httpStatus;
-const redisCache = require('../../../../cache/redisCache').client.cache;
+const redisCachePromise = require('../../../../cache/redisCache');
 
 /**
  * Finds all matching records but only returns a subset of the results for
@@ -31,7 +31,7 @@ const redisCache = require('../../../../cache/redisCache').client.cache;
  * @param {Object} opts - The "options" object to pass into the Sequelize
  *  find command
  */
-function doFindAndCountAll(reqResNext, props, opts, resultObj) {
+function doFindAndCountAll(reqResNext, props, opts, resultObj, redisCache) {
   return u.getScopedModel(props, opts.attributes)
     .findAndCountAll(opts)
     .then((o) => {
@@ -59,7 +59,7 @@ function doFindAndCountAll(reqResNext, props, opts, resultObj) {
  * @param {Object} opts - The "options" object to pass into the Sequelize
  * find command
  */
-function doFindResponse(reqResNext, props, opts, resultObj) {
+function doFindResponse(reqResNext, props, opts, resultObj, redisCache) {
   if (opts.limit || opts.offset) {
     reqResNext.res.links({
       prev: reqResNext.req.originalUrl,
@@ -67,7 +67,7 @@ function doFindResponse(reqResNext, props, opts, resultObj) {
     });
   }
 
-  return doFindAndCountAll(reqResNext, props, opts, resultObj)
+  return doFindAndCountAll(reqResNext, props, opts, resultObj, redisCache)
     .then((retVal) => {
       u.sortArrayObjectsByField(props, retVal);
 
@@ -103,25 +103,32 @@ module.exports = function doFind(req, res, next, props) {
   const resultObj = { reqStartTime: req.timestamp };
   const opts = fu.options(req.swagger.params, props);
 
-  // Check if Cache is on or not
-  if (props.cacheEnabled) {
-    redisCache.get(props.cacheKey, (cacheErr, reply) => {
-      if (cacheErr || !reply) {
-        // if err or no reply, get resuls from db and set redis cache
-        return doFindResponse({ req, res, next }, props, opts, resultObj);
-      }
+  return redisCachePromise
+  .then(redisClient => {
+    const redisCache = redisClient.client.cache;
+      // Check if Cache is on or not
+    if (props.cacheEnabled) {
+      redisCache.get(props.cacheKey, (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          // if err or no reply, get resuls from db and set redis cache
+          return doFindResponse({ req, res, next }, props, opts, resultObj, redisCache);
+        }
 
-      // get from cache
-      try {
-        const dbObj = JSON.parse(reply);
-        resultObj.dbTime = new Date() - resultObj.reqStartTime;
-        u.logAPI(req, resultObj, dbObj);
-        res.status(httpStatus.OK).json(dbObj);
-      } catch (err) {
-        u.handleError(next, err, props.modelName);
-      }
-    });
-  } else {
-    return doFindResponse({ req, res, next }, props, opts, resultObj);
-  }
+        // get from cache
+        try {
+          const dbObj = JSON.parse(reply);
+          resultObj.dbTime = new Date() - resultObj.reqStartTime;
+          u.logAPI(req, resultObj, dbObj);
+          res.status(httpStatus.OK).json(dbObj);
+        } catch (err) {
+          u.handleError(next, err, props.modelName);
+        }
+      });
+    } else {
+      return doFindResponse({ req, res, next }, props, opts, resultObj, redisCache);
+    }
+  })
+  .catch(error => {
+    console.error('Error using Redis client:', error);
+  })
 }; // exports

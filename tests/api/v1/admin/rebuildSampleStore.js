@@ -196,7 +196,7 @@ describe('tests/api/v1/admin/rebuildSampleStore.js >', () => {
     after((done) => {
       u.forceDelete(done)
       .then(() => tu.forceDeleteUser)
-      .then(() => rcli.flushallAsync())
+      .then(() => rcli.flushAll())
       .then(() => tu.toggleOverride(sampleStore.constants.featureName,
         initialFeatureState))
       .then(() => done())
@@ -213,7 +213,7 @@ describe('tests/api/v1/admin/rebuildSampleStore.js >', () => {
           return done(err);
         }
 
-        return rcli.smembersAsync(sampleStore.constants.indexKey.aspect)
+        return rcli.sMembers(sampleStore.constants.indexKey.aspect)
         .then((res) => {
           expect(res.includes('samsto:aspect:___aspect1')).to.be.true;
           expect(res.includes('samsto:aspect:___aspect2')).to.be.true;
@@ -221,7 +221,7 @@ describe('tests/api/v1/admin/rebuildSampleStore.js >', () => {
           // Make sure aspects that don't have samples are *also* here
           expect(res.includes('samsto:aspect:___aspect3')).to.be.true;
         })
-        .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.sample))
+        .then(() => rcli.sMembers(sampleStore.constants.indexKey.sample))
         .then((res) => {
           expect(res
             .includes('samsto:sample:___subject1.___subject2|___aspect1'))
@@ -233,7 +233,7 @@ describe('tests/api/v1/admin/rebuildSampleStore.js >', () => {
             .includes('samsto:sample:___subject1.___subject3|___aspect1'))
             .to.be.true;
         })
-        .then(() => rcli.smembersAsync(sampleStore.constants.indexKey.subject))
+        .then(() => rcli.sMembers(sampleStore.constants.indexKey.subject))
         .then((res) => {
           expect(res.includes('samsto:subject:___subject1.___subject2'))
             .to.be.true;

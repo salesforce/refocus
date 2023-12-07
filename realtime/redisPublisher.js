@@ -14,8 +14,7 @@ const logger = require('@salesforce/refocus-logging-client');
 const featureToggles = require('feature-toggles');
 const rtUtils = require('./utils');
 const config = require('../config');
-const client = require('../cache/redisCache').client;
-const pubPerspectives = client.pubPerspectives;
+const redisCachePromise = require('../cache/redisCache');
 const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const pubSubStats = require('./pubSubStats');
@@ -122,6 +121,7 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
  * @returns {Object} - object that was published
  */
 function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
+  console.log('\n\n publishObject', inst, opts);
   if (!inst || !event) return false;
   const obj = {};
   obj[event] = inst.get ? inst.get() : inst;
@@ -131,39 +131,48 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
    * There may be multiple publishers for perspectives to spread the load, so
    * pick one at random.
    */
-  const len = pubPerspectives.length;
-  const whichPubsub = len === 1 ? 0 : getRandomInt(0, (len - 1));
-  let pubClient = pubPerspectives[whichPubsub];
-  let channelName = perspectiveChannelName;
-  if (opts) {
-    obj[event].pubOpts = opts;
-    pubClient = opts.client ? client[opts.client] : pubClient;
-    channelName = opts.channel ? config.redis[opts.channel] : channelName;
-  }
-
-  /**
-   * The shape of the object required for update events are a bit different.
-   * changedKeys and ignoreAttributes are passed in as arrays by the
-   * afterUpdate hooks of the models, which are passed to the prepareToPublish
-   * to get the object just for update events.
-   */
-  if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
-    const prepared = prepareToPublish(obj[event], changedKeys,
-      ignoreAttributes);
-    if (!prepared) return false;
-    obj[event] = prepared;
-  }
-
-  if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
-    try {
-      pubSubStats.track('pub', event, obj[event]);
-    } catch (err) {
-      logger.error(err);
+  redisCachePromise
+  .then(redisCache => {
+    console.log("redisCache.client.sampleStore ==>>>>", redisCache.client.sampleStore);
+    const client = redisCache.client;
+    const pubPerspectives = client.pubPerspectives;
+    const len = pubPerspectives.length;
+    const whichPubsub = len === 1 ? 0 : getRandomInt(0, (len - 1));
+    let pubClient = pubPerspectives[whichPubsub];
+    let channelName = perspectiveChannelName;
+    if (opts) {
+      obj[event].pubOpts = opts;
+      pubClient = opts.client ? client[opts.client] : pubClient;
+      channelName = opts.channel ? config.redis[opts.channel] : channelName;
     }
-  }
-
-  return pubClient.publishAsync(channelName, JSON.stringify(obj))
-    .then((numClients) => obj);
+  
+    /**
+     * The shape of the object required for update events are a bit different.
+     * changedKeys and ignoreAttributes are passed in as arrays by the
+     * afterUpdate hooks of the models, which are passed to the prepareToPublish
+     * to get the object just for update events.
+     */
+    if (Array.isArray(changedKeys) && Array.isArray(ignoreAttributes)) {
+      const prepared = prepareToPublish(obj[event], changedKeys,
+        ignoreAttributes);
+      if (!prepared) return false;
+      obj[event] = prepared;
+    }
+  
+    if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
+      try {
+        pubSubStats.track('pub', event, obj[event]);
+      } catch (err) {
+        logger.error(err);
+      }
+    }
+  
+    return pubClient.publish(channelName, JSON.stringify(obj))
+      .then((numClients) => obj);
+  })
+  .catch(error => {
+    console.error('Error using Redis client:', error);
+  })
 } // publishObject
 
 /**

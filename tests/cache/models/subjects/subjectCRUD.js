@@ -85,10 +85,10 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     Subject.findByPk(ipar)
     .then((pubishedSubject) => pubishedSubject.update({ isPublished: false }))
     .then(() =>
-      rcli.sismemberAsync(redisStore.constants.indexKey.subject, subjectKey))
+      rcli.sIsMember(redisStore.constants.indexKey.subject, subjectKey))
     .then((ok) => {
       expect(ok).to.equal(1);
-      return rcli.hgetallAsync(subjectKey);
+      return rcli.hGetAll(subjectKey);
     })
     .then((subject) => {
       expect(subject).to.not.equal(null);
@@ -245,7 +245,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       expect(res[4]).to.have.members([]); // tags keys not found for old abs path
       expect(res[5]).to.have.members(ARRAY); // tags found for new abs path
 
-      return rcli.smembersAsync(sampleIndexName);
+      return rcli.sMembers(sampleIndexName);
     })
     .then((members) => {
       const oldAbsPathWithPrefix = redisStore.toKey('sample', oldAbsPath);
@@ -328,11 +328,11 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
   it('removeFromRedis removes all the related samples ' +
     'from the samplestore', (done) => {
     subjectUtils.removeFromRedis(par)
-    .then(() => rcli.smembersAsync(sampleIndexName))
+    .then(() => rcli.sMembers(sampleIndexName))
     .then((members) => {
       expect(members.length).to.equal(0);
       const subAspMapKey = redisStore.toKey('subaspmap', parentName);
-      return rcli.smembersAsync(subAspMapKey);
+      return rcli.sMembers(subAspMapKey);
     })
     .then((members) => {
       expect(members.length).to.equal(0);
@@ -358,13 +358,13 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     let subjectWithPrefix;
     Subject.findByPk(ipar)
     .then((s) => s.destroy())
-    .then(() => rcli.smembersAsync(sampleIndexName))
+    .then(() => rcli.sMembers(sampleIndexName))
     .then((members) => {
       expect(members.length).to.equal(0);
 
       //subaspmap key is deleted
       const subAspMapKey = redisStore.toKey('subaspmap', par.name);
-      return rcli.smembersAsync(subAspMapKey);
+      return rcli.sMembers(subAspMapKey);
     })
     .then((members) => {
       expect(members.length).to.equal(0);
@@ -394,7 +394,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
     .then((s) => s.update({ isPublished: false }))
     .then((subj) => {
       subjectWithPrefix = redisStore.toKey('sample', subj.absolutePath);
-      return rcli.smembersAsync(sampleIndexName);
+      return rcli.sMembers(sampleIndexName);
     })
     .then((members) => {
       members.forEach((member) => {
@@ -405,7 +405,7 @@ describe('tests/cache/models/subjects/subjectCRUD.js >', () => {
       });
 
       const subAspMapKey = redisStore.toKey('subaspmap', par.name);
-      return rcli.smembersAsync(subAspMapKey);
+      return rcli.sMembers(subAspMapKey);
     })
     .then((members) => {
       expect(members.length).to.equal(0);

@@ -18,8 +18,8 @@ const redisClient = require('../../cache/redisCache').client.clock;
 const jobSetup = require('../../jobQueue/setup');
 
 describe('tests/clock/setupIntervals.js >', () => {
-  beforeEach(() => redisClient.flushallAsync());
-  after(() => redisClient.flushallAsync());
+  beforeEach(() => redisClient.flushAll());
+  after(() => redisClient.flushAll());
   afterEach(u.stopClockProcess);
 
   describe('timing >', function () {

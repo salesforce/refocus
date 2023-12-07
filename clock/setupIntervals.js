@@ -11,7 +11,7 @@
  */
 const ft = require('feature-toggles');
 const jobWrapper = require('../jobQueue/jobWrapper');
-const redisClient = require('../cache/redisCache').client.clock;
+const redisCachePromise = require('../cache/redisCache');
 
 module.exports = function (jobs, config) {
   const startTime = Date.now();
@@ -69,13 +69,24 @@ function runOnceThenSetupInterval(jobName, fn, interval) {
 
 function getLastRunTimes(jobs) {
   const timeKeys = Object.keys(jobs).map(getKey);
-  console.log('\n\n\n redisClient getLastRunTimes ==>>>>>>>', redisClient);
-  return redisClient.mgetAsync(timeKeys);
+  return redisCachePromise
+    .then(redisCache => {
+      return redisCache.client.clock.mGet(timeKeys);
+    })
+    .catch(error => {
+      console.error('Error using Redis client:', error);
+    })
 }
 
 function setLastRunTime(jobName) {
   const key = getKey(jobName);
-  redisClient.set(key, Date.now());
+  return redisCachePromise
+  .then(redisCache => {
+    return redisCache.client.clock.set(key, Date.now());
+  })
+  .catch(error => {
+    console.error('Error using Redis client:', error);
+  })
 }
 
 function getKey(jobName) {

@@ -75,7 +75,7 @@ describe('tests/clock/jobs/queueStatsActivityLogs.js >', () => {
     const key = 'queueStats.' + timestamp;
 
     setTimeout(() => {
-      client.hgetallAsync(key).then((resp) => {
+      client.hGetAll(key).then((resp) => {
         if (resp) {
           try {
             expect(resp).to.be.an('object');
@@ -103,7 +103,7 @@ describe('tests/clock/jobs/queueStatsActivityLogs.js >', () => {
     const key = 'queueStats.' + timestamp;
 
     setTimeout(() => {
-      client.hgetallAsync(key).then((logObject) => {
+      client.hGetAll(key).then((logObject) => {
         if (logObject) {
           try {
             const resp = qs.constructLogObject(logObject);

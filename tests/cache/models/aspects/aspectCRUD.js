@@ -88,9 +88,9 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     Aspect.findByPk(aspHumdId)
     .then((asp) => {
       aspKey = redisStore.toKey('aspect', asp.name);
-      return rcli.sismemberAsync(aspectIndexName, aspKey);
+      return rcli.sIsMember(aspectIndexName, aspKey);
     })
-    .then(() => rcli.hgetallAsync(aspKey))
+    .then(() => rcli.hGetAll(aspKey))
     .then((asp) => {
       expect(asp.updatedAt).to.equal(new Date(asp.updatedAt).toISOString());
       expect(asp.createdAt).to.equal(new Date(asp.createdAt).toISOString());
@@ -105,11 +105,11 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     Aspect.findByPk(aspHumdId)
     .then((asp) => {
       aspKey = redisStore.toKey('aspect', asp.name);
-      return rcli.sismemberAsync(aspectIndexName, aspKey);
+      return rcli.sIsMember(aspectIndexName, aspKey);
     })
     .then((ok) => {
       expect(ok).to.equal(1);
-      return rcli.hgetallAsync(aspKey);
+      return rcli.hGetAll(aspKey);
     })
     .then((asp) => {
       expect(asp).to.not.equal(null);
@@ -128,16 +128,16 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .then((asp) => {
       aspect = asp;
       aspectKey = redisStore.toKey('aspect', asp.name);
-      return rcli.sismemberAsync(aspectIndexName, aspectKey);
+      return rcli.sIsMember(aspectIndexName, aspectKey);
     })
     .then((ok) => {
       expect(ok).to.equal(1);
       return aspect.update({ isPublished: false });
     })
-    .then(() => rcli.sismemberAsync(aspectIndexName, aspectKey))
+    .then(() => rcli.sIsMember(aspectIndexName, aspectKey))
     .then((ok) => {
       expect(ok).to.equal(1);
-      return rcli.hgetallAsync(aspectKey);
+      return rcli.hGetAll(aspectKey);
     })
     .then((asp) => {
       expect(asp).to.not.equal(null);
@@ -160,7 +160,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     }))
     .then((asp) => {
       const aspectKey = redisStore.toKey('aspect', asp.name);
-      return rcli.hgetallAsync(aspectKey);
+      return rcli.hGetAll(aspectKey);
     })
     .then((asp) => {
       expect(asp).to.not.equal(null);
@@ -188,13 +188,13 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .then((asp) => {
       const newKey = redisStore.toKey('aspect', asp.name);
       newName = asp.name;
-      return rcli.sismemberAsync(aspectIndexName, newKey);
+      return rcli.sIsMember(aspectIndexName, newKey);
     })
     .then((ok) => {
       // new key should be found
       expect(ok).to.equal(1);
       const oldKey = redisStore.toKey('aspect', oldName);
-      return rcli.sismemberAsync(aspectIndexName, oldKey);
+      return rcli.sIsMember(aspectIndexName, oldKey);
     })
     .then((ok) => {
       // old key should not be found
@@ -230,18 +230,18 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     .then((asp) => {
       const newKey = redisStore.toKey('aspect', asp.name);
       newName = asp.name;
-      return rcli.sismemberAsync(aspectIndexName, newKey);
+      return rcli.sIsMember(aspectIndexName, newKey);
     })
     .then((ok) => {
       // new key should be found
       expect(ok).to.equal(1);
       const oldKey = redisStore.toKey('aspect', oldName);
-      return rcli.sismemberAsync(aspectIndexName, oldKey);
+      return rcli.sIsMember(aspectIndexName, oldKey);
     })
     .then((ok) => {
       // old key should not be found
       expect(ok).to.equal(0);
-      return rcli.smembersAsync(sampleIndexName);
+      return rcli.sMembers(sampleIndexName);
     })
     .then((members) => {
       const samplesWithOldName = [];
@@ -299,11 +299,11 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     })
     .then((asp) => {
       aspectKey = redisStore.toKey('aspect', found.name);
-      return rcli.sismemberAsync(subjectIndexName, aspectKey);
+      return rcli.sIsMember(subjectIndexName, aspectKey);
     })
     .then((ok) => {
       expect(ok).to.equal(0);
-      return rcli.hgetallAsync(aspectKey);
+      return rcli.hGetAll(aspectKey);
     })
     .then((asp) => {
       expect(asp).to.equal(null);
@@ -335,7 +335,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     })
     .then((a) => {
       aspectName = found.name;
-      return rcli.smembersAsync(sampleIndexName);
+      return rcli.sMembers(sampleIndexName);
     })
     .then((members) => {
       members.forEach((member) => {
@@ -347,7 +347,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
 
       // aspsubmap key is deleted
       const aspSubMapKey = redisStore.toKey('aspsubmap', aspectName);
-      return rcli.smembersAsync(aspSubMapKey);
+      return rcli.sMembers(aspSubMapKey);
     })
     .then((members) => {
       expect(members.length).to.equal(0);
@@ -370,10 +370,10 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
     samstoinit.populate()
     .then(() => Aspect.findByPk(aspHumdId))
     .then((a) => a.update({ isPublished: false }))
-    .then((a) => rcli.sismemberAsync(aspectIndexName, aspectKey))
+    .then((a) => rcli.sIsMember(aspectIndexName, aspectKey))
     .then((ok) => {
       expect(ok).to.equal(1);
-      return rcli.hgetallAsync(aspectKey);
+      return rcli.hGetAll(aspectKey);
     })
     .then((asp) => {
       expect(asp).to.not.equal(null);
@@ -395,7 +395,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       aspectName = a.name;
       return a.update({ isPublished: true });
     })
-    .then(() => rcli.smembersAsync(sampleIndexName))
+    .then(() => rcli.sMembers(sampleIndexName))
     .then((members) => {
       let count = 0;
       members.forEach((member) => {
@@ -428,7 +428,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       aspectName = a.name;
       return a.update({ isPublished: false });
     })
-    .then(() => rcli.smembersAsync(sampleIndexName))
+    .then(() => rcli.sMembers(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');
@@ -439,7 +439,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
 
       // aspsubmap key is deleted
       const aspSubMapKey = redisStore.toKey('aspsubmap', aspectName);
-      return rcli.smembersAsync(aspSubMapKey);
+      return rcli.sMembers(aspSubMapKey);
     })
     .then((members) => {
       expect(members.length).to.equal(0);
@@ -475,7 +475,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       aspectName = a.name;
       return a.update({ okRange: [0, 0] });
     })
-    .then(() => rcli.smembersAsync(sampleIndexName))
+    .then(() => rcli.sMembers(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');
@@ -486,7 +486,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
 
       // aspsubmap key is deleted
       const aspSubMapKey = redisStore.toKey('aspsubmap', aspectName);
-      return rcli.smembersAsync(aspSubMapKey);
+      return rcli.sMembers(aspSubMapKey);
     })
     .then((members) => {
       expect(members.length).to.equal(0);
@@ -619,7 +619,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
       aspectName = asp.name;
       return aspectUtils.removeAspectRelatedSamples(asp);
     })
-    .then(() => rcli.smembersAsync(sampleIndexName))
+    .then(() => rcli.sMembers(sampleIndexName))
     .then((members) => {
       members.forEach((member) => {
         const nameParts = member.split('|');
@@ -630,7 +630,7 @@ describe('tests/cache/models/aspects/aspectCRUD.js, ' +
 
       // aspsubmap key is deleted
       const aspSubMapKey = redisStore.toKey('aspsubmap', aspectName);
-      return rcli.smembersAsync(aspSubMapKey);
+      return rcli.sMembers(aspSubMapKey);
     })
     .then((members) => {
       expect(members.length).to.equal(0);

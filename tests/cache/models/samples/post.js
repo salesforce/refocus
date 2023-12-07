@@ -261,7 +261,7 @@ describe('tests/cache/models/samples/post.js >', () => {
         expect(res.body.name).to.be.equal(sampleName);
 
         // check aspsubmap for added set
-        rcli.smembersAsync(
+        rcli.sMembers(
           'samsto:aspsubmap:' + u.aspectToCreate.name.toLowerCase()
         )
         .then((resCli) => {
