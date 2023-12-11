@@ -121,7 +121,6 @@ function prepareToPublish(inst, changedKeys, ignoreAttributes) {
  * @returns {Object} - object that was published
  */
 function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
-  console.log('\n\n publishObject', inst, opts);
   if (!inst || !event) return false;
   const obj = {};
   obj[event] = inst.get ? inst.get() : inst;

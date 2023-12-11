@@ -207,13 +207,14 @@ class RedisOps {
     this.map(arr, fn);
 
     console.log('\n\n returnAll @@', arr, key, fn, this.savedResults);
+    const batchCommandsBeforeSice = this.batch.commands.slice(0, queueSizeBefore);
     const batchCommands = this.batch.commands.slice(queueSizeBefore);
 
     console.log('this.batch.commands after', this.batch.commands);
     this.savedResults[key] = [];
     batchCommands.forEach((cmd, i) => {
       cmd.callback = ((err, res) => {
-        const transform = this.transforms[i];
+        const transform = this.transforms[batchCommandsBeforeSice.length + i];
         console.log('res', res);
         if (transform) {
           res = transform(res);
