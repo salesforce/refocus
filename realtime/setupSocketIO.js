@@ -19,7 +19,7 @@ const toggle = require('feature-toggles');
 const rtUtils = require('./utils');
 const emitUtils = require('./emitUtils');
 const jwtUtils = require('../utils/jwtUtil');
-const redisCachePromise = require('../cache/redisCache');
+const redisClient = require('../cache/redisCache').client.realtimeLogging;
 const conf = require('../config');
 const ipWhitelist = conf.environment[conf.nodeEnv].ipWhitelist;
 const activityLogUtil = require('../utils/activityLog');
@@ -149,10 +149,6 @@ function init(io, redisStore) {
             toLog.perspective = socket.handshake.query.p;
           }
 
-          redisCachePromise
-          .then(redisCache => {
-            console.log("redisCache.client.realtimeLogging ==>>>>", redisCache.client.realtimeLogging);
-            const redisClient = redisCache.client.realtimeLogging;
             redisClient.set(socket.id, JSON.stringify(toLog));
 
             socket.on('disconnect', () => {
@@ -189,10 +185,6 @@ function init(io, redisStore) {
                 }
               }); // redisClient.get
             }); // on disconnect
-          })
-          .catch(error => {
-            console.error('Error using Redis client:', error);
-          })
         } // if logEnabled
       })
       .catch((err) => {

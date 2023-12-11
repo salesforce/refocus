@@ -1,11 +1,13 @@
 const redisCachePromise = require('./redisCache');
+const createCustomMultiProxy = require('./createCustomMultiProxy');
 
 (async () => {
   try {
     // Access the client object directly
     const redisCache = redisCachePromise;
-    console.log('redisCache', redisCache.client.cache);
     const redisClient = redisCache.client.cache;
+
+    console.log('redisClient $$$$ ===>>>>>>>>>>>>>>>>>', redisClient);
 
     const key = 'someKey';
     const valueToSet = 'someValue123';
@@ -16,32 +18,36 @@ const redisCachePromise = require('./redisCache');
 
     console.log('getValue ===>>>>>>>>>>>>>>>>>', getValue);
 
-    const multiR = redisClient.multi();
-    console.log('multiR before ==>>>>>>', multiR.command_queue);
+    const customMulti = createCustomMultiProxy(redisClient);
 
     // Add commands to the multi object
-    multiR.set('key1', 'value1');
-    multiR.get('key1');
-    multiR.set('key2', 'value2');
-    multiR.get('key2');
 
-    console.log('multiR after ==>>>>>>', multiR.command_queue);
+        // Queue Redis commands with callbacks
+    customMulti.set('key1', 'value1')
+    customMulti.get('key1')
+    customMulti.set('key2', 'value2')
+    customMulti.get('key2')
+    
 
-    // Execute the multi commands
-    const results = await multiR.exec((err, results) => {
-      if (err) {
-        console.error('Error executing multi commands:', err);
-        return;
-      }
+    console.log('customMulti', customMulti);
 
-      // Handle the results of the multi commands      
-      // Each result corresponds to the result of a single command in the order they were added
+
+    console.log('here')
+
+    customMulti.commands.forEach((cmd, i) => {
+      // Modify the callback function for each command
+      cmd.callback = ((err, res) => {
+        console.log('cmd executed and result', cmd, res);
+        return res + 'CALLBACK';
+      });
     });
+    // Execute the multi commands
+    const results = await customMulti.exec();
 
     console.log('Results:', results);
-    process.exit(1);
-    // ... (other usage)
   } catch (error) {
     console.error('Error using Redis client:', error);
+  } finally {
+    process.exit(1);
   }
 })();

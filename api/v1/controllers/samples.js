@@ -29,7 +29,7 @@ const kue = queueSetup.kue;
 const bulkUpsertSamplesQueue = queueSetup.bulkUpsertSamplesQueue;
 const getSamplesWildcardCacheInvalidation = require('../../../config')
   .getSamplesWildcardCacheInvalidation;
-const redisCachePromise = require('../../../cache/redisCache');
+const redisCache = require('../../../cache/redisCache').client.cache;
 const RADIX = 10;
 const COUNT_HEADER_NAME = require('../constants').COUNT_HEADER_NAME;
 const logger = require('@salesforce/refocus-logging-client');
@@ -70,13 +70,7 @@ function doFindSample(req, res, next, resultObj, cacheKey, cacheExpiry) {
     if (cacheKey) {
       // cache the object by cacheKey.
       const strObj = JSON.stringify(response);
-      redisCachePromise
-      .then(redisCache => {
-        redisCache.client.cache.setex(cacheKey, cacheExpiry, strObj);
-      })
-      .catch(error => {
-        console.error('Error using Redis client: client.cache', error);
-      })
+      redisCache.setex(cacheKey, cacheExpiry, strObj);
     }
     u.logAPI(req, resultObj, response); // audit log
     res.status(httpStatus.OK).json(response);
@@ -179,21 +173,15 @@ module.exports = {
     // Check if Sample Store is on or not
     const resultObj = { reqStartTime: req.timestamp }; // for logging
     if (helper.cacheEnabled) {
-      redisCachePromise
-        .then(redisCache => {
-          return redisCache.client.cache.get(helper.cacheKey, (cacheErr, reply) => {
-            if (cacheErr || !reply) {
-              doFindSample(req, res, next, resultObj, helper.cacheKey,
-                helper.cacheExpiry);
-            } else {
-              u.logAPI(req, resultObj, reply); // audit log
-              res.status(httpStatus.OK).json(JSON.parse(reply));
-            }
-          });
-        })
-        .catch(error => {
-          console.error('Error using Redis client: client.cache', error);
-        })
+      return redisCache.get(helper.cacheKey, (cacheErr, reply) => {
+        if (cacheErr || !reply) {
+          doFindSample(req, res, next, resultObj, helper.cacheKey,
+            helper.cacheExpiry);
+        } else {
+          u.logAPI(req, resultObj, reply); // audit log
+          res.status(httpStatus.OK).json(JSON.parse(reply));
+        }
+      });
     } else {
       doFindSample(req, res, next, resultObj);
     }

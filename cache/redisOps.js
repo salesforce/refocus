@@ -14,7 +14,7 @@
 const Promise = require('bluebird');
 const redisStore = require('./sampleStore');
 const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
-const redisCachePromise = require('./redisCache').client.sampleStore;
+const redisClient = require('./redisCache').client.sampleStore;
 const statusCalculation = require('./statusCalculation');
 const keyType = redisStore.constants.objectType;
 const subjectType = keyType.subject;
@@ -23,11 +23,12 @@ const aspSubMapType = keyType.aspSubMap;
 const aspectType = keyType.aspect;
 const sampleType = keyType.sample;
 const Status = require('../db/constants').statuses;
+const createCustomMultiProxy = require('./createCustomMultiProxy');
 
-console.log("\n\n\n redisClient in redisOps", redisCachePromise);
+console.log("\n\n\n redisClient in redisOps", redisClient);
 
 const batchableCmds = [
-  'set', 'del', 'rename', 'exists', 'touch',
+  'set', 'get', 'del', 'rename', 'exists', 'touch',
   'sAdd', 'sRem', 'sIsMember', 'sMembers', 'sUnionStore',
   'hSet', 'hGetAll',
   'zAdd', 'zRange', 'zRangeByScore',
@@ -45,7 +46,7 @@ class RedisOps {
   constructor(enableBatch, parentBatch) {
     if (enableBatch) {
       this.parentBatch = parentBatch;
-      this.batch = parentBatch ? parentBatch.multi() : redisCachePromise.multi();
+      this.batch = parentBatch ? parentBatch.batch : createCustomMultiProxy(redisClient);
       this.savedResults = {};
       this.transforms = [];
       this.commands = [];
@@ -59,7 +60,6 @@ class RedisOps {
    * @returns {RedisOps}
    */
     batchCmds() {
-      console.log('batchCmds');
       const enableBatch = true;
       const existingBatch = this.batch && this;
       return new RedisOps(enableBatch, existingBatch);
@@ -104,13 +104,7 @@ class RedisOps {
    * @returns {RedisOps|Promise}
    */
   executeBatchableCmd(cmd, ...args) {
-    console.log('\n\n\n\n redisCachePromise', redisCachePromise);
-    // return redisCachePromise
-    //   .then(redisCache => {
-        const client = this.batch || redisCachePromise;
-
-        console.log('\n\n executeBatchableCmd client cmd', cmd);
-        console.log('\n\n\n args', ...args);
+        const client = this.batch || redisClient;
 
         const commandObject = { cmd, args };
         this.commands.push(commandObject);
@@ -123,10 +117,6 @@ class RedisOps {
         } else {
           return runCmd(...args);
         }
-      // })
-      // .catch(error => {
-      //   console.error('Error using Redis client:', error);
-      // })
   }
 
   /**
@@ -164,7 +154,7 @@ class RedisOps {
    */
   map(arr, fn) {
     if (!this.batch) return this;
-
+    console.log('\n\n map function', arr);
     arr.forEach((element) =>
       fn(this, element)
     );
@@ -185,8 +175,8 @@ class RedisOps {
     if (!this.batch) return this;
 
     fn(this);
-    const cmdIndex = this.commands.length - 1;
-    const cmd = this.commands[cmdIndex];
+    const cmdIndex = this.batch.commands.length - 1;
+    const cmd = this.batch.commands[cmdIndex];
     cmd.callback = ((err, res) => {
       const transform = this.transforms[cmdIndex];
       if (transform) {
@@ -210,13 +200,21 @@ class RedisOps {
    */
   returnAll(arr, key, fn) {
     if (!this.batch) return this;
-    const commandsBefore = this.commands.length || 0;
+
+    const queueSizeBefore = this.batch.commands && this.batch.commands.length || 0;
+    console.log('this.batch.commands before ', this.batch.commands);
+
     this.map(arr, fn);
-    const cmdsAndIndexes = this.commands.slice(commandsBefore);
+
+    console.log('\n\n returnAll @@', arr, key, fn, this.savedResults);
+    const batchCommands = this.batch.commands.slice(queueSizeBefore);
+
+    console.log('this.batch.commands after', this.batch.commands);
     this.savedResults[key] = [];
-    cmdsAndIndexes.forEach((cmd, i) => {
+    batchCommands.forEach((cmd, i) => {
       cmd.callback = ((err, res) => {
         const transform = this.transforms[i];
+        console.log('res', res);
         if (transform) {
           res = transform(res);
         }
@@ -225,6 +223,7 @@ class RedisOps {
       });
     });
 
+    console.log('return all &$$$$$$$$$$$$ ==>>>>>>>', this.savedResults);
     return this;
   }
 
@@ -253,7 +252,7 @@ class RedisOps {
       return fn(this).then(transform);
     } else {
       fn(this);
-      const i = this.commands.length - 1;
+      const i = this.batch.commands.length - 1;
       this.transforms[i] = transform;
       return this;
     }
@@ -268,19 +267,18 @@ class RedisOps {
   exec() {
     console.log('\n\n\n queued up all the commands and executing');
     if (this.batch && !this.parentBatch) {
-      console.log('\n\n exec this.batch', this.batch);
       const _batch = this.batch;
-      console.log('\n\n exec _batch', _batch);
       this.batch = null;
-      return _batch.EXEC()
+      return _batch.exec()
       .then((res) => {
+        console.log('this.savedResults ==>>>>>>>>', this.savedResults);
+        console.log('res ==>>>>>>>>>>>>>>', res);
         if (Object.keys(this.savedResults).length) {
           return this.savedResults;
         } else {
           this.transforms.forEach((transform, i) =>
             res[i] = transform(res[i])
           );
-
           return res;
         }
       });
@@ -330,7 +328,7 @@ class RedisOps {
    */
   getHash(type, name) {
     const nameKey = redisStore.toKey(type, name);
-    return this.hGetAll(nameKey);
+    return this.get(nameKey);
   } // getHash
 
   /**
@@ -343,7 +341,6 @@ class RedisOps {
    *  command
    */
   addKey(type, name) {
-    console.log('add key');
     const indexName = redisStore.constants.indexKey[type];
     const nameKey = redisStore.toKey(type, name);
     return this.sAdd(indexName, nameKey);
@@ -365,7 +362,7 @@ class RedisOps {
 
       // remove the entry from the master index of type
       .if(indexName, (batch) =>
-        batch.srem(indexName, key)
+        batch.sRem(indexName, key)
       )
 
       // delete the hash
@@ -393,10 +390,10 @@ class RedisOps {
     return this.batchCmds()
 
     // remove the old key from the master list of index
-    .srem(indexName, oldKey)
+    .sRem(indexName, oldKey)
 
     // add the new key to the master list of index
-    .sadd(indexName, newKey)
+    .sAdd(indexName, newKey)
 
     // rename the set with the new name
     .rename(oldKey, newKey)
@@ -414,7 +411,7 @@ class RedisOps {
     aspName = aspName.toLowerCase();
     subjAbsPath = subjAbsPath.toLowerCase();
     const aspKey = redisStore.toKey(aspSubMapType, aspName);
-    return this.srem(aspKey, subjAbsPath);
+    return this.sRem(aspKey, subjAbsPath);
   }
 
   /**
@@ -427,7 +424,7 @@ class RedisOps {
     subjAbsPath = subjAbsPath.toLowerCase();
     aspName = aspName.toLowerCase();
     const subKey = redisStore.toKey(subAspMapType, subjAbsPath);
-    return this.srem(subKey, aspName);
+    return this.sRem(subKey, aspName);
   }
 
   /**
@@ -439,7 +436,7 @@ class RedisOps {
   delKeyFromIndex(type, name) {
     const indexName = redisStore.constants.indexKey[type];
     const nameKey = redisStore.toKey(type, name);
-    return this.srem(indexName, nameKey);
+    return this.sRem(indexName, nameKey);
   }
 
   /**
@@ -451,7 +448,7 @@ class RedisOps {
   addKeyToIndex(type, name) {
     const indexName = redisStore.constants.indexKey[type];
     const nameKey = redisStore.toKey(type, name);
-    return this.sadd(indexName, nameKey);
+    return this.sAdd(indexName, nameKey);
   }
 
   /**
@@ -463,7 +460,7 @@ class RedisOps {
   keyExistsInIndex(type, name) {
     const indexName = redisStore.constants.indexKey[type];
     const nameKey = redisStore.toKey(type, name);
-    return this.sismember(indexName, nameKey);
+    return this.sIsMember(indexName, nameKey);
   }
 
   /**
@@ -476,7 +473,7 @@ class RedisOps {
     subjAbsPath = subjAbsPath.toLowerCase();
     aspName = aspName.toLowerCase();
     const nameKey = redisStore.toKey(subAspMapType, subjAbsPath);
-    return this.sismember(nameKey, aspName);
+    return this.sIsMember(nameKey, aspName);
   }
 
   /**
@@ -490,7 +487,7 @@ class RedisOps {
     aspName = aspName.toLowerCase();
     subjAbsPath = subjAbsPath.toLowerCase();
     const nameKey = redisStore.toKey(aspSubMapType, aspName);
-    return this.sismember(nameKey, subjAbsPath);
+    return this.sIsMember(nameKey, subjAbsPath);
   }
 
   /**
@@ -503,7 +500,7 @@ class RedisOps {
     subjAbsPath = subjAbsPath.toLowerCase();
     aspName = aspName.toLowerCase();
     const key = redisStore.toKey(subAspMapType, subjAbsPath);
-    return this.sadd(key, aspName);
+    return this.sAdd(key, aspName);
   }
 
   /**
@@ -543,7 +540,7 @@ class RedisOps {
    */
   delHashField(type, name, fieldName) {
     const key = redisStore.toKey(type, name);
-    return this.hdel(key, fieldName);
+    return this.hDel(key, fieldName);
   }
 
   /**
@@ -606,7 +603,7 @@ class RedisOps {
     aspName = aspName.toLowerCase();
     subjAbsPath = subjAbsPath.toLowerCase();
     const aspectSetKey = redisStore.toKey(aspSubMapType, aspName);
-    return this.sadd(aspectSetKey, subjAbsPath);
+    return this.sAdd(aspectSetKey, subjAbsPath);
   }
 
   /**
@@ -619,7 +616,7 @@ class RedisOps {
     subjAbsPath = subjAbsPath.toLowerCase();
     aspName = aspName.toLowerCase();
     const subjectSetKey = redisStore.toKey(subAspMapType, subjAbsPath);
-    return this.sadd(subjectSetKey, aspName);
+    return this.sAdd(subjectSetKey, aspName);
   }
 
   /**
@@ -635,7 +632,7 @@ class RedisOps {
     nameFrom = nameFrom.toLowerCase();
     const fromSet = redisStore.toKey(setType, nameFrom);
     const toSet = redisStore.toKey(setType, nameTo);
-    return this.sunionstore(toSet, fromSet);
+    return this.sUnionStore(toSet, fromSet);
   }
 
   /**
@@ -864,7 +861,7 @@ class RedisOps {
    */
   getAspectRanges(aspect) {
     const key = redisStore.toKey(keyType.aspRanges, aspect.name);
-    return this.zrange(key, 0, -1, 'WITHSCORES');
+    return this.zRange(key, 0, -1, 'WITHSCORES');
   }
 
   /**
@@ -908,7 +905,7 @@ class RedisOps {
     const key = redisStore.toKey(keyType.subTags, subject.absolutePath);
     return this.batchCmds()
     .if(subject.tags && subject.tags.length, (batch) =>
-      batch.sadd(key, subject.tags)
+      batch.sAdd(key, subject.tags)
     )
     .exec();
   } // setSubjectTags
@@ -934,7 +931,7 @@ class RedisOps {
     const key = redisStore.toKey(keyType.aspTags, aspect.name);
     return this.batchCmds()
     .if(aspect.tags && aspect.tags.length, (batch) =>
-      batch.sadd(key, aspect.tags)
+      batch.sAdd(key, aspect.tags)
     )
     .exec();
   } // setAspectTags
@@ -951,7 +948,7 @@ class RedisOps {
 
     return this.batchCmds()
     .if(writerNames && writerNames.length, (batch) =>
-      batch.sadd(key, writerNames)
+      batch.sAdd(key, writerNames)
     )
     .exec();
   } // setAspectWriters

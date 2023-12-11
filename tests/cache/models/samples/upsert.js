@@ -245,8 +245,8 @@ describe('tests/cache/models/samples/upsert.js, ' +
       );
       const aspectName = aspect.name;
       rcli.multi([
-        ['sadd', subjKey, aspectName],
-        ['sadd', sampleStore.constants.indexKey.sample, sampleKey],
+        ['sAdd', subjKey, aspectName],
+        ['sAdd', sampleStore.constants.indexKey.sample, sampleKey],
         ['hmset', sampleKey, {
           name: `${subject.absolutePath}|${aspect.name}`,
           value: '1',

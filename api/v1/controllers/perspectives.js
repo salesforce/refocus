@@ -28,18 +28,12 @@ const doPut = require('../helpers/verbs/doPut');
 const featureToggles = require('feature-toggles');
 const config = require('../../../config');
 const fu = require('../helpers/verbs/findUtils');
-const redisCachePromise = require('../../../cache/redisCache');
+const redisCache = require('../../../cache/redisCache').client.cache;
 const perspectivesHash = u.getHash(helper.resourceType, '/v1/perspectives');
 
 function clearCacheKey(key) {
   if (featureToggles.isFeatureEnabled('enableCachePerspective')) {
-    redisCachePromise
-    .then(redisCache => {
-      redisCache.client.cache.del(key);
-    })
-    .catch(error => {
-      console.error('Error using Redis client: client.cache', error);
-    })
+    redisCache.del(key);
   }
 } // clearCacheKey
 

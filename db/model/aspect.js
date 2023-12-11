@@ -147,10 +147,10 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       afterCreate(inst /* , opts */) {
-
+        console.log('afterCreate', afterCreate);
         // Prevent any changes to original inst dataValues object
         const instDataObj = JSON.parse(JSON.stringify(inst.get()));
-        return Promise.join(
+        return Promise.all(
           inst.isPublished && publishObject(inst, aspectEventNames.add),
           redisOps.batchCmds()
             .addKey(aspectType, inst.getDataValue('name'))
@@ -222,6 +222,7 @@ module.exports = function aspect(seq, dataTypes) {
        * @returns {Promise}
        */
       afterUpdate(inst /* , opts */) {
+        console.log('afterUpdate');
         const nameChanged = inst.previous('name') !== inst.getDataValue('name');
         const isPublishedChanged =
           inst.previous('isPublished') !== inst.getDataValue('isPublished');
@@ -249,7 +250,7 @@ module.exports = function aspect(seq, dataTypes) {
             const newAspName = inst.name;
             const oldAspectName = inst._previousDataValues.name;
 
-            return Promise.join(
+            return Promise.all(
               redisOps.batchCmds()
 
                 // rename entry in aspectStore
@@ -290,7 +291,7 @@ module.exports = function aspect(seq, dataTypes) {
             // Prevent any changes to original inst dataValues object
             const instDataObj = JSON.parse(JSON.stringify(inst.get()));
 
-            return Promise.join(
+            return Promise.all(
               redisOps.batchCmds()
                 .setHash(aspectType, inst.name, instDataObj)
                 .addKey(aspectType, inst.name)

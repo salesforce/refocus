@@ -23,7 +23,7 @@ const doGetWriters = require('../helpers/verbs/doGetWriters');
 const doPostWriters = require('../helpers/verbs/doPostWriters');
 const doDeleteAllAssoc = require('../helpers/verbs/doDeleteAllBToMAssoc');
 const doDeleteOneAssoc = require('../helpers/verbs/doDeleteOneBToMAssoc');
-const redisCachePromise = require('../../../cache/redisCache');
+const redisCache = require('../../../cache/redisCache').client.cache;
 
 module.exports = {
 
@@ -74,46 +74,38 @@ module.exports = {
     const resultObj = { reqStartTime: req.timestamp };
     const url = req.url;
 
-  return redisCachePromise
-    .then(redisClient => {
-      // try to get cached entry
-      const redisCache = redisClient.client.cache;
-      return redisCache.get(url, (cacheErr, reply) => {
-        if (reply) {
-          // reply is responsified bot object as string.
-          const botObject = JSON.parse(reply);
+    return redisCache.get(url, (cacheErr, reply) => {
+      if (reply) {
+        // reply is responsified bot object as string.
+        const botObject = JSON.parse(reply);
 
-          // add api links to the object and return response.
-          botObject.apiLinks = u.getApiLinks(
-            botObject.id, helper, req.method
-          );
-          return res.status(httpStatus.OK).json(botObject);
-        }
+        // add api links to the object and return response.
+        botObject.apiLinks = u.getApiLinks(
+          botObject.id, helper, req.method
+        );
+        return res.status(httpStatus.OK).json(botObject);
+      }
 
-        // if cache error, print error and continue to get bot from db.
-        if (cacheErr) {
-          logger.error('Cache error ', cacheErr);
-        }
+      // if cache error, print error and continue to get bot from db.
+      if (cacheErr) {
+        logger.error('Cache error ', cacheErr);
+      }
 
-        // no reply, let's get bot from db
-        u.findByKey(helper, req.swagger.params, ['botUI'])
-        .then((o) => {
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          return o;
-        })
-        .then((responseObj) => {
-          // cache the bot by id and name.
-          redisCache.set(url, JSON.stringify(responseObj));
+      // no reply, let's get bot from db
+      u.findByKey(helper, req.swagger.params, ['botUI'])
+      .then((o) => {
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        return o;
+      })
+      .then((responseObj) => {
+        // cache the bot by id and name.
+        redisCache.set(url, JSON.stringify(responseObj));
 
-          u.logAPI(req, resultObj, responseObj);
-          return res.status(httpStatus.OK).json(responseObj);
-        })
-        .catch((err) => u.handleError(next, err, helper.modelName));
-      });
-    })
-    .catch(error => {
-      console.error('Error using Redis client:', error);
-    })
+        u.logAPI(req, resultObj, responseObj);
+        return res.status(httpStatus.OK).json(responseObj);
+      })
+      .catch((err) => u.handleError(next, err, helper.modelName));
+    });
   },
 
   /**

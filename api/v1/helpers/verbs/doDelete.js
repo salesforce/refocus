@@ -15,7 +15,7 @@ const u = require('./utils');
 const publisher = u.publisher;
 const event = u.realtimeEvents;
 const redisModelSample = require('../../../../cache/models/samples');
-const redisCachePromise = require('../../../../cache/redisCache');
+const redisClient = require('../../../../cache/redisCache').client.cache;
 const tracker = require('../../../../realtime/kafkaTracking');
 
 /**
@@ -80,15 +80,8 @@ function doDelete(req, res, next, props) {
     if (props.cacheEnabled) {
       const getCacheKey = req.swagger.params.key.value;
       const findCacheKey = '{"where":{}}';
-      redisCachePromise
-      .then(redisCache => {
-        const redisClient = redisCache.client.cache
-        redisClient.del(getCacheKey);
-        redisClient.del(findCacheKey);
-      })
-      .catch(error => {
-        console.error('Error using Redis client:', error);
-      })
+      redisClient.del(getCacheKey);
+      redisClient.del(findCacheKey);
     }
 
     // when a resource is deleted, delete all its associations too

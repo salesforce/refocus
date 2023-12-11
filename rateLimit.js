@@ -14,16 +14,13 @@
 const conf = require('./config');
 const activityLogUtil = require('./utils/activityLog');
 const featureToggles = require('feature-toggles');
-const redisCachePromise = require('./cache/redisCache');
+const limiterRedisClient = require('./cache/redisCache').client.limiter;
 const Limiter = require('ratelimiter');
 const Promise = require('bluebird');
 Limiter.prototype.get = Promise.promisify(Limiter.prototype.get);
 
 module.exports = function (req, res, next) {
   if (req.headers.IsAdmin) return next();
-  redisCachePromise
-  .then(redisCache => {
-    const limiterRedisClient = redisCache.client.limiter;
     const limiterConfig1 = {
       db: limiterRedisClient,
       max: conf.expressLimiterTotal,
@@ -100,8 +97,4 @@ module.exports = function (req, res, next) {
         });
       }
     }
-  })
-  .catch(error => {
-    console.error('Error using Redis client: redisCache.client.limiter', error);
-  })
 };

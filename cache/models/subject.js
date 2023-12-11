@@ -17,7 +17,7 @@ const fu = require('../../api/v1/helpers/verbs/findUtils.js');
 const utils = require('../../api/v1/helpers/verbs/utils');
 const sampleStore = require('../sampleStore');
 const constants = sampleStore.constants;
-const redisCachePromise = require('../redisCache');
+const redisClient = require('../redisCache').client.sampleStore;
 const u = require('../../utils/filters');
 const modelUtils = require('./utils');
 const redisErrors = require('../redisErrors');
@@ -49,15 +49,8 @@ function subjectInSampleStore(absolutePath) {
   const subjectKey = sampleStore.toKey('subject', absolutePath);
 
   // get from cache
-  return redisCachePromise
-    .then(redisCache => {
-      const redisClient = redisCache.client.sampleStore;
-      return redisClient.sIsMember(
-        sampleStore.constants.indexKey.subject, subjectKey);
-    })
-    .catch(error => {
-      console.error('Error using Redis client: redisCache.client.sampleStore', error);
-    })
+  return redisClient.sIsMember(
+    sampleStore.constants.indexKey.subject, subjectKey);
 }
 
 /**
@@ -105,14 +98,7 @@ function attachSamples(res) {
 
   const subjectKey = sampleStore.toKey(constants.objectType.subAspMap, res.absolutePath);
 
-  let redisClient; // Variable to hold the redisCache object
-
-  return redisCachePromise
-    .then(redisCache => {
-      redisClient = redisCache.client.sampleStore;
-      console.log('Calling sMembers for subjectKey:', subjectKey);
-      return redisClient.sMembers(subjectKey);
-    })
+  return redisClient.sMembers(subjectKey)
     .then(aspectNames => {
       const cmds = [];
       console.log('aspectname ==>>>>>>>>>>.', aspectNames);
@@ -284,10 +270,7 @@ module.exports = {
     const opts = modelUtils.getOptionsFromReq(req.swagger.params, helper);
     const key = sampleStore.toKey(constants.objectType.subject, opts.filter.key);
       // get from cache
-    return redisCachePromise
-    .then(redisCache => {
-      const redisClient = redisCache.client.sampleStore;
-      return redisClient.hGetAll(key)
+    return redisClient.hGetAll(key)
       .then((subject) => {
         if (!subject) {
           throw new redisErrors.ResourceNotFoundError({
@@ -305,10 +288,6 @@ module.exports = {
   
         return result;
       });
-    })
-    .catch(error => {
-      console.error('Error using Redis client: redisCache.client.sampleStore', error);
-    })
   },
 
   /**
@@ -333,10 +312,7 @@ module.exports = {
     });
 
     // get all Subjects sorted lexicographically
-    return redisCachePromise
-      .then(redisCache => {
-        const redisClient = redisCache.client.sampleStore;
-        return redisClient.sortAsync(constants.indexKey.subject, 'alpha')
+      return redisClient.sortAsync(constants.indexKey.subject, 'alpha')
         .then((allSubjectKeys) => {
           const commands = [];
           const filteredSubjectKeys = modelUtils
@@ -357,9 +333,5 @@ module.exports = {
     
           return response;
         });
-      })
-      .catch(error => {
-        console.error('Error using Redis client:', error);
-      })
   },
 }; // exports

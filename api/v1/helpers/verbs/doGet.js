@@ -13,7 +13,7 @@
 
 const u = require('./utils');
 const httpStatus = require('../../constants').httpStatus;
-const redisCachePromise = require('../../../../cache/redisCache');
+const redisCache = require('../../../../cache/redisCache').client.cache;
 const cacheExpiry = require('../../../../config').CACHE_EXPIRY_IN_SECS;
 const redisModelSample = require('../../../../cache/models/samples');
 
@@ -40,39 +40,32 @@ function doGet(req, res, next, props) {
   // only cache requests with no params
   if (props.cacheEnabled && !fields) {
     const cacheKey = reqParams.key.value;
-    return redisCachePromise
-    .then(redisClient => {
-      const redisCache = redisClient.client.cache;
-      return redisCache.get(cacheKey)
-      .then((reply) => {
-        // get from cache
-        if (reply) {
-          res.locals.resultObj.dbTime = new Date() -
-            res.locals.resultObj.reqStartTime;
-          res.locals.retVal = u.responsify(JSON.parse(reply), props, req.method);
-          return Promise.resolve(true);
-        }
+    return redisCache.get(cacheKey)
+    .then((reply) => {
+      // get from cache
+      if (reply) {
+        res.locals.resultObj.dbTime = new Date() -
+          res.locals.resultObj.reqStartTime;
+        res.locals.retVal = u.responsify(JSON.parse(reply), props, req.method);
+        return Promise.resolve(true);
+      }
 
-        throw new Error('no reply');
-      })
-      /* if err or no reply, get from db and set redis cache */
-      .catch((cacheErr) => u.findByKey(props, req.swagger.params, scopes)
-        .then((o) => {
-          res.locals.resultObj.dbTime = new Date() -
-            res.locals.resultObj.reqStartTime;
-          res.locals.retVal = u.responsify(o, props, req.method);
-
-          // cache the object by cacheKey. Store the key-value pair in cache
-          // with an expiry of 1 minute (60s)
-          const strObj = JSON.stringify(o);
-          redisCache.setex(cacheKey, cacheExpiry, strObj);
-          return true;
-        }))
-      .catch((err) => u.handleError(next, err, props.modelName));
+      throw new Error('no reply');
     })
-    .catch(error => {
-      console.error('Error using Redis client:', error);
-    });
+    /* if err or no reply, get from db and set redis cache */
+    .catch((cacheErr) => u.findByKey(props, req.swagger.params, scopes)
+      .then((o) => {
+        res.locals.resultObj.dbTime = new Date() -
+          res.locals.resultObj.reqStartTime;
+        res.locals.retVal = u.responsify(o, props, req.method);
+
+        // cache the object by cacheKey. Store the key-value pair in cache
+        // with an expiry of 1 minute (60s)
+        const strObj = JSON.stringify(o);
+        redisCache.setex(cacheKey, cacheExpiry, strObj);
+        return true;
+      }))
+    .catch((err) => u.handleError(next, err, props.modelName));
   } else {
     let getPromise;
     if (props.modelName === 'Sample') {

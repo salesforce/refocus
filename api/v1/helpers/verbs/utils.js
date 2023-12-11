@@ -18,7 +18,7 @@ const common = require('../../../../utils/common');
 const logAPI = require('../../../../utils/apiLog').logAPI;
 const publisher = require('../../../../realtime/redisPublisher');
 const realtimeEvents = require('../../../../realtime/constants').events;
-const redisCachePromise = require('../../../../cache/redisCache');
+const redisClient = require('../../../../cache/redisCache').client.cache;
 const userProps = require('../nouns/users');
 const Op = require('sequelize').Op;
 const md5 = require('md5');
@@ -113,15 +113,8 @@ function handleUpdatePromise(resultObj, req, retVal, props, res) {
   if (props.cacheEnabled) {
     const getCacheKey = req.swagger.params.key.value;
     const findCacheKey = '{"where":{}}';
-    redisCachePromise
-      .then(redisCache => {
-        const redisClient = redisCache.client.cache;
-        redisClient.del(getCacheKey);
-        redisClient.del(findCacheKey);
-      })
-      .catch(error => {
-        console.error('Error using Redis client: redisCache.client.cache', error);
-      })
+    redisClient.del(getCacheKey);
+    redisClient.del(findCacheKey);
   }
 
   resultObj.dbTime = new Date() - resultObj.reqStartTime;

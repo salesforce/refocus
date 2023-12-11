@@ -13,7 +13,8 @@
 const logger = require('@salesforce/refocus-logging-client');
 const featureToggles = require('feature-toggles');
 const emitter = require('./socketIOEmitter');
-const redisCachePromise = require('../cache/redisCache');
+const subPerspectives = require('../cache/redisCache').client.subPerspectives;
+const subBot = require('../cache/redisCache').client.subBot;
 const rtUtils = require('./utils');
 const pubSubStats = require('./pubSubStats');
 const ZERO = 0;
@@ -26,50 +27,32 @@ const ONE = 1;
  * @param {Socket.io} io - Socket.io's Server API
  * @param {String} processName - Process name
  */
-module.exports = async (io) => {
-  try {
-    // Wait for all promises to be resolved
-    const redisCache = await redisCachePromise;
-    const subPerspectives = redisCache.client.subPerspectives;
-    const subBot = redisCache.client.subBot;
-    const [resolvedSubPerspectives, resolvedSubBot] = await Promise.all([subPerspectives, subBot]);
+const allSubscribers =
+  subBot ? subPerspectives.concat(subBot) : subPerspectives;
+module.exports = (io) => {
+  allSubscribers.forEach((s) => {
+    s.on('message', (channel, messageAsString) => {
+      const obj = JSON.parse(messageAsString);
+      const key = Object.keys(obj)[ZERO];
+      const parsedObj = rtUtils.parseObject(obj[key], key);
+      const { pubOpts } = parsedObj;
 
-    const allSubscribers = resolvedSubBot ? resolvedSubPerspectives.concat(resolvedSubBot) : resolvedSubPerspectives;
+      // Deleting pubOpts from parsedObj before passing it to the emitter
+      delete parsedObj.pubOpts;
 
-    // console.log('After Promise.all, allSubscribers:', allSubscribers);
-    // const allSubscribers = await Promise.all(subscribersInfo);
-    // console.log('\n\n allSubscribers ==>>>>>', allSubscribers);
-    if (!allSubscribers || !allSubscribers.length) {
-      console.error('All subscribers is undefined or empty');
-      return;
-    }
-    allSubscribers.forEach((s) => {
-      s.on('message', (channel, messageAsString) => {
-        const obj = JSON.parse(messageAsString);
-        const key = Object.keys(obj)[ZERO];
-        const parsedObj = rtUtils.parseObject(obj[key], key);
-        const { pubOpts } = parsedObj;
-  
-        // Deleting pubOpts from parsedObj before passing it to the emitter
-        delete parsedObj.pubOpts;
-  
-        if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
-          try {
-            pubSubStats.track('sub', key, parsedObj);
-          } catch (err) {
-            logger.error(err);
-          }
+      if (featureToggles.isFeatureEnabled('enablePubsubStatsLogs')) {
+        try {
+          pubSubStats.track('sub', key, parsedObj);
+        } catch (err) {
+          logger.error(err);
         }
-        /*
-         * pass on the message received through the redis subscriber to the socket
-         * io emitter to send data to the browser clients.
-         */
-        emitter(io, key, parsedObj, pubOpts);
-      });
-    });
-  } catch (error){
-    // Handle errors if any of the promises reject
-    console.error('Error while waiting for subscribers:', error);
-  }
+      }
 
+      /*
+       * pass on the message received through the redis subscriber to the socket
+       * io emitter to send data to the browser clients.
+       */
+      emitter(io, key, parsedObj, pubOpts);
+    });
+  });
 };

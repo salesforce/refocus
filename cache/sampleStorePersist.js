@@ -14,7 +14,7 @@
 'use strict'; // eslint-disable-line strict
 const featureToggles = require('feature-toggles');
 const Sample = require('../db').Sample;
-const redisCachePromise = require('./redisCache');
+const redisClient = require('./redisCache').client.sampleStore;
 const samsto = require('./sampleStore');
 const constants = samsto.constants;
 const logger = require('@salesforce/refocus-logging-client');
@@ -33,10 +33,7 @@ function storeSampleToDb() {
     logger.info('Persist to db started :|. This will start by truncating the ' +
       'sample table followed by persisting the sample to db');
   }
-  return redisCachePromise
-  .then(redisCache => {
-    const redisClient = redisCache.client.sampleStore;
-    return Sample.destroy({ truncate: true, force: true })
+  return Sample.destroy({ truncate: true, force: true })
     .then(() => {
       if (infoLoggingEnabled) {
         logger.info('truncated the sample table :|');
@@ -78,10 +75,6 @@ function storeSampleToDb() {
   
       return retval.length;
     });
-  })
-  .catch(error => {
-    console.error('Error using Redis client:', error);
-  })
 } // storeSampleToDb
 
 /**

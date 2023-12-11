@@ -14,7 +14,7 @@ const logger = require('@salesforce/refocus-logging-client');
 const featureToggles = require('feature-toggles');
 const rtUtils = require('./utils');
 const config = require('../config');
-const redisCachePromise = require('../cache/redisCache');
+const redisCache = require('../cache/redisCache');
 const perspectiveChannelName = config.redis.perspectiveChannelName;
 const sampleEvent = require('./constants').events.sample;
 const pubSubStats = require('./pubSubStats');
@@ -131,9 +131,6 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
    * There may be multiple publishers for perspectives to spread the load, so
    * pick one at random.
    */
-  redisCachePromise
-  .then(redisCache => {
-    console.log("redisCache.client.sampleStore ==>>>>", redisCache.client.sampleStore);
     const client = redisCache.client;
     const pubPerspectives = client.pubPerspectives;
     const len = pubPerspectives.length;
@@ -169,10 +166,6 @@ function publishObject(inst, event, changedKeys, ignoreAttributes, opts) {
   
     return pubClient.publish(channelName, JSON.stringify(obj))
       .then((numClients) => obj);
-  })
-  .catch(error => {
-    console.error('Error using Redis client:', error);
-  })
 } // publishObject
 
 /**

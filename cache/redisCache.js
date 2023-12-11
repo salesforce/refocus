@@ -105,7 +105,7 @@ const setupRedisClients = () => {
       pubPerspectives,
       pubBot:  createRedisClient(rconf.instanceUrl.pubsubBots, opts),
       realtimeLogging: createRedisClient(rconf.instanceUrl.realtimeLogging, opts),
-      sampleStore: createRedisClient(rconf.instanceUrl.sampleStore, opts),
+      sampleStore: redis.createClient(rconf.instanceUrl.sampleStore, opts),
       subPerspectives,
       subBot,
     };
@@ -163,4 +163,3 @@ module.exports = (() => {
 })();
 
 // module.exports = setupRedisClients();
-

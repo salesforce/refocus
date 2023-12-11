@@ -428,6 +428,19 @@ function getOptionsFromReq(params, helper) {
   return opts;
 }
 
+function getSampleScore(member) {
+  if (member) {
+    let [precedence, rangeType, status, score] = member.split(':'); // jscs:ignore
+    score = Number(score);
+    if (rangeType === 'max') {
+      return status;
+    } else if (rangeType === 'min' && value === score) {
+      return status;
+    }
+  }
+  return Status.Invalid
+}
+
 module.exports = {
   applyFieldListFilter,
   applyFiltersOnSampleObjs,

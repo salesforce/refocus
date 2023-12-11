@@ -84,8 +84,6 @@ try {
 
   redisClient.connect().catch(console.error);
 
-  console.log('Redis Client Status:', redisClient.status);
-
   redisClient.on('error', (err) => {
     console.error('Redis Client Error:', err);
   });
@@ -94,21 +92,22 @@ try {
     console.log('\n\n\n\n\\n Redis Client Connected =======>>>>>>>>>>>>>>>>>>>>>>>>>>>');
   });
 
-  console.log('\n\n\n redisClient', redisClient.status);
   const RedisStore = require('connect-redis')(session);
   const rstore = new RedisStore({ client: redisClient });
   console.log('conf.redis.instanceUrl.session', conf.redis.instanceUrl.session);
   socketIOSetup.init(io, rstore);
-  (async () => {
-    const redisSubscriber = require('./realtime/redisSubscriber');
+  require('./realtime/redisSubscriber')(io);
+
+  // (async () => {
+  //   const redisSubscriber = require('./realtime/redisSubscriber');
     
-    try {
-      await redisSubscriber(io);
-      console.log('\n\n redisSubscriber ==>>>>', redisSubscriber);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  })();
+  //   try {
+  //     await redisSubscriber(io);
+  //     console.log('\n\n redisSubscriber ==>>>>', redisSubscriber);
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //   }
+  // })();
 
   // pass passport for configuration
 

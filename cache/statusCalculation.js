@@ -63,9 +63,19 @@ function setRanges(redisOps, ranges, aspName) {
 
   return redisOps.batchCmds()
   .map(ranges, (batch, range) =>
-    batch
-    .zadd(setKey, range.min, getRangeKey('min', range.status, range.min))
-    .zadd(setKey, range.max, getRangeKey('max', range.status, range.max))
+    // batch
+    // .zadd(setKey, range.min, getRangeKey('min', range.status, range.min))
+    // .zadd(setKey, range.max, getRangeKey('max', range.status, range.max))
+    batch.zAdd(setKey, [
+      {
+        score: range.min,
+        value: getRangeKey('min', range.status, range.min)
+      },
+      {
+        score: range.max,
+        value: getRangeKey('max', range.status, range.max)
+      }
+    ])
   )
   .exec();
 }
@@ -134,7 +144,7 @@ function calculateStatus(redisOps, sampleName, value) {
   try {
     value = prepareValue(value);
   } catch (err) {
-    return redisOps.returnValue(err.message);
+    return Promise.resolve(redisOps.returnValue(err.message));
   }
 
   return redisOps.transform((batch) => (

@@ -14,7 +14,7 @@ const u = require('./utils');
 const fu = require('./findUtils');
 const COUNT_HEADER_NAME = require('../../constants').COUNT_HEADER_NAME;
 const httpStatus = require('../../constants').httpStatus;
-const redisCachePromise = require('../../../../cache/redisCache');
+const redisCache = require('../../../../cache/redisCache').client.cache;
 
 /**
  * Finds all matching records but only returns a subset of the results for
@@ -103,32 +103,25 @@ module.exports = function doFind(req, res, next, props) {
   const resultObj = { reqStartTime: req.timestamp };
   const opts = fu.options(req.swagger.params, props);
 
-  return redisCachePromise
-  .then(redisClient => {
-    const redisCache = redisClient.client.cache;
-      // Check if Cache is on or not
-    if (props.cacheEnabled) {
-      redisCache.get(props.cacheKey, (cacheErr, reply) => {
-        if (cacheErr || !reply) {
-          // if err or no reply, get resuls from db and set redis cache
-          return doFindResponse({ req, res, next }, props, opts, resultObj, redisCache);
-        }
+  // Check if Cache is on or not
+  if (props.cacheEnabled) {
+    redisCache.get(props.cacheKey, (cacheErr, reply) => {
+      if (cacheErr || !reply) {
+        // if err or no reply, get resuls from db and set redis cache
+        return doFindResponse({ req, res, next }, props, opts, resultObj, redisCache);
+      }
 
-        // get from cache
-        try {
-          const dbObj = JSON.parse(reply);
-          resultObj.dbTime = new Date() - resultObj.reqStartTime;
-          u.logAPI(req, resultObj, dbObj);
-          res.status(httpStatus.OK).json(dbObj);
-        } catch (err) {
-          u.handleError(next, err, props.modelName);
-        }
-      });
-    } else {
-      return doFindResponse({ req, res, next }, props, opts, resultObj, redisCache);
-    }
-  })
-  .catch(error => {
-    console.error('Error using Redis client:', error);
-  })
+      // get from cache
+      try {
+        const dbObj = JSON.parse(reply);
+        resultObj.dbTime = new Date() - resultObj.reqStartTime;
+        u.logAPI(req, resultObj, dbObj);
+        res.status(httpStatus.OK).json(dbObj);
+      } catch (err) {
+        u.handleError(next, err, props.modelName);
+      }
+    });
+  } else {
+    return doFindResponse({ req, res, next }, props, opts, resultObj, redisCache);
+  }
 }; // exports

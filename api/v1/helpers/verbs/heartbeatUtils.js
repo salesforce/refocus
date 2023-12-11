@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 
-const redisCachePromise = require('../../../../cache/redisCache');
+const redisClient = require('../../../../cache/redisCache').client.heartbeat;
 const ADDED = 'added';
 const DELETED = 'deleted';
 const UPDATED = 'updated';
@@ -25,23 +25,16 @@ const NOCHANGE = 0;
  * generator ids
  */
 function getChangedIds(collectorName) {
-  return redisCachePromise
-    .then(redisCache => {
-      console.log("redisCache.client.heartbeat ==>>>>", redisCache.client.heartbeat);
-      return redisCache.client.heartbeat.multi()
-      .sMembers(getKey(collectorName, ADDED))
-      .sMembers(getKey(collectorName, DELETED))
-      .sMembers(getKey(collectorName, UPDATED))
-      .exec()
-      .then((replies) => ({
-        added: replies[0],
-        deleted: replies[1],
-        updated: replies[2],
-      }));
-    })
-    .catch(error => {
-      console.error('Error using Redis client:', error);
-    })
+  return redisClient.multi()
+    .sMembers(getKey(collectorName, ADDED))
+    .sMembers(getKey(collectorName, DELETED))
+    .sMembers(getKey(collectorName, UPDATED))
+    .exec()
+    .then((replies) => ({
+      added: replies[0],
+      deleted: replies[1],
+      updated: replies[2],
+    }));
 }
 
 /**
@@ -55,13 +48,7 @@ function getChangedIds(collectorName) {
 function removeFromSet(collectorName, change, genId) {
   if (change === ADDED || change === DELETED || change === UPDATED) {
     const key = getKey(collectorName, change);
-    return redisCachePromise
-      .then(redisCache => {
-        return redisCache.client.heartbeat.sRem(key, genId);
-      })
-      .catch(error => {
-        console.error('Error using Redis client:', error);
-      })
+      return redisClient.sRem(key, genId);
   } else {
     return Promise.resolve();
   }
@@ -78,13 +65,7 @@ function removeFromSet(collectorName, change, genId) {
 function addToSet(collectorName, change, genId) {
   if (change === ADDED || change === DELETED || change === UPDATED) {
     const key = getKey(collectorName, change);
-    return redisCachePromise
-      .then(redisCache => {
-        return redisCache.client.heartbeat.sAdd(key, genId);
-      })
-      .catch(error => {
-        console.error('Error using Redis client:', error);
-      })
+    return redisClient.sAdd(key, genId);
   } else {
     return Promise.resolve();
   }
@@ -100,13 +81,7 @@ function resetChanges(collectorName) {
   const addedKey = getKey(collectorName, ADDED);
   const deletedKey = getKey(collectorName, DELETED);
   const updatedKey = getKey(collectorName, UPDATED);
-  return redisCachePromise
-    .then(redisCache => {
-      return redisCache.client.heartbeat.del(addedKey, deletedKey, updatedKey);
-    })
-    .catch(error => {
-      console.error('Error using Redis client:', error);
-    })
+  return redisClient.del(addedKey, deletedKey, updatedKey);
 }
 
 /**

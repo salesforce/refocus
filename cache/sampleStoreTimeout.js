@@ -14,7 +14,7 @@
 'use strict'; // eslint-disable-line strict
 const logInvalidHmsetValues = require('../utils/common').logInvalidHmsetValues;
 const sampleStore = require('./sampleStore');
-const redisCachePromise = require('./redisCache');
+const redisClient = require('./redisCache').client.sampleStore;
 const isTimedOut = require('../db/helpers/sampleUtils').isTimedOut;
 const constants = require('../api/v1/constants');
 const fieldsToStringify = require('./sampleStore').constants.fieldsToStringify;
@@ -110,12 +110,7 @@ module.exports = {
     let numberEvaluated = 0;
     let samplesCount = 0;
     let timedOutSamples;
-
-    return redisCachePromise
-    .then(redisCache => {
-      console.log("redisCache.client.sampleStore ==>>>>", redisCache.client.sampleStore);
-      const redisClient = redisCache.client.sampleStore
-          // ioredis use
+      // ioredis use
       const membersCmd = featureToggles.isFeatureEnabled('enableIORedis') ?
       ioredisClient.sMembers(sampleStore.constants.indexKey.sample) :
       redisClient.sMembers(sampleStore.constants.indexKey.sample);
@@ -194,9 +189,5 @@ module.exports = {
       .catch((err) => {
         throw err;
       });
-    })
-    .catch(error => {
-      console.error('Error using Redis client:', error);
-    })
   }, //doTimeout
 };

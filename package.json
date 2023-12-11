@@ -100,6 +100,7 @@
     "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",
     "debug": "^2.2.0",
+    "double-ended-queue": "^2.1.0-0",
     "errors": "^0.3.0",
     "etag": "^1.8.1",
     "event-stream": "^3.3.5",

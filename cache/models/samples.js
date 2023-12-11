@@ -19,7 +19,7 @@ const helper = require('../../api/v1/helpers/nouns/samples');
 const u = require('../../api/v1/helpers/verbs/utils');
 const modelUtils = require('./utils');
 const sampleStore = require('../sampleStore');
-const redisCachePromise = require('../redisCache');
+const redisClient = require('../redisCache').client.sampleStore;
 const constants = sampleStore.constants;
 const redisErrors = require('../redisErrors');
 const apiErrors = require('../../api/v1/apiErrors');
@@ -132,7 +132,7 @@ function checkWritePermission(aspectName, userName, isBulk) {
  */
 function hasWritePermission(writers, aspectName, userName) {
   // empty writers arr would mean everyone has permission
-  if (writers && !writers.includes(userName)) {
+  if (writers.length && !writers.includes(userName)) {
     throw new redisErrors.UpdateDeleteForbidden({
       explanation: `User "${userName}" does not have write permission ` +
         `for aspect "${aspectName}"`,
@@ -175,6 +175,7 @@ function cleanAddAspectToSample(sampleObj, aspectObj) {
  * @returns {Boolean} true if any sample attributes are being modified
  */
 function isSampleChanged(newSample, oldSample) {
+  console.log('isSampleChanged', newSample, oldSample);
   function isKeyNewOrChanged(key) {
     return key !== 'name' &&
       (!oldSample.hasOwnProperty(key) || newSample[key] !== oldSample[key]);
@@ -218,6 +219,7 @@ function cleanAddSubjectToSample(sampleObj, subjectObj) {
 function updateSampleAttributes(curr, prev, status) {
   modelUtils.removeExtraAttributes(curr, sampleFieldsArr);
   const now = new Date().toISOString();
+  console.log('curr prev', curr, prev, status);
 
   // avoid updating sample name (case sensitivity)
   if (prev && prev.name) {
@@ -241,7 +243,7 @@ function updateSampleAttributes(curr, prev, status) {
   /* Just in case curr.value was undefined... */
   if (curr[sampFields.VALUE] === undefined) curr[sampFields.VALUE] = '';
 
-  if (!prev) {
+  if (prev === null || (typeof prev === 'object' && Object.keys(prev).length === 0)) {
     /*
      * This is a brand new sample so calculate current status based on value,
      * set previous status to invalid, and set status changed at to now.
@@ -340,13 +342,7 @@ function getOneSample(sampleName) {
       parsedSampleName.aspect.name),
   ]);
 
-  redisCachePromise
-    .then(redisCache => {
-      return redisCache.client.sampleStore.batch(commands).exec();
-    })
-    .catch(error => {
-      console.error('Error using Redis client:', error);
-    })
+  return redisClient.batch(commands).exec();
 } // getOneSample
 
 /**
@@ -360,7 +356,6 @@ function getOneSample(sampleName) {
 function prepareSampleForUpsert(newSample, sampleAttributes, user) {
   const { subjectExists, aspectExists, aspectWriters, existingSample, sampleStatus }
     = sampleAttributes;
-
   const userName = user ? user.name : false;
   const sampleName = newSample.name;
 
@@ -381,9 +376,13 @@ function prepareSampleForUpsert(newSample, sampleAttributes, user) {
   if (!aspectExists ?? false) {
     handleUpsertError(constants.objectType.aspect, sampleName);
   }
-
+  console.log('existingSample ==>>>', existingSample);
   // check whether the sample has been changed
-  if (existingSample && !isSampleChanged(newSample, existingSample)) {
+  if (
+    existingSample !== null &&
+    Object.keys(existingSample).length > 0 &&
+    !isSampleChanged(newSample, existingSample)
+  ) {
     /* Sample is not new AND nothing has changed */
     sampleAttributes.noChange = true;
   }
@@ -400,6 +399,8 @@ function prepareSampleForUpsert(newSample, sampleAttributes, user) {
  * @throws {Object} Error object
  */
 function prepareSampleForPublish(sample, sampleAttributes) {
+  console.log('\n\n prepareSampleForPublish sample',typeof sample, sample);
+
   const parsedName = parseName(sample.name);
 
   // attach props for perspective filtering
@@ -434,19 +435,16 @@ function upsertSamples(samplesAndAttributes, user) {
 
   const existingSamples = (
     samplesAndAttributes
-    .filter(({ newSample, sampleAttributes }) =>
-      sampleAttributes.existingSample
-    )
+    .filter(({ newSample, sampleAttributes }) => sampleAttributes.existingSample !== null &&Object.keys(sampleAttributes.existingSample).length > 0)
     .map(({ newSample }) => newSample)
   );
 
-  const newSamples = (
-    samplesAndAttributes
-    .filter(({ newSample, sampleAttributes }) =>
-      !sampleAttributes.existingSample
-    )
-    .map(({ newSample }) => newSample)
-  );
+  const newSamples = samplesAndAttributes
+  .filter(({ newSample, sampleAttributes }) => {
+    const existingName = sampleAttributes.existingSample ? sampleAttributes.existingSample.name : null;
+    return !existingName || existingName !== newSample.name;
+  })
+  .map(({ newSample }) => newSample);
 
   const batch = redisOps.batchCmds();
 
@@ -494,8 +492,9 @@ function upsertSamples(samplesAndAttributes, user) {
   );
 
   return batch.exec()
-  .then(({ updatedSamples }) =>
-    updatedSamples.map((updatedSample, i) => {
+  .then(({ updatedSamples }) => {
+    console.log('batch exec updatedSamples -==>>>>', updatedSamples);
+    return updatedSamples.map((updatedSample, i) => {
       const { sampleAttributes } = samplesAndAttributes[i];
 
       sampleStore.arrayObjsStringsToJson(updatedSample, constants.fieldsToStringify.sample);
@@ -506,7 +505,7 @@ function upsertSamples(samplesAndAttributes, user) {
 
       return updatedSample;
     })
-  );
+  });
 }
 
 function upsertOneSample(sample, sampleAttributes, user) {
@@ -528,7 +527,7 @@ function upsertOneSample(sample, sampleAttributes, user) {
  *   aspectWriters, aspectTags, aspectExists, subjectTags, subjectExists,
  *   existingSample, sampleStatus
  */
-async function getValuesForSamples(samplesReq) {
+function getValuesForSamples(samplesReq) {
   const parsedNames = samplesReq.map((squery) =>
     parseName(squery.name.toLowerCase())
   );
@@ -539,76 +538,70 @@ async function getValuesForSamples(samplesReq) {
   let absPaths = parsedNames.map(({ subject }) => subject.absolutePath);
   absPaths = Array.from(new Set(absPaths));
 
-  const batchedOps = await redisOps.batchCmds()
+  return redisOps.batchCmds()
 
-  const sampleAttributes = await batchedOps.returnAll(aspNames, 'aspectsWriters', (batch, aspName) =>
+  // aspect values
+  .returnAll(aspNames, 'aspectsWriters', (batch, aspName) =>
     batch.getAspectWriters({ name: aspName })
-  ).returnAll(aspNames, 'aspectsTags', (batch, aspName) =>
+  )
+  .returnAll(aspNames, 'aspectsTags', (batch, aspName) =>
     batch.getAspectTags({ name: aspName })
-  ).returnAll(aspNames, 'aspectsExist', (batch, aspName) =>
+  )
+  .returnAll(aspNames, 'aspectsExist', (batch, aspName) =>
     batch.aspectExists({ name: aspName })
-  ).returnAll(absPaths, 'subjectsTags', (batch, absPath) =>
+  )
+
+  // subject values
+  .returnAll(absPaths, 'subjectsTags', (batch, absPath) =>
     batch.getSubjectTags({ absolutePath: absPath })
-  ).returnAll(absPaths, 'subjectsExist', (batch, absPath) =>
+  )
+  .returnAll(absPaths, 'subjectsExist', (batch, absPath) =>
     batch.subjectExists({ absolutePath: absPath })
-  ).returnAll(samplesReq, 'existingSamples', (batch, sample) =>
+  )
+
+  // sample values
+  .returnAll(samplesReq, 'existingSamples', (batch, sample) =>
     batch.getHash(constants.objectType.sample, sample.name)
-  ).returnAll(samplesReq, 'samplesStatus', (batch, sample) =>
+  )
+  .returnAll(samplesReq, 'samplesStatus', (batch, sample) =>
     batch.calculateSampleStatus(sample.name, sample.value)
-  ).exec();
+  )
 
-  console.log('\n\n\n\n sampleAttributes', sampleAttributes);
+  .exec()
 
-  const aspMap = aspNames.reduce((aspMap, aspName, i) => {
-    console.log(`Processing aspect: ${aspName}`);
-    
-    // Create an object for the current aspect
-    const aspectObject = {
+  .then((sampleAttributes) => {
+    console.log('\n\n\n sampleAttributes ==>>>>>>', sampleAttributes);
+    const aspMap = aspNames.reduce((aspMap, aspName, i) => ({
       [aspName]: {
         aspectWriters: sampleAttributes.aspectsWriters[i],
         aspectTags: sampleAttributes.aspectsTags[i],
         aspectExists: sampleAttributes.aspectsExist[i],
       },
-    };
-  
-    console.log(`Aspect object at this point:`, aspectObject);
-  
-    // Combine the current aspect object with the existing aspMap
-    const updatedAspMap = { ...aspMap, ...aspectObject };
-  
-    console.log(`Updated aspMap at this point:`, updatedAspMap);
-  
-    return updatedAspMap;
-  }, {});
-  
-  console.log('aspNames', aspNames);
-  console.log('\n\n aspMap', aspMap);
-  const subMap = absPaths.reduce((subMap, absPath, i) => ({
-    [absPath]: {
-      subjectTags: sampleAttributes.subjectsTags[i],
-      subjectExists: sampleAttributes.subjectsExist[i],
-    },
-    ...subMap,
-  }), {});
+      ...aspMap,
+    }), {});
 
-  console.log('absPaths', absPaths);
-  console.log('\n\n subMap', subMap);
+    const subMap = absPaths.reduce((subMap, absPath, i) => ({
+      [absPath]: {
+        subjectTags: sampleAttributes.subjectsTags[i],
+        subjectExists: sampleAttributes.subjectsExist[i],
+      },
+      ...subMap,
+    }), {});
 
-  const valuesForSamples = samplesReq.map((sample, i) => {
-    const aspName = parsedNames[i].aspect.name;
-    const absPath = parsedNames[i].subject.absolutePath;
-    return {
-      subjectTags: subMap[absPath].subjectTags,
-      subjectExists: subMap[absPath].subjectExists,
-      aspectWriters: aspMap[aspName].aspectWriters,
-      aspectTags: aspMap[aspName].aspectTags,
-      aspectExists: aspMap[aspName].aspectExists,
-      existingSample: sampleAttributes.existingSamples[i],
-      sampleStatus: sampleAttributes.samplesStatus[i],
-    };
+    return samplesReq.map((sample, i) => {
+      const aspName = parsedNames[i].aspect.name;
+      const absPath = parsedNames[i].subject.absolutePath;
+      return {
+        subjectTags: subMap[absPath].subjectTags,
+        subjectExists: subMap[absPath].subjectExists,
+        aspectWriters: aspMap[aspName].aspectWriters,
+        aspectTags: aspMap[aspName].aspectTags,
+        aspectExists: aspMap[aspName].aspectExists,
+        existingSample: sampleAttributes.existingSamples[i],
+        sampleStatus: sampleAttributes.samplesStatus[i],
+      };
+    });
   });
-  console.log('\n\n\nvaluesForSamples ==>>>>', valuesForSamples);
-  return valuesForSamples;
 }
 
 /**
@@ -685,7 +678,7 @@ function assembleSampleAspects(samplesAndAspects) {
  * @returns {Array} - An Array of filtered samples
  */
 function sscanAndFilterSampleKeys(cursor, filteredSamples, opts, redisClient) {
-  return redisClient.sscanAsync(constants.indexKey.sample, cursor,
+  return redisClient.sScan(constants.indexKey.sample, cursor,
     'COUNT', config.findSamplesSscanCount)
     .then((reply) => {
       const newCursor = reply[0];
@@ -1157,9 +1150,6 @@ module.exports = {
 
     const hasOrder = opts.order && opts.order.length > 0;
 
-    return redisCachePromise
-    .then(redisCache => {
-      const redisClient = redisCache.client.sampleStore;
       if (featureToggles.isFeatureEnabled('optimizeSampleFilteredGets')) {
         debugfindSamples('toggle optimizeSampleFilteredGets enabled. ' +
           'Filter options: %o', opts);
@@ -1430,10 +1420,6 @@ module.exports = {
             return s;
           });
         });
-    })
-    .catch(error => {
-      console.error('Error using Redis client: redisCache.client.sampleStore', error);
-    })
   }, // findSamples
 
   /**
@@ -1455,7 +1441,7 @@ module.exports = {
       prepareSampleForUpsert(newSample, sampleAttributes, user);
       return upsertOneSample(newSample, sampleAttributes, user)
       .then((result) =>
-        prepareSampleForPublish(result, sampleAttributes)
+        prepareSampleForPublish(JSON.parse(result), sampleAttributes)
       );
     });
   },

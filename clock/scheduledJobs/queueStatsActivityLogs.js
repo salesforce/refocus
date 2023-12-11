@@ -14,7 +14,7 @@
 const logInvalidHmsetValues = require('../../utils/common').logInvalidHmsetValues;
 const activityLogUtil = require('../../utils/activityLog');
 const queueTime95thMillis = require('../../config').queueTime95thMillis;
-const redisCachePromise = require('../../cache/redisCache');
+const redisClient = require('../../cache/redisCache').client.realtimeLogging;
 const ZERO = 0;
 const ONE = 1;
 const TWO = 2;
@@ -158,11 +158,7 @@ function update(rc, qt) {
   let obj;
 
   // get main key that containes array of timestamp keys
-  redisCachePromise
-      .then(redisCache => {
-        console.log("redisCache.client.realtimeLogging ==>>>>", redisCache.client.realtimeLogging);
-        const client = redisCache.client.realtimeLogging
-        return client.hGetAll(key).then((reply) => {
+        return redisClient.hGetAll(key).then((reply) => {
           if (reply) {
             obj = {
               jobCount: Number(reply.jobCount) + ONE,
@@ -170,7 +166,7 @@ function update(rc, qt) {
               queueTimeArray: addToArray(reply.queueTimeArray, qt),
             };
             logInvalidHmsetValues(key, obj);
-            client.hmset(key, obj);
+            redisClient.hmset(key, obj);
           } else {
             obj = {
               jobCount: ONE,
@@ -179,24 +175,20 @@ function update(rc, qt) {
               timestamp: _timestamp,
             };
             logInvalidHmsetValues(key, obj);
-            client.hmset(key, obj);
+            redisClient.hmset(key, obj);
       
-            client.hGetAll(mainKey).then((_reply) => {
+            redisClient.hGetAll(mainKey).then((_reply) => {
               const hmsetObj = {
                 keyArray: addToArray(_reply ? _reply.keyArray : '', key),
               };
               logInvalidHmsetValues(mainKey, hmsetObj);
-              client.hmset(mainKey, hmsetObj);
+              redisClient.hmset(mainKey, hmsetObj);
             });
           }
         })
         .catch((err) => {
           throw new Error(err);
         });
-      })
-      .catch(error => {
-        console.error('Error using Redis client:', error);
-      })
 }
 
 /**
@@ -206,59 +198,52 @@ function execute() {
   // Get queueStats from redis
   let keyArray;
   const mainKey = 'queueStats';
-  return redisCachePromise
-  .then(redisCache => {
-    const client = redisCache.client.realtimeLogging
-    return client.hGetAll(mainKey).then((reply) => {
-      const currentTimeStamp = 'queueStats.' + createTimeStamp();
-      if (reply) {
-        const keys = stringToArray(reply.keyArray);
-        for (let i = 0; i < keys.length; i++) {
-          if (currentTimeStamp !== keys[i]) {
-            // Get data based on key from redis
-            client.hGetAll(keys[i]).then((data) => {
-              if (data) {
-                // Construct log object
-                const queueStats = constructLogObject(data);
-  
-                // If 95th Percentile time is higher then limit then
-                // print warn log else info log
-                if (queueTime95thMillis &&
-                  queueStats.queueTime95thMillis > queueTime95thMillis) {
-                  activityLogUtil
-                    .printActivityLogString(queueStats, 'queueStats', 'warn');
-                } else {
-                  activityLogUtil
-                    .printActivityLogString(queueStats, 'queueStats', 'info');
-                }
-  
-                // Delete key once logs is printed
-                client.del(keys[i]);
+  return redisClient.hGetAll(mainKey).then((reply) => {
+    const currentTimeStamp = 'queueStats.' + createTimeStamp();
+    if (reply) {
+      const keys = stringToArray(reply.keyArray);
+      for (let i = 0; i < keys.length; i++) {
+        if (currentTimeStamp !== keys[i]) {
+          // Get data based on key from redis
+          redisClient.hGetAll(keys[i]).then((data) => {
+            if (data) {
+              // Construct log object
+              const queueStats = constructLogObject(data);
+
+              // If 95th Percentile time is higher then limit then
+              // print warn log else info log
+              if (queueTime95thMillis &&
+                queueStats.queueTime95thMillis > queueTime95thMillis) {
+                activityLogUtil
+                  .printActivityLogString(queueStats, 'queueStats', 'warn');
+              } else {
+                activityLogUtil
+                  .printActivityLogString(queueStats, 'queueStats', 'info');
               }
-            })
-            .catch((err) => {
-              throw new Error(err);
-            });
-          } else {
-            // reset key value to contain only current timestamp key
-            keyArray = currentTimeStamp;
-          }
+
+              // Delete key once logs is printed
+              redisClient.del(keys[i]);
+            }
+          })
+          .catch((err) => {
+            throw new Error(err);
+          });
+        } else {
+          // reset key value to contain only current timestamp key
+          keyArray = currentTimeStamp;
         }
-  
-        const hmsetObj = {
-          keyArray: addToArray('', keyArray),
-        };
-        logInvalidHmsetValues(mainKey, hmsetObj);
-        client.hmset(mainKey, hmsetObj);
       }
-    })
-    .catch((_err) => {
-      throw new Error(_err);
-    });
+
+      const hmsetObj = {
+        keyArray: addToArray('', keyArray),
+      };
+      logInvalidHmsetValues(mainKey, hmsetObj);
+      redisClient.hmset(mainKey, hmsetObj);
+    }
   })
-  .catch(error => {
-    console.error('Error using Redis client:', error);
-  })
+  .catch((_err) => {
+    throw new Error(_err);
+  });
 } // execute
 
 module.exports = {
