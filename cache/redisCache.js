@@ -56,8 +56,9 @@ const setupRedisClients = () => {
   
     const opts = {
       retry_strategy: retryStrategy,
-      tls: {
-        rejectUnauthorized: false
+      socket: {
+        tls: true,
+        rejectUnauthorized: false,
       },
       legacyMode: true,
       // disableOfflineQueue: true,

@@ -76,8 +76,9 @@ try {
   // Create a standalone Redis client with TLS options
   const redisClient = redis.createClient({
     url: conf.redis.instanceUrl.session,
-    tls: {
-      rejectUnauthorized: false
+    socket: {
+      tls: true,
+      rejectUnauthorized: false,
     },
     legacyMode: true,
   });
