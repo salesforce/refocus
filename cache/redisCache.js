@@ -25,6 +25,8 @@ const bluebird = require('bluebird');
 const { promisify } = require('util');
 // bluebird.promisifyAll(redis);
 
+console.log('\n\n\n\n\n rconf in redisCache ==>>>>>>>>>> ', rconf);
+
 const setupRedisClients = () => {
   try {
     console.log('Starting Redis client setup...');
@@ -87,6 +89,7 @@ const setupRedisClients = () => {
       setupPubSubClient(rp);
     }
   
+    console.log('\n\n\n\n\n rconf ==>>>>>>>>>> ', rconf);
     // Only create subscribers here if we're doing real-time events from the main app
     let subBot;
     if (!featureToggles.isFeatureEnabled('enableRealtimeApplicationImc')) {

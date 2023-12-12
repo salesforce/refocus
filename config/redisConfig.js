@@ -15,11 +15,10 @@
 'use strict'; // eslint-disable-line strict
 const pe = process.env; // eslint-disable-line no-process-env
 const DEFAULT_LOCAL_REDIS_URL = 'redis://127.0.0.1:6379';
+console.log('\n\n pe.redisurl', pe.REDIS_URL);
 const PRIMARY_REDIS = (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL);
 const perspectiveChannelName = 'focus';
 const botChannelName = 'imc';
-const DEFAULT_LOCAL_REDIS_HOST = '127.0.0.1';
-const DEFAULT_LOCAL_REDIS_PORT = '6379';
 
 let pubsubPerspectives = [PRIMARY_REDIS];
 if (pe.REDIS_PUBSUB_PERSPECTIVES) {
