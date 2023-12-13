@@ -33,7 +33,6 @@ module.exports = {
    * @param {Function} next - The next middleware function in the stack
    */
   rebuildSampleStore(req, res, next) {
-    console.log('\n\n rebuildSampleStore ==>>>');
     const resultObj = { reqStartTime: req.timestamp };
     if (!req.headers.IsAdmin) {
       return u.forbidden(next);
