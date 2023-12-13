@@ -28,9 +28,6 @@ const setupRedisClients = () => {
       const redisClient = redis.createClient(url, opts);
       redisClient.on("error", (error) => console.error(`connection Error : ${error}`));
       redisClient.connect().catch(console.error);
-  
-      // Promisify the entire prototype
-      // bluebird.promisifyAll(redisClient.constructor.prototype, { multiArgs: true });
       return redisClient;
     };
   
@@ -48,10 +45,10 @@ const setupRedisClients = () => {
   
     const opts = {
       retry_strategy: retryStrategy,
-      tls: {
-        rejectUnauthorized: false,
+      socket: {
+        tls: true,
+        servername: process.env.REDIS_HOST || '127.0.0.1',
       },
-      legacyMode: true,
     };
   
     if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {

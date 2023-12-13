@@ -13,9 +13,11 @@
  * instance, if configured, or falls back to the primary redis instance.
  */
 'use strict'; // eslint-disable-line strict
+require("dotenv").config();
 const pe = process.env; // eslint-disable-line no-process-env
 const DEFAULT_LOCAL_REDIS_URL = 'redis://127.0.0.1:6379';
 console.log('\n\n pe.redisurl', pe.REDIS_URL);
+console.log('\n\n PROCESS ENV REDIS HOST', pe.REDIS_HOST);
 const PRIMARY_REDIS = (pe.REDIS_URL || DEFAULT_LOCAL_REDIS_URL);
 const perspectiveChannelName = 'focus';
 const botChannelName = 'imc';

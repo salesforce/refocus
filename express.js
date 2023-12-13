@@ -36,6 +36,7 @@ const cors = require('cors');
 const etag = require('etag');
 const ipAddressUtils = require('./utils/ipAddressUtils');
 const ipWhitelistUtils = require('./utils/ipWhitelistUtils');
+const blocked = require('blocked-at')
 
 // Add this at the beginning of your Node.js script
 process.on('unhandledRejection', (reason, promise) => {
@@ -68,13 +69,18 @@ try {
   // modules for authentication
   const cookieParser = require('cookie-parser');
 
+  blocked((time, stack) => {
+    console.log(`\n\n\n\n Blocked for ${time}ms, operation started here:`, stack)
+  })
+
   console.log('here before client creation conf.redis.instanceUrl.session', conf.redis.instanceUrl.session);
   console.log('Redis URL:', `redis:${conf.redis.instanceUrl.session}`);
   // Create a standalone Redis client with TLS options
   const redisClient = redis.createClient({
     url: conf.redis.instanceUrl.session,
-    tls: {
-      rejectUnauthorized: false,
+    socket: {
+      tls: true,
+      servername: process.env.REDIS_HOST || '127.0.0.1',
     },
   });
 

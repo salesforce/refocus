@@ -397,7 +397,7 @@ async function storeSampleToCacheOrDb() {
  * to a list of promises if some action was taken.
  */
 async function init() {
-    try {
+  try {
     redisClient = await redisClient.connect()
     console.log("\n \n redis client connected ......", redisClient.isReady)  
   } catch (error) {
