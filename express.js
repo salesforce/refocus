@@ -36,7 +36,6 @@ const cors = require('cors');
 const etag = require('etag');
 const ipAddressUtils = require('./utils/ipAddressUtils');
 const ipWhitelistUtils = require('./utils/ipWhitelistUtils');
-const debug = require('debug')('app:middleware');
 
 // Add this at the beginning of your Node.js script
 process.on('unhandledRejection', (reason, promise) => {
@@ -62,25 +61,21 @@ try {
   app.use(compress());
 
   const redis = require('redis');
-  const util = require('util');
   const httpServer = require('http').createServer(app);
   const io = require('socket.io')(httpServer);
   const socketIOSetup = require('./realtime/setupSocketIO');
 
   // modules for authentication
   const cookieParser = require('cookie-parser');
-  const session = require('express-session');
 
   console.log('here before client creation conf.redis.instanceUrl.session', conf.redis.instanceUrl.session);
   console.log('Redis URL:', `redis:${conf.redis.instanceUrl.session}`);
   // Create a standalone Redis client with TLS options
   const redisClient = redis.createClient({
     url: conf.redis.instanceUrl.session,
-    socket: {
-      tls: true,
+    tls: {
       rejectUnauthorized: false,
     },
-    legacyMode: true,
   });
 
   redisClient.connect().catch(console.error);
@@ -93,22 +88,23 @@ try {
     console.log('\n\n\n\n\\n Redis Client Connected =======>>>>>>>>>>>>>>>>>>>>>>>>>>>');
   });
 
-  const RedisStore = require('connect-redis')(session);
+  const session = require('express-session');
+  const RedisStore = require('connect-redis').default;
   const rstore = new RedisStore({ client: redisClient });
   console.log('conf.redis.instanceUrl.session', conf.redis.instanceUrl.session);
   socketIOSetup.init(io, rstore);
   require('./realtime/redisSubscriber')(io);
 
-  // (async () => {
-  //   const redisSubscriber = require('./realtime/redisSubscriber');
+  (async () => {
+    const redisSubscriber = require('./realtime/redisSubscriber');
     
-  //   try {
-  //     await redisSubscriber(io);
-  //     console.log('\n\n redisSubscriber ==>>>>', redisSubscriber);
-  //   } catch (error) {
-  //     console.error('Error:', error);
-  //   }
-  // })();
+    try {
+      await redisSubscriber(io);
+      console.log('\n\n redisSubscriber ==>>>>', redisSubscriber);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  })();
 
   // pass passport for configuration
 

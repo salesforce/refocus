@@ -17,14 +17,6 @@ const logger = require('@salesforce/refocus-logging-client');
 const rconf = require('../config').redis;
 const featureToggles = require('feature-toggles');
 
-/*
- * This will add "...Async" to all node_redis functions (e.g. return
- * client.get().then(...)).
- */
-const bluebird = require('bluebird');
-const { promisify } = require('util');
-// bluebird.promisifyAll(redis);
-
 console.log('\n\n\n\n\n rconf in redisCache ==>>>>>>>>>> ', rconf);
 
 const setupRedisClients = () => {
@@ -56,12 +48,10 @@ const setupRedisClients = () => {
   
     const opts = {
       retry_strategy: retryStrategy,
-      socket: {
-        tls: true,
+      tls: {
         rejectUnauthorized: false,
       },
       legacyMode: true,
-      // disableOfflineQueue: true,
     };
   
     if (featureToggles.isFeatureEnabled('enableRedisConnectionLogging')) {
