@@ -191,7 +191,7 @@ const environment = {
     dbLogging: false, // console.log | false | ...
     dbUrl: defaultDbUrl,
     defaultNodePort: defaultPort,
-    host: '127.0.0.1',
+    host: process.env.REDIS_HOST || '127.0.0.1',
     ipWhitelist: iplist.push('::ffff:127.0.0.1'),
     dialect: 'postgres',
     tokenSecret: 'CHANGE_ME',
@@ -201,7 +201,7 @@ const environment = {
     dbLogging: false, // console.log | false | ...
     dbUrl: defaultDbUrl,
     defaultNodePort: defaultPort,
-    host: '127.0.0.1',
+    host: process.env.REDIS_HOST || '127.0.0.1',
     ipWhitelist: iplist,
     dialect: 'postgres',
     protocol: 'postgres',
@@ -227,7 +227,7 @@ const environment = {
     dbLogging: false, // console.log | false | ...
     dbUrl: defaultDbUrl,
     defaultNodePort: defaultPort,
-    host: '127.0.0.1',
+    host: process.env.REDIS_HOST || '127.0.0.1',
     ipWhitelist: iplist,
     tokenSecret: 'CHANGE_ME',
     defaultAdminPassword: defaultDevPassword,
