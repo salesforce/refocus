@@ -102,7 +102,13 @@ const setupRedisClients = () => {
       pubPerspectives,
       pubBot:  createRedisClient(rconf.instanceUrl.pubsubBots, opts),
       realtimeLogging: createRedisClient(rconf.instanceUrl.realtimeLogging, opts),
-      sampleStore: redis.createClient(rconf.instanceUrl.sampleStore, opts),
+      sampleStore: redis.createClient({
+        url: rconf.instanceUrl.sampleStore,
+        socket: {
+          tls: true,
+          rejectUnauthorized: false,
+        }
+      }),
       subPerspectives,
       subBot,
     };
