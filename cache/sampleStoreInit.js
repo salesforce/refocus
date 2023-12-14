@@ -399,7 +399,7 @@ async function storeSampleToCacheOrDb() {
 async function init() {
   try {
     redisClient = await redisClient.connect()
-    console.log("\n \n redis client connected ......", redisClient.isReady)  
+    // console.log("\n \n redis client connected ......", redisClient.isReady)  
   } catch (error) {
     console.error("======= ", error)
   }
