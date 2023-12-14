@@ -84,16 +84,7 @@ try {
     },
   });
 
-  // redisClient.connect().catch(console.error);
-  function connectWithRetry() {
-    redisClient.connect().catch((err) => {
-      console.error(' &&&& Redis Connection Error Retrying :', err);
-      // Retry after a delay (exponential backoff)
-      setTimeout(connectWithRetry, 5000);
-    });
-  }
-  
-  connectWithRetry();
+  redisClient.connect().catch(console.error);
 
   redisClient.on('error', (err) => {
     console.error('Redis Client Error:', err);
