@@ -80,11 +80,20 @@ try {
     url: conf.redis.instanceUrl.session,
     socket: {
       tls: true,
-      servername: process.env.REDIS_HOST || '127.0.0.1',
+      rejectUnauthorized: false,
     },
   });
 
-  redisClient.connect().catch(console.error);
+  // redisClient.connect().catch(console.error);
+  function connectWithRetry() {
+    redisClient.connect().catch((err) => {
+      console.error(' &&&& Redis Connection Error Retrying :', err);
+      // Retry after a delay (exponential backoff)
+      setTimeout(connectWithRetry, 5000);
+    });
+  }
+  
+  connectWithRetry();
 
   redisClient.on('error', (err) => {
     console.error('Redis Client Error:', err);
@@ -92,6 +101,14 @@ try {
   
   redisClient.on('connect', async() => {
     console.log('\n\n\n\n\\n Redis Client Connected =======>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+  });
+
+  redisClient.on('error', (err) => {
+    console.error(' \n\n &&&&&   Redis Client Error:', err);
+  });
+  
+  redisClient.on('end', () => {
+    console.log(' \n\n &&&&& Connection to Redis closed');
   });
 
   const session = require('express-session');

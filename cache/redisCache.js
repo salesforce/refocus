@@ -25,7 +25,13 @@ const setupRedisClients = () => {
     const createRedisClient = (url, opts) => {
       console.log('url', url);
       console.log('opts', opts);
-      const redisClient = redis.createClient(url, opts);
+      const redisClient = redis.createClient({
+        url: url,
+        socket: {
+          tls: true,
+          rejectUnauthorized: false,
+        }
+      });
       redisClient.on("error", (error) => console.error(`connection Error : ${error}`));
       redisClient.connect().catch(console.error);
       return redisClient;
@@ -47,7 +53,7 @@ const setupRedisClients = () => {
       retry_strategy: retryStrategy,
       socket: {
         tls: true,
-        servername: process.env.REDIS_HOST || '127.0.0.1',
+        rejectUnauthorized: false,
       },
     };
   
