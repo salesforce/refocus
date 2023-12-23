@@ -1,16 +1,3 @@
-/**
- * Copyright (c) 2016, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or
- * https://opensource.org/licenses/BSD-3-Clause
- */
-
-/**
- * ./gulpfile.js
- *
- * Configure the streaming build system.
- */
 const gulp = require('gulp');
 const source = require('vinyl-source-stream');
 const browserify = require('browserify');
@@ -20,12 +7,6 @@ const chmod = require('gulp-chmod');
 const es = require('event-stream');
 
 const conf = {
-  tasks: {
-    default: [
-      'browserifyViews',
-      'movecss',
-    ],
-  },
   paths: {
     opts: {
       read: false,
@@ -53,82 +34,99 @@ const conf = {
   },
 };
 
-function browserifyTask() {
-  /*
-   * List all app files in a directory, recursively and synchronously.
-   * @param {string} dir Path to start searching from.
-   * @return {array} results String path to each app file.
-   */
-  function getAppFiles(dir) {
-    var results = [];
-    var list = fs.readdirSync(dir);
-    list.forEach((file) => {
-      file = dir + '/' + file;
-      var stat = fs.statSync(file);
-      if (stat && stat.isDirectory()) {
-        results = results.concat(getAppFiles(file));
-      } else if (file.split('/').pop() === conf.view.fileName) {
-        results.push(file);
-      }
-    });
+function getAppFiles(dir) {
+  const results = [];
+  const list = fs.readdirSync(dir);
 
-    return results;
-  }
+  list.forEach((file) => {
+    file = dir + '/' + file;
+    const stat = fs.statSync(file);
+    
+    if (stat && stat.isDirectory()) {
+      results.push(...getAppFiles(file));
+    } else if (file.split('/').pop() === conf.view.fileName) {
+      results.push(file);
+    }
+  });
 
-  /*
-   * Transforms each app file into an app, including translating JSX to JS.
-   * Puts the output js in outputPath.
-   *
-   * @param {Array} pathToApp Array of Path to source app files.
-   * @return {Object} bundle Bundled dependencies.
-   */
-  function rebundle(pathToApp) {
-    var tasks = pathToApp.map((entry) => {
-      const outputPath = entry.split('/').splice(2).join('/');
-      const props = {
-        entries: [entry],
-        debug: true,
-        transform: [babelify],
-      };
+  return results;
+}
 
-      return browserify(props).transform('uglifyify').bundle()
-        .pipe(source(outputPath))
+function rebundle(pathToApp) {
+  const tasks = pathToApp.map((entry) => {
+    const outputPath = entry.split('/').splice(2).join('/');
+    const props = {
+      entries: [entry],
+      debug: true,
+      transform: [babelify],
+    };
 
-        // rename them to have "bundle as postfix"
-        .pipe(gulp.dest(conf.view.dest))
-        .once('end', () => {
-          console.log('finished building', outputPath);
-        });
-    });
+    const bundle = browserify(props)
+      .transform('uglifyify')
+      .bundle()
+      .on('error', function (err) {
+        console.error(err.toString());
+        this.emit('end');
+      });
 
-    return es.merge.apply(null, tasks);
-  }
+    return bundle
+      .pipe(source(outputPath))
+      .pipe(gulp.dest(conf.view.dest))
+      .on('end', () => {
+        console.log('finished building', outputPath);
+      });
+  });
 
+  return es.merge.apply(null, tasks);
+}
+
+// Function to check if an object has the expected properties of a Vinyl object
+function isVinylObject(obj) {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    typeof obj.path === 'string' &&
+    typeof obj.contents === 'object'
+  );
+}
+
+function browserifyViews(done) {
   const appFiles = getAppFiles(conf.view.dir);
-  return rebundle(appFiles);
+
+  // Filter out non-JavaScript files
+  const jsFiles = appFiles.filter((file) => {
+    return file && typeof file === 'object' && typeof file.path === 'string' && file.path.endsWith('.js') && Buffer.isBuffer(file.contents);
+  });
+
+  // Log any non-JavaScript files
+  const nonJsFiles = appFiles.filter((file) => !jsFiles.includes(file));
+  if (nonJsFiles.length > 0) {
+    console.warn('Warning: Non-JavaScript files found and ignored:', nonJsFiles);
+  }
+
+  // Perform the rebundle and signal completion
+  rebundle(jsFiles).on('end', done);
 }
 
 /*
- * Browserifies the views, generating output under the designated destination
- * directory.
+ * Copies CSS files over to the 'public' directory.
  */
-gulp.task('browserifyViews', browserifyTask);
+gulp.task('movecss', () =>
+  gulp.src(conf.view.dir + conf.view.cssFiles).pipe(gulp.dest(conf.view.dest))
+);
+
+/*
+ * Browserify the views, generating output under the designated destination directory.
+ */
+gulp.task('browserifyViews', browserifyViews);
 
 /*
  * Runs the default tasks.
  */
-gulp.task('default', conf.tasks.default);
+gulp.task('default', gulp.series('browserifyViews', 'movecss'));
 
 /*
- * Copies css files over to public.
- */
-gulp.task('movecss', () =>
-  gulp.src(conf.view.dir + conf.view.cssFiles)
-    .pipe(gulp.dest(conf.view.dest))
-);
-
-/*
- * Copy git pre-commit script to git hooks.
+ * Copy the git pre-commit script to git hooks.
  */
 gulp.task('copygitprecommit', () =>
   gulp.src('./scripts/git/pre-commit')
