@@ -74,7 +74,7 @@
   "dependencies": {
     "@salesforce/refocus-collector": "^1.2.1",
     "@salesforce/refocus-logging-client": "^1.0.11",
-    "adm-zip": "0.4.11",
+    "adm-zip": "0.5.2",
     "autoprefixer": "^6.0.3",
     "babel-core": "^6.26.3",
     "babel-eslint": "^6.0.4",
