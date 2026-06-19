@@ -20,7 +20,7 @@ const path = 'v1/verify';
 
 const unauthorizedErr = new Error('Access denied');
 unauthorizedErr.name = 'Unauthorized';
-unauthorizedErr.explanation = 'Unauthorized';
+unauthorizedErr.explanation = 'Unauthorized IP Address';
 unauthorizedErr.status = 401;
 
 /**
