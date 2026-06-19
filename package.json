@@ -182,7 +182,7 @@
     "throng": "4.0.0",
     "uglifyify": "^3.0.4",
     "underscore": "^1.9.1",
-    "validator": "^4.0.2",
+    "validator": "^13.7.0",
     "vinyl-source-stream": "^1.1.0",
     "webpack": "^1.12.10",
     "webpack-hot-middleware": "^2.24.3"
