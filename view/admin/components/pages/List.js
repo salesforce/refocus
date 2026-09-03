@@ -120,7 +120,7 @@ class List extends React.Component {
     const resource = goToUrl.substr(ONE);
     const propertyMetaData = createFields[resource];
     const formObj = getFormData(formOutput, valueType, propertyMetaData);
-    // If validation passes, proceeed with HTTP request
+    // If validation passes, proceed with HTTP request
     this.processData(propertyMetaData, formObj, goToUrl);
   }
 
