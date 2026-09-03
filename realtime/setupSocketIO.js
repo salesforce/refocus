@@ -84,7 +84,7 @@ function init(io, redisStore) {
   io.sockets.on('connection', (socket) => {
     // check if connection has a "cookie" for authentication
     if (socket.handshake.headers.cookie) {
-      // Pull the sesssion id off the cookie.
+      // Pull the session id off the cookie.
       const sidMatch = SID_REX.exec(socket.handshake.headers.cookie);
       if (!sidMatch || sidMatch.length < 2) {
         // disconnecting socket -- expecting session id in cookie header

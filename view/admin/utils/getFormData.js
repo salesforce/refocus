@@ -193,7 +193,7 @@ function getFormData(form, aspectRangeFormat, propertyMetaData) {
  * Check whether the given string matches the given pattern.
  * @param {String} string The string to check
  * @param {String} pattern The regexp to check
- * @returns {Boolean}} true if string match pattern, false otherwise
+ * @returns {Boolean} true if string matches pattern, false otherwise
  */
 function checkStringForPattern(string, pattern) {
   const patt = new RegExp(pattern);

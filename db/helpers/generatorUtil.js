@@ -19,11 +19,11 @@ const Op = require('sequelize').Op;
 /**
  * Function to validate the context field of the sample generator based on the
  * contextDefinition field of its related generator template.
- * @param  {Object} sgCtx - The generator context object     [description]
+ * @param  {Object} sgCtx - The generator context object
  * @param  {Object} sgtCtxDef - The related sample generator template context
  * definition object
- * @throws {MissingRequiredFieldrror} If the generator context field does not
- * have the attributes that are required by the context definiton field of the
+ * @throws {MissingRequiredFieldError} If the generator context field does not
+ * have the attributes that are required by the context definition field of the
  * sample generator template
  * @throws {ValidationError} If the number of keys in the generator context do
  * not match the number of keys in the generator template context.
@@ -56,7 +56,7 @@ function validateGeneratorCtx(sgCtx, sgtCtxDef) {
  *
  * @param {String} subjectQuery string
  * @return {String} returns Subject Query
- * @throws {ValidationError} Throw an error if subjectQuery fails following
+ * @throws {ValidationError} Throws an error if subjectQuery fails following
  * criteria:
  * 1. subjectQuery must start with "?"
  * 2. subjectQuery must be longer than 6 characters
